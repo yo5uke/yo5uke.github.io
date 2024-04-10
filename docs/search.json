@@ -1,0 +1,86 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Home",
+    "section": "",
+    "text": "こんにちは！ 経済学系の大学院生です。\n学んだTipsなどをまとめていきたいと思います。"
+  },
+  {
+    "objectID": "tips.html",
+    "href": "tips.html",
+    "title": "Tips",
+    "section": "",
+    "text": "開発環境\n\n\n\n最終更新日：2024年04月10日\n\nUbuntu 22.04\nR version 4.1.2 (2021-11-01)\nRStudio 2023.12.1+402 (Ocean Storm) for Ubuntu Jammy\n\n\n\n\n\n\n\n\n\n\n\n  \n\n\n\n\nR MarkdownでPDF出力\n\n\n\n\n\n\n\nR\n\n\nR Markdown\n\n\nQuarto\n\n\n\n\n\n\n\n\n\n\n\n2024/03/29\n\n\n\n\n\n\n一致なし"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html",
+    "href": "tips/240329_rmarkdown_pdf/index.html",
+    "title": "R MarkdownでPDF出力",
+    "section": "",
+    "text": "「レポートでR Markdown、使ってますか？」\nこんにちは。\n大学生、大学院生の方で、Rを使う授業のレポートを作ったりする方はR Markdown使うことが多いかもしれません。\nしかし、私の周りではPDF出力で結構困っている人がいたのでここでまとめます。\n環境構築、\\(\\LaTeX\\) については詳しく書かないので、そこは他のサイトなどを参照してください。\n目標はとりあえずPDFで出力することです。\nターゲット"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html#事前準備",
+    "href": "tips/240329_rmarkdown_pdf/index.html#事前準備",
+    "title": "R MarkdownでPDF出力",
+    "section": "事前準備",
+    "text": "事前準備\n以下をRのコンソールで実行してください。\n\n# TinyTeXパッケージをインストール\n# インストール済みの方は省略\ninstall.packages('tinytex')\n\n\n# TinyTeXのインストール\ntinytex::install_tinytex()\ntinytex::tlmgr_install('ipaex')\n\nフォントであるipaexの部分はharanoajiなど他の選択肢もあります。\n\n# bookdownパッケージのインストール（任意）\n# インストール済みの方は省略。\ninstall.packages('bookdown')"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html#yamlヘッダの設定",
+    "href": "tips/240329_rmarkdown_pdf/index.html#yamlヘッダの設定",
+    "title": "R MarkdownでPDF出力",
+    "section": "YAMLヘッダの設定",
+    "text": "YAMLヘッダの設定\nヘッダの部分を以下のように変更してください。\n---\ntitle: \"タイトル\"\nauthor: \"筆者\"\ndate: 2024-04-10\noutput: \n  bookdown::pdf_document2:\n    latex_engine: xelatex\n    toc: false\n    number_section: true\n    keep_tex: true\nheader-includes: \n  - \\usepackage{bookmark} \n  - \\usepackage{xltxtra} \n  - \\usepackage{zxjatype} \n  - \\usepackage[ipaex]{zxjafont}\n---\nbookdown::pdf_document2の部分はpdf_documentでもいけます（後述）。 以上を設定出来たら、knitしてください。 無事PDFファイルが出力されるはずです！"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html#事前準備-1",
+    "href": "tips/240329_rmarkdown_pdf/index.html#事前準備-1",
+    "title": "R MarkdownでPDF出力",
+    "section": "事前準備",
+    "text": "事前準備\nR Markdownと同じです。"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html#yamlヘッダ",
+    "href": "tips/240329_rmarkdown_pdf/index.html#yamlヘッダ",
+    "title": "R MarkdownでPDF出力",
+    "section": "YAMLヘッダ",
+    "text": "YAMLヘッダ\n---\ntitle: \"タイトル\"\nauthor: \"筆者\"\ndate: 2024-04-10\nformat: \n  pdf: \n    documentclass: article\n    keep-tex: true\n    include-in-header: \n      - text: | \n          \\usepackage{bookmark} \n          \\usepackage{xltxtra} \n          \\usepackage{zxjatype} \n          \\usepackage[ipaex]{zxjafont} \nnumber-sections: true\n---\nやっていることはほとんどR Markdownの場合と同じですが、書き方は異なります。"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html#global-options",
+    "href": "tips/240329_rmarkdown_pdf/index.html#global-options",
+    "title": "R MarkdownでPDF出力",
+    "section": "Global Options",
+    "text": "Global Options\n後々困らないよう設定を行います。\n\n上部にあるToolsからGlobal Options...→Sweaveと進む\nTypeset LaTeX into PDF usingをXeLaTeXに変更\nUse tinytex when compiling .tex filesにチェック\n\nこれで前述の設定と整合的になります。"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html#sec-bookdown",
+    "href": "tips/240329_rmarkdown_pdf/index.html#sec-bookdown",
+    "title": "R MarkdownでPDF出力",
+    "section": "bookdown::pdf_document2",
+    "text": "bookdown::pdf_document2\nR Markdownのヘッダにおいて、pdf_documentではなくbookdown::pdf_document2を使用するのには理由があります。\nそれは相互参照を使うためです。\n例えば、\n\nplot(cars)\n\n\n\n\n図 1: データのプロット\n\n\n\n\nこのプロットを、文中で引用したいとします。\n「図1：データのプロット」などと書き、「図1から～」と引用していたとすると、その前に別の図を入れる必要が出てきた場合に、全て1つずつ変更していくのは手間がかかります。\nそこで相互参照を用いれば、自動で番号を振って、自由に引用できるようになるわけです。\n以下はR Markdown クックブックから引用したサンプルコードです。\n\n図 \\@ref(fig:cars-plot) を見よ.\n\n```{r cars-plot, fig.cap=\"自動車のデータ\", echo=FALSE}\npar(mar = c(4, 4, .2, .1))\nplot(cars)  # a scatterplot\n```\n\n次に数式\\@ref(eq:mean) を見よ.\n\n\\begin{equation}\n\\bar{X} = \\frac{\\sum_{i=1}^n X_i}{n} (\\#eq:mean)\n\\end{equation}\n\nさらに表 \\@ref(tab:mtcars) を見よ.\n\n```{r mtcars, echo=FALSE}\nknitr::kable(mtcars[1:5, 1:5], caption = \"mtcars データ\")\n```\n\n{r cars-plot, fig.cap=\"自動車のデータ\", echo=FALSE}のcars-plotの部分がチャンク名です1。 同様にmtcarsもチャンク名なわけですが、\\@ref()を用いれば該当する図や表、数式を引用できます。\n先ほどのプロットを\\@ref()を使って引用してみると、図 1 となるわけです2。\n注意点は、\\@ref()の中で図ならfig:、表ならtab:、数式ならeq:と始めないと引用できない点です。"
+  },
+  {
+    "objectID": "tips/240329_rmarkdown_pdf/index.html#footnotes",
+    "href": "tips/240329_rmarkdown_pdf/index.html#footnotes",
+    "title": "R MarkdownでPDF出力",
+    "section": "脚注",
+    "text": "脚注\n\n\n他の部分はチャンクオプションと呼ばれるものですが、今回は触れません。↩︎\nちなみにQuartoでは、チャンク名をfig-hogehogeやtbl-hogehogeなどにすれば、@fig-hogehogeや@tbl-hogehogeだけで簡単に引用できます↩︎"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "Contact: yo5uke.abe [at] outlook.jp"
+  },
+  {
+    "objectID": "about.html#学歴",
+    "href": "about.html#学歴",
+    "title": "About",
+    "section": "学歴",
+    "text": "学歴\n\n千葉大学 法政経学部 法政経学科\n\n2019年4月 - 2023年3月\n\n大阪大学大学院 国際公共政策研究科\n\n2023年4月 - （在学中）"
+  }
+]
