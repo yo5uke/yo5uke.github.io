@@ -1,0 +1,202 @@
+---
+title: "R MarkdownでPDF出力"
+date: 2024-03-29
+date-modified: last-modified
+categories: 
+  - R
+  - R Markdown
+  - Quarto
+---
+
+「レポートでR Markdown、使ってますか？」
+
+こんにちは。
+
+大学生、大学院生の方で、Rを使う授業のレポートを作ったりする方はR Markdown使うことが多いかもしれません。
+
+しかし、私の周りではPDF出力で結構困っている人がいたのでここでまとめます。
+
+環境構築、$\LaTeX$ については詳しく書かないので、そこは他のサイトなどを参照してください。
+
+目標は**とりあえずPDFで出力すること**です。
+
+<br>
+
+**ターゲット**
+
+ - Rの経験が浅くR MarkdownやQuartoに馴染みがない方
+ 
+ - R Markdownを使っているが、PDF出力の仕方に困っている方
+
+ <br>
+
+# 結論（R Markdown）
+
+## 事前準備
+
+以下をRのコンソールで実行してください。
+
+```{r}
+#| eval: false
+
+# TinyTeXパッケージをインストール
+# インストール済みの方は省略
+install.packages('tinytex')
+```
+
+```{r}
+#| eval: false
+
+# TinyTeXのインストール
+tinytex::install_tinytex()
+tinytex::tlmgr_install('ipaex')
+```
+
+フォントであるipaexの部分はharanoajiなど他の選択肢もあります。
+
+```{r}
+#| eval: false
+
+# bookdownパッケージのインストール（任意）
+# インストール済みの方は省略。
+install.packages('bookdown')
+```
+
+## YAMLヘッダの設定
+
+ヘッダの部分を以下のように変更してください。
+
+```markdown
+---
+title: "タイトル"
+author: "筆者"
+date: `r Sys.Date()`
+output: 
+  bookdown::pdf_document2:
+    latex_engine: xelatex
+    toc: false
+    number_section: true
+    keep_tex: true
+header-includes: 
+  - \usepackage{bookmark} 
+  - \usepackage{xltxtra} 
+  - \usepackage{zxjatype} 
+  - \usepackage[ipaex]{zxjafont}
+---
+```
+
+`bookdown::pdf_document2`の部分は`pdf_document`でもいけます（[後述](#sec-bookdown)）。
+以上を設定出来たら、knitしてください。
+無事PDFファイルが出力されるはずです！
+
+# 結論（Quarto）
+
+## 事前準備
+
+[R Markdown](#事前準備)と同じです。
+
+## YAMLヘッダ
+
+```markdown
+---
+title: "タイトル"
+author: "筆者"
+date: `r Sys.Date()`
+format: 
+  pdf: 
+    documentclass: article
+    keep-tex: true
+    include-in-header: 
+      - text: | 
+          \usepackage{bookmark} 
+          \usepackage{xltxtra} 
+          \usepackage{zxjatype} 
+          \usepackage[ipaex]{zxjafont} 
+number-sections: true
+---
+```
+
+やっていることはほとんどR Markdownの場合と同じですが、書き方は異なります。
+
+# 詳細
+
+## Global Options
+
+後々困らないよう設定を行います。
+
+1. 上部にある`Tools`から`Global Options...`→`Sweave`と進む
+
+2. `Typeset LaTeX into PDF using`を`XeLaTeX`に変更
+
+3. `Use tinytex when compiling .tex files`にチェック
+
+これで前述の設定と整合的になります。
+
+## bookdown::pdf_document2 {#sec-bookdown}
+
+R Markdownのヘッダにおいて、`pdf_document`ではなく`bookdown::pdf_document2`を使用するのには理由があります。
+
+それは**相互参照を使うため**です。
+
+例えば、
+
+```{r}
+#| label: fig-plot-cars
+#| fig-cap: "データのプロット"
+
+plot(cars)
+```
+
+このプロットを、文中で引用したいとします。
+
+「図1：データのプロット」などと書き、「図1から～」と引用していたとすると、その前に別の図を入れる必要が出てきた場合に、全て1つずつ変更していくのは手間がかかります。
+
+そこで相互参照を用いれば、自動で番号を振って、自由に引用できるようになるわけです。
+
+以下は[R Markdown クックブック](https://gedevan-aleksizde.github.io/rmarkdown-cookbook/cross-ref.html)から引用したサンプルコードです。
+
+````{r}
+#| eval: false
+
+図 \@ref(fig:cars-plot) を見よ.
+
+```{r cars-plot, fig.cap="自動車のデータ", echo=FALSE}
+par(mar = c(4, 4, .2, .1))
+plot(cars)  # a scatterplot
+```
+
+次に数式\@ref(eq:mean) を見よ.
+
+\begin{equation}
+\bar{X} = \frac{\sum_{i=1}^n X_i}{n} (\#eq:mean)
+\end{equation}
+
+さらに表 \@ref(tab:mtcars) を見よ.
+
+```{r mtcars, echo=FALSE}
+knitr::kable(mtcars[1:5, 1:5], caption = "mtcars データ")
+```
+````
+
+`{r cars-plot, fig.cap="自動車のデータ", echo=FALSE}`の`cars-plot`の部分がチャンク名です^[他の部分はチャンクオプションと呼ばれるものですが、今回は触れません。]。
+同様に`mtcars`もチャンク名なわけですが、`\@ref()`を用いれば該当する図や表、数式を引用できます。
+
+先ほどのプロットを`\@ref()`を使って引用してみると、@fig-plot-cars となるわけです^[ちなみにQuartoでは、チャンク名を`fig-hogehoge`や`tbl-hogehoge`などにすれば、`@fig-hogehoge`や`@tbl-hogehoge`だけで簡単に引用できます]。
+
+注意点は、`\@ref()`の中で図なら`fig:`、表なら`tab:`、数式なら`eq:`と始めないと引用できない点です。
+
+# おわりに
+
+レポートでしたら相互参照はそこまで使用頻度が高くないかもしれませんが、卒論や修論では役に立つと思います。
+
+とりあえずPDF出力したい方、ご参考まで！
+
+
+# 参考
+
+- [R Markdown クックブック](https://gedevan-aleksizde.github.io/rmarkdown-cookbook/)
+
+- [Quarto 公式ガイド](https://quarto.org/docs/guide/)
+
+- [私たちのR](https://www.jaysong.net/RBook/)
+
