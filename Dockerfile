@@ -41,6 +41,10 @@ ENV PATH $PATH:~/.pip/bin
 
 RUN pip install ipykernel jupyter
 
+RUN wget -O quarto.deb "https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.553/quarto-1.4.553-linux-amd64.deb" && \
+    dpkg -i quarto.deb && \
+    rm quarto.deb
+
 # Package Cahce & Permission
 RUN cd /home/rstudio && mkdir .pip .cache .cache/R .cache/R/renv .TinyTeX .julia && \
     chown rstudio:rstudio .pip .cache .cache/R .cache/R/renv .TinyTeX .julia
