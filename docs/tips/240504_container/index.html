@@ -241,6 +241,7 @@ window.Quarto = {
   <li><a href="#データの管理" id="toc-データの管理" class="nav-link" data-scroll-target="#データの管理">データの管理</a></li>
   <li><a href="#julia-のパッケージ" id="toc-julia-のパッケージ" class="nav-link" data-scroll-target="#julia-のパッケージ">Julia のパッケージ</a></li>
   <li><a href="#github-にコミットプッシュ" id="toc-github-にコミットプッシュ" class="nav-link" data-scroll-target="#github-にコミットプッシュ">GitHub にコミット、プッシュ</a></li>
+  <li><a href="#github-からプル" id="toc-github-からプル" class="nav-link" data-scroll-target="#github-からプル">GitHub からプル</a></li>
   </ul></li>
   <li><a href="#環境構築まとめ" id="toc-環境構築まとめ" class="nav-link" data-scroll-target="#環境構築まとめ">環境構築まとめ</a></li>
   <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
@@ -299,6 +300,7 @@ window.Quarto = {
 <section id="事前準備" class="level1">
 <h1>事前準備</h1>
 <p>まず、WSL2, Ubuntu, VSCode, Docker, Git, そして GitHub の準備をします。</p>
+<p>ホスト側、共同作業者ともに事前準備が必要です。</p>
 <section id="wsl2" class="level2">
 <h2 class="anchored" data-anchor-id="wsl2">WSL2</h2>
 <ol type="1">
@@ -715,14 +717,27 @@ window.Quarto = {
 </ol>
 <p>以上の作業で GitHub レポジトリにコミット、プッシュができました。</p>
 <p>ブラウザからレポジトリを確認してみてください。ファイルがアップロードされているはずです<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。</p>
+</section>
+<section id="github-からプル" class="level2">
+<h2 class="anchored" data-anchor-id="github-からプル">GitHub からプル</h2>
+<p>また、A さんが GitHub にプッシュした後に B さんが作業をする場合、B さんはプルすることで最新の状態に更新できます。</p>
+<ol type="1">
+<li><p>VSCode の画面左、（デフォルトでは）上から3番目のアイコンをクリック</p></li>
+<li><p>「ソース管理」の右にある「…」から「プル」を選択</p></li>
+</ol>
+<p>これで最新の状態に更新されます。互いにコミット、プッシュ、プルを繰り返すことで、共同作業が可能です。</p>
 <p>以上がワークフローです。お疲れ様でした！</p>
 </section>
 </section>
 <section id="環境構築まとめ" class="level1">
 <h1>環境構築まとめ</h1>
 <p>作業フローは、<del>超適当にまとめると</del>次のようになります。</p>
+<p>&lt;ホスト&gt;</p>
 <ol start="0" type="1">
-<li><p>必要なソフト等をインストール</p></li>
+<li><p>必要なソフト等をインストールし、事前準備を行う。</p>
+<ul>
+<li>WSL2, Ubuntu, VSCode, Docker, Git, GitHub</li>
+</ul></li>
 <li><p>GitHub でレポジトリをインポート、クローン</p></li>
 <li><p>RStudio Server でプロジェクトを作成</p>
 <ul>
@@ -736,6 +751,25 @@ window.Quarto = {
 </ul></li>
 <li><p>VSCode 上でコミット、プッシュ</p></li>
 </ol>
+<p>&lt;共同作業者&gt;</p>
+<ol start="0" type="1">
+<li><p>必要なソフト等をインストールし、事前準備を行う。</p>
+<ul>
+<li>WSL2, Ubuntu, VSCode, Docker, Git, GitHub</li>
+</ul></li>
+<li><p>GitHub でレポジトリをクローン</p></li>
+<li><p>RStudio Server でプロジェクトを開く</p>
+<ul>
+<li><code>renv::restore()</code> でパッケージをインストール</li>
+</ul></li>
+<li><p><code>dvc pull</code> でデータをダウンロード</p></li>
+<li><p>VSCode 上でコミット、プッシュ</p></li>
+</ol>
+<p>&lt;作業中&gt;</p>
+<ul>
+<li><p>GitHub にコミット、プッシュ、プルを繰り返す。</p></li>
+<li><p>データも新たに追加した場合、DVC で add, push, pull を行う。</p></li>
+</ul>
 </section>
 <section id="おわりに" class="level1">
 <h1>おわりに</h1>
@@ -755,11 +789,11 @@ window.Quarto = {
 </section>
 
 
-<a onclick="window.scrollTo(0, 0); return false;" role="button" id="quarto-back-to-top"><i class="bi bi-arrow-up"></i> トップに戻る</a><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">脚注</h2>
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">脚注</h2>
 
 <ol>
 <li id="fn1"><p>余談ですが、<code>renv::init()</code> のように <code>パッケージ名::関数</code> のような書き方をすれば、<code>library(パッケージ名)</code> をせずとも関数を使えます。1度だけ使いたいようなときに便利です。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>データは Google Drive に上げているので GitHub レポジトリにはありません。<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>データは Google Drive に上げているので GitHub レポジトリにデータはありません。<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
