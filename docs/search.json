@@ -14,7 +14,7 @@
     "href": "tips.html",
     "title": "Tips",
     "section": "",
-    "text": "開発環境\n\n\n\n最終更新日：2024年05月06日\n\nUbuntu 22.04\nR version 4.3.2 (2023-10-31)\nRStudio 2023.12.0+369 (Ocean Storm) for Ubuntu Jammy\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nR でGIS を動かす【ハンドリング】\n\n\n\n\n\n\nR\n\n\nGIS\n\n\n\n\n\n\n\n\n\n2024/05/07\n\n\n\n\n\n\n\n\n\n\n\n\n【Windows】開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\nR\n\n\nDocker\n\n\nUbuntu\n\n\nVSCode\n\n\n\n\n\n\n\n\n\n2024/05/06\n\n\n\n\n\n\n\n\n\n\n\n\n政令指定都市・中核市の整理\n\n\n\n\n\n\nR\n\n\n便利\n\n\n\n\n\n\n\n\n\n2024/04/14\n\n\n\n\n\n\n\n\n\n\n\n\nR MarkdownでPDF出力\n\n\n\n\n\n\nR\n\n\nR Markdown\n\n\nQuarto\n\n\n\n\n\n\n\n\n\n2024/03/29\n\n\n\n\n\n\n一致なし",
+    "text": "開発環境\n\n\n\n最終更新日：2024年05月06日\n\nUbuntu 22.04\nR version 4.3.2 (2023-10-31)\nRStudio 2023.12.0+369 (Ocean Storm) for Ubuntu Jammy\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R パッケージ】インストールも読み込みも一撃で？【pacman】\n\n\n\n\n\n\nR\n\n\n便利\n\n\n\n\n\n\n\n\n\n2024/05/08\n\n\n\n\n\n\n\n\n\n\n\n\n【Jupyter】Quarto で Jupyter Notebook を使ってみる\n\n\n\n\n\n\nQuarto\n\n\nPython\n\n\nUbuntu\n\n\nVSCode\n\n\n\n\n\n\n\n\n\n2024/05/08\n\n\n\n\n\n\n\n\n\n\n\n\nR でGIS を動かす【ハンドリング】\n\n\n\n\n\n\nR\n\n\nGIS\n\n\n\n\n\n\n\n\n\n2024/05/07\n\n\n\n\n\n\n\n\n\n\n\n\n【Windows】開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\nR\n\n\nDocker\n\n\nUbuntu\n\n\nVSCode\n\n\n\n\n\n\n\n\n\n2024/05/06\n\n\n\n\n\n\n\n\n\n\n\n\n政令指定都市・中核市の整理\n\n\n\n\n\n\nR\n\n\n便利\n\n\n\n\n\n\n\n\n\n2024/04/14\n\n\n\n\n\n\n\n\n\n\n\n\nR MarkdownでPDF出力\n\n\n\n\n\n\nR\n\n\nR Markdown\n\n\nQuarto\n\n\n\n\n\n\n\n\n\n2024/03/29\n\n\n\n\n\n\n一致なし",
     "crumbs": [
       "Tips"
     ]
@@ -340,5 +340,33 @@
     "title": "R でGIS を動かす【ハンドリング】",
     "section": "抽出",
     "text": "抽出\n次に、sta_tohoku_c を用いて、福島県と交差する（含まれる）駅を抽出します。\n交差する地物を抽出するためには、sf::st_intersects() もしくは sf::st_intersection() を用います。\n正直後者の方がシンプルなのですが、両者には次のような違いがあります。\n\nst_intersects(): 2つのジオメトリが交差するかどうかの論理判定（TRUE/FALSEやインデックスのリスト）を返す\nst_intersection(): 交差部分のジオメトリそのものを新しいオブジェクトとして返します。\n\n何やら難しいので、わかんなくて困ったら後者を使っておけばよいのではないでしょうか3。\nコードは以下のようになります。\n\nsta_07_a &lt;- sta_tohoku_c |&gt; \n  filter(\n    row_number() %in% \n      st_intersects(fukushima, sta_tohoku_c) |&gt; \n      unlist()\n  )\n\n\nsta_07_b &lt;- st_intersection(fukushima, sta_tohoku_c)\n\n\n\n\n\n\n\n1つ目の方法について\n\n\n\n\n\n1つ目は大変複雑ですね。プロセスを紐解くと次のようになります。\n\nsta_tohoku_c から抽出するので、sta_tohoku_c からスタート\n抽出するので dplyr::filter() を使用\nsf::st_intersects() で、fukushima と重なる sta_tohoku_cを抽出\nsf::st_intersects() はリスト形式で結果を返すので、unlist() を用いてリスト形式を解除\nsta_tohoku_c の行番号と照らし合わせ、返ってきた結果と同じもののみ抽出\n\n\n\n\n結果は次のようになります。\n\n\n\n\n表 2: st_intersects() を用いた場合\n\n\n\n\n\n\n\n\n\n\n路線名\n駅名\ngeometry\n\n\n\n\n東北新幹線\n福島\nc(140.458612067603, 37.7540599673619)\n\n\n東北新幹線\n郡山\nc(140.388619989856, 37.3986200007428)\n\n\n東北新幹線\n新白河\nc(140.188827537169, 37.1233084742238)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n表 3: st_intersection() を用いた場合\n\n\n\n\n\n\n\n\n\n\nN03_001\nN03_002\nN03_003\nN03_004\nN03_005\nN03_007\n路線名\n駅名\ngeometry\n\n\n\n\n福島県\nNA\nNA\n福島市\nNA\n07201\n東北新幹線\n福島\nc(140.458612067603, 37.7540599673619)\n\n\n福島県\nNA\nNA\n郡山市\nNA\n07203\n東北新幹線\n郡山\nc(140.388619989856, 37.3986200007428)\n\n\n福島県\nNA\n西白河郡\n西郷村\nNA\n07461\n東北新幹線\n新白河\nc(140.188827537169, 37.1233084742238)\n\n\n\n\n\n\n\n\n\n\n\n2つ目のやり方の方が少しごちゃっとしたデータとして返ってきました。\nめんどくさいけどクリーンな方か、簡単だけど煩雑な方か、お好みで使ってみてください。"
+  },
+  {
+    "objectID": "tips/240507_pacman/index.html",
+    "href": "tips/240507_pacman/index.html",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
+    "section": "",
+    "text": "install.packages() はもう不要！"
+  },
+  {
+    "objectID": "tips/240507_pacman/index.html#library",
+    "href": "tips/240507_pacman/index.html#library",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
+    "section": "library()",
+    "text": "library()\nまず、インストールします。\n\ninstall.packages(\"tidyverse\")\ninstall.packages(\"sf\")\ninstall.packages(\"here\")\n\n次に、読み込みます。\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.1\n✔ ggplot2   3.5.1     ✔ tibble    3.2.1\n✔ lubridate 1.9.3     ✔ tidyr     1.3.1\n✔ purrr     1.0.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nlibrary(here)\n\nhere() starts at /home/rstudio/work\n\n\nこれで使えるようになりました。"
+  },
+  {
+    "objectID": "tips/240507_pacman/index.html#p_load",
+    "href": "tips/240507_pacman/index.html#p_load",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
+    "section": "p_load()",
+    "text": "p_load()\npacman::p_load() はこれで一発です。\n\npacman::p_load(tidyverse, sf, here)\n\nこの場合、上に出てきたような読み込みに付随するメッセージは出てきません。"
+  },
+  {
+    "objectID": "tips/240507_pacman/index.html#footnotes",
+    "href": "tips/240507_pacman/index.html#footnotes",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
+    "section": "脚注",
+    "text": "脚注\n\n\nこの書き方では、library() を使わずともパッケージ内の関数が使えます。一度だけ使いたい！というときに便利です。また、どのパッケージに属しているかが明確になるというメリットもあります。↩︎\nこちらを参照↩︎"
   }
 ]
