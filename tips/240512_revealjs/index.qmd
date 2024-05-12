@@ -1,0 +1,387 @@
+---
+title: "【Quarto】使い方解説！Reveal.js でスライドを作ろう"
+date: 2024-05-12
+format: html
+categories: 
+    - Quarto
+    - Reveal.js
+    - R
+---
+
+スライドも Quarto で作れちゃう？
+
+# はじめに
+
+皆さん、スライドを作るときに何を使っていますか？PowerPoint ですか？$\LaTeX$ の Beamer ですか？
+
+[こちらの記事](https://yo5uke.github.io/tips/240512_beamer/)で Reveal.js を使ったスライドをご紹介しましたが、今回はスライドを作る上での tips をご紹介します。
+
+今回は Quarto の使い方と併せて、スライドの作り方を書いていこうと思います。
+
+# 準備
+
+::: {.callout-note title="Note"}
+この記事は R ユーザーをターゲットに書いています。しかし、Quarto は多言語でも使えるのがメリットなので、もちろん Python などでも使うことができます。
+
+今回は RStudio で使うことを前提としますが、Python でも使いたいという方は[こちらの記事](https://yo5uke.github.io/tips/240508_jupyter/)を参考に VSCode で始めてみてください。コードの書き方はこの記事と同じです。
+:::
+
+細かいことは、Quarto の[公式ガイド](https://quarto.org/docs/guide/)をお読みください。この記事では、とりあえずこれができればいいかな、というところをピックアップして解説します。
+
+## ドキュメントを開く
+
+RStudio を開き、任意のディレクトリをワーキングディレクトリとして設定します。
+
+RStudio 左上の ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAkCAYAAADl9UilAAACvElEQVR4Xu2XTWgTQRSA0/wo4k9VghH14MWzB+9S0YMHbxJBsZDdTdJS3aTBghQPKRRUrF6EWIpNtjSKGo0XTS96CA00CUVpmqot2tLGHvTSNDYFE0jGfUkj4bn52e0EL/vBO+3MvI+Zt29nNRoVlf/BQ36nTrB0tvmYYJvALGsEJg+h9TEp/SgT3DvMsedu2tvNZrMOT20dXvaiKLEqBqkXouQPo4e1dfb17Xa73Vq8DD0CZp1WsNzDAo3i/LM7a6Fw9FM4lpidnE4mlEQknryFdf4i7sAQTgqBwc8h7O8fk0zmFykUCnh4U4Ac9ilTPr5/EjYrBuGJT5CNjSwpFot4SkOkxQLmHZo6NYXBzytx6AlPFldWyO9cDk9piKSYzsdcxUmUiEHcDr8ka+m07COVFBNbwmucQKnYmVeDJPV9leRk7pq0mMCkakk0S2W+yc+TL/MLJJvdxEPqIimmKTdPKmL6MY7MJJJkPZPBQ+pSS2yTptiHjzOlOpODpJjYVJdoiZn81+mJ6b3sm8rCUoHBz6vj9IsBeke5Z4TrwgmUivWHBHrF3+Hu3Q8fZJxErphx/BoJT0XptQu4usAtASeSKzYQGieJ2Tl6DRaAq8u+YW4MJ2tW7FLwPonFp0u7Re2TBMB96rLTaWp/xD3FSRsFSEWiMfJtcYnyR3wLUU5vtTpNxx/Y+g2jbM2aq8QRv4O4xeODnQKp1lx7tgA5u/2G8YrDcerEkO3uAQ83ZfCyP8WXI2fwccWjfic5Gxgk7gk/mRR3KZGcKx0f7JRSKaChGADHCjVn5fljbBd/0trd22Hrdl4YEZ4vQ/OEAp9f+FoSgkKHmlJyfNU0JVYB3laXy7WL41wHLT09h9++i3xOp9dLzRP6VD6f39YuVSNLDAOT8YK0UMXkoorJZVti8FMKC7Qi6v7wqqi0iD86M3fnY/LjkAAAAABJRU5ErkJggg==) より、「Quarto Document」を選択してください。
+
+さらに「Presentation」を選び、タイトル、著者名を必要に応じて付け、Reveal JS を選びます。エンジンは Knitr^[Python の場合は Jupyter]、Use visual markdown editor はオフにしておいてください。
+
+最後に Create を押します。
+
+すると、次のようなヘッダーだけがある文書が出てくると思います。
+
+```{.yml filename="Quarto"}
+---
+title: "[任意のタイトル]"
+format: revealjs
+---
+```
+
+これでドキュメントは無事開けました。そしたら ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAkCAYAAAD7PHgWAAABBklEQVR4Xu2XMQrCQBBFBQvR6wgJHsEDpHVjBDvvoBhbI3bWCkZbFUyhFrYiEat0WgmC6AVkdQqbIVmWZAOi82C64b+/bDWZDEEQP4phTLMaa9d003bTGMgu1psF7JVGNzuWPdzs18GDz443rgrIcndXbvW8g1axGfZKo7P2eBXc+WB74a3FGXtiA1kwzfnpqTF7hL3SwDfAaz+BqvjkwYADe6WhglQwJlQwKVQwKakVTGOoYNL5z4JxwBlUMEwqAu9SwTCpCLxLBcOkIvCusoKT9/WFQ6OkIvCukoJwt5rO0sehUVIReBem6ng+OLBXmnKjn4PbGM5PeKnqgXIlo5vHXoL4Nl4ZYqbbEGA7+wAAAABJRU5ErkJggg==) を押して、任意のフォルダに保存してください。
+
+## テーマ
+
+このままでもスライドは作れますが、味気ないスライドになってしまいますので、テーマを設定します。
+
+テーマは、先ほどのヘッダーを次のように書き加えることで使うことができます。
+
+```{.yml filename="Quarto"}
+---
+title: "[任意のタイトル]"
+format: 
+  revealjs: 
+    theme: night  # この部分を変える
+---
+```
+
+もとのヘッダーと変えた時のヘッダーでそれぞれ ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABbElEQVRYhe3WP0scURSH4WdnNyGIlQS/gGyXMkG0Fi2SwmotExBBSLNFUoSgWNit2FvIFoKFRYoQC3HtQ/ALiFilFASLBBI2f4pZYRxmZyfO7izB/cHlztxz7jkvw5xzLyONdN9VentwnjfGKp5gHVdZNzVqVRDkzY4NvMZnTP3r5n4ATHbmagdipmiAUuT5MVpYKBIgrjF8RG1YAPAQ+1jJAlAVEl/jT2xIWIvbu6mMHbxJc6pgD9O9SO+oEhqYwHsJ0AGeDih5VO/QxIMkgHIBAPASnzAeByhS8zjCo2EBwCzqNy8VtxtJkvLaUxXoXWZ57N3GchSgaB0LK2IoAC0s4ncUoF1Q8g94ju/RxQCnBSRvCg+nn3FDgFc4wY8BJd8W/nS/kowVnGEuJUCeMlvDZppDJUfwNLWFd8XdXo6DAPiGJRxmce4HQDsS5xIv8CXr5n70ga+d+ULY5zMnpz9foI5n2BLeqv4v/QUmf1bR1/DM0QAAAABJRU5ErkJggg==) Render してみてください。
+
+ちなみに、Quarto 公式では、以下のようなテーマが紹介されています。
+
+:::: {.columns}
+::: {.column width="30%"}
+- `beige`
+
+- `blood`
+
+- `dark`
+
+- `default`
+
+- `league`
+
+- `moon`
+:::
+
+::: {.column width="70%"}
+
+- `night`
+
+- `serif`
+
+- `simple`
+
+- `sky`
+
+- `solarized`
+:::
+::::
+
+それぞれ特徴があるので、いろいろ試してみてください。
+
+今回は、私が作成した Reveal.js のテンプレートを使っていきます。現状英語にしか対応していないのが難点ですが、いずれ日本語に対応したものも作る予定です。
+
+[GitHub レポジトリ](https://github.com/yo5uke/modern-revealjs)にアクセスし、クローンするか、`<> Code` より ZIP ファイルをダウンロードしてください^[クローンするほどでもないので、ダウンロードでいいと思います。レポジトリ整えてなくてすみません^^;]。使うのは `modern_theme.scss` です。このファイルを準備し、先ほどのドキュメントを保存したフォルダと同じフォルダに移しておいてください。
+
+そしたらヘッダーを次のように修正してください。
+
+```{.yml filename="Quarto"}
+---
+title: "[任意のタイトル]"
+format: 
+  revealjs: 
+    theme: 
+      - default
+      - modern_theme.scss
+    slide-number: true  # スライド番号を付ける
+    date-format: long   # 日付のフォーマットを整える
+---
+```
+
+これでテーマの設定もできました。
+
+# Quarto での書き方
+
+## 表紙
+
+表紙はヘッダーに書いた要素で構成されます。`title` の他には、`author`（著者）や `date`（日付）、 `institute`（所属組織） を追加することを想定しています^[私のテーマの場合]。
+
+## 本スライド
+
+スライドでは、`##` を使ってページを区切っていきます^[`#` も使えるのですが、今回のテーマでの使用は想定していません。]。
+
+例えば次のように書きます。
+
+```{.markdown filename="Quarto"}
+---
+title: "Title"
+subtitle: 
+format: 
+  revealjs: 
+    theme: 
+      - default
+      - modern_theme.scss
+    slide-number: true  # スライド番号を付ける
+    date-format: long   # 日付のフォーマットを整える
+---
+
+## First page
+
+"First page" is the headline text. Note that a half-width space is required before the heading.
+
+## Second page
+
+You can break a line by leaving one line blank.
+
+Like this.
+```
+
+`"First page" is ~` と `You can break ~` が本文です。
+
+通常の Markdown と基本的な使い方は一緒ですが、改行するには空行を入れる必要があります。1回改行しただけでは、スライド上では改行されません。見出し部分にも適用されますので、1行空けてから `## 見出し` と書くようにしてください。
+
+<div>
+
+```{=html}
+<iframe class="slide-deck" src="demo/demo1/"></iframe>
+```
+
+</div>
+
+## 色遣い
+
+このテーマは基本的に派手なデザインではありませんが、2色を文字に使えます。[alert]{.alert} と、[accent]{.accent} です。
+
+これらの色にしたい文字や文を `[]` で囲んだ後、`{.alert}` および `{.accent}` と入力します。`[alert]{.alert}` といった感じです。
+
+基本的には alert があれば概ね大丈夫な気がしますが、accent も入れておきました。
+
+## callout
+
+callout ブロックを紹介します。
+
+::: {.callout-note title="Note"}
+これは Note
+:::
+
+::: {.callout-tip title="Tip"}
+これは Tip
+:::
+
+::: {.callout-warning title="Warning"}
+これは Warning
+:::
+
+::: {.callout-important title="Important"}
+これは Important
+:::
+
+::: {.callout-caution title="Caution"}
+これは Caution
+:::
+
+これらのことです。
+
+要点をまとめたいときや、断り事を書きたいときなどに重宝します。
+
+書き方は、
+
+```{.markdown filename="Quarto"}
+::: {.callout-note}
+これは Note
+:::
+
+::: {.callout-tip}
+これは Tip
+:::
+
+::: {.callout-warning}
+これは Warning
+:::
+
+::: {.callout-important}
+これは Important
+:::
+
+::: {.callout-caution}
+これは Caution
+:::
+```
+
+こうです。
+
+ちなみに、ブロックのタイトルを変えたいときや、長いので折りたたみたいときは、
+
+```{.markdown filename="Quarto"}
+::: {.callout-note title="ここがタイトル" collapse=true}
+これは折りたためる Note
+:::
+```
+
+と書くことで、
+
+::: {.callout-note title="ここがタイトル" collapse=true}
+これは折りたためる Note
+:::
+
+とできます。
+
+## リスト
+
+箇条書きなどのリスト形式が使えます。書き方はシンプルで、
+
+```{.markdown filename="Markdon"}
+箇条書きリスト
+
+- Item 1
+
+    - Item 1-1
+    
+- Item2
+
+順序付きリスト
+
+1. Item 1
+
+2. Item 2
+```
+
+箇条書きリストでは2段階を、順序付きリストでは1段階の利用を想定しています。
+
+アイテムの前には半角スペースを忘れないでください。また、2段階目を使うときには4つ分のスペースが必要です。
+
+## 列を分ける
+
+箇条書きを10個も書くと、2列にしたいことがありますよね。そんなときは次のようにしてください。
+
+```{.markdown filename="Quarto"}
+:::: {.columns}
+::: {.column width="50%"}
+- Item 1
+
+- Item 2
+:::
+
+:::{.column width="50%"}
+- Item 3
+
+- Item 4
+:::
+::::
+```
+
+このように書くと、
+
+:::: {.columns}
+::: {.column width="50%"}
+- このように
+
+- なります。
+:::
+
+:::{.column width="50%"}
+- `width` を変えれば
+
+- 列の幅を調節できます。
+:::
+::::
+
+## コード
+
+R や Python のコードも書けます。
+
+特筆すべきは、コードをハイライトできることです。
+
+例えば、次のコードをご覧ください。
+
+<div>
+
+```{=html}
+<iframe class="slide-deck" src="demo/demo2/"></iframe>
+```
+
+</div>
+
+上のコードでは `select()` と `filter()` の行がハイライトされています。
+
+また、スライド上で右に進んでみてください。順にハイライトされています。
+
+これらのコードは、次のように書いています。
+
+````{.markdown filename="Quarto"}
+```{.r code-line-numbers="5-6"}
+library(tidyverse)
+library(gt)
+
+df <- mtcars |> 
+  select(1:5) |> 
+  filter(disp >= 400)
+
+gt(df)
+```
+
+```{.r code-line-numbers="|5|6"}
+library(tidyverse)
+library(gt)
+
+df <- mtcars |> 
+  select(1:5) |> 
+  filter(disp >= 400)
+
+gt(df)
+```
+````
+
+このように `code-line-numbers` で指定することができます。`|5|6` は5行目と6行目が順にハイライトされるということですね。
+
+他にも細やかな設定ができるので、Quarto の[公式ガイド](https://quarto.org/docs/presentations/revealjs/#code-blocks)をご覧ください。
+
+## 図や表
+
+図や表がどのように表示されるのか見てみましょう。
+
+デフォルトでは図のキャプションが左寄りになっていますが、中央になるように修正しています。
+
+また、ここでは例としてコードを載せていますが、デフォルトではコード表示はオフです。表示したい場合はチャンク内で `echo: true` を設定してください^[チャンクオプションについて、詳しくは[こちら](https://yo5uke.github.io/tips/240509_chunk_option/)]。
+
+<div>
+
+```{=html}
+<iframe class="slide-deck" src="demo/demo3/"></iframe>
+```
+
+</div>
+
+# おわりに
+
+ここまで基本的な Quarto でのスライド作成についてご紹介しました。
+
+ここを押さえておけばスライドを作る分には困らないのではないかと…思います。
+
+他に使う要素があれば適宜追加していきます！
+
+
+
+
+
+
