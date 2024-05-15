@@ -1,0 +1,232 @@
+---
+title: "導入 + ハンドリング"
+date: 2024-05-15
+execute: 
+  cache: true
+---
+
+# はじめに
+
+このページでは、R で GIS を使う上での基本について説明します。
+
+R 言語では主に `sf` パッケージを使って GIS を扱います。また、`tidyverse` パッケージ群を使うことで、データの前処理や可視化を行うことができます。
+
+また、R Project を使っていることを前提とします^[R Project と後述の `here` については[こちら](https://yo5uke.github.io/tips/240515_rproj/index.html)を参照して下さい。]。
+
+# パッケージ
+
+`sf`, `tidyverse` と `here()` の3つを使用します。
+
+```{.r}
+install.packages("sf")
+install.packages("tidyverse")
+install.packages("here")
+```
+
+```{r}
+library(sf)
+library(tidyverse)
+library(here)
+```
+
+# 使用するデータ
+
+1. 福島県の行政区域データ（2024年、ポリゴン）
+
+    - [国土数値情報ダウンロードサイト](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html)
+
+2. 福島県の公園データ（2011年、ポイント）
+
+    - [国土数値情報ダウンロードサイト](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P13.html)
+
+これらのデータを、`data`フォルダを作って入れておいてください。
+
+# 作業
+
+このセクションでやることは、データの抽出と可視化です。
+
+## データの抽出
+
+### データの読み込み
+
+`sf` パッケージの `read_sf()` 関数を用います。
+
+Shift_JIS で書かれたような~~変な~~データがたまにあるので、ダメなときはオプションで指定しましょう。`options = "ENCODING=Shift_JIS"` を追加してください。
+
+::: {.callout-note title="読み込みに使う関数について" collapse="true"}
+`read_sf()` は、`st_read()` の細かい設定を省いてくれた関数、というイメージです。
+
+具体的には、
+
+```{.r}
+read_sf(dsn)
+
+st_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)
+```
+
+この2つが同じです^[`dsn` のところがデータです。]。詳しくは `?st_read()` でドキュメントを読んでみてください。
+
+基本的には `read_sf()` で十分だと思います。
+:::
+    
+また、公園のデータは CRS が設定されていないようです。その設定も行います。CRS については後の回で説明します。
+
+```{r}
+fukushima <- read_sf(here("data/N03-20240101_07_GML/N03-20240101_07.shp"))
+
+park <- read_sf(here("data/P13-11_07_GML/P13-11_07.shp"), 
+                options = "ENCODING=Shift_JIS") |> 
+    st_set_crs(st_crs(4612)) |>  # JGD2000/(B, L)
+    st_transform(st_crs(6668))  # JGD2011/(B, L)
+```
+
+### データを見てみる
+
+公園のデータを見てみます。
+
+```{r}
+#| echo: false
+#| label: fig-park
+#| fig-cap: "公園のポイントデータ"
+
+mapview::mapviewOptions(fgb = FALSE)
+mapview::mapview(x = park)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-head-park
+#| tbl-cap: "公園データの中身（一部）"
+
+gt::gt(head(park))
+```
+
+国土数値情報ダウンロードサイトの説明を見てみると、各列は以下のようになっています。
+
+:::: {.columns}
+::: {.column}
+- `P13_001`：管理都道府県・整備局
+
+- `P13_002`：管理市区町村
+
+- `P13_003`：公園名
+
+- `P13_004`：公園種別
+
+- `P13_005`：所在地都道府県名
+:::
+
+::: {.column}
+
+- `P13_006`：所在地市区町村名
+
+- `P13_007`：供用開始年
+
+- `P13_008`：供用済面積
+
+- `P13_009`：都市計画決定
+
+- `P13_010`：備考
+:::
+::::
+
+### 抽出
+
+今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す `geometry` だけが必要だとします。
+
+`dplyr::select()` 関数を使って列を抽出し、同時に名前も変更します。
+
+```{r}
+park_s <- park |> 
+    select(
+        name_park = P13_003, 
+        name_pref = P13_005, 
+        name_muni = P13_006, 
+        geometry
+    )
+```
+
+```{r}
+#| echo: false
+#| label: tbl-park-selected
+#| tbl-cap: "列抽出済みのデータ"
+
+gt::gt(head(park_s))
+```
+
+このように `tidyverse` の強みを活かしてデータハンドリングを行えます^[データハンドリングの基礎的な知識を身に付けるには、[私たちのR](https://www.jaysong.net/RBook/)がおすすめです。]。
+
+## 可視化
+
+`tidyverse` に含まれる `ggplot2` を使って、ここまでのデータをプロットしていきます。
+
+基本的な書き方は以下の通りです。
+
+```{r}
+#| label: fig-simple-plot
+#| fig-cap: "シンプルなプロット"
+
+park_s |> 
+    ggplot() + 
+    geom_sf()  # GIS用のコマンド
+```
+
+これだとやや分かりにくいので、背景を消しましょう。`theme_void()` や `theme_bw()`、`theme_classic()` などがよいと思います。
+
+```{r}
+#| label: fig-delete-back
+#| fig-cap: "背景を削除"
+
+park_s |> 
+    ggplot() + 
+    geom_sf() + 
+    theme_void()
+```
+
+これだけだとどこなのかわからないので、先ほどダウンロードした福島県の行政区域を重ねてプロットします。
+
+::: {.callout-note title="プロットするとき"}
+`ggplot` を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。
+
+今回は行政区域をベースとするので、先にこちらをプロットします。
+:::
+
+::: {.callout-important title="プロットの順番"}
+`geom_sf()` でデータを指定する引数は `data` であり、これは第2引数なので、シンプルに `geom_sf(fukushima)` と書くとプロットがうまくいきません^[「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。]。`geom_sf(data = fukushima)` と書く必要がある点にご注意ください。
+:::
+
+```{r}
+#| label: fig-plot-all
+#| fig-cap: "行政区域と公園ポイントのプロット"
+
+ggplot() + 
+    geom_sf(data = fukushima) + 
+    geom_sf(data = park_s, color = "orange") +  # 点の色も指定
+    theme_void()
+```
+
+## ファイルの出力
+
+R で実行する以上必ずしも出力する必要はないかもしれませんが、先ほど作成した `park_s` を csv ファイルとして出力します。
+
+```{.r}
+# outputフォルダがない場合に作成する
+if (!dir.exists(here("data/output"))) {
+  dir.create(here("data/output"))
+}
+
+write_csv(park_s, here("data/output/Park_selected.csv"))
+```
+
+# おわりに
+
+今回はここまでです。
+
+R で GIS データを読み込み、データを抽出してプロット、最後に csv ファイルに出力しました。
+
+データのハンドリングについては R でできることが多いので、強みが活かせると思います。プロジェクトに合わせて応用させてみてください。
+
+
+
+
+
