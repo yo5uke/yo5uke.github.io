@@ -1,0 +1,71 @@
+---
+title: "【R】アーカイブされたパッケージを使う"
+date: 2024-05-16
+categories:
+  - R
+---
+
+パッケージがインストールできない？
+
+# はじめに
+
+因果推論を勉強している人にはおなじみの [Mixtape](https://mixtape.scunning.com/) ですが、昨年勉強中にこの中の合成コントロール法の章でパッケージがインストールできない問題に直面しました。
+
+よく調べてみると、当時^[2023年秋] `SCtools` パッケージはアーカイブされてしまっており、`install.packages('SCtools')` ではインストールができないことが判明しました。
+
+現在^[2024年5月16日]では復活してインストールできるようになっていますが、そんなときに備えて対処法をまとめます。
+
+# 作業の流れ
+
+## アーカイブされたパッケージを探す
+
+CRAN の[アーカイブ](https://cran.r-project.org/src/contrib/Archive/)にアクセスして、アーカイブされたパッケージを探します。
+
+例えば当時アーカイブされていた `SCtools` を探すと、次のようになります。
+
+![](sctools-archived.png)
+
+この中で最新のものを右クリックし、リンクをコピーしてください。
+
+## RStudio を開く
+
+続いて RStudio を開き、スクリプトに次のコードを入力してください。
+
+```{.r filename="R"}
+url <- "https://cran.r-project.org/src/contrib/Archive/SCtools/SCtools_0.3.2.tar.gz"
+pkgFile <- "SCtools_0.3.2.tar.gz"
+download.file(url = url, destfile = pkgFile)
+```
+
+ここで URL はコピーしたものに変え、`pkgFile` は URL の最後の `.tar.gz` 部分をコピペしてください。
+
+実行するとエラーが出るかもしれませんが、それは依存しているパッケージがインストールされていないということです。エラーを読んでみて、足りなそうなパッケージを以下のコードの `c()` にまとめて入れて実行し、
+改めて `download.file()` を実行してみてください。
+
+```{.r filename="R"}
+install.packages(c("xxx", "yyy", "zzz"))
+```
+
+そしてパッケージをインストールします。次のコードを実行してください。
+
+```{.r filename="R"}
+install.packages(pkgs=pkgFile, type="source", repos=NULL)
+```
+
+最後に以下を実行して下さい。
+
+```{.r filename="R"}
+unlink(pkgFile)
+```
+
+以上です。インストール出来たのではないでしょうか。
+
+# おわりに
+
+備忘録的にアーカイブされたパッケージのインストール方法をまとめました。
+
+出会ってしまった際にはご活用ください。
+
+
+
+
