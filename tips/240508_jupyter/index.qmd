@@ -102,7 +102,7 @@ RUN wget -O quarto.deb "https://github.com/quarto-dev/quarto-cli/releases/downlo
 
 2. yaml ヘッダーを次のように編集します。
 
-```{.yaml}
+```{.yml filename="YAML ヘッダー"}
 ---
 title: "タイトル"
 author: "著者"
@@ -113,7 +113,7 @@ jupyter: python3
 
 3. 以下のようにコードを書いてみましょう。
 
-````{.python filename="Python"}
+````{.markdown filename="Quarto"}
 For a demonstration of a line plot on a polar axis, see @fig-polar.
 
 ```{{python}}
@@ -157,13 +157,41 @@ R を使うときと同様に、Python のコードを書いて実行するこ�
 
 # ちなみに
 
-Quarto は、R Markdown と同様に、Python だけでなく R など他の言語でも使うことができます。
+R ユーザーの私としては、エンジンは R Markdown と同じ `Knitr` を使っているので、基本的に R 環境に Python を混ぜるということになります。
 
-ただし、一つのコードに複数の言語を混在させて出力することはできません。
+そのままでは R と Python が混在したコードは出力できません^[R では `Knitr` を使って Python では `Jupyter` を使うためです。]が、`reticulate` パッケージを使うことで R を使っていても Python が混ざったコードを出力できます。
 
-これはシステム的な問題ですが、詳しくは[こちら](https://www.jaysong.net/RBook/quarto.html)で説明されています。`knitr` を使うか `Jupyter` を使うかということですね。
+例えばこの記事は R 環境で書いていますのでこのままでは Python を使えません。そこで `reticulate` パッケージをインストールします。
 
-ただし、出力ができないのであってコード上では実行可能ですので、HTML や PDF に変換しないのであれば問題ありません。
+```{.r filename="R"}
+install.packages('reticulate')
+```
+
+ライブラリで読み込む必要はありません。
+
+先ほどのコードを書いてみると、
+
+```{python}
+#| label: fig-polar
+#| fig-cap: "A line plot on a polar axis"
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+r = np.arange(0, 2, 0.01)
+theta = 2 * np.pi * r
+fig, ax = plt.subplots(
+  subplot_kw = {'projection': 'polar'} 
+)
+ax.plot(theta, r)
+ax.set_rticks([0.5, 1, 1.5, 2])
+ax.grid(True)
+plt.show()
+```
+
+無事 @fig-polar が出力できました。
+
+このように R と Python が混在していても出力できますので、必要に応じて使ってみてください。
 
 # まとめ
 
@@ -173,6 +201,6 @@ Anaconda と比べると、Quarto はより柔軟で、R でも Python でも使
 
 また、書き方はほぼ R Markdown と同じなので、普段 R を使っている方にはすぐに慣れると思います。
 
-ただし、R と Python を1つのファイルで併用する際には注意が必要です。
+ただし、R と Python を1つのファイルで併用する際には追加でパッケージのインストールが必要です。
 
 以上です。お疲れ様でした！
