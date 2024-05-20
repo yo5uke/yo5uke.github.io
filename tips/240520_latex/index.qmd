@@ -1,0 +1,218 @@
+---
+title: "【Windows】TeX Live を使わずに LaTeX 環境を作る【Ubuntu】"
+date: 2024-05-20
+---
+
+面倒な作業は取っ払って $\LaTeX$ を使えるようにしよう！
+
+# はじめに
+
+こんにちは、Windows ユーザーです。
+
+TeX Live はインストールするのが面倒だし、使い方もよくわからないので^[実際には少し使っていたので、並程度には使えます（笑）]、別の方法でローカルでも $\LaTeX$ を使えるようにしました。
+
+今回はその方法を紹介します。
+
+Mac ユーザーの皆さんは、参考文献を少し見れば本ページのやり方で問題なくできると思います。
+
+# 作業手順
+
+前提として、VSCodeはインストールされているとします。もしまだの方は[こちら](https://yo5uke.github.io/tips/240504_container/#vscode)を参考にインストールしてください^[日本語設定などもしておくと便利かもしれません]。
+
+## 0. WSL と Ubuntu のインストール
+
+Windows のローカルでもできるとは思うのですが、Ubuntu でやる方が楽なので、WSL2 を使って Ubuntu でやります。何言ってるかわからない方は、気にしないでください。僕もよくわかりません。
+
+事前準備は少し面倒だけど、一度やってしまえば楽、みたいなイメージで使っています。
+
+既に WSL, Ubuntu の準備が出来ている方は、飛ばしてください。
+
+### 0-1. WSL のインストール
+
+まずは Windows Subsystem for Linux（WSL）をインストールします^[Windows における WSL のインストールについては[こちら](https://yo5uke.github.io/tips/240504_container/#wsl2)でも触れています。]。
+
+PowerShell を管理者権限^[アプリ一覧から右クリックすれば「詳細」→「管理者として実行」で使えます。]で起動し、以下のコマンドを実行します。
+
+```powershell
+wsl --install
+```
+
+再起動が求められたら、再起動してください。インストールはこれだけです。
+
+### 0-2. Ubuntu のインストール {#sec-install-ubuntu}
+
+次に、Microsoft Store から Ubuntu をインストールします。
+
+アプリ一覧から Microsoft Store にアクセスし、検索バーに「Ubuntu」と入力します。
+
+インストールボタンを押すと、Ubuntu がインストールされます。
+
+インストールができたら Ubuntu をアプリ一覧から起動し、ユーザー名とパスワードを設定します。これは何でも構いません。`sudo` コマンドを使う際にパスワードが必要になりますが、本当に簡単なもので大丈夫です。
+
+## 1. TinyTeX のインストール
+
+TeX Live はインストールが面倒なので、TinyTeX という軽量な LaTeX ディストリビューションを使います。R Markdown でもよく使われているので、馴染みがある方も多いかもしれません。
+
+しかし今回は、R は使いません。目標とするのは TeX Live の代替として、簡潔に $\LaTeX$ を使えるようにすることです。
+
+Ubuntu でインストールするためには、Ubuntu を開いて以下のコマンドを実行します。
+
+```bash
+wget -qO- "https://yihui.org/tinytex/install-bin-unix.sh" | sh
+```
+
+これで TinyTeX のインストールは完了です。簡単ですね。
+
+## 2. VSCode での設定
+
+### 2-1. 拡張機能のインストール
+
+VSCode で LaTeX を使うためには、拡張機能をインストールする必要があります。
+
+画面左の拡張機能アイコン ![](image/extention.png) をクリックし、検索バーに「LaTeX」と入力します。すると、LaTeX および LaTeX Workshop という拡張機能が表示されるので、2つをインストールします^[怪しかったら、`mathematic.vscode-latex` と `James-Yu.latex-workshop` をそれぞれ入力すれば確実です。]。
+
+### 2-2. 設定の変更
+
+拡張機能をインストールしたら、設定を変更します。
+
+`Ctrl + ,` で設定画面を開き、右上にある ![](image/json.png) をクリックして `settings.json` を開きます。
+
+以下の `{}` の中身を設定に追加します。もし既に何か設定がある場合は、最後をカンマで区切り、改行して追加してください。
+
+```json
+{
+    "latex-workshop.latex.tools": [
+        {
+          "name": "latexmk",
+          "command": "latexmk",
+          "args": [
+            "-synctex=1",
+            "-interaction=nonstopmode",
+            "-file-line-error",
+            "-xelatex",
+            "%DOC%"
+          ]
+        }
+    ],
+    "latex-workshop.latex.recipes": [
+        {
+          "name": "latexmk (xelatex)",
+          "tools": [
+            "latexmk"
+          ]
+        }
+    ],
+    "latex-workshop.view.pdf.viewer": "tab",
+    "latex-workshop.latex.clean.fileTypes": [
+        "*.aux", "*.bbl", "*.blg", "*.idx", "*.ind", "*.lof", "*.lot", "*.out", "*.toc", "*.acn", 
+        "*.acr", "*.alg", "*.glg", "*.glo", "*.gls", "*.ist", "*.fls", "*.log", "*.fdb_latexmk", "*.synctex.gz",
+        // for Beamer files
+        "_minted*", "*.nav", "*.snm", "*.vrb",
+    ]
+}
+```
+
+次に、画面上部の「ターミナル」→「新しいターミナル」よりターミナルを開きます。そして以下のコマンドを実行してください。
+
+```bash
+sudo apt-get update
+sudo apt-get install chktex
+```
+
+`sudo` コマンドを使うとパスワードが求められるので、[先ほど](#sec-install-ubuntu)設定したパスワードを入力してください。
+
+これで設定は完了です。
+
+## 3. 動作確認
+
+はじめに今回使うフォントをインストールしましょう。以下のコマンドを実行してください。
+
+```bash
+tlmgr install ipaex
+```
+
+次に、VSCode で新しいファイルを作成し、GitHub Copilot が作ってくれた以下のコードを回してみます^[少し日本語フォントなどの設定を加えています。]。
+
+```latex
+\documentclass{article}
+\usepackage{bookmark} 
+\usepackage{fontspec} 
+\usepackage{zxjatype} 
+\usepackage[ipaex]{zxjafont}
+
+\title{サンプルドキュメント}
+\author{あなたの名前}
+\date{今日の日付}
+
+\begin{document}
+
+\maketitle
+
+\section{導入}
+
+これはサンプルのセクションです。
+
+\subsection{サブセクション}
+
+これはサンプルのサブセクションです。
+
+\end{document}
+```
+
+これを保存し、右上の緑の三角ボタン ![](image/latex-compile.png) をクリックすると、PDF ファイルが生成されます。
+
+しかし、おそらくここでエラーに直面するでしょう。次のセクションでエラーの解決法について説明します。
+
+## 4. エラーの解決
+
+この段階のエラーのほとんどは、パッケージがインストールされていないことが原因です。
+
+コンパイルすると右下にエラーの表記とともに「Open compiler log」と出ると思うので、それをクリックしてエラーログを開きます。
+
+![](image/open-compiler-log.png)
+
+エラーログを見ると、どのパッケージがインストールされていないかがわかります。例えば、「! LaTeX Error: File 'xltxtra.sty' not found.」と出た場合、`xltxtra` パッケージがインストールされていないことがわかります。
+
+その場合、ターミナルに戻り以下のコマンドを実行してください。
+
+```bash
+tlmgr install xltxtra
+```
+
+これでインストールできますが、使い始めのうちは何度か似たようなエラーが出るかもしれません。エラーが出たらエラーログを見て、同様の方法で必要なパッケージをインストールしてください。
+
+::: {.callout-note title="エラーのトラップ"}
+先ほどのサンプルコードを実行しようとすると、
+
+! LaTeX Error: File `xeCJK.sty' not found.
+
+というエラーが途中で出てきます。しかし、`tlmgr install xeCJK` としてもインストールできません。これは、`xeCJK` というパッケージが存在しないためです。
+
+代わりに、`ctex` パッケージをインストールすることで解決できます。`ctex` パッケージが `xeCJK` を含んでいるためです。
+
+ややこしいですが、これで試してみてください。
+:::
+
+## 5. 再び動作確認
+
+エラーを解消するうちに、足りないパッケージがインストールでき、最終的には問題なくコンパイルできるようになるはずです。
+
+日本語で使う場合、フォントをインストールしていないミスが多いので、気を付けてください。
+
+最終的に次のように出力できました。
+
+![](image/latex-output.png)
+
+# おわりに
+
+以上で、TeX Live を使わずに $\LaTeX$ 環境を作る方法を紹介しました。
+
+TinyTeX は、R 上だと必要なパッケージが自動でインストールされる^[その割によく手動でインストールさせられる気がしますが…]ので、それに比べるとやや不便ですが、簡潔に $\LaTeX$ を使えるようになるので、一度試してみる価値はあると思います。
+
+TeX Live や VSCode の設定に苦心している方は、ぜひ試してみてください。
+
+# 参考
+
+- [TinyTeX](https://yihui.org/tinytex/)
+
+- [TinyTeX 非公式日本語版ドキュメント](https://gedevan-aleksizde.github.io/tinytex-doc-ja/index.html)
