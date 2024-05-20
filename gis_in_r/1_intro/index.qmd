@@ -1,6 +1,7 @@
 ---
 title: "導入 + ハンドリング"
 date: 2024-05-16
+date-modified: last-modified
 ---
 
 # はじめに
@@ -37,7 +38,7 @@ library(here)
 
     - [国土数値情報ダウンロードサイト](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P13.html)
 
-これらのデータを、`data`フォルダを作って入れておいてください。
+これらのデータを、`data` フォルダを作って入れておいてください。
 
 # 作業
 
@@ -49,7 +50,7 @@ library(here)
 
 `sf` パッケージの `read_sf()` 関数を用います。
 
-Shift_JIS で書かれたような~~変な~~データがたまにあるので、ダメなときはオプションで指定しましょう。`options = "ENCODING=Shift_JIS"` を追加してください。
+Shift_JIS で書かれたような~~変な~~データがたまにあるので、そのようなときはオプションで指定しましょう。`options = "ENCODING=Shift_JIS"` を追加してください。
 
 ::: {.callout-note title="読み込みに使う関数について" collapse="true"}
 `read_sf()` は、`st_read()` の細かい設定を省いてくれた関数、というイメージです。
@@ -62,7 +63,7 @@ read_sf(dsn)
 st_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)
 ```
 
-この2つが同じです^[`dsn` のところがデータです。]。詳しくは `?st_read()` でドキュメントを読んでみてください。
+この2つが同じです^[`dsn` のところがデータです。]。詳しくは `?st_read()` をコンソールに打ち込みドキュメントを読んでみてください。
 
 基本的には `read_sf()` で十分だと思います。
 :::
@@ -74,8 +75,8 @@ fukushima <- read_sf(here("data/N03-20240101_07_GML/N03-20240101_07.shp"))
 
 park <- read_sf(here("data/P13-11_07_GML/P13-11_07.shp"), 
                 options = "ENCODING=Shift_JIS") |> 
-    st_set_crs(st_crs(4612)) |>  # JGD2000/(B, L)
-    st_transform(st_crs(6668))  # JGD2011/(B, L)
+    st_set_crs(st_crs(4612)) |>  # JGD2000/(B, L) データ本来のCRS
+    st_transform(st_crs(6668))  # JGD2011/(B, L) 変換したいCRS
 ```
 
 ### データを見てみる
@@ -130,9 +131,11 @@ gt::gt(head(park))
 
 ### 抽出
 
-今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す `geometry` だけが必要だとします。
+今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す `geometry` の列だけが必要だとします。
 
 `dplyr::select()` 関数を使って列を抽出し、同時に名前も変更します。
+
+`select()` 内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。
 
 ```{r}
 park_s <- park |> 
@@ -158,7 +161,7 @@ gt::gt(head(park_s))
 
 `tidyverse` に含まれる `ggplot2` を使って、ここまでのデータをプロットしていきます。
 
-基本的な書き方は以下の通りです。
+基本的な書き方は以下の通りです。データフレームから `ggplot()` を繋いで記述していきます。
 
 ```{r}
 #| label: fig-simple-plot
@@ -189,7 +192,7 @@ park_s |>
 今回は行政区域をベースとするので、先にこちらをプロットします。
 :::
 
-::: {.callout-important title="プロットの順番"}
+::: {.callout-important title="geom_sf() の注意点"}
 `geom_sf()` でデータを指定する引数は `data` であり、これは第2引数なので、シンプルに `geom_sf(fukushima)` と書くとプロットがうまくいきません^[「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。]。`geom_sf(data = fukushima)` と書く必要がある点にご注意ください。
 :::
 
@@ -203,18 +206,27 @@ ggplot() +
     theme_void()
 ```
 
+ここまでがプロットの方法です。
+
+今後も可視化の際に `ggplot2` を使いますので、その都度紹介します。
+
 ## ファイルの出力
 
-R で実行する以上必ずしも出力する必要はないかもしれませんが、先ほど作成した `park_s` を csv ファイルとして出力します。
+先ほど作成した `park_s` を Shapefile として出力します。
+
+GIS データは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。
 
 ```{.r}
-# outputフォルダがない場合に作成する
-if (!dir.exists(here("data/output"))) {
-  dir.create(here("data/output"))
+# フォルダがない場合に作成する
+if (!dir.exists(here("data/output/1_intro"))) {
+  dir.create(here("data/output/1_intro"), recursive = TRUE)
 }
 
-write_csv(park_s, here("data/output/Park_selected.csv"))
+st_write(park_s, here("data/output/1_intro/Park_selected.shp"), 
+         layer_options = "ENCODING=UTF-8")
 ```
+
+次回以降は `Park_selected.shp` を読み込めばここから作業を開始できます。
 
 # おわりに
 
