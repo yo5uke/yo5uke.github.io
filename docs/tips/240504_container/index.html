@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Yosuke Abe - 【Windows】開発コンテナを使って R 環境を構築！</title>
+<title>Yosuke Abe - 【Windows】開発コンテナを使って R 環境を構築！【Mac でも】</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -140,13 +140,13 @@ window.Quarto = {
 };
 </script>
 
-<meta property="og:title" content="Yosuke Abe - 【Windows】開発コンテナを使って R 環境を構築！">
+<meta property="og:title" content="Yosuke Abe - 【Windows】開発コンテナを使って R 環境を構築！【Mac でも】">
 <meta property="og:description" content="">
 <meta property="og:image" content="https://yo5uke.github.io/tips/240504_container/vscode-wsl.png">
 <meta property="og:site_name" content="Yosuke Abe">
 <meta property="og:image:height" content="768">
 <meta property="og:image:width" content="1024">
-<meta name="twitter:title" content="Yosuke Abe - 【Windows】開発コンテナを使って R 環境を構築！">
+<meta name="twitter:title" content="Yosuke Abe - 【Windows】開発コンテナを使って R 環境を構築！【Mac でも】">
 <meta name="twitter:description" content="">
 <meta name="twitter:image" content="https://yo5uke.github.io/tips/240504_container/vscode-wsl.png">
 <meta name="twitter:creator" content="@5uke_y">
@@ -227,37 +227,48 @@ window.Quarto = {
   <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
   <li><a href="#事前準備" id="toc-事前準備" class="nav-link" data-scroll-target="#事前準備">事前準備</a>
   <ul class="collapse">
-  <li><a href="#wsl2" id="toc-wsl2" class="nav-link" data-scroll-target="#wsl2">WSL2</a></li>
-  <li><a href="#ubuntu" id="toc-ubuntu" class="nav-link" data-scroll-target="#ubuntu">Ubuntu</a></li>
+  <li><a href="#wsl2windows-ユーザーのみ" id="toc-wsl2windows-ユーザーのみ" class="nav-link" data-scroll-target="#wsl2windows-ユーザーのみ">WSL2（Windows ユーザーのみ）</a></li>
+  <li><a href="#ubuntuwindows-ユーザーのみ" id="toc-ubuntuwindows-ユーザーのみ" class="nav-link" data-scroll-target="#ubuntuwindows-ユーザーのみ">Ubuntu（Windows ユーザーのみ）</a></li>
+  <li><a href="#homebrewmac-ユーザーのみ" id="toc-homebrewmac-ユーザーのみ" class="nav-link" data-scroll-target="#homebrewmac-ユーザーのみ">Homebrew（Mac ユーザーのみ）</a></li>
   <li><a href="#sec-vscode-setting" id="toc-sec-vscode-setting" class="nav-link" data-scroll-target="#sec-vscode-setting">VSCode</a></li>
   <li><a href="#docker" id="toc-docker" class="nav-link" data-scroll-target="#docker">Docker</a></li>
-  <li><a href="#git" id="toc-git" class="nav-link" data-scroll-target="#git">Git</a></li>
+  <li><a href="#git" id="toc-git" class="nav-link" data-scroll-target="#git">Git</a>
+  <ul class="collapse">
+  <li><a href="#windows" id="toc-windows" class="nav-link" data-scroll-target="#windows">Windows</a></li>
+  <li><a href="#mac" id="toc-mac" class="nav-link" data-scroll-target="#mac">Mac</a></li>
+  </ul></li>
   <li><a href="#github-アカウントの作成" id="toc-github-アカウントの作成" class="nav-link" data-scroll-target="#github-アカウントの作成">GitHub アカウントの作成</a></li>
   </ul></li>
   <li><a href="#開発環境の構築" id="toc-開発環境の構築" class="nav-link" data-scroll-target="#開発環境の構築">開発環境の構築</a>
   <ul class="collapse">
+  <li><a href="#ホスト側の設定" id="toc-ホスト側の設定" class="nav-link" data-scroll-target="#ホスト側の設定">ホスト側の設定</a>
+  <ul class="collapse">
   <li><a href="#github-レポジトリを作成" id="toc-github-レポジトリを作成" class="nav-link" data-scroll-target="#github-レポジトリを作成">GitHub レポジトリを作成</a></li>
   <li><a href="#テンプレートをクローン" id="toc-テンプレートをクローン" class="nav-link" data-scroll-target="#テンプレートをクローン">テンプレートをクローン</a></li>
-  <li><a href="#vscode-で開く" id="toc-vscode-で開く" class="nav-link" data-scroll-target="#vscode-で開く">VSCode で開く</a></li>
+  <li><a href="#sec-host-vscode" id="toc-sec-host-vscode" class="nav-link" data-scroll-target="#sec-host-vscode">VSCode で開く</a></li>
   <li><a href="#rstudio-で開く" id="toc-rstudio-で開く" class="nav-link" data-scroll-target="#rstudio-で開く">RStudio で開く</a></li>
   <li><a href="#sec-dvc-setting" id="toc-sec-dvc-setting" class="nav-link" data-scroll-target="#sec-dvc-setting">DVC の設定</a></li>
   <li><a href="#latex-の設定" id="toc-latex-の設定" class="nav-link" data-scroll-target="#latex-の設定">LaTeX の設定</a></li>
   <li><a href="#sec-julia-setting" id="toc-sec-julia-setting" class="nav-link" data-scroll-target="#sec-julia-setting">Julia の設定</a></li>
+  <li><a href="#共同プロジェクトの場合" id="toc-共同プロジェクトの場合" class="nav-link" data-scroll-target="#共同プロジェクトの場合">共同プロジェクトの場合</a></li>
   </ul></li>
-  <li><a href="#作業中" id="toc-作業中" class="nav-link" data-scroll-target="#作業中">作業中</a>
+  <li><a href="#共同作業者の設定" id="toc-共同作業者の設定" class="nav-link" data-scroll-target="#共同作業者の設定">共同作業者の設定</a></li>
+  </ul></li>
+  <li><a href="#作業" id="toc-作業" class="nav-link" data-scroll-target="#作業">作業</a>
   <ul class="collapse">
+  <li><a href="#作業開始時" id="toc-作業開始時" class="nav-link" data-scroll-target="#作業開始時">作業開始時</a></li>
+  <li><a href="#作業終了時" id="toc-作業終了時" class="nav-link" data-scroll-target="#作業終了時">作業終了時</a></li>
   <li><a href="#r-のパッケージ" id="toc-r-のパッケージ" class="nav-link" data-scroll-target="#r-のパッケージ">R のパッケージ</a></li>
   <li><a href="#python-のパッケージ" id="toc-python-のパッケージ" class="nav-link" data-scroll-target="#python-のパッケージ">Python のパッケージ</a></li>
   <li><a href="#データの管理" id="toc-データの管理" class="nav-link" data-scroll-target="#データの管理">データの管理</a></li>
   <li><a href="#julia-のパッケージ" id="toc-julia-のパッケージ" class="nav-link" data-scroll-target="#julia-のパッケージ">Julia のパッケージ</a></li>
-  <li><a href="#github-にコミットプッシュ" id="toc-github-にコミットプッシュ" class="nav-link" data-scroll-target="#github-にコミットプッシュ">GitHub にコミット、プッシュ</a></li>
-  <li><a href="#github-からプル" id="toc-github-からプル" class="nav-link" data-scroll-target="#github-からプル">GitHub からプル</a></li>
+  <li><a href="#まとめ" id="toc-まとめ" class="nav-link" data-scroll-target="#まとめ">まとめ</a></li>
   </ul></li>
   <li><a href="#環境構築まとめ" id="toc-環境構築まとめ" class="nav-link" data-scroll-target="#環境構築まとめ">環境構築まとめ</a>
   <ul class="collapse">
   <li><a href="#ホスト" id="toc-ホスト" class="nav-link" data-scroll-target="#ホスト">ホスト</a></li>
   <li><a href="#共同作業者" id="toc-共同作業者" class="nav-link" data-scroll-target="#共同作業者">共同作業者</a></li>
-  <li><a href="#作業中-1" id="toc-作業中-1" class="nav-link" data-scroll-target="#作業中-1">作業中</a></li>
+  <li><a href="#作業中" id="toc-作業中" class="nav-link" data-scroll-target="#作業中">作業中</a></li>
   </ul></li>
   <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
   <li><a href="#参考文献" id="toc-参考文献" class="nav-link" data-scroll-target="#参考文献">参考文献</a></li>
@@ -270,11 +281,12 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">【Windows】開発コンテナを使って R 環境を構築！</h1>
+<h1 class="title">【Windows】開発コンテナを使って R 環境を構築！【Mac でも】</h1>
   <div class="quarto-categories">
     <div class="quarto-category">R</div>
     <div class="quarto-category">Docker</div>
     <div class="quarto-category">Windows</div>
+    <div class="quarto-category">Mac</div>
     <div class="quarto-category">Ubuntu</div>
     <div class="quarto-category">VSCode</div>
   </div>
@@ -295,7 +307,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">更新日</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">2024年5月20日</p>
+      <p class="date-modified">2024年5月22日</p>
     </div>
   </div>
     
@@ -309,17 +321,17 @@ window.Quarto = {
 <p>ローカル環境から卒業！</p>
 <section id="はじめに" class="level1">
 <h1>はじめに</h1>
-<p>WSL2 と VSCode の開発コンテナを使って R の環境を構築する方法を説明します。</p>
+<p>Docker と VSCode を使って R の環境を構築する方法を説明します。</p>
 <p>基本的な内容は<a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">こちらのページ</a>を参考にしており、個人的に使いやすいように修正を加えています。</p>
-<p>開発コンテナを使うメリット等はそちらを参照してください。</p>
-<p>また、最初は設定するのに結構時間がかかりますので、ご了承ください。</p>
+<p>開発コンテナを使うメリットは、環境を簡単に共有でき、他の環境に影響を受けずに作業ができることです。</p>
+<p>また、最初は設定の際に結構待ち時間が生じますので、ご了承ください。</p>
 </section>
 <section id="事前準備" class="level1">
 <h1>事前準備</h1>
-<p>まず、WSL2, Ubuntu, VSCode, Docker, Git, そして GitHub の準備をします。</p>
+<p>まず、WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, そして GitHub の準備をします。Windows と Mac での設定が異なるため、それぞれについて説明します。</p>
 <p>ホスト側、共同作業者ともに事前準備が必要です。</p>
-<section id="wsl2" class="level2">
-<h2 class="anchored" data-anchor-id="wsl2">WSL2</h2>
+<section id="wsl2windows-ユーザーのみ" class="level2">
+<h2 class="anchored" data-anchor-id="wsl2windows-ユーザーのみ">WSL2（Windows ユーザーのみ）</h2>
 <ol type="1">
 <li><p>PowerShell または Windows コマンドプロンプトを管理者権限で開く</p>
 <ul>
@@ -332,14 +344,14 @@ window.Quarto = {
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>PowerShell</strong></pre>
 </div>
-<div class="sourceCode" id="cb1" data-filename="bash"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>wsl --install</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<pre class="shell" data-filename="PowerShell"><code>wsl --install</code></pre>
 </div>
 <p>これでインストールはできているはずですが、詳しくは<a href="https://learn.microsoft.com/ja-jp/windows/wsl/install">こちらのサイト</a>を参照してください。</p>
 </section>
-<section id="ubuntu" class="level2">
-<h2 class="anchored" data-anchor-id="ubuntu">Ubuntu</h2>
+<section id="ubuntuwindows-ユーザーのみ" class="level2">
+<h2 class="anchored" data-anchor-id="ubuntuwindows-ユーザーのみ">Ubuntu（Windows ユーザーのみ）</h2>
 <ol type="1">
 <li><p>Microsoft Store を開く</p></li>
 <li><p>「Ubuntu」と検索</p></li>
@@ -355,12 +367,32 @@ window.Quarto = {
 </ol>
 <p>エクスプローラーから Linux に入り、<code>\Ubuntu\home\ユーザー名</code> がメインとなるディレクトリです。</p>
 </section>
+<section id="homebrewmac-ユーザーのみ" class="level2">
+<h2 class="anchored" data-anchor-id="homebrewmac-ユーザーのみ">Homebrew（Mac ユーザーのみ）</h2>
+<p>Mac ユーザーは Homebrew を使ってインストールします。</p>
+<ol type="1">
+<li><p>ターミナルを開く</p>
+<ul>
+<li>アプリ一覧から探してください。</li>
+</ul></li>
+<li><p>以下のコマンドを入力して実行</p>
+<ul>
+<li>パスワードを求められるので、入力してください。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb2" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">"</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">"</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
 <section id="sec-vscode-setting" class="level2">
 <h2 class="anchored" data-anchor-id="sec-vscode-setting">VSCode</h2>
 <ol type="1">
 <li><p>VSCode の<a href="https://code.visualstudio.com/">ダウンロードサイト</a>からダウンロード、インストール</p>
 <ul>
-<li><p>Download for Windows をクリックしてダウンロードできます。</p></li>
+<li><p>Download for Windows<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a> をクリックしてダウンロードできます。</p></li>
 <li><p>インストールができたら、VSCode を開いてください。</p></li>
 </ul></li>
 <li><p>（任意）日本語の拡張機能をインストール</p>
@@ -375,9 +407,9 @@ window.Quarto = {
 <ul>
 <li><p>拡張機能の検索ボックスで、次の ID を入力し、インストールします。</p></li>
 <li><p><code>ms-vscode-remote.remote-containers</code> (Dev Containers)</p></li>
-<li><p><code>ms-vscode-remote.remote-wsl</code> (WSL)</p></li>
+<li><p><code>ms-vscode-remote.remote-wsl</code> (WSL, Windows ユーザーのみ)</p></li>
 </ul></li>
-<li><p>WSL に接続</p>
+<li><p>WSL に接続（Windows ユーザーのみ）</p>
 <ul>
 <li><p>VSCode から先ほどインストールした WSL に接続します。</p></li>
 <li><p>画面左下の <code>&gt;&lt;</code> アイコンをクリックして、「WSL への接続」をクリックします。</p></li>
@@ -389,8 +421,8 @@ window.Quarto = {
 <h2 class="anchored" data-anchor-id="docker">Docker</h2>
 <p>Docker をインストールします。</p>
 <ol type="1">
-<li><p><a href="https://docs.docker.com/desktop/install/windows-install/">ここ</a>から Docker Desktop for Windows をクリックしてダウンロード＆インストール</p></li>
-<li><p>設定の確認</p>
+<li><p><a href="https://docs.docker.com/desktop/install/windows-install/">ここ</a>から Docker Desktop for Windows<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a> をクリックしてダウンロード＆インストール</p></li>
+<li><p>設定の確認（Windows のみ）</p>
 <ul>
 <li><p>インストール出来たら、画面上部の設定ボタンから Resources、WSL integration と進み、チェックボックスにチェック、Ubuntu がオンになっていることを確認してください。</p></li>
 <li><p>たまに、何もしていないのにここがオフになっていて、トラブることがあります。</p></li>
@@ -405,11 +437,19 @@ window.Quarto = {
 <li><p><code>fonts</code>, <code>julia</code>, <code>pip</code>, <code>renv</code>, <code>TinyTeX</code></p></li>
 </ul></li>
 </ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="create_volume_mac.png" class="img-fluid figure-img"></p>
+<figcaption>Mac での画面</figcaption>
+</figure>
+</div>
 </section>
 <section id="git" class="level2">
 <h2 class="anchored" data-anchor-id="git">Git</h2>
+<section id="windows" class="level3">
+<h3 class="anchored" data-anchor-id="windows">Windows</h3>
 <ol type="1">
-<li><p>git のインストール</p>
+<li><p>Ubuntu で git をインストール</p>
 <ul>
 <li>Windows のアプリ一覧から Ubuntu を探し、開いてください。開いたら、以下のコマンドを入力して実行します。</li>
 </ul></li>
@@ -418,7 +458,7 @@ window.Quarto = {
 <div class="code-with-filename-file">
 <pre><strong>Ubuntu</strong></pre>
 </div>
-<div class="sourceCode" id="cb2" data-filename="Ubuntu"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>sudo apt-get install git</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb3" data-filename="Ubuntu"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install git</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><img src="ubuntu-git.png" class="img-fluid"></p>
 <ol start="2" type="1">
@@ -431,9 +471,44 @@ window.Quarto = {
 <div class="code-with-filename-file">
 <pre><strong>Ubuntu</strong></pre>
 </div>
-<div class="sourceCode" id="cb3" data-filename="Ubuntu"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>git config --global user.name <span class="co">[</span><span class="ot">任意のユーザ名</span><span class="co">]</span></span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>git config --global user.email <span class="co">[</span><span class="ot">任意のメールアドレス</span><span class="co">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4" data-filename="Ubuntu"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.name <span class="pp">[</span><span class="ss">任意のユーザ名</span><span class="pp">]</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.email <span class="pp">[</span><span class="ss">任意のメールアドレス</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="mac" class="level3">
+<h3 class="anchored" data-anchor-id="mac">Mac</h3>
+<ol type="1">
+<li><p>Homebrew で git をインストール</p>
+<ul>
+<li>ターミナルを開いて、以下のコマンドを入力して実行します。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb5" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install git</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="homebrew.png" class="img-fluid figure-img"></p>
+<figcaption>2回目なので git is already installed と表示されてます…。</figcaption>
+</figure>
+</div>
+<ol start="2" type="1">
+<li><p>設定</p>
+<ul>
+<li>以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb6" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.name <span class="pp">[</span><span class="ss">任意のユーザ名</span><span class="pp">]</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.email <span class="pp">[</span><span class="ss">任意のメールアドレス</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
 </section>
 <section id="github-アカウントの作成" class="level2">
 <h2 class="anchored" data-anchor-id="github-アカウントの作成">GitHub アカウントの作成</h2>
@@ -447,11 +522,18 @@ window.Quarto = {
 <p>主な変更点は以下の通りです。</p>
 <ul>
 <li><p>RStudio の設定を追加（パネルの配置など）</p></li>
-<li><p>それに伴う Dockerfile の加筆修正</p></li>
+<li><p>それに伴う Dockerfile の加筆修正と、更なる設定の追加</p>
+<ul>
+<li><p>Quarto のインストールを追加</p></li>
+<li><p>個人的にエラーが生じた部分を修正</p></li>
 <li><p>日本語のロケール設定を追加</p></li>
+</ul></li>
 </ul>
-<section id="github-レポジトリを作成" class="level2">
-<h2 class="anchored" data-anchor-id="github-レポジトリを作成">GitHub レポジトリを作成</h2>
+<p>まずはホストが行う作業から説明します。</p>
+<section id="ホスト側の設定" class="level2">
+<h2 class="anchored" data-anchor-id="ホスト側の設定">ホスト側の設定</h2>
+<section id="github-レポジトリを作成" class="level3">
+<h3 class="anchored" data-anchor-id="github-レポジトリを作成">GitHub レポジトリを作成</h3>
 <ol type="1">
 <li><p>テンプレートの <a href="https://github.com/yo5uke/template-R">GitHub レポジトリ</a> にアクセス</p></li>
 <li><p>画面右の「Use this template」から「Create a new repository」を選択</p></li>
@@ -463,38 +545,72 @@ window.Quarto = {
 <li><p>「Create repository」をクリック</p></li>
 </ol>
 </section>
-<section id="テンプレートをクローン" class="level2">
-<h2 class="anchored" data-anchor-id="テンプレートをクローン">テンプレートをクローン</h2>
+<section id="テンプレートをクローン" class="level3">
+<h3 class="anchored" data-anchor-id="テンプレートをクローン">テンプレートをクローン</h3>
 <ol type="1">
 <li><p>GitHub 画面右上の自分のアイコンをクリックし、Your repositories を選択</p></li>
 <li><p>一覧から、上で作ったレポジトリを選択</p></li>
 <li><p>画面中央右にある <code>&lt;&gt; Code</code> から、<code>.git</code> で終わる URL をコピー</p></li>
-<li><p>Ubuntu を開き、以下のコマンドを入力して実行</p></li>
+<li><p>Windows なら Ubuntu、Mac なら ターミナル を開き、以下のコマンドを入力して実行<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>。</p></li>
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>Ubuntu</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb4" data-filename="Ubuntu"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>git clone <span class="co">[</span><span class="ot">コピーした URL</span><span class="co">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="pp">[</span><span class="ss">コピーしたURL</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>エクスプローラーを開き、<code>\\wsl.localhost\Ubuntu\home\ユーザー名</code> を確認してみてください。レポジトリ名と同じフォルダができていると思います。</p>
+<p>Mac の場合は、ユーザー名の下にできているはずです。</p>
+<div class="callout callout-style-default callout-note callout-titled" title="Mac でファイルが見当たらない？">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Mac でファイルが見当たらない？
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>クローンしたフォルダを見てみると、あるはずのファイルやフォルダが見当たらないかもしれません。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="finder_mac_after_clone.png" class="img-fluid figure-img"></p>
+<figcaption>ファイルが足りない…？</figcaption>
+</figure>
+</div>
+<p>このようなときは、Finder の隠しファイルを表示する設定を変更する必要があります。</p>
+<p>以下をターミナルで実行してください。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb8" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">defaults</span> write com.apple.finder AppleShowAllFiles TRUE</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">killall</span> Finder</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>これで、隠しファイルも表示されるようになります。</p>
+<p>正直なところ、ファイルは VSCode 上で開くことになるので、この設定は隠しファイルが邪魔であればしなくてもよいと思います<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>。VSCode 上ではきちんと表示されますので。</p>
+</div>
+</div>
+</div>
 </section>
-<section id="vscode-で開く" class="level2">
-<h2 class="anchored" data-anchor-id="vscode-で開く">VSCode で開く</h2>
+<section id="sec-host-vscode" class="level3">
+<h3 class="anchored" data-anchor-id="sec-host-vscode">VSCode で開く</h3>
 <ol type="1">
 <li><p>VSCode を開く</p></li>
-<li><p><a href="#sec-vscode-setting">上</a>と同様にして「WSL への接続」を選択</p></li>
-<li><p>画面左上の「ファイル」から「フォルダーを開く」をクリックし、作ったフォルダを選択</p></li>
+<li><p><a href="#sec-vscode-setting">上</a>と同様にして「WSL への接続」を選択（Windows ユーザーのみ）</p></li>
+<li><p>画面左上の「ファイル」から「フォルダーを開く」をクリックし、クローンしたフォルダを選択</p></li>
 <li><p>画面右下に「コンテナーで再度開く」と出たらクリック</p>
 <ul>
-<li><p>出ない場合、画面左下「WSL: Ubuntu」をクリックし、「コンテナーで再度開く」を選択してください。</p></li>
+<li><p>出ない場合、画面左下「WSL: Ubuntu」<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>をクリックし、「コンテナーで再度開く」を選択してください。</p></li>
 <li><p>初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。</p></li>
 </ul></li>
 </ol>
 <p><img src="reopen.png" class="img-fluid"></p>
 </section>
-<section id="rstudio-で開く" class="level2">
-<h2 class="anchored" data-anchor-id="rstudio-で開く">RStudio で開く</h2>
+<section id="rstudio-で開く" class="level3">
+<h3 class="anchored" data-anchor-id="rstudio-で開く">RStudio で開く</h3>
 <p>ここで、ブラウザを用いて RStudio を開きます。</p>
 <ol type="1">
 <li><p>任意のブラウザで、アドレスバーに <code>localhost:8787</code> と入力して開く</p></li>
@@ -507,18 +623,13 @@ window.Quarto = {
 <li><p>コンソールに以下を入力して実行</p>
 <ul>
 <li><p><code>renv</code> はパッケージを管理するためのパッケージです。</p></li>
-<li><p>Dockerfile でインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p></li>
+<li><p>Dockerfile でインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>。</p></li>
 </ul></li>
 </ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb5" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
-<section id="sec-dvc-setting" class="level2">
-<h2 class="anchored" data-anchor-id="sec-dvc-setting">DVC の設定</h2>
+<section id="sec-dvc-setting" class="level3">
+<h3 class="anchored" data-anchor-id="sec-dvc-setting">DVC の設定</h3>
 <p>DVC はデータを管理するためのツールです。</p>
 <p>事前準備として、自分の Google ドライブの任意の場所で、データを入れる用のフォルダを作成しておいてください。</p>
 <p>また、共同プロジェクトの場合は、フォルダの共有も設定してください。</p>
@@ -535,9 +646,9 @@ window.Quarto = {
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb6" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>pip install dvc dvc<span class="op">-</span>gdrive</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb10" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install dvc dvc-gdrive</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ol start="4" type="1">
 <li><p>Google ドライブで作成したフォルダの ID をコピー</p>
@@ -551,26 +662,21 @@ window.Quarto = {
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb7" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>dvc init <span class="op">&amp;&amp;</span> dvc remote add <span class="op">-</span>d myremote gdrive:<span class="op">//&lt;</span>Google DriveのフォルダID<span class="op">&gt;</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> init <span class="kw">&amp;&amp;</span> <span class="ex">dvc</span> remote add <span class="at">-d</span> myremote gdrive://[Google DriveのフォルダID]</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="latex-の設定" class="level2">
-<h2 class="anchored" data-anchor-id="latex-の設定">LaTeX の設定</h2>
+<section id="latex-の設定" class="level3">
+<h3 class="anchored" data-anchor-id="latex-の設定">LaTeX の設定</h3>
 <p>R Markdown などで <span class="math inline">\(\LaTeX\)</span> を使用するために、TinyTeXをインストールします。</p>
 <p>RStudio のコンソールに以下のコマンドを入力して実行してください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb8" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tinytex<span class="sc">::</span><span class="fu">install_tinytex</span>(<span class="at">dir =</span> <span class="st">"/home/rstudio/.TinyTeX"</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>tinytex<span class="sc">::</span><span class="fu">install_tinytex</span>(<span class="at">dir =</span> <span class="st">"/home/rstudio/.TinyTeX"</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>TinyTeX は、<span class="math inline">\(\LaTeX\)</span> コードをコンパイルする際に必要なパッケージを自動でダウンロードしてくれるので、ローカルに面倒な設定をしなくて良いのが魅力です。</p>
 <p>R Markdown や Quarto での PDF 出力の仕方については、<a href="https://yo5uke.github.io/tips/240329_rmarkdown_pdf/">こちらの記事</a>もご覧ください。</p>
 </section>
-<section id="sec-julia-setting" class="level2">
-<h2 class="anchored" data-anchor-id="sec-julia-setting">Julia の設定</h2>
+<section id="sec-julia-setting" class="level3">
+<h3 class="anchored" data-anchor-id="sec-julia-setting">Julia の設定</h3>
 <p><a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">参考記事</a>の設定に基づき、Julia が使えるようになっているため、その始め方についても書いておきます。特に使う予定がなければ、スキップしてください。</p>
 <ol type="1">
 <li><p>VSCode に戻り、ワーキングディレクトリに <code>Project.toml</code> というファイルを作成</p></li>
@@ -582,60 +688,159 @@ window.Quarto = {
 <div class="code-with-filename-file">
 <pre><strong>Julia</strong></pre>
 </div>
-<div class="sourceCode" id="cb9" data-filename="Julia"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">activate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb13" data-filename="Julia"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">activate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>以上で Julia の事前準備ができました。</p>
-<p>また、環境構築もここで一区切りです！</p>
+</section>
+<section id="共同プロジェクトの場合" class="level3">
+<h3 class="anchored" data-anchor-id="共同プロジェクトの場合">共同プロジェクトの場合</h3>
+<p>共同プロジェクトの場合は、GitHub で共有するため、以下の手順を踏んでおいてください。</p>
+<ul>
+<li><p>GitHub レポジトリでコラボレーターを追加</p>
+<ul>
+<li><p>レポジトリの Settings から Collaborators に進み、コラボレーターを追加してください。</p></li>
+<li><p>Add people から招待できます。</p></li>
+</ul></li>
+</ul>
+<p>また、ホスト側の環境構築もここで一区切りです！</p>
 </section>
 </section>
-<section id="作業中" class="level1">
-<h1>作業中</h1>
-<p>作業中のワークフローを説明します。</p>
+<section id="共同作業者の設定" class="level2">
+<h2 class="anchored" data-anchor-id="共同作業者の設定">共同作業者の設定</h2>
+<p>共同作業者も事前準備は終わらせておいてください。</p>
+<ol type="1">
+<li><p>GitHub で招待を受ける</p>
+<ul>
+<li><p>メールが届いているはずですので、そこから GitHub にログインしてください。</p></li>
+<li><p>レポジトリにアクセスできるようになります。</p></li>
+</ul></li>
+<li><p>レポジトリをクローン</p>
+<ul>
+<li><p>ホスト側が作成したレポジトリをクローンします。</p></li>
+<li><p>あらかじめ GitHub の <code>&lt;&gt; Code</code> から <code>.git</code> で終わる URL をコピーしておいてください。</p></li>
+<li><p>Ubuntu もしくは Mac でターミナルを開き、以下のコマンドを入力して実行してください。</p></li>
+</ul></li>
+</ol>
+<div class="sourceCode" id="cb14"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone <span class="pp">[</span><span class="ss">コピーしたURL</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<ol start="3" type="1">
+<li><p>VSCode で開く</p>
+<ul>
+<li><span id="sec-host-vscode">ホスト側の設定</span>と同様にして、VSCode で開いてください。</li>
+</ul></li>
+</ol>
+<p>一旦ここまでで、共同作業者の設定は終わりです。</p>
+</section>
+</section>
+<section id="作業" class="level1">
+<h1>作業</h1>
+<p>ワークフローについて説明します。</p>
+<section id="作業開始時" class="level2">
+<h2 class="anchored" data-anchor-id="作業開始時">作業開始時</h2>
+<p>作業を開始する際は、以下の手順で作業を開始してください。</p>
+<ol type="1">
+<li><p>VSCode で開く</p>
+<ul>
+<li>ホスト側、共同作業者ともに、VSCode の開発コンテナで開いてください。</li>
+</ul></li>
+<li><p>作業ブランチを作成</p>
+<ul>
+<li><p>画面左下、<code>main</code> と書かれているところをクリックし、「＋新しいブランチの作成…」を選択してください。</p></li>
+<li><p>ブランチ名は、作業内容がわかるようにしてください。</p></li>
+<li><p>例えば、<code>feature/作業内容</code> など。</p></li>
+</ul></li>
+<li><p>作業ブランチに切り替え</p>
+<ul>
+<li>再び <code>main</code> と書かれているところをクリックし、作成したブランチを選択してください。</li>
+</ul></li>
+<li><p>作業を開始</p></li>
+</ol>
+</section>
+<section id="作業終了時" class="level2">
+<h2 class="anchored" data-anchor-id="作業終了時">作業終了時</h2>
+<p>先に作業終了時について説明します。ここで想定しているのは共同作業を行っている場合です。</p>
+<p>単独での業務の場合は、ブランチを作成する必要はないと思います。コミットとプッシュを繰り返す流れで十分です。</p>
+<ol type="1">
+<li><p>作業内容をコミット</p>
+<ul>
+<li><p>画面左側の「ソース管理」をクリックします。</p></li>
+<li><p>ファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>。</p></li>
+<li><p>画面上部の「メッセージを入力」にコミットメッセージ<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>を入力し、「✓コミット」をクリックしてください。</p></li>
+</ul></li>
+<li><p>プッシュ</p>
+<ul>
+<li><p>「ソース管理」の右側にある「…」をクリックし、「プッシュ」を選択してください。</p></li>
+<li><p>これで、作業内容が GitHub にアップロードされます。</p></li>
+</ul></li>
+</ol>
+<p>ところで、現在は作業中のブランチが先ほど作成したブランチになっていると思います。</p>
+<p>これを <code>main</code> にマージするために、プルリクエストを作成します。要は、自分が作成したブランチをホスト側に <code>main</code> へ取り込んでもらうための手続きです。</p>
+<p>このステップを挟む理由は、例えば正常に作動しないコードが <code>main</code> に勝手にマージされることを防ぐためです。</p>
+<ol start="3" type="1">
+<li><p>プルリクエスト</p>
+<ul>
+<li><p>GitHub にアクセスし、作業中のレポジトリを開いてください。</p></li>
+<li><p>画面上部の「Pull requests」をクリックし、「New pull request」をクリックしてください。</p></li>
+<li><p>作業中のブランチと <code>main</code> を比較して、プルリクエストを作成します。</p></li>
+<li><p>作業内容を説明し、ホスト側にマージしてもらうようにリクエストします。</p></li>
+<li><p>承認されれば、無事 <code>main</code> にマージされます。</p></li>
+</ul></li>
+<li><p>プル</p>
+<ul>
+<li><p>ホスト側で、プルリクエストが承認されたら、<code>main</code> にマージされた内容を取り込むためにプルします<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>。</p></li>
+<li><p>画面下部のブランチ名をクリックし、<code>main</code> を選択してください。これで再び <code>main</code> に切り替わります。</p></li>
+<li><p>再び画面左からの「ソース管理」から、「ソース管理」の右側にある「…」をクリックし、「プル」を選択してください。</p></li>
+<li><p>これで、ローカルの <code>main</code> が最新の状態になります。</p></li>
+</ul></li>
+</ol>
+<p>この流れを繰り返すことで作業のサイクルを回していきます。</p>
+<p>一連の流れについては、<a href="https://qiita.com/future_kame/items/9fa256aea09faa28b357">こちらの記事</a>が参考になります。</p>
+</section>
 <section id="r-のパッケージ" class="level2">
 <h2 class="anchored" data-anchor-id="r-のパッケージ">R のパッケージ</h2>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+重要
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>個々からの作業で重要なことですが、これから説明する <code>renv</code> 等で記録したら、コミット、プッシュ、プルを通じてファイルを共有することを忘れないでください。</p>
+</div>
+</div>
 <p>作業中新たにパッケージを使用した場合、それを <code>renv.lock</code> ファイルに記録することで、必要なパッケージを共同作業者と共有することができます。</p>
 <p>バージョンごと記録できるので、全く同じ環境を再現することが可能です。</p>
 <ol type="1">
 <li><p>R のコンソールで以下を実行</p>
 <ul>
+<li><p>新しいパッケージをインストールし、コード内で使用したら、以下のコードを実行してください<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>。</p></li>
 <li><p><code>renv</code> がアクティベートされていない場合、アクティベートする必要がありますが、おそらく実行した際に「renv をアクティベートして lock ファイルに記録する」というような選択肢が提示されますので、それを選んでください。</p></li>
 <li><p>以下のコードでアクティベートすることも可能です。</p></li>
 </ul></li>
 </ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb10" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb11" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">activate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">activate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <ol start="2" type="1">
 <li><p>（共同作業者）パッケージをインストール</p>
 <ul>
 <li><p>使用したパッケージは <code>renv.lock</code> に記録されているため、そこから（バージョンもホスト側に揃えて）インストールが可能です。</p></li>
-<li><p>バージョンの違いにより実行できないことを防げます。</p></li>
+<li><p>作業者は lock ファイルをアップデートしたら、コミットとプッシュを行ってください。</p></li>
+<li><p>共同作業者はその lock ファイルをプルしておいてください。</p></li>
+<li><p>バージョンの違いにより実行できないようなことを防げます。</p></li>
 <li><p>以下のコードを実行してください。</p></li>
 </ul></li>
 </ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb12" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>これで R の開発環境をそろえることができます。</p>
-<p>また、新しいパッケージを使ったら、その作業が終わるごとに記録し、共同作業者は <code>renv::restore()</code> でインストールしてください。</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>これで R の開発環境を揃えることができます。</p>
+<p>また、新しいパッケージを使ったら、その作業が終わるごとに <code>renv::snapshot()</code> 記録し、共同作業者は <code>renv::restore()</code> でインストールしてください。</p>
 </section>
 <section id="python-のパッケージ" class="level2">
 <h2 class="anchored" data-anchor-id="python-のパッケージ">Python のパッケージ</h2>
 <p>設定では Python の設定も加えていますので、必要に応じて Python も使用できます。</p>
-<p>また、そもそも DVC が Python のパッケージなので、それもここで記録します。</p>
+<p>また、そもそも DVC が Python のパッケージなので、それも <code>renv</code> と同様に記録して共有します。</p>
 <ol type="1">
 <li><p>Python のパッケージを追加</p>
 <ul>
@@ -645,9 +850,9 @@ window.Quarto = {
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb13" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>pip install [パッケージ名]</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb18" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="pp">[</span><span class="ss">パッケージ名</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ol start="2" type="1">
 <li><p>パッケージを記録</p>
@@ -658,21 +863,22 @@ window.Quarto = {
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb14" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>pip freeze <span class="op">&gt;</span> requirements.txt</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb19" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> freeze <span class="op">&gt;</span> requirements.txt</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ol start="3" type="1">
 <li><p>（共同作業者）パッケージをインストール</p>
 <ul>
-<li>共同作業者は、次のコードで Python パッケージをインストールします。</li>
+<li><p>ここでも事前に <code>.txt</code> ファイルを共有しておいてください。</p></li>
+<li><p>共同作業者は、次のコードで Python パッケージをインストールします。</p></li>
 </ul></li>
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb15" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>pip install <span class="op">-</span>r requirements.txt</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb20" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="データの管理" class="level2">
@@ -682,14 +888,15 @@ window.Quarto = {
 <li><p>ワーキングディレクトリに、<code>data</code> というフォルダを作成</p></li>
 <li><p>データが入ったら、以下のコードを実行</p>
 <ul>
-<li><code>data</code> フォルダごとドライブに追加します。</li>
+<li><p><code>data</code> フォルダごとドライブに追加します。</p></li>
+<li><p><code>data</code> フォルダは <code>.gitignore</code> に記載されているため、GitHub にはアップロードされません。</p></li>
 </ul></li>
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb16" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>dvc add data<span class="op">/</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb21" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> add data/</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ol start="3" type="1">
 <li><p>データをアップロード</p>
@@ -699,11 +906,11 @@ window.Quarto = {
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb17" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>dvc push</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb22" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> push</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>最初は add, push する過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください。</p>
+<p>最初は add と push をする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>。</p>
 <ol start="4" type="1">
 <li><p>（共同作業者）データのダウンロード</p>
 <ul>
@@ -712,9 +919,9 @@ window.Quarto = {
 </ol>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
-<pre><strong>bash</strong></pre>
+<pre><strong>Terminal</strong></pre>
 </div>
-<div class="sourceCode" id="cb18" data-filename="bash"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>dvc pull</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb23" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> pull</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="julia-のパッケージ" class="level2">
@@ -728,32 +935,14 @@ window.Quarto = {
 <div class="code-with-filename-file">
 <pre><strong>Julia</strong></pre>
 </div>
-<div class="sourceCode" id="cb19" data-filename="Julia"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">instantiate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb24" data-filename="Julia"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">instantiate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="github-にコミットプッシュ" class="level2">
-<h2 class="anchored" data-anchor-id="github-にコミットプッシュ">GitHub にコミット、プッシュ</h2>
-<p>ここまでできたら、GitHub レポジトリにコミット、プッシュします。</p>
-<p>VSCode では簡単です。</p>
-<ol type="1">
-<li><p>VSCode の画面左、（デフォルトでは）上から3番目のアイコンをクリック</p></li>
-<li><p>「変更」の中からファイルを選択</p></li>
-<li><p>メッセージを記入</p></li>
-<li><p>「✓ コミット」をクリック</p></li>
-<li><p>分割してコミットする場合は、同様の作業を繰り返す</p></li>
-<li><p>「ソース管理」の右にある「…」から「プッシュ」を選択</p></li>
-</ol>
-<p>以上の作業で GitHub レポジトリにコミット、プッシュができました。</p>
-<p>ブラウザからレポジトリを確認してみてください。ファイルがアップロードされているはずです<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。</p>
-</section>
-<section id="github-からプル" class="level2">
-<h2 class="anchored" data-anchor-id="github-からプル">GitHub からプル</h2>
-<p>また、A さんが GitHub にプッシュした後に B さんが作業をする場合、B さんはプルすることで最新の状態に更新できます。</p>
-<ol type="1">
-<li><p>VSCode の画面左、（デフォルトでは）上から3番目のアイコンをクリック</p></li>
-<li><p>「ソース管理」の右にある「…」から「プル」を選択</p></li>
-</ol>
-<p>これで最新の状態に更新されます。互いにコミット、プッシュ、プルを繰り返すことで、共同作業が可能です。</p>
+<section id="まとめ" class="level2">
+<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
+<p>これらの作業を通じて、共同作業者もホスト側と同じ環境を揃えることができます。</p>
+<p>環境を揃えるためには、コミット、プッシュ、プルを行い、記録したファイルを共有することが重要です。</p>
+<p>単独での場合は、ブランチを作成する必要はないですが、コミット、プッシュで管理を行いましょう。</p>
 <p>以上がワークフローです。お疲れ様でした！</p>
 </section>
 </section>
@@ -765,7 +954,7 @@ window.Quarto = {
 <ol start="0" type="1">
 <li><p>必要なソフト等をインストールし、事前準備を行う。</p>
 <ul>
-<li>WSL2, Ubuntu, VSCode, Docker, Git, GitHub</li>
+<li>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</li>
 </ul></li>
 <li><p>GitHub でレポジトリをインポート、クローン</p></li>
 <li><p>RStudio Server でプロジェクトを作成</p>
@@ -786,7 +975,7 @@ window.Quarto = {
 <ol start="0" type="1">
 <li><p>必要なソフト等をインストールし、事前準備を行う。</p>
 <ul>
-<li>WSL2, Ubuntu, VSCode, Docker, Git, GitHub</li>
+<li>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</li>
 </ul></li>
 <li><p>GitHub でレポジトリをクローン</p></li>
 <li><p>RStudio Server でプロジェクトを開く</p>
@@ -797,8 +986,8 @@ window.Quarto = {
 <li><p>VSCode 上でコミット、プッシュ</p></li>
 </ol>
 </section>
-<section id="作業中-1" class="level2">
-<h2 class="anchored" data-anchor-id="作業中-1">作業中</h2>
+<section id="作業中" class="level2">
+<h2 class="anchored" data-anchor-id="作業中">作業中</h2>
 <ul>
 <li><p>GitHub にコミット、プッシュ、プルを繰り返す。</p></li>
 <li><p>データも新たに追加した場合、DVC で add, push, pull を行う。</p></li>
@@ -807,7 +996,7 @@ window.Quarto = {
 </section>
 <section id="おわりに" class="level1">
 <h1>おわりに</h1>
-<p>今回は VSCode &amp; Docker を用いた開発環境を説明しました。</p>
+<p>今回は Docker &amp; VSCode を用いた開発環境を説明しました。</p>
 <p>個人的な経験として、環境構築はエラーとの戦いです。できるだけエラーに遭遇しないよう丁寧に書いたつもりですが、まだまだ把握していないエラーがたくさんあると思います。</p>
 <p>何かエラー等ありましたら、コメントしていただけると幸いです。</p>
 </section>
@@ -816,12 +1005,14 @@ window.Quarto = {
 <ul>
 <li><p><a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">VSCode + Dockerでよりミニマルでポータブルな研究環境を</a></p></li>
 <li><p><a href="https://qiita.com/tommy_g/items/771ac45b89b02e8a5d64">UbuntuにGitをインストールする</a></p></li>
+<li><p><a href="https://qiita.com/future_kame/items/9fa256aea09faa28b357">githubを使った共同作業の手順</a></p></li>
 </ul>
 </section>
 <section id="追記" class="level1">
 <h1>追記</h1>
 <p>2024/5/11：レポジトリ作成の手順を変更</p>
 <p>2024年5月20日：テンプレートの R バージョン、Julia バージョン、Quarto のバージョンを更新</p>
+<p>2024年5月22日：Mac への対応と、内容の刷新</p>
 
 
 </section>
@@ -830,8 +1021,17 @@ window.Quarto = {
 <div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">脚注</h2>
 
 <ol>
-<li id="fn1"><p>余談ですが、<code>renv::init()</code> のように <code>パッケージ名::関数</code> のような書き方をすれば、<code>library(パッケージ名)</code> をせずとも関数を使えます。1度だけ使いたいようなときに便利です。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p>データは Google Drive に上げているので GitHub レポジトリにデータはありません。<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>もしくは Mac<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>Mac は<a href="https://docs.docker.com/desktop/install/mac-install/">こちら</a><a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>ディレクトリをしていてクローンしたい場合、<code>cd [ディレクトリへのパス]</code> で移動してから実行してください。<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>TRUE のところを FALSE にして再度実行するだけです。<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>Mac なら <code>&gt;&lt;</code><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>余談ですが、<code>renv::init()</code> のように <code>パッケージ名::関数</code> のような書き方をすれば、<code>library(パッケージ名)</code> をせずとも関数を使えます。1度だけ使いたいようなときに便利です。<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>ステージしていないとコミットできません。<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p>どのような作業をしたのか<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p>現段階ではまだローカルには <code>main</code> が反映されていません。<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p>インストールしただけでコード内で使用していない場合は記録できません。<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p>私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
 </section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">

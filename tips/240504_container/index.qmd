@@ -1,5 +1,5 @@
 ---
-title: "【Windows】開発コンテナを使って R 環境を構築！"
+title: "【Windows】開発コンテナを使って R 環境を構築！【Mac でも】"
 date: 2024-05-04
 date-modified: last-modified
 format: html
@@ -7,6 +7,7 @@ categories:
   - R
   - Docker
   - Windows
+  - Mac
   - Ubuntu
   - VSCode
 image: vscode-wsl.png
@@ -16,21 +17,21 @@ image: vscode-wsl.png
 
 # はじめに
 
-WSL2 と VSCode の開発コンテナを使って R の環境を構築する方法を説明します。
+Docker と VSCode を使って R の環境を構築する方法を説明します。
 
 基本的な内容は[こちらのページ](https://zenn.dev/nicetak/articles/vscode-docker-2023)を参考にしており、個人的に使いやすいように修正を加えています。
 
-開発コンテナを使うメリット等はそちらを参照してください。
+開発コンテナを使うメリットは、環境を簡単に共有でき、他の環境に影響を受けずに作業ができることです。
 
-また、最初は設定するのに結構時間がかかりますので、ご了承ください。
+また、最初は設定の際に結構待ち時間が生じますので、ご了承ください。
 
 # 事前準備
 
-まず、WSL2, Ubuntu, VSCode, Docker, Git, そして GitHub の準備をします。
+まず、WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, そして GitHub の準備をします。Windows と Mac での設定が異なるため、それぞれについて説明します。
 
 ホスト側、共同作業者ともに事前準備が必要です。
 
-## WSL2
+## WSL2（Windows ユーザーのみ）
 
 1. PowerShell または Windows コマンドプロンプトを管理者権限で開く
 
@@ -40,13 +41,13 @@ WSL2 と VSCode の開発コンテナを使って R の環境を構築する方�
 
 2. 以下のコマンドを入力して実行
 
-```{.markdown filename="bash"}
+```{.shell filename="PowerShell"}
 wsl --install
 ```
 
 これでインストールはできているはずですが、詳しくは[こちらのサイト](https://learn.microsoft.com/ja-jp/windows/wsl/install)を参照してください。
 
-## Ubuntu
+## Ubuntu（Windows ユーザーのみ）
 
 1. Microsoft Store を開く
 
@@ -64,11 +65,27 @@ wsl --install
 
 エクスプローラーから Linux に入り、`\Ubuntu\home\ユーザー名` がメインとなるディレクトリです。 
 
+## Homebrew（Mac ユーザーのみ）
+
+Mac ユーザーは Homebrew を使ってインストールします。
+
+1. ターミナルを開く
+
+    - アプリ一覧から探してください。
+
+2. 以下のコマンドを入力して実行
+
+    - パスワードを求められるので、入力してください。
+
+```{.sh filename="Terminal"}
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
 ## VSCode {#sec-vscode-setting}
 
 1. VSCode の[ダウンロードサイト](https://code.visualstudio.com/)からダウンロード、インストール
 
-    - Download for Windows をクリックしてダウンロードできます。
+    - Download for Windows^[もしくは Mac] をクリックしてダウンロードできます。
 
     - インストールができたら、VSCode を開いてください。
 
@@ -86,9 +103,9 @@ wsl --install
     
     - `ms-vscode-remote.remote-containers` (Dev Containers)
     
-    - `ms-vscode-remote.remote-wsl` (WSL)
+    - `ms-vscode-remote.remote-wsl` (WSL, Windows ユーザーのみ)
     
-4. WSL に接続
+4. WSL に接続（Windows ユーザーのみ）
 
     - VSCode から先ほどインストールした WSL に接続します。
     
@@ -100,9 +117,9 @@ wsl --install
 
 Docker をインストールします。
 
-1. [ここ](https://docs.docker.com/desktop/install/windows-install/)から Docker Desktop for Windows をクリックしてダウンロード＆インストール
+1. [ここ](https://docs.docker.com/desktop/install/windows-install/)から Docker Desktop for Windows^[Mac は[こちら](https://docs.docker.com/desktop/install/mac-install/)] をクリックしてダウンロード＆インストール
 
-2. 設定の確認
+2. 設定の確認（Windows のみ）
 
     - インストール出来たら、画面上部の設定ボタンから Resources、WSL integration と進み、チェックボックスにチェック、Ubuntu がオンになっていることを確認してください。
     
@@ -118,13 +135,17 @@ Docker をインストールします。
     
     - `fonts`, `julia`, `pip`, `renv`, `TinyTeX`
 
+![Mac での画面](create_volume_mac.png)
+
 ## Git
 
-1. git のインストール
+### Windows
+
+1. Ubuntu で git をインストール
 
     - Windows のアプリ一覧から Ubuntu を探し、開いてください。開いたら、以下のコマンドを入力して実行します。
 
-```{.markdown filename="Ubuntu"}
+```{.sh filename="Ubuntu"}
 sudo apt-get install git
 ```
 
@@ -134,7 +155,28 @@ sudo apt-get install git
 
     - 以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。
 
-```{.markdown filename="Ubuntu"}
+```{.sh filename="Ubuntu"}
+git config --global user.name [任意のユーザ名]
+git config --global user.email [任意のメールアドレス]
+```
+
+### Mac
+
+1. Homebrew で git をインストール
+
+    - ターミナルを開いて、以下のコマンドを入力して実行します。
+
+```{.sh filename="Terminal"}
+brew install git
+```
+
+![2回目なので git is already installed と表示されてます…。](homebrew.png)
+
+2. 設定
+
+    - 以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。
+
+```{.sh filename="Terminal"}
 git config --global user.name [任意のユーザ名]
 git config --global user.email [任意のメールアドレス]
 ```
@@ -153,11 +195,19 @@ Docker を用いて環境を構築するにあたり、[柳本和春さん](http
 
 - RStudio の設定を追加（パネルの配置など）
 
-- それに伴う Dockerfile の加筆修正
+- それに伴う Dockerfile の加筆修正と、更なる設定の追加
 
-- 日本語のロケール設定を追加
+    - Quarto のインストールを追加
 
-## GitHub レポジトリを作成
+    - 個人的にエラーが生じた部分を修正
+
+    - 日本語のロケール設定を追加
+
+まずはホストが行う作業から説明します。
+
+## ホスト側の設定
+
+### GitHub レポジトリを作成
 
 1. テンプレートの [GitHub レポジトリ](https://github.com/yo5uke/template-R) にアクセス
 
@@ -171,7 +221,7 @@ Docker を用いて環境を構築するにあたり、[柳本和春さん](http
 
 5. 「Create repository」をクリック
 
-## テンプレートをクローン
+### テンプレートをクローン
 
 1. GitHub 画面右上の自分のアイコンをクリックし、Your repositories を選択
 
@@ -179,31 +229,52 @@ Docker を用いて環境を構築するにあたり、[柳本和春さん](http
 
 3. 画面中央右にある `<> Code` から、`.git` で終わる URL をコピー
 
-4. Ubuntu を開き、以下のコマンドを入力して実行
+4. Windows なら Ubuntu、Mac なら ターミナル を開き、以下のコマンドを入力して実行^[ディレクトリをしていてクローンしたい場合、`cd [ディレクトリへのパス]` で移動してから実行してください。]。
 
-```{.markdown filename="Ubuntu"}
-git clone [コピーした URL]
+```{.sh filename="Terminal"}
+git clone [コピーしたURL]
 ```
 
 エクスプローラーを開き、`\\wsl.localhost\Ubuntu\home\ユーザー名` を確認してみてください。レポジトリ名と同じフォルダができていると思います。
 
-## VSCode で開く
+Mac の場合は、ユーザー名の下にできているはずです。
+
+::: {.callout-note title="Mac でファイルが見当たらない？" collapse="true"}
+クローンしたフォルダを見てみると、あるはずのファイルやフォルダが見当たらないかもしれません。
+
+![ファイルが足りない…？](finder_mac_after_clone.png)
+
+このようなときは、Finder の隠しファイルを表示する設定を変更する必要があります。
+
+以下をターミナルで実行してください。
+
+```{.sh filename="Terminal"}
+defaults write com.apple.finder AppleShowAllFiles TRUE
+killall Finder
+```
+
+これで、隠しファイルも表示されるようになります。
+
+正直なところ、ファイルは VSCode 上で開くことになるので、この設定は隠しファイルが邪魔であればしなくてもよいと思います^[TRUE のところを FALSE にして再度実行するだけです。]。VSCode 上ではきちんと表示されますので。
+:::
+
+### VSCode で開く {#sec-host-vscode}
 
 1. VSCode を開く
 
-2. [上](#sec-vscode-setting)と同様にして「WSL への接続」を選択
+2. [上](#sec-vscode-setting)と同様にして「WSL への接続」を選択（Windows ユーザーのみ）
 
-3. 画面左上の「ファイル」から「フォルダーを開く」をクリックし、作ったフォルダを選択
+3. 画面左上の「ファイル」から「フォルダーを開く」をクリックし、クローンしたフォルダを選択
 
 4. 画面右下に「コンテナーで再度開く」と出たらクリック
 
-    - 出ない場合、画面左下「WSL: Ubuntu」をクリックし、「コンテナーで再度開く」を選択してください。
+    - 出ない場合、画面左下「WSL: Ubuntu」^[Mac なら `><`]をクリックし、「コンテナーで再度開く」を選択してください。
     
     - 初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。
 
 ![](reopen.png)
 
-## RStudio で開く
+### RStudio で開く
 
 ここで、ブラウザを用いて RStudio を開きます。
 
@@ -223,11 +294,11 @@ git clone [コピーした URL]
     
     - Dockerfile でインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です^[余談ですが、`renv::init()` のように `パッケージ名::関数` のような書き方をすれば、`library(パッケージ名)` をせずとも関数を使えます。1度だけ使いたいようなときに便利です。]。
 
-```{.r filename="R"}
+```{.r}
 renv::init()
 ```
 
-## DVC の設定 {#sec-dvc-setting}
+### DVC の設定 {#sec-dvc-setting}
 
 DVC はデータを管理するためのツールです。
 
@@ -245,7 +316,7 @@ DVC はデータを管理するためのツールです。
 
     - 初めに1回実行しておけば、それ以降は不要です。
 
-```{.python filename="bash"}
+```{.sh filename="Terminal"}
 pip install dvc dvc-gdrive
 ```
 
@@ -257,17 +328,17 @@ pip install dvc dvc-gdrive
 
     - 最後の部分をコピーした ID に変更してください。
 
-```{.python filename="bash"}
-dvc init && dvc remote add -d myremote gdrive://<Google DriveのフォルダID>
+```{.sh filename="Terminal"}
+dvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]
 ```
 
-## LaTeX の設定
+### LaTeX の設定
 
 R Markdown などで $\LaTeX$ を使用するために、TinyTeXをインストールします。
 
 RStudio のコンソールに以下のコマンドを入力して実行してください。
 
-```{.r filename="R"}
+```{.r}
 tinytex::install_tinytex(dir = "/home/rstudio/.TinyTeX", force = TRUE)
 ```
 
@@ -275,7 +346,7 @@ TinyTeX は、$\LaTeX$ コードをコンパイルする際に必要なパッケ
 
 R Markdown や Quarto での PDF 出力の仕方については、[こちらの記事](https://yo5uke.github.io/tips/240329_rmarkdown_pdf/)もご覧ください。
 
-## Julia の設定 {#sec-julia-setting}
+### Julia の設定 {#sec-julia-setting}
 
 [参考記事](https://zenn.dev/nicetak/articles/vscode-docker-2023)の設定に基づき、Julia が使えるようになっているため、その始め方についても書いておきます。特に使う予定がなければ、スキップしてください。
 
@@ -294,13 +365,129 @@ Pkg.activate()
 
 以上で Julia の事前準備ができました。
 
-また、環境構築もここで一区切りです！
+### 共同プロジェクトの場合
 
-# 作業中
+共同プロジェクトの場合は、GitHub で共有するため、以下の手順を踏んでおいてください。
 
-作業中のワークフローを説明します。
+- GitHub レポジトリでコラボレーターを追加
+
+    - レポジトリの Settings から Collaborators に進み、コラボレーターを追加してください。
+
+    - Add people から招待できます。
+
+また、ホスト側の環境構築もここで一区切りです！
+
+## 共同作業者の設定
+
+共同作業者も事前準備は終わらせておいてください。
+
+1. GitHub で招待を受ける
+
+    - メールが届いているはずですので、そこから GitHub にログインしてください。
+
+    - レポジトリにアクセスできるようになります。
+
+2. レポジトリをクローン
+
+    - ホスト側が作成したレポジトリをクローンします。
+
+    - あらかじめ GitHub の `<> Code` から `.git` で終わる URL をコピーしておいてください。
+
+    - Ubuntu もしくは Mac でターミナルを開き、以下のコマンドを入力して実行してください。
+
+```{.sh}
+git clone [コピーしたURL]
+```
+
+3. VSCode で開く
+
+    - [ホスト側の設定]{#sec-host-vscode}と同様にして、VSCode で開いてください。
+
+一旦ここまでで、共同作業者の設定は終わりです。
+
+# 作業
+
+ワークフローについて説明します。
+
+## 作業開始時
+
+作業を開始する際は、以下の手順で作業を開始してください。
+
+1. VSCode で開く
+
+    - ホスト側、共同作業者ともに、VSCode の開発コンテナで開いてください。
+
+2. 作業ブランチを作成
+
+    - 画面左下、`main` と書かれているところをクリックし、「＋新しいブランチの作成…」を選択してください。
+
+    - ブランチ名は、作業内容がわかるようにしてください。
+
+    - 例えば、`feature/作業内容` など。
+
+3. 作業ブランチに切り替え
+
+    - 再び `main` と書かれているところをクリックし、作成したブランチを選択してください。
+
+4. 作業を開始
+
+## 作業終了時
+
+先に作業終了時について説明します。ここで想定しているのは共同作業を行っている場合です。
+
+単独での業務の場合は、ブランチを作成する必要はないと思います。コミットとプッシュを繰り返す流れで十分です。
+
+1. 作業内容をコミット
+
+    - 画面左側の「ソース管理」をクリックします。
+
+    - ファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします^[ステージしていないとコミットできません。]。
+
+    - 画面上部の「メッセージを入力」にコミットメッセージ^[どのような作業をしたのか]を入力し、「✓コミット」をクリックしてください。
+
+2. プッシュ
+
+    - 「ソース管理」の右側にある「...」をクリックし、「プッシュ」を選択してください。
+
+    - これで、作業内容が GitHub にアップロードされます。
+
+ところで、現在は作業中のブランチが先ほど作成したブランチになっていると思います。
+
+これを `main` にマージするために、プルリクエストを作成します。要は、自分が作成したブランチをホスト側に `main` へ取り込んでもらうための手続きです。
+
+このステップを挟む理由は、例えば正常に作動しないコードが `main` に勝手にマージされることを防ぐためです。
+
+3. プルリクエスト
+
+    - GitHub にアクセスし、作業中のレポジトリを開いてください。
+
+    - 画面上部の「Pull requests」をクリックし、「New pull request」をクリックしてください。
+
+    - 作業中のブランチと `main` を比較して、プルリクエストを作成します。
+
+    - 作業内容を説明し、ホスト側にマージしてもらうようにリクエストします。
+
+    - 承認されれば、無事 `main` にマージされます。
+
+5. プル
+
+    - ホスト側で、プルリクエストが承認されたら、`main` にマージされた内容を取り込むためにプルします^[現段階ではまだローカルには `main` が反映されていません。]。
+
+    - 画面下部のブランチ名をクリックし、`main` を選択してください。これで再び `main` に切り替わります。
+
+    - 再び画面左からの「ソース管理」から、「ソース管理」の右側にある「...」をクリックし、「プル」を選択してください。
+
+    - これで、ローカルの `main` が最新の状態になります。
+
+この流れを繰り返すことで作業のサイクルを回していきます。
+
+一連の流れについては、[こちらの記事](https://qiita.com/future_kame/items/9fa256aea09faa28b357)が参考になります。
 
 ## R のパッケージ
+
+::: {.callout-important}
+個々からの作業で重要なことですが、これから説明する `renv` 等で記録したら、コミット、プッシュ、プルを通じてファイルを共有することを忘れないでください。
+:::
 
 作業中新たにパッケージを使用した場合、それを `renv.lock` ファイルに記録することで、必要なパッケージを共同作業者と共有することができます。
 
@@ -308,39 +495,45 @@ Pkg.activate()
 
 1. R のコンソールで以下を実行
 
+    - 新しいパッケージをインストールし、コード内で使用したら、以下のコードを実行してください^[インストールしただけでコード内で使用していない場合は記録できません。]。
+
     - `renv` がアクティベートされていない場合、アクティベートする必要がありますが、おそらく実行した際に「renv をアクティベートして lock ファイルに記録する」というような選択肢が提示されますので、それを選んでください。
 
     - 以下のコードでアクティベートすることも可能です。
 
-```{.r filename="R"}
+```{.r}
 renv::snapshot()
 ```
 
-```{.r filename="R"}
+```{.r}
 renv::activate()
 ```
 
 2. （共同作業者）パッケージをインストール
 
     - 使用したパッケージは `renv.lock` に記録されているため、そこから（バージョンもホスト側に揃えて）インストールが可能です。
+
+    - 作業者は lock ファイルをアップデートしたら、コミットとプッシュを行ってください。
+
+    - 共同作業者はその lock ファイルをプルしておいてください。
     
-    - バージョンの違いにより実行できないことを防げます。
+    - バージョンの違いにより実行できないようなことを防げます。
     
     - 以下のコードを実行してください。
     
-```{.r filename="R"}
+```{.r}
 renv::restore()
 ```
 
-これで R の開発環境をそろえることができます。
+これで R の開発環境を揃えることができます。
 
-また、新しいパッケージを使ったら、その作業が終わるごとに記録し、共同作業者は `renv::restore()` でインストールしてください。
+また、新しいパッケージを使ったら、その作業が終わるごとに `renv::snapshot()` 記録し、共同作業者は `renv::restore()` でインストールしてください。
 
 ## Python のパッケージ
 
 設定では Python の設定も加えていますので、必要に応じて Python も使用できます。
 
-また、そもそも DVC が Python のパッケージなので、それもここで記録します。
+また、そもそも DVC が Python のパッケージなので、それも `renv` と同様に記録して共有します。
 
 1. Python のパッケージを追加
 
@@ -348,7 +541,7 @@ renv::restore()
     
     - DVC 以外特に使うものがなければ、ここはスキップしてください。
 
-```{.python filename="bash"}
+```{.sh filename="Terminal"}
 pip install [パッケージ名]
 ```
 
@@ -358,15 +551,17 @@ pip install [パッケージ名]
     
     - 特に何もインストールしていなくても、DVC を使っていますので、これは実行してください。
 
-```{.python filename="bash"}
+```{.sh filename="Terminal"}
 pip freeze > requirements.txt
 ```
 
 3. （共同作業者）パッケージをインストール
 
+    - ここでも事前に `.txt` ファイルを共有しておいてください。
+
     - 共同作業者は、次のコードで Python パッケージをインストールします。
 
-```{.python filename="bash"}
+```{.sh filename="Terminal"}
 pip install -r requirements.txt
 ```
 
@@ -380,7 +575,9 @@ pip install -r requirements.txt
 
     - `data` フォルダごとドライブに追加します。
 
-```{.python filename="bash"}
+    - `data` フォルダは `.gitignore` に記載されているため、GitHub にはアップロードされません。
+
+```{.sh filename="Terminal"}
 dvc add data/
 ```
 
@@ -388,17 +585,17 @@ dvc add data/
 
     - 以下のコードでデータをプッシュします。
     
-```{.python filename="bash"}
+```{.sh filename="Terminal"}
 dvc push
 ```
 
-最初は add, push する過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください。
+最初は add と push をする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください^[私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。]。
 
 4. （共同作業者）データのダウンロード
 
     - 以下のコードでデータをダウンロードします。
 
-```{.python filename="bash"}
+```{.sh filename="Terminal"}
 dvc pull
 ```
 
@@ -414,37 +611,13 @@ Julia はパッケージが自動で `Project.toml` に保存されるため、�
 Pkg.instantiate()
 ```
 
-## GitHub にコミット、プッシュ
+## まとめ
 
-ここまでできたら、GitHub レポジトリにコミット、プッシュします。
+これらの作業を通じて、共同作業者もホスト側と同じ環境を揃えることができます。
 
-VSCode では簡単です。
+環境を揃えるためには、コミット、プッシュ、プルを行い、記録したファイルを共有することが重要です。
 
-1. VSCode の画面左、（デフォルトでは）上から3番目のアイコンをクリック
-
-2. 「変更」の中からファイルを選択
-
-3. メッセージを記入
-
-4. 「✓ コミット」をクリック
-
-5. 分割してコミットする場合は、同様の作業を繰り返す
-
-6. 「ソース管理」の右にある「...」から「プッシュ」を選択
-
-以上の作業で GitHub レポジトリにコミット、プッシュができました。
-
-ブラウザからレポジトリを確認してみてください。ファイルがアップロードされているはずです^[データは Google Drive に上げているので GitHub レポジトリにデータはありません。]。
-
-## GitHub からプル
-
-また、A さんが GitHub にプッシュした後に B さんが作業をする場合、B さんはプルすることで最新の状態に更新できます。
-
-1. VSCode の画面左、（デフォルトでは）上から3番目のアイコンをクリック
-
-2. 「ソース管理」の右にある「...」から「プル」を選択
-
-これで最新の状態に更新されます。互いにコミット、プッシュ、プルを繰り返すことで、共同作業が可能です。
+単独での場合は、ブランチを作成する必要はないですが、コミット、プッシュで管理を行いましょう。
 
 以上がワークフローです。お疲れ様でした！
 
@@ -456,7 +629,7 @@ VSCode では簡単です。
 
 0. 必要なソフト等をインストールし、事前準備を行う。
 
-    - WSL2, Ubuntu, VSCode, Docker, Git, GitHub
+    - WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
 
 1. GitHub でレポジトリをインポート、クローン
 
@@ -478,7 +651,7 @@ VSCode では簡単です。
 
 0. 必要なソフト等をインストールし、事前準備を行う。
 
-    - WSL2, Ubuntu, VSCode, Docker, Git, GitHub
+    - WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
 
 1. GitHub でレポジトリをクローン
 
@@ -498,7 +671,7 @@ VSCode では簡単です。
 
 # おわりに
 
-今回は VSCode & Docker を用いた開発環境を説明しました。
+今回は Docker & VSCode を用いた開発環境を説明しました。
 
 個人的な経験として、環境構築はエラーとの戦いです。できるだけエラーに遭遇しないよう丁寧に書いたつもりですが、まだまだ把握していないエラーがたくさんあると思います。
 
@@ -510,8 +683,12 @@ VSCode では簡単です。
 
 - [UbuntuにGitをインストールする](https://qiita.com/tommy_g/items/771ac45b89b02e8a5d64)
 
+- [githubを使った共同作業の手順](https://qiita.com/future_kame/items/9fa256aea09faa28b357)
+
 # 追記
 
 2024/5/11：レポジトリ作成の手順を変更
 
 2024年5月20日：テンプレートの R バージョン、Julia バージョン、Quarto のバージョンを更新
+
+2024年5月22日：Mac への対応と、内容の刷新
