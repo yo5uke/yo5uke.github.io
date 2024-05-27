@@ -1,8 +1,6 @@
 FROM rocker/geospatial:4.4.0
 
 RUN apt-get update && apt-get install -y \
-    fonts-ipaexfont \
-    fonts-noto-cjk \
     libmagick++-dev \
     tk \
     locales \
@@ -12,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# ロケールとタイムゾーンの設定
+# Locale and Timezone
 ENV LANG ja_JP.UTF-8
 ENV LC_ALL ja_JP.UTF-8
 RUN sed -i '$d' /etc/locale.gen \
@@ -38,8 +36,6 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
 
 # DVC Path
 ENV PATH $PATH:~/.pip/bin
-
-RUN pip install ipykernel jupyter
 
 RUN wget -O quarto.deb "https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.554/quarto-1.4.554-linux-amd64.deb" && \
     dpkg -i quarto.deb && \
