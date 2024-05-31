@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="install.packages() はもう不要！">
+<meta name="description" content="WSL はデフォルトで PC の半分のメモリが割り当てられています。">
 
-<title>Yosuke Abe - 【R パッケージ】インストールも読み込みも一撃で？【pacman】</title>
+<title>Yosuke Abe - 【WSL】割り当てるメモリを増やす方法</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -112,11 +112,11 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </script>
 
 
-<meta property="og:title" content="Yosuke Abe - 【R パッケージ】インストールも読み込みも一撃で？【pacman】">
-<meta property="og:description" content="install.packages() はもう不要！">
+<meta property="og:title" content="Yosuke Abe - 【WSL】割り当てるメモリを増やす方法">
+<meta property="og:description" content="WSL はデフォルトで PC の半分のメモリが割り当てられています。">
 <meta property="og:site_name" content="Yosuke Abe">
-<meta name="twitter:title" content="Yosuke Abe - 【R パッケージ】インストールも読み込みも一撃で？【pacman】">
-<meta name="twitter:description" content="install.packages() はもう不要！">
+<meta name="twitter:title" content="Yosuke Abe - 【WSL】割り当てるメモリを増やす方法">
+<meta name="twitter:description" content="WSL はデフォルトで PC の半分のメモリが割り当てられています。">
 <meta name="twitter:creator" content="@5uke_y">
 <meta name="twitter:site" content="@5uke_y">
 <meta name="twitter:card" content="summary">
@@ -185,16 +185,8 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
    
   <ul>
   <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
-  <li><a href="#pacman-とは" id="toc-pacman-とは" class="nav-link" data-scroll-target="#pacman-とは">pacman とは</a></li>
-  <li><a href="#使ってみる" id="toc-使ってみる" class="nav-link" data-scroll-target="#使ってみる">使ってみる</a>
-  <ul class="collapse">
-  <li><a href="#library" id="toc-library" class="nav-link" data-scroll-target="#library">library()</a></li>
-  <li><a href="#p_load" id="toc-p_load" class="nav-link" data-scroll-target="#p_load">p_load()</a></li>
-  </ul></li>
-  <li><a href="#使うにあたって" id="toc-使うにあたって" class="nav-link" data-scroll-target="#使うにあたって">使うにあたって</a></li>
-  <li><a href="#おまけ" id="toc-おまけ" class="nav-link" data-scroll-target="#おまけ">おまけ</a></li>
-  <li><a href="#まとめ" id="toc-まとめ" class="nav-link" data-scroll-target="#まとめ">まとめ</a></li>
-  <li><a href="#参考" id="toc-参考" class="nav-link" data-scroll-target="#参考">参考</a></li>
+  <li><a href="#手順" id="toc-手順" class="nav-link" data-scroll-target="#手順">手順</a></li>
+  <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
   </ul>
 </nav>
     </div>
@@ -203,15 +195,17 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">【R パッケージ】インストールも読み込みも一撃で？【pacman】</h1>
+<h1 class="title">【WSL】割り当てるメモリを増やす方法</h1>
   <div class="quarto-categories">
-    <div class="quarto-category">R</div>
+    <div class="quarto-category">WSL</div>
+    <div class="quarto-category">Windows</div>
+    <div class="quarto-category">備忘録</div>
   </div>
   </div>
 
 <div>
   <div class="description">
-    <p><code>install.packages()</code> はもう不要！</p>
+    <p>WSL はデフォルトで PC の半分のメモリが割り当てられています。</p>
   </div>
 </div>
 
@@ -222,16 +216,10 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
     <div>
     <div class="quarto-title-meta-heading">公開</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">2024年5月7日</p>
+      <p class="date">2024年5月31日</p>
     </div>
   </div>
   
-    <div>
-    <div class="quarto-title-meta-heading">更新日</div>
-    <div class="quarto-title-meta-contents">
-      <p class="date-modified">2024年5月31日</p>
-    </div>
-  </div>
     
   </div>
   
@@ -242,104 +230,51 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 
 <section id="はじめに" class="level1">
 <h1>はじめに</h1>
-<p>何か新しいプロジェクトを始める際に、新しいパッケージをいちいちインストールして読み込むのは面倒ですよね。</p>
-<p>そんな時に便利な <code>pacman</code> パッケージのご紹介です。</p>
+<p>WSL &amp; Docker を使用していて、使えるメモリを増やしたい、そんな時にどうすればよいのか解説します。</p>
+<p>上にも書いてあるように、デフォルトでは PC の半分のメモリが WSL には割り当てられています。</p>
+<p>すなわちメモリが 8GB の PC であれば 4GB が、16GB の PC であれば 8GB が割り当てられています。</p>
+<p>プロジェクトによってはより多くのメモリを使いたいこともあると思うので、以下の方法を実行してみて下さい。</p>
+<p>ちなみに Mac では Docker Desktop の設定から Resources で変更できます。</p>
 </section>
-<section id="pacman-とは" class="level1">
-<h1>pacman とは</h1>
-<p>ざっくり言うと、パッケージのマネジメントツールです。このパッケージには <code>p_</code> で始まる様々な関数が含まれています。</p>
-<p>特に便利なのが <code>p_load()</code> で、パッケージのインストールと読み込みを両方してくれます。もちろんインストール済みのパッケージは、読み込むだけです。</p>
-<p>さらに便利なのは、複数のパッケージをまとめて書けるということです。<code>install.packages()</code> は一度に複数のパッケージをインストールできるものの、<code>library()</code> はパッケージごとにしなくてはなりません。その点 <code>pacman::p_load()</code> は、括弧内にパッケージを並べて書くことで、複数のパッケージを一度にインストール、読み込みまでしてくれます（しかもダブルクォーテーションで囲まなくてよい！）。</p>
-</section>
-<section id="使ってみる" class="level1">
-<h1>使ってみる</h1>
-<p>早速使ってみます。今回は、<code>tidyverse</code>, <code>sf</code>, <code>here</code> の3つを使いたいとして、まだインストールもしていないとします。</p>
-<section id="library" class="level2">
-<h2 class="anchored" data-anchor-id="library">library()</h2>
-<p>まず、インストールします。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"tidyverse"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"sf"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"here"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>次に、読み込みます。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ dplyr     1.1.4     ✔ readr     2.1.5
-✔ forcats   1.0.0     ✔ stringr   1.5.1
-✔ ggplot2   3.5.1     ✔ tibble    3.2.1
-✔ lubridate 1.9.3     ✔ tidyr     1.3.1
-✔ purrr     1.0.2     
-── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-✖ dplyr::filter() masks stats::filter()
-✖ dplyr::lag()    masks stats::lag()
-ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Linking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>here() starts at /home/rstudio/work</code></pre>
-</div>
-</div>
-<p>これで使えるようになりました。</p>
-</section>
-<section id="p_load" class="level2">
-<h2 class="anchored" data-anchor-id="p_load">p_load()</h2>
-<p><code>pacman::p_load()</code> はこれで一発です。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_load</span>(tidyverse, sf, here)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>この場合、上に出てきたような読み込みに付随するメッセージは出てきません。</p>
-</section>
-</section>
-<section id="使うにあたって" class="level1">
-<h1>使うにあたって</h1>
-<p><code>pacman</code> がパッケージである以上、はじめに <code>install.packages("pacman")</code> はしなければなりません。それ以降は <code>install.packages()</code> とはおさらばできます。</p>
-<p><code>packman::</code> の書き方を使って、<code>library(pacman)</code>も省略しましょう<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
-<p>また、Docker を用いて環境構築する場合、Dockerfile にインストールすることを指示しておけば、それすら要らなくなります<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。</p>
-<p>Dockerfile に以下を追加します。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Dockerfile</strong></pre>
-</div>
-<div class="sourceCode" id="cb9" data-filename="Dockerfile"><pre class="sourceCode dockerfile code-with-copy"><code class="sourceCode dockerfile"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">RUN</span> <span class="ex">R</span> <span class="at">-e</span> <span class="st">"install.packages('pacman')"</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>これでビルドすれば、RStudio でインストールせずとも <code>pacman</code> が使えます。</p>
-</section>
-<section id="おまけ" class="level1">
-<h1>おまけ</h1>
-<p>パッケージを全部アップデートしたい、なんてこともありますよね。RStudio から一括でやる方法もありますが、せっかくなので <code>pacman</code> を使ってやってみましょう。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>pacman<span class="sc">::</span><span class="fu">p_update</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<p>これでいけます。</p>
-</section>
-<section id="まとめ" class="level1">
-<h1>まとめ</h1>
-<p><code>pacman</code> パッケージをご紹介しました。</p>
-<p><code>library()</code> とどちらを使うかはお好み次第だと思います。</p>
-<p>魅力を感じた方はぜひ使ってみてください！</p>
-</section>
-<section id="参考" class="level1">
-<h1>参考</h1>
-<p><a href="https://qiita.com/taiyodayo/items/e69d997754d55e3d7e4c">“install.packages()”するのはこれが最後！Rのパッケージ管理には「pacman」を使おう</a></p>
-
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">脚注</h2>
-
-<ol>
-<li id="fn1"><p>この書き方では、<code>library()</code> を使わずともパッケージ内の関数が使えます。一度だけ使いたい！というときに便利です。また、どのパッケージに属しているかが明確になるというメリットもあります。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p><a href="https://yo5uke.github.io/tips/240504_container/">こちら</a>を参照<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<section id="手順" class="level1">
+<h1>手順</h1>
+<ol type="1">
+<li><p>エクスプローラーを開く</p></li>
+<li><p><code>c:</code> → <code>ユーザー</code> → 自分のユーザー と進む</p>
+<ul>
+<li>僕の場合だったら <code>C:\Users\yo5uk</code></li>
+</ul></li>
+<li><p>左上の「新規作成」から「テキストドキュメント」を選び、ファイル名を <code>.wslconfig</code> とする</p>
+<ul>
+<li><p>拡張子も全て消して名前を付けてください。<code>.wslconfig.txt</code> ではだめです。</p></li>
+<li><p>もし拡張子がデフォルトで表示されない設定の場合は、表示されるよう設定を変更してから行って下さい。</p></li>
+<li><p>エクスプローラー右上の「表示」→「表示」→「ファイル名拡張子」をオンにします。</p></li>
+</ul></li>
+<li><p>メモ帳など任意のテキストエディタで開く</p></li>
+<li><p>中身を以下のように記述</p>
+<ul>
+<li><p>GB の部分は好きに置き換えてください。</p></li>
+<li><p>8GB のPC を使っている場合には、もちろん 12GB は割り当てられません。</p></li>
+</ul></li>
 </ol>
-</section></div></main> <!-- /main -->
+<div class="sourceCode" id="cb1"><pre class="sourceCode txt code-with-copy"><code class="sourceCode default"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>[wsl2]</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>memory=12GB</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>swap=8GB</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<ol start="6" type="1">
+<li>保存して閉じる</li>
+</ol>
+<p>以上です。これで WSL に割り当てられるメモリが増えました。</p>
+<p>ちなみに <code>memory</code> は読んで字のごとくメモリを表しますが、ここでの <code>swap</code> は、WSL2 が使用するスワップファイルのサイズを設定することを意味します。スワップファイルを適切に設定することで、物理メモリが不足した場合でもシステムの安定性を維持することができます。</p>
+</section>
+<section id="おわりに" class="level1">
+<h1>おわりに</h1>
+<p>WSL に割り当てるメモリを増やす方法をご紹介しました。</p>
+<p>プロジェクトによっては必要になることもあると思うので、ご参考まで。</p>
+
+
+</section>
+
+</main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {
   const toggleBodyColorMode = (bsSheetEl) => {
