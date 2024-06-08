@@ -27,7 +27,7 @@ RUN R -e "install.packages('renv')"
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.10
-ENV JULIA_PATCH_VERSION=3
+ENV JULIA_PATCH_VERSION=4
 
 RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}/julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
     tar xvf julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
@@ -37,7 +37,11 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
 # DVC Path
 ENV PATH $PATH:~/.pip/bin
 
-RUN wget -O quarto.deb "https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.554/quarto-1.4.554-linux-amd64.deb" && \
+ENV QUARTO_MAJOR_VERSION=1
+ENV QUARTO_MINOR_VERSION=5
+ENV QUARTO_PATCH_VERSION=43
+
+RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MAJOR_VERSION}.${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MAJOR_VERSION}.${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
     dpkg -i quarto.deb && \
     rm quarto.deb
 
