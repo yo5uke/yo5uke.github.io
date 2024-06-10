@@ -23,7 +23,7 @@ COPY --chown=rstudio:rstudio /.rstudio/rstudio-prefs.json /home/rstudio/.config/
 COPY --chown=rstudio:rstudio /.vscode/_settings.json /home/rstudio/.vscode-server/data/Machine/settings.json
 
 # R Package
-RUN R -e "install.packages('renv')"
+RUN R -e "install.packages(c('renv'))"
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.10
@@ -35,16 +35,15 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
     ln -s $(pwd)/julia-$JULIA_MINOR_VERSION.$JULIA_PATCH_VERSION/bin/julia /usr/bin/julia
 
 # DVC Path
-ENV PATH $PATH:~/.pip/bin
+ENV PATH $PATH:~/.cache/pip/bin
 
-ENV QUARTO_MAJOR_VERSION=1
-ENV QUARTO_MINOR_VERSION=5
+ENV QUARTO_MINOR_VERSION=1.5
 ENV QUARTO_PATCH_VERSION=43
 
-RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MAJOR_VERSION}.${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MAJOR_VERSION}.${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
+RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
     dpkg -i quarto.deb && \
     rm quarto.deb
 
 # Package Cahce & Permission
-RUN cd /home/rstudio && mkdir .pip .cache .cache/R .cache/R/renv .TinyTeX .julia && \
-    chown rstudio:rstudio .pip .cache .cache/R .cache/R/renv .TinyTeX .julia
+RUN cd /home/rstudio && mkdir .cache .TinyTeX && \
+    chown rstudio:rstudio .cache .TinyTeX
