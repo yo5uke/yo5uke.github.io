@@ -1,6 +1,6 @@
 FROM rocker/geospatial:4.4.0
 
-RUN apt-get update && apt-get install -y \
+RUN apt update && apt install -y \
     libmagick++-dev \
     tk \
     locales \
@@ -38,7 +38,7 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
 ENV PATH $PATH:~/.cache/pip/bin
 
 ENV QUARTO_MINOR_VERSION=1.5
-ENV QUARTO_PATCH_VERSION=43
+ENV QUARTO_PATCH_VERSION=45
 
 RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
     dpkg -i quarto.deb && \
