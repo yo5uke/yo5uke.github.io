@@ -1,4 +1,4 @@
-FROM rocker/geospatial:4.4.0
+FROM rocker/geospatial:4.4.1
 
 RUN apt update && apt install -y \
     libmagick++-dev \
