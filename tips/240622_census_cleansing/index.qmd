@@ -3,10 +3,10 @@ title: "国勢調査データのクレンジング"
 description: |
   人口データのファイルを一括で読み込んで、分析で使いやすくするためのクレンジングコードです。
 date: 2024-06-22
+date-modified: last-modified
 categories: 
   - R
 execute: 
-  warning: false
   cache: true
 image: image/japan.png
 ---
@@ -74,6 +74,8 @@ head(test)
 
 ```{r}
 #| echo: false
+#| label: tbl-file-check
+#| tbl-cap: "生データ"
 
 head(test) |> 
   gt()
@@ -96,6 +98,8 @@ head(test_skip1)
 
 ```{r}
 #| echo: false
+#| label: tbl-file-check-skip1
+#| tbl-cap: "1行目をスキップ"
 
 head(test_skip1) |> 
   gt()
@@ -172,19 +176,34 @@ census_objects <- lapply(
   
 3. `filter(...2 == 0)`
 
-    - `...2` はもともと `HTKSYORI`（秘匿処理） という列名でした。これが0であると秘匿対象外であり、データが秘匿されずに存在します。
+    - `...2` はもともと `HTKSYORI`（秘匿処理） という列名でした。これが0であると秘匿対象外であり、データが存在します^[1だと合算先地域メッシュ、2だと秘匿対象地域メッシュです。詳しくは [e-Stat](https://www.e-stat.go.jp/gis/statmap-search?page=1&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H&serveyId=H002005112020&statsId=T001141&datum=2011) の定義書から確認してください。]。
+    
+    - 逆に秘匿対象だと @tbl-hitoku のようになります。
   
     - フィルターをかけてデータがあるところを抽出します。
+    
+```{r}
+#| echo: false
+#| label: tbl-hitoku
+#| tbl-cap: "データがアスタリスクで置き換えられています。"
+
+read_csv(here("data/census_2020/tblT001141H3725.txt"), skip = 1, 
+         locale = locale(encoding = "Shift_JIS")) |> 
+  filter(...2 == 2) |> 
+  head() |> 
+  gt()
+```
+
 
 4. `rename()`
 
-    - 変数名を変更するときは、`colnames()` などで変数名を確認し、おかしなところはないか確認してから変えることをおすすめします。
+    - 変数名を変更するときは、`colnames()` などで変数名を確認し、おかしなところはないか確認してから変えることをおすすめします（特に日本語列名の場合）。
   
 5. `mutate()`
 
     - `KEY_CODE` は文字列にしたくて、その他は数値にしたいので、`as.character()` と `as.numeric()` で変換します。
   
-    - データによっては問題ないかもしれません。
+    - データによっては、この手順を踏まなくても問題ないかもしれません。
 
 6. `bind_rows()`
 
@@ -202,6 +221,8 @@ head(census_objects)
 
 ```{r}
 #| echo: false
+#| label: tbl-after-cleansing
+#| tbl-cap: "クレンジング後"
 
 head(census_objects) |> 
   gt()
