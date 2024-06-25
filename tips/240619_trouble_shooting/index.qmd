@@ -17,22 +17,49 @@ categories:
 
 # Python のパス
 
-- 発生タイミング：Python 環境をいじった後
+- **発生タイミング**：Python 環境をいじった後
 
-- 入力コマンド：
+- **入力コマンド**：
 
-```{.sh}
+```{.sh filename="Terminal"}
 dvc init
 ```
 
-- 発生したエラー：`bash: /home/rstudio/.cache/pip/bin/dvc: /usr/local/bin/python: bad interpreter: No such file or directory`
+- **発生したエラー**：`bash: /home/rstudio/.cache/pip/bin/dvc: /usr/local/bin/python: bad interpreter: No such file or directory`
 
-- 対処法：パッケージをアンインストールして再インストール
+- **対処法**：パッケージをアンインストールして再インストール
 
-```{.sh}
+```{.sh filename="Terminal"}
 pip uninstall dvc
 pip install dvc
 ```
+
+- **原因**：
+
+    - 別の Dockerfile でバージョンの異なる Python 環境を作成しており、R 環境と Python 環境で同じ Docker ボリュームにマウントしていた。
+    
+    - その結果競合が起こり、エラーが発生したと考えられる。
+    
+- **解決策**：一時的な対処なら上の方法で十分。根本的解決のためには R 環境と Python 環境で異なるボリュームを作成し、マウントする必要がある。
+
+# ファイル削除の失敗
+
+- **発生環境**：WSL（Windows 環境）
+
+- **発生タイミング**：エクスプローラーからファイルを削除するとき
+
+- **発生したエラー**：ファイルが削除できない（再試行やスキップしてもダメ）
+
+- **対処法**：
+
+    1. VSCode を開き、WSL に接続する。
+    
+    2. `Ctrl` + `J` でターミナルを開いて次のコマンドを入力し、`[フォルダ名]` を置き換えた上で実行する^[`\\wsl.localhost\Ubuntu\home\user` 下にファイルがあると仮定している。フォルダのパスが異なる場合は、`cd your_path` でディレクトリを変更したうえで実行する。もしくは `[フォルダ名]` にパス含めて入力する]。
+    
+```{.sh filename="Terminal"}
+sudo rm -rf [フォルダ名]
+```
+
 
 
 
