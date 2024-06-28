@@ -1,0 +1,134 @@
+---
+title: "【PDF】Quarto で論文を書く"
+description: |
+    Quarto を使って論文を書く方法（テクニカル）をまとめました。
+date: 2024-06-29
+categories:
+  - Quarto
+  - R
+  - LaTeX
+draft: true
+---
+
+# はじめに
+
+これまでの記事で R Markdown や Quarto を使って $\LaTeX$  経由で PDF 出力する方法や、それらで使えるチャンクオプションについてご紹介してきました。
+
+::: {.callout-tip appearance="minimal"}
+[R MarkdownでPDF出力【LaTeX】](https://yo5uke.github.io/tips/240329_rmarkdown_pdf/)
+:::
+
+::: {.callout-tip appearance="minimal"}
+[【Quarto】チャンクオプションまとめてみた【R Markdown】](https://yo5uke.github.io/tips/240509_chunk_option/)
+:::
+
+今回は、Quarto を使って論文を書く方法について包括的にまとめてみました。
+
+ぜひ参考にしてみてください。
+
+また、環境として RStudio を使用していると仮定します。
+
+# Quarto で論文を書く
+
+Quarto は R Markdown の亜種、と考えてもらえればと思います。マークダウン形式で記述することができ、$\LaTeX$ 記法を必ずしも用いる必要がないのが特徴です^[$\LaTeX$ コードを埋め込むこともできます。]。$\LaTeX$ を深く学ばなくてもスタイリッシュな論文が書けるのではないでしょうか。
+
+ここからは、書くのに最低限必要な使い方を紹介します。
+
+## プロジェクトの作成
+
+必須ではありませんが推奨します。プロジェクトを作成することで、ファイルの管理がしやすくなります。
+
+プロジェクトの作成については以下の記事で紹介しています。$\LaTeX$ との差別化点として、分析結果をそのまま埋め込めることがあげられ、プロジェクトを作成することで、その恩恵を最大限受けられると考えています。
+
+::: {.callout-tip appearance="minimal"}
+[【R】プロジェクトを使う](https://yo5uke.github.io/tips/240515_rproj/)
+:::
+
+## ファイルの作成
+
+Quarto で論文を書くには、拡張子が `.qmd` のファイルを作成します。これは Quarto Markdown の略です。
+
+RStudio 画面左上の ![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAkCAYAAADl9UilAAACvElEQVR4Xu2XTWgTQRSA0/wo4k9VghH14MWzB+9S0YMHbxJBsZDdTdJS3aTBghQPKRRUrF6EWIpNtjSKGo0XTS96CA00CUVpmqot2tLGHvTSNDYFE0jGfUkj4bn52e0EL/vBO+3MvI+Zt29nNRoVlf/BQ36nTrB0tvmYYJvALGsEJg+h9TEp/SgT3DvMsedu2tvNZrMOT20dXvaiKLEqBqkXouQPo4e1dfb17Xa73Vq8DD0CZp1WsNzDAo3i/LM7a6Fw9FM4lpidnE4mlEQknryFdf4i7sAQTgqBwc8h7O8fk0zmFykUCnh4U4Ac9ilTPr5/EjYrBuGJT5CNjSwpFot4SkOkxQLmHZo6NYXBzytx6AlPFldWyO9cDk9piKSYzsdcxUmUiEHcDr8ka+m07COVFBNbwmucQKnYmVeDJPV9leRk7pq0mMCkakk0S2W+yc+TL/MLJJvdxEPqIimmKTdPKmL6MY7MJJJkPZPBQ+pSS2yTptiHjzOlOpODpJjYVJdoiZn81+mJ6b3sm8rCUoHBz6vj9IsBeke5Z4TrwgmUivWHBHrF3+Hu3Q8fZJxErphx/BoJT0XptQu4usAtASeSKzYQGieJ2Tl6DRaAq8u+YW4MJ2tW7FLwPonFp0u7Re2TBMB96rLTaWp/xD3FSRsFSEWiMfJtcYnyR3wLUU5vtTpNxx/Y+g2jbM2aq8QRv4O4xeODnQKp1lx7tgA5u/2G8YrDcerEkO3uAQ83ZfCyP8WXI2fwccWjfic5Gxgk7gk/mRR3KZGcKx0f7JRSKaChGADHCjVn5fljbBd/0trd22Hrdl4YEZ4vQ/OEAp9f+FoSgkKHmlJyfNU0JVYB3laXy7WL41wHLT09h9++i3xOp9dLzRP6VD6f39YuVSNLDAOT8YK0UMXkoorJZVti8FMKC7Qi6v7wqqi0iD86M3fnY/LjkAAAAABJRU5ErkJggg==) をクリックし、「Quarto Document...」を選択します。
+
+以下のようにタイトルと著者名、PDF を選択し、Create をクリックします。"Use visual markdown editor" はオフにしてください^[僕は使い方が分かりません。]。
+
+![](image/create_document.png)
+
+作成出来たら、![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAkCAYAAAD7PHgWAAABBklEQVR4Xu2XMQrCQBBFBQvR6wgJHsEDpHVjBDvvoBhbI3bWCkZbFUyhFrYiEat0WgmC6AVkdQqbIVmWZAOi82C64b+/bDWZDEEQP4phTLMaa9d003bTGMgu1psF7JVGNzuWPdzs18GDz443rgrIcndXbvW8g1axGfZKo7P2eBXc+WB74a3FGXtiA1kwzfnpqTF7hL3SwDfAaz+BqvjkwYADe6WhglQwJlQwKVQwKakVTGOoYNL5z4JxwBlUMEwqAu9SwTCpCLxLBcOkIvCusoKT9/WFQ6OkIvCukoJwt5rO0sehUVIReBem6ng+OLBXmnKjn4PbGM5PeKnqgXIlo5vHXoL4Nl4ZYqbbEGA7+wAAAABJRU5ErkJggg==) でファイルを任意の場所に保存します^[僕は基本的に `code` フォルダを作ってそこに保存しています。]。
+
+もし Quarto や R Markdown を使うのが初めての場合、上部に "Package rmarkdown required but not installed. Install Don't show again" というメッセージが表示されるかもしれません。その場合、"Install" をクリックしてインストールしてください。
+
+## Global Options の設定
+
+RStudio 上部のメニューから "Tools" > "Global Options..." を選択します。
+
+その中の "Sweave" を選択し、"Typeset LaTeX into PDF using:" で "XeLaTeX" を選択します。また、その下にある "Use tinytex when compiling .tex files" にチェックを入れます。
+
+最後に OK を押して閉じてください。
+
+## ヘッダーの記述
+
+ファイルを作成すると、ドキュメントの上部に`---`で囲まれた部分があります。これを YAML ヘッダーと呼び、ここで文書の設定を行います。
+
+以下は、最低限必要な設定です。
+
+```yaml
+---
+title: "【PDF】Quarto で論文を書く"
+author: "阿部洋輔"
+date: 2024-06-29  # 日付は適宜変更してください
+format: pdf
+execute: 
+  echo: false  # 論文内にコードを表示しない
+---
+```
+
+## 本文の書き方（ベーシック）
+
+本文は Markdown で記述します。$\LaTeX$ 記法を使うこともできますが、必ずしも使う必要はありません。もちろん、数式などは $\LaTeX$ 記法を使うことができます。
+
+以下のコードは、基本的な書き方の例です。
+
+```markdown
+# 見出し1
+
+## 見出し2
+
+### 見出し3
+
+本文です。セクションに応じて見出しをつけることができます。基本的には3段階までの見出しを使います。
+
+- 箇条書き1
+
+    - 箇条書き2
+
+        - 箇条書き3
+
+箇条書きを使うときは、ハイフンとスペースを入れてください。2段階目、3段階目を使用するときは、半角スペース4つを入れてください。
+
+1. 番号付きリスト1
+
+    - 箇条書き
+
+2. 番号付きリスト2
+
+番号付きリストを使うときは、数字とピリオドとスペースを入れてください。
+
+また、改行するときは空行を入れなければなりません。
+
+文中で数式を使いたいときは、`$` で囲んでください。例えば、$y = ax + b$ のように記述します。
+
+数式を別行で書きたいときは、`$$` で囲んでください。例えば、
+
+$$
+y = ax + b
+$$ {#eq-equation-name}
+
+のように記述します。数式にラベルをつけることもできます。`#eq-` の後にラベル名を記述します。
+
+数式を引用するときは、`@eq-equation-name` のように記述します。
+```
+
+以上が基本的な書き方です。
+
+コードチャンクを使うときは、上記のように記述します。コードは YAML ヘッダーで `execute: echo: false` としているので、出力されません。結果は出力されます^[結果も隠したいときは `result: false` をチャンクオプションとして指定します。チャンクオプションについては[こちら](https://yo5uke.github.io/tips/240509_chunk_option/)]。
