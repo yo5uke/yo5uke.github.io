@@ -8,6 +8,9 @@ categories:
   - R
   - LaTeX
 image: image/create_document.png
+execute: 
+  cache: true
+  echo: false
 draft: true
 ---
 
@@ -29,7 +32,7 @@ draft: true
 
 また、環境として RStudio を使用していると仮定します。
 
-# Quarto で論文を書く
+# 準備
 
 Quarto は R Markdown の亜種、と考えてもらえればと思います。マークダウン形式で記述することができ、$\LaTeX$ 記法を必ずしも用いる必要がないのが特徴です^[$\LaTeX$ コードを埋め込むこともできます。]。$\LaTeX$ を深く学ばなくてもスタイリッシュな論文が書けるのではないでしょうか。
 
@@ -78,13 +81,32 @@ RStudio 上部のメニューから "Tools" > "Global Options..." を選択し�
 title: "【PDF】Quarto で論文を書く"
 author: "阿部洋輔"
 date: 2024-06-29  # 日付は適宜変更してください
-format: pdf
+format: 
+  pdf: 
+    documentclass: article
+    lang: ja  # 日本語で書くなら推奨（英語なら不要）
+    number-sections: true
+    include-in-header: 
+      - text: |
+          \usepackage{zxjatype}
+          \usepackage[ipaex]{zxjafont} 
 execute: 
-  echo: false  # 論文内にコードを表示しない
+  echo: false  # コードを表示しない
+  warning: false # 警告とメッセージを表示しない
+language: 
+  crossref-fig-title: "図"
+  crossref-tbl-title: "表"
+  crossref-eq-prefix: "式"
 ---
 ```
 
-## 本文の書き方（ベーシック）
+分析コードや実行の際に表示されるメッセージ・警告は出力しなくてよいので `false` にしてあります。
+
+また、デフォルトだと英語設定でキャプションが Table 1 や Figure 1 と表示されてしまうので、それを日本語に直すために `language` を追加しています。他にも英語出力されてしまって困る際は[こちら](https://github.com/quarto-dev/quarto-cli/blob/main/src/resources/language/_language-ja.yml)から該当するものを探し、下に追加していってください^[本当は `lang: ja` を設定するだけで万事解決のはずなのですが、パッケージのインストールがどうしてもうまくいかないのでこのような場当たり的な対処になっています。]。
+
+もちろん英語論文を執筆する際には不要です。
+
+# 本文の書き方（マークダウン編）
 
 本文は Markdown で記述します。$\LaTeX$ 記法を使うこともできますが、必ずしも使う必要はありません。もちろん、数式などは $\LaTeX$ 記法を使うことができます。
 
@@ -132,4 +154,104 @@ $$ {#eq-equation-name}
 
 以上が基本的な書き方です。
 
-コードチャンクを使うときは、上記のように記述します。コードは YAML ヘッダーで `execute: echo: false` としているので、出力されません。結果は出力されます^[結果も隠したいときは `result: false` をチャンクオプションとして指定します。チャンクオプションについては[こちら](https://yo5uke.github.io/tips/240509_chunk_option/)]。
+コードチャンクを使うときは、上記のように記述します。コードは YAML ヘッダーで `echo: false` としているので、出力されません。結果は出力されます^[結果も隠したいときは `result: false` をチャンクオプションとして指定します。チャンクオプションについては[こちら](https://yo5uke.github.io/tips/240509_chunk_option/)]。
+
+出力された PDF は[こちら](https://drive.google.com/file/d/1fMClmrPQzGhZvzmn2cJkuVT3H-nMJX_H/view?usp=sharing)から確認してください。
+
+# 本文の書き方（テーブル編）
+
+Quarto で論文を書くことの醍醐味ともいえる、コードとその出力について説明します。
+
+ここではデフォルトで使用できる `iris` というデータセットを利用して分析、表の出力をしてみたいと思います。
+
+例えば以下のコードを実行すると @tbl-regression のように出力されます。
+
+```r
+#| label: tbl-regression
+#| tbl-cap: "iris を使用した回帰分析"
+
+library(tidyverse)
+library(fixest)
+library(modelsummary)
+library(tinytable)
+
+# リスト形式で保存すると複数の分析結果を1つの表に表示可能
+regression <- list(
+  "(1)" = iris |> 
+    feols(Sepal.Length ~ Sepal.Width, se = "hetero"), 
+  "(2)" = iris |> 
+    feols(Sepal.Length ~ Sepal.Width + Petal.Length, se = "hetero"), 
+  "(3)" = iris |> 
+    feols(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, se = "hetero")
+)
+
+# ここで変数名の表記を変更
+cm <- c(
+  "Sepal.Width" = "がく片の幅（cm）", 
+  "Petal.Length" = "花弁の長さ（cm）", 
+  "Petal.Width" =  "花弁の幅（cm）", 
+  "Species" = "アイリスの種類"
+)
+
+# 表に加える統計量を整理
+gm <- tibble(
+  "raw" = c("nobs", "r.squared"), 
+  "clean" = c("Observations", "R\u00B2"), 
+  "fmt" = c(0, 2)
+)
+
+# フットノートを書く
+fn <- "注：標準誤差は括弧内に記載。+p < 10%, *p < 5%, **p < 1%"
+
+msummary(regression, estimate = "{estimate}{stars}", 
+         notes = fn, coef_map = cm, gof_map = gm, 
+         stars = c("+" = .1, "*" = .05, "**" = .01)) |> 
+  group_tt(j = list("がく片の長さ（cm）" = 2:4))
+```
+
+```{r}
+#| label: tbl-regression
+#| tbl-cap: "iris を使用した回帰分析"
+
+library(tidyverse)
+library(fixest)
+library(modelsummary)
+library(tinytable)
+
+# リスト形式で保存すると複数の分析結果を1つの表に表示可能
+regression <- list(
+  "(1)" = iris |> 
+    feols(Sepal.Length ~ Sepal.Width, se = "hetero"), 
+  "(2)" = iris |> 
+    feols(Sepal.Length ~ Sepal.Width + Petal.Length, se = "hetero"), 
+  "(3)" = iris |> 
+    feols(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, se = "hetero")
+)
+
+# ここで変数名の表記を変更
+cm <- c(
+  "Sepal.Width" = "がく片の幅（cm）", 
+  "Petal.Length" = "花弁の長さ（cm）", 
+  "Petal.Width" =  "花弁の幅（cm）", 
+  "Species" = "アイリスの種類"
+)
+
+# 表に加える統計量を整理
+gm <- tibble(
+  "raw" = c("nobs", "r.squared"), 
+  "clean" = c("Observations", "R\u00B2"), 
+  "fmt" = c(0, 2)
+)
+
+# フットノートを書く
+fn <- "注：標準誤差は括弧内に記載。+p < 10%, *p < 5%, **p < 1%"
+
+msummary(regression, estimate = "{estimate}{stars}", 
+         notes = fn, coef_map = cm, gof_map = gm, 
+         stars = c("+" = .1, "*" = .05, "**" = .01)) |> 
+  group_tt(j = list("がく片の長さ（cm）" = 2:4))
+```
+
+出力された PDF は[こちら](https://drive.google.com/file/d/1eXA9ElJUtSfFGN5W0MSdeX5EHIzkVhVF/view?usp=sharing)から確認してください。
+
+ここからは、表作成におけるポイントを説明します。
