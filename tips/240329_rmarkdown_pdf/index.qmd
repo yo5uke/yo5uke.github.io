@@ -1,5 +1,5 @@
 ---
-title: "R MarkdownでPDF出力【LaTeX】"
+title: "Quarto & R MarkdownでPDF出力【LaTeX】"
 description: |
   レポートでR Markdown、使ってますか？
 date: 2024-03-29
@@ -8,25 +8,28 @@ categories:
   - R
   - R Markdown
   - Quarto
+  - LaTeX
 ---
+
+# はじめに
 
 こんにちは。
 
-大学生、大学院生の方で、Rを使う授業のレポートを作ったりする方はR Markdown使うことが多いかもしれません。
+大学生、大学院生の方で、R を使う授業のレポートを作ったりする方は R Markdown 使うことが多いかもしれません。
 
-しかし、私の周りではPDF出力で結構困っている人がいたのでここでまとめます。
+しかし、私の周りでは PDF 出力で結構困っている人がいたのでここでまとめます。
 
 環境構築、$\LaTeX$ については詳しく書かないので、そこは他のサイトなどを参照してください。
 
-目標は**とりあえずPDFで出力すること**です。
+目標は**とりあえず PDF で出力すること**です。
 
 <br>
 
 **ターゲット**
 
- - Rの経験が浅くR MarkdownやQuartoに馴染みがない方
+ - Rの経験が浅く R Markdown や Quarto に馴染みがない方
  
- - R Markdownを使っているが、PDF出力の仕方に困っている方
+ - R Markdown を使っているが、PDF 出力の仕方に困っている方
 
  <br>
 
@@ -34,33 +37,27 @@ categories:
 
 ## 事前準備
 
-以下をRのコンソールで実行してください。
+以下を R のコンソールで実行してください。
 
-```{.r filename="R"}
-# TinyTeXパッケージをインストール
+```{.r filename="TinyTeXパッケージをインストール"}
 # インストール済みの方は省略
-install.packages('tinytex')
+install.packages("tinytex")
 ```
 
-```{.r filename="R"}
-# TinyTeXのインストール
+```{.r filename="TinyTeXのインストール"}
 tinytex::install_tinytex()
-tinytex::tlmgr_install('ipaex')
 ```
 
-フォントであるipaexの部分はharanoajiなど他の選択肢もあります。
-
-```{.r filename="R"}
-# bookdownパッケージのインストール（任意）
-# インストール済みの方は省略。
-install.packages('bookdown')
+```{.r filename="bookdownパッケージのインストール"}
+# インストール済みの方は省略
+install.packages("bookdown")
 ```
 
 ## YAMLヘッダの設定
 
 ヘッダの部分を以下のように変更してください。
 
-```{.markdown}
+```{.yaml}
 ---
 title: "タイトル"
 author: "筆者"
@@ -79,38 +76,43 @@ header-includes:
 ---
 ```
 
-`bookdown::pdf_document2`の部分は`pdf_document`でもいけます（[後述](#sec-bookdown)）。
-以上を設定出来たら、knitしてください。
-無事PDFファイルが出力されるはずです！
+`bookdown::pdf_document2` の部分は `pdf_document` でもいけます（[後述](#sec-bookdown)）。
+以上を設定出来たら、knit してください。
+無事 PDF ファイルが出力されるはずです！
 
 # 結論（Quarto）
 
 ## 事前準備
 
-[R Markdown](#事前準備)と同じです。
+[R Markdown](#事前準備) と同じです。
 
-## YAMLヘッダ
+## YAML ヘッダ
 
-```{.markdown}
+```{.yaml}
 ---
 title: "タイトル"
-author: "筆者"
-date: `r Sys.Date()`
+author: "著者"
+date: 2024-07-08
+date-format: "YYYY年M月D日" 
 format: 
   pdf: 
     documentclass: article
-    keep-tex: true
+    number-sections: true
     include-in-header: 
-      - text: | 
-          \usepackage{bookmark} 
-          \usepackage{xltxtra} 
-          \usepackage{zxjatype} 
-          \usepackage[ipaex]{zxjafont} 
-number-sections: true
+      - text: |
+          \usepackage{zxjatype}
+          \usepackage[ipaex]{zxjafont}
+execute: 
+  echo: false
+  warning: false
+language: 
+  crossref-fig-title: "図"
+  crossref-tbl-title: "表"
+  crossref-eq-prefix: "式"
 ---
 ```
 
-やっていることはほとんどR Markdownの場合と同じですが、書き方は異なります。
+やっていることはほとんど R Markdown の場合と同じですが、書き方は異なります。
 
 # 詳細
 
@@ -118,17 +120,17 @@ number-sections: true
 
 後々困らないよう設定を行います。
 
-1. 上部にある`Tools`から`Global Options...`→`Sweave`と進む
+1. 上部にある `Tools` から `Global Options...` → `Sweave` と進む
 
-2. `Typeset LaTeX into PDF using`を`XeLaTeX`に変更
+2. `Typeset LaTeX into PDF using` を `XeLaTeX` に変更
 
-3. `Use tinytex when compiling .tex files`にチェック
+3. `Use tinytex when compiling .tex files` にチェック
 
 これで前述の設定と整合的になります。また、プロジェクトオプションの方も変更を求められるかもしれません。それにも従って、ここでの設定と整合的になるよう変更してください。
 
 ## bookdown::pdf_document2 {#sec-bookdown}
 
-R Markdownのヘッダにおいて、`pdf_document`ではなく`bookdown::pdf_document2`を使用するのには理由があります。
+R Markdown のヘッダにおいて、`pdf_document` ではなく `bookdown::pdf_document2` を使用するのには理由があります。
 
 それは**相互参照を使うため**です。
 
@@ -170,10 +172,10 @@ knitr::kable(mtcars[1:5, 1:5], caption = "mtcars データ")
 ```
 ````
 
-`{r cars-plot, fig.cap="自動車のデータ", echo=FALSE}`の`cars-plot`の部分がチャンク名です^[他の部分はチャンクオプションと呼ばれるものですが、今回は触れません。]。
-同様に`mtcars`もチャンク名なわけですが、`\@ref()`を用いれば該当する図や表、数式を引用できます。
+`{r cars-plot, fig.cap="自動車のデータ", echo=FALSE}` の `cars-plot` の部分がチャンク名です^[他の部分はチャンクオプションと呼ばれるものですが、今回は触れません。チャンクオプションについては[こちら](../240509_chunk_option/index.html)をご覧ください。]。
+同様に `mtcars` もチャンク名なわけですが、`\@ref()` を用いれば該当する図や表、数式を引用できます。
 
-先ほどのプロットを`\@ref()`を使って引用してみると、@fig-plot-cars となるわけです^[ちなみにQuartoでは、チャンク名を`fig-hogehoge`や`tbl-hogehoge`などにすれば、`@fig-hogehoge`や`@tbl-hogehoge`だけで簡単に引用できます]。
+先ほどのプロットを `\@ref()` を使って引用してみると、@fig-plot-cars となるわけです^[ちなみに Quarto では、チャンク名を `fig-hogehoge` や `tbl-hogehoge` などにすれば、`@fig-hogehoge` や `@tbl-hogehoge` だけで簡単に引用できます。Quarto での相互参照については[こちら](../240509_cross_reference/index.html)をご覧ください。]。
 
 注意点は、`\@ref()`の中で図なら`fig:`、表なら`tab:`、数式なら`eq:`と始めないと引用できない点です。
 
@@ -200,11 +202,11 @@ not found です。あるはずなんですけどね…。
 
 <対処法>
 
-1. `tinytex::tlmgr_install('パッケージ名')` で見つからないパッケージのみ別でインストール
+1. `tinytex::tlmgr_install("パッケージ名")` で見つからないパッケージのみ別でインストール
 
     - 上の例で言えば、`bookmark.sty` のみをインストールするということです。
     
-    - この際注意点として、`.sty` は抜いてください。`tinytex::tlmgr_install('bookmark')` とする、ということです。
+    - この際注意点として、`.sty` は抜いてください。`tinytex::tlmgr_install("bookmark")` とする、ということです。
 
 2. `tinytex::tlmgr_update()` を実行
 
@@ -246,3 +248,5 @@ not found です。あるはずなんですけどね…。
 # 追記
 
 2024/5/6：「よくあるエラーについて」を追加
+
+2024/7/8：Quarto における YAML ヘッダを更新
