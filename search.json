@@ -189,249 +189,186 @@
     "text": "注\n\n\n直接 LaTeX コードを埋め込むこともできます。↩︎\n僕は使い方が分かりません。↩︎\n僕は基本的に code フォルダを作ってそこに保存しています。↩︎\n本当は lang: ja を設定するだけで万事解決のはずなのですが、パッケージのインストールでトラブるので、このような場当たり的な対処になっています。↩︎\n結果も隠したいときは、代わりに include: false を指定します。チャンクオプションについてはこちら↩︎\ngm もそうですが、名前は何でもよいです。↩︎\n“nobs”, “r.squared” の2つの項目を表示し、その表記を “観測数”, “\\(R^2\\)” とし、小数点以下は観測数がなし、\\(R^2\\) は第2位までにしています。↩︎\nmsummary でも modelsummary でも使用できます。↩︎\nggplot(iris, aes(~)) の形でも図は作れますが、変数名は予測変換で出てきません。↩︎\nhere についてはこちら↩︎\nデフォルトでは300です。↩︎"
   },
   {
-    "objectID": "tips/240508_jupyter/index.html",
-    "href": "tips/240508_jupyter/index.html",
-    "title": "Quarto で Python を使ってみよう！",
+    "objectID": "tips/240506_gis_on_r/index.html",
+    "href": "tips/240506_gis_on_r/index.html",
+    "title": "R でGIS を動かす【ハンドリング】",
     "section": "",
-    "text": "注意\n\n\n\nこの記事は Windows ユーザー向けです。ただ、事前準備が異なるだけで、それ以降は Mac ユーザーの方でも参考になると思います。\n\n\nPython の環境構築って初心者にはなんだかめんどくさいですよね。私も Python はあまり使わないので、環境構築には苦労しています。\n今回はR Markdown に似ているでおなじみ（？）の Quarto を用いた、Python の環境構築の方法をご紹介します。\nAnaconda をインストールして Jupiter Notebook を使っている方も多いと思いますが、今回は Anaconda ではなく Quarto で Python を使ってみましょう。"
+    "text": "R 上で GIS を操作する方法を簡単に紹介します。\nGIS を R 上で実行するメリットは、再現性が担保できることです。同じ作業を繰り返しするような場合、力を発揮すると思います。また、ggplot2 で可視化できる点も便利です。\n主に、使用するパッケージ、データの読み込み、簡単なデータハンドリング、そして交差する地物の抽出を少しご紹介します。"
   },
   {
-    "objectID": "tips/240508_jupyter/index.html#前提",
-    "href": "tips/240508_jupyter/index.html#前提",
-    "title": "Quarto で Python を使ってみよう！",
-    "section": "前提",
-    "text": "前提\n\nVSCode をインストールしていること\nWSL2, Ubuntu をインストールしていること\n\nUbuntu はデフォルトで Python がインストールされています。\n\n\nここまではそれほど難しくありませんので、まだの方はこちらの記事をご覧ください。"
+    "objectID": "tips/240506_gis_on_r/index.html#鉄道データ",
+    "href": "tips/240506_gis_on_r/index.html#鉄道データ",
+    "title": "R でGIS を動かす【ハンドリング】",
+    "section": "鉄道データ",
+    "text": "鉄道データ\n今回は日本の鉄道（駅）データを使用してみます。\n\n国土数値情報ダウンロードサイトより「鉄道（ライン）」をクリック、2022年のデータをダウンロード\n\n\n\n\n一番上の2022年データを今回は使用"
   },
   {
-    "objectID": "tips/240508_jupyter/index.html#wsl2-に接続",
-    "href": "tips/240508_jupyter/index.html#wsl2-に接続",
-    "title": "Quarto で Python を使ってみよう！",
-    "section": "WSL2 に接続",
-    "text": "WSL2 に接続\nVSCode を起動して、画面左下の &gt;&lt; マークをクリックして、「WSL への接続」を選択します。\n\n\n\nWSL2 に接続"
+    "objectID": "tips/240506_gis_on_r/index.html#行政区域データ",
+    "href": "tips/240506_gis_on_r/index.html#行政区域データ",
+    "title": "R でGIS を動かす【ハンドリング】",
+    "section": "行政区域データ",
+    "text": "行政区域データ\n後ほど鉄道データと重ねて使うために使用します。\n同様に国土数値情報ダウンロードサイトから、「行政区域」に進み、今回は福島県の2024年データをダウンロードします。\n鉄道データと同じフォルダに入れておいてください。"
   },
   {
-    "objectID": "tips/240508_jupyter/index.html#quarto-のインストール",
-    "href": "tips/240508_jupyter/index.html#quarto-のインストール",
-    "title": "Quarto で Python を使ってみよう！",
-    "section": "Quarto のインストール",
-    "text": "Quarto のインストール\n\n画面上部「ターミナル」から「新しいターミナル」を選択2し、ターミナルを開く\n以下のコマンドを入力して実行\n\nURL の部分は最新のものに変えてください。\nQuarto ホームページからプラットフォームが Ubuntu 18+/Debian 10+ であるダウンロードリンクを使用してください。\n\n\n\n\nbash\n\n# Quartoパッケージをダウンロード（URL は適宜更新）\nwget https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.554/quarto-1.4.554-linux-amd64.deb\n\n# パッケージをインストール（バージョン部分は適宜変更）\nsudo dpkg -i quarto-1.4.554-linux-amd64.deb\n\n\n\n\n\n\n\nDocker を使う場合\n\n\n\n\n\nDocker を使っている場合は、Dockerfile に以下のコマンドを追加してください。\n\n\nDockerfile\n\nRUN wget -O quarto.deb \"https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.553/quarto-1.4.553-linux-amd64.deb\" && \\\n    dpkg -i quarto.deb && \\\n    rm quarto.deb\n\nちなみに、私の記事で紹介しているテンプレートを使用される場合は、既にこのコマンドが追加されているので、追加する必要はありません。\n\n\n\nこれで Quarto のインストールは完了です。"
+    "objectID": "tips/240506_gis_on_r/index.html#ggplot2",
+    "href": "tips/240506_gis_on_r/index.html#ggplot2",
+    "title": "R でGIS を動かす【ハンドリング】",
+    "section": "ggplot2",
+    "text": "ggplot2\nおなじみ ggplot2 パッケージを使ってこれらの路線を可視化します1。\n\nstation |&gt; \n  ggplot() + \n  geom_sf() + # GIS 用\n  theme_void() # 背景や罫線を除去\n\n\n\n\n\n\n\n図 1: 日本の駅\n\n\n\n\n\nなんとなく日本が形作られましたね。東京と大阪に特に駅が多いことも一目瞭然です。\n同様に路線もプロットします。\n\nrail |&gt; \n  ggplot() + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n図 2: 日本の鉄道路線\n\n\n\n\n\nこうして見るとなんか面白いですよね。北海道の北東部は線路がないみたいです。\nここまでシンプルに可視化する方法をご紹介しました。次のセクションでもう少し地域にフォーカスして見ていきます。"
   },
   {
-    "objectID": "tips/240508_jupyter/index.html#拡張機能の準備",
-    "href": "tips/240508_jupyter/index.html#拡張機能の準備",
-    "title": "Quarto で Python を使ってみよう！",
-    "section": "拡張機能の準備",
-    "text": "拡張機能の準備\n拡張機能の検索窓から、次の拡張機能をインストールしてください。\n\nquarto.quarto（Quarto）\nms-python.python（Python）\nms-toolsai.jupyter（Jupyter）"
+    "objectID": "tips/240506_gis_on_r/index.html#データの抽出",
+    "href": "tips/240506_gis_on_r/index.html#データの抽出",
+    "title": "R でGIS を動かす【ハンドリング】",
+    "section": "データの抽出",
+    "text": "データの抽出\n例えば、新幹線の駅だけデータとして使いたいとします。\n先ほどのダウンロードサイトの属性情報の部分をご覧ください。そこから事業者種別コード（変数名：N02-002）を確認してみると、1が新幹線に該当することが分かります。\nここで、tidyverse パッケージを使用しながら、東北新幹線の駅だけを抽出してみましょう。また、列名を変更しながら必要な変数のみ抽出します。\n\nsta_tohoku &lt;- station |&gt; \n  filter(N02_002 == 1, N02_003 == \"東北新幹線\") |&gt; \n  select(\"路線名\" = N02_003, \"駅名\" = N02_005, geometry)\n\n\n\n\n\n表 1: 東北新幹線の駅情報（上から6行を表示）\n\n\n\n\n\n\n\n\n\n路線名\n駅名\ngeometry\n\n\n\n\n東北新幹線\n二戸\nc(141.28627, 141.28491, 40.26107, 40.25848)\n\n\n東北新幹線\nいわて沼宮内\nc(141.21742, 141.21742, 39.96114, 39.96009)\n\n\n東北新幹線\n八戸\nc(141.42981, 141.43206, 40.50822, 40.51043)\n\n\n東北新幹線\n盛岡\nc(141.13807, 141.13499, 39.70015, 39.70295)\n\n\n東北新幹線\n北上\nc(141.12356, 141.12285, 141.12234, 141.12168, 39.28386, 39.28272, 39.28188, 39.28054)\n\n\n東北新幹線\n水沢江刺\nc(141.18919, 141.18822, 39.14381, 39.14651)\n\n\n\n\n\n\n\n\n\n\n表 1 をご覧いただくと分かる通り、東北新幹線の駅のみを抽出できています。また、geometry 変数が地理情報を示しています。"
   },
   {
-    "objectID": "tips/240508_jupyter/index.html#新しい-quarto-ファイルを作成",
-    "href": "tips/240508_jupyter/index.html#新しい-quarto-ファイルを作成",
-    "title": "Quarto で Python を使ってみよう！",
-    "section": "新しい Quarto ファイルを作成",
-    "text": "新しい Quarto ファイルを作成\n\n画面左上の「ファイル」から「新しいファイル」を選択、「Quarto Document」を選んで新規ファイルを作成します。\n\nCtrl + S でファイルを保存できます。保存する際に任意のフォルダに test.qmd などの名前で保存してください。\n\nyaml ヘッダーを次のように編集します。\n\n\n\nYAML ヘッダー\n\n---\ntitle: \"タイトル\"\nauthor: \"著者\"\nformat: html\njupyter: python3\n---\n\n\n以下のようにコードを書いてみましょう。\n\n\n\nQuarto\n\nFor a demonstration of a line plot on a polar axis, see @fig-polar.\n\n```{python}\n#| label: fig-polar\n#| fig-cap: \"A line plot on a polar axis\"\n\nimport numpy as np\nimport matplotlib.pyplot as plt\n\nr = np.arange(0, 2, 0.01)\ntheta = 2 * np.pi * r\nfig, ax = plt.subplots(\n  subplot_kw = {'projection': 'polar'} \n)\nax.plot(theta, r)\nax.set_rticks([0.5, 1, 1.5, 2])\nax.grid(True)\nplt.show()\n```\n\n\nパッケージのインストール\n\n今回、numpy と matplotlib を使っているので、はじめにこれらをインストールしないとエラーが出ます。\nまた、実行する際に ModuleNotFoundError: が出たら、そのモジュールもインストールする必要があります3。\nターミナルから以下のコマンドを実行してください。\n\n\n\n\nbash\n\npip install numpy matplotlib nbformat nbclient\n\n\n実行\n\n画面右上のボタンの中から「Preview」を選択して、ファイルをレンダリングします。\n\n\n\n\n\n実行結果\n\n\nR を使うときと同様に、Python のコードを書いて実行することができました。"
+    "objectID": "tips/240506_gis_on_r/index.html#ラインデータをポイントデータ化する",
+    "href": "tips/240506_gis_on_r/index.html#ラインデータをポイントデータ化する",
+    "title": "R でGIS を動かす【ハンドリング】",
+    "section": "ラインデータをポイントデータ化する",
+    "text": "ラインデータをポイントデータ化する\n駅はラインデータになっています。駅は幅を持っているためです。そこで、これをポイントデータ化し、駅の位置を1点で特定します。\nまず、ラインデータがどうなっているか確認しましょう。地図を拡大して見てみると、線状になっていることが分かります。\n\n\n\n\n\n\n\nこれをポイント化するために使用するのが、sf::st_centroid() です。地物の重心を求めてくれます。\nコードは以下です。\n\nsta_tohoku_c &lt;- sta_tohoku |&gt; \n  st_centroid(geometry)\n\n改めて見てみると、ポイントになっていることが分かります。\n\n\n\n\n\n\n\nポイントデータ化するメリットとしては、距離の算出に使えることなどがあります。ある地点から駅までの距離を算出したい場合、駅が幅を持っていると距離算出の基準が曖昧になってしまうので、そこでポイント化すればその基準を明確化できるというわけです。\n以上、sf::st_centroid() を用いてポイントデータ化する方法をご紹介しました。"
   },
   {
-    "objectID": "tips/240508_jupyter/index.html#footnotes",
-    "href": "tips/240508_jupyter/index.html#footnotes",
-    "title": "Quarto で Python を使ってみよう！",
+    "objectID": "tips/240506_gis_on_r/index.html#行政区域データ-1",
+    "href": "tips/240506_gis_on_r/index.html#行政区域データ-1",
+    "title": "R でGIS を動かす【ハンドリング】",
+    "section": "行政区域データ",
+    "text": "行政区域データ\nまず、福島県の行政区域データを読み込み、可視化しましょう。\n\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))\n\n\nfukushima |&gt; \n  ggplot() + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n図 3: 福島県"
+  },
+  {
+    "objectID": "tips/240506_gis_on_r/index.html#抽出",
+    "href": "tips/240506_gis_on_r/index.html#抽出",
+    "title": "R でGIS を動かす【ハンドリング】",
+    "section": "抽出",
+    "text": "抽出\n次に、sta_tohoku_c を用いて、福島県と交差する（含まれる）駅を抽出します。\n交差する地物を抽出するためには、sf::st_intersects() もしくは sf::st_intersection() を用います。\n正直後者の方がシンプルなのですが、両者には次のような違いがあります。\n\nst_intersects(): 2つのジオメトリが交差するかどうかの論理判定（TRUE/FALSEやインデックスのリスト）を返す\nst_intersection(): 交差部分のジオメトリそのものを新しいオブジェクトとして返します。\n\n何やら難しいので、わかんなくて困ったら後者を使っておけばよいのではないでしょうか3。\nコードは以下のようになります。\n\nsta_07_a &lt;- sta_tohoku_c |&gt; \n  filter(\n    row_number() %in% \n      st_intersects(fukushima, sta_tohoku_c) |&gt; \n      unlist()\n  )\n\n\nsta_07_b &lt;- st_intersection(fukushima, sta_tohoku_c)\n\n\n\n\n\n\n\n1つ目の方法について\n\n\n\n\n\n1つ目は大変複雑ですね。プロセスを紐解くと次のようになります。\n\nsta_tohoku_c から抽出するので、sta_tohoku_c からスタート\n抽出するので dplyr::filter() を使用\nsf::st_intersects() で、fukushima と重なる sta_tohoku_cを抽出\nsf::st_intersects() はリスト形式で結果を返すので、unlist() を用いてリスト形式を解除\nsta_tohoku_c の行番号と照らし合わせ、返ってきた結果と同じもののみ抽出\n\n\n\n\n結果は次のようになります。\n\n\n\n\n表 2: st_intersects() を用いた場合\n\n\n\n\n\n\n\n\n\n路線名\n駅名\ngeometry\n\n\n\n\n東北新幹線\n福島\nc(140.458612067603, 37.7540599673619)\n\n\n東北新幹線\n郡山\nc(140.388619989856, 37.3986200007428)\n\n\n東北新幹線\n新白河\nc(140.188827537169, 37.1233084742238)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n表 3: st_intersection() を用いた場合\n\n\n\n\n\n\n\n\n\nN03_001\nN03_002\nN03_003\nN03_004\nN03_005\nN03_007\n路線名\n駅名\ngeometry\n\n\n\n\n福島県\nNA\nNA\n福島市\nNA\n07201\n東北新幹線\n福島\nc(140.458612067603, 37.7540599673619)\n\n\n福島県\nNA\nNA\n郡山市\nNA\n07203\n東北新幹線\n郡山\nc(140.388619989856, 37.3986200007428)\n\n\n福島県\nNA\n西白河郡\n西郷村\nNA\n07461\n東北新幹線\n新白河\nc(140.188827537169, 37.1233084742238)\n\n\n\n\n\n\n\n\n\n\n2つ目のやり方の方が少しごちゃっとしたデータとして返ってきました。\nめんどくさいけどクリーンな方か、簡単だけど煩雑な方か、お好みで使ってみてください。"
+  },
+  {
+    "objectID": "tips/240506_gis_on_r/index.html#footnotes",
+    "href": "tips/240506_gis_on_r/index.html#footnotes",
+    "title": "R でGIS を動かす【ハンドリング】",
     "section": "注",
-    "text": "注\n\n\n今回は Python がメインなので RStudio は使いませんが、普段 R を使う方はぜひ RStudio でも使ってみてください。↩︎\nショートカット：Ctrl + Shift + @↩︎\n今回は nbformat と nbclient が出ると思います。↩︎\nR では Knitr を使って Python では Jupyter を使うためです。↩︎"
+    "text": "注\n\n\nあまりなじみのない方に向けて言っておくと、tidyverse パッケージの中に ggplot2 も含まれています。↩︎\n正直この程度であればこんなことするまでもないですが、例ということで悪しからず。いろいろ応用は利きますよ！↩︎\nしかし後者の方が時間はかかりますし、2つのデータをもとに新しいデータを作るので、できたデータは2つのデータフレームの情報を含みます。つまり、ちょっと煩雑なデータが出来上がります。↩︎"
   },
   {
-    "objectID": "tips/240515_rproj/index.html",
-    "href": "tips/240515_rproj/index.html",
-    "title": "【R】プロジェクトを使う",
+    "objectID": "tips/240512_beamer/index.html",
+    "href": "tips/240512_beamer/index.html",
+    "title": "【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい",
     "section": "",
-    "text": "R プロジェクトは、RStudio で作成できるプロジェクトです。プロジェクトを作成すると、プロジェクトのためのディレクトリが作成され、そのディレクトリ内で作業することになります。\nプロジェクトを作成すると、プロジェクトのための .Rproj ファイルが作成され、RStudio でそのファイルを開くことで、プロジェクトが開かれます。"
+    "text": "\\(\\LaTeX\\) の Beamer で使える Metropolis テーマがおしゃれだと思ったので使ってみたい！というモチベーションです。\n普段は Reveal.js を使っているので、Metropolis テーマを Reveal.js で再現したいと思い、できる限り頑張ってみました。\n\n\n\nMetropolis テーマはこんな感じです（GitHub リポジトリより）"
   },
   {
-    "objectID": "tips/240515_rproj/index.html#強み",
-    "href": "tips/240515_rproj/index.html#強み",
-    "title": "【R】プロジェクトを使う",
-    "section": "強み",
-    "text": "強み\nプロジェクトの強みとして、そのディレクトリ内で作業が完結することが挙げられます。\nデータやソースコードは、プロジェクトのディレクトリ内に保存しておきましょう。その上で強みを発揮するのが、here パッケージを使った相対パスの指定です。\n例えば、次のようなディレクトリであるとします。\nproject-root/\n├── proj.Rproj\n├── code/\n│   ├── script1.R\n│   ├── script2.R\n│   └── utils/\n│       ├── helper1.R\n│       └── helper2.R\n└── data/\n    ├── raw/\n    │   ├── dataset1.csv\n    │   └── dataset2.csv\n    └── processed/\n        ├── processed1.csv\n        └── processed2.csv\nこのもとで話を進めます。"
-  },
-  {
-    "objectID": "tips/240515_rproj/index.html#here-パッケージ",
-    "href": "tips/240515_rproj/index.html#here-パッケージ",
-    "title": "【R】プロジェクトを使う",
-    "section": "here パッケージ",
-    "text": "here パッケージ\nhere パッケージを使うと、.Rproj ファイルがあるディレクトリを基準として、相対パスを指定することができます。\nまずはインストールしましょう。\n\n\nR\n\ninstall.packages(\"here\")\n\n次に読み込みます。\n\n\nR\n\nlibrary(here)\n\n例えばここで、processed1.csv を使いたいとします。\nC: から始まるパスを指定していたのでは長いですし、setwd() でワーキングディレクトリを設定していたとしても、その都度設定するのも非効率です1。\nパッケージの主要関数である here() は、.Rproj があるディレクトリ起点とした相対パスを使用可能です。\n百聞は一見に如かずということで、次のコードをご覧ください。\n\n\nR\n\ndf &lt;- readr::read_csv(here(\"data/processed/processed1.csv\"))\n\n&lt;ポイント&gt;\n\n引数がデータのところで here() を使う\n.Rproj があるディレクトリからのパスを書く\nhere() 内ではダブルクォーテーションでパスを囲む\n\nこのようにすれば、フォルダの位置が PC 内で変わるなどの環境の変化に対応しながらコーディングができます。"
-  },
-  {
-    "objectID": "tips/240515_rproj/index.html#footnotes",
-    "href": "tips/240515_rproj/index.html#footnotes",
-    "title": "【R】プロジェクトを使う",
+    "objectID": "tips/240512_beamer/index.html#footnotes",
+    "href": "tips/240512_beamer/index.html#footnotes",
+    "title": "【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい",
     "section": "注",
-    "text": "注\n\n\n共同研究を行うなら PC ごとに環境が異なりますから、なおさら非効率的です。↩︎"
+    "text": "注\n\n\n塗りつぶしがうまくいかなかっただけです。↩︎"
   },
   {
-    "objectID": "tips/240619_trouble_shooting/index.html",
-    "href": "tips/240619_trouble_shooting/index.html",
-    "title": "環境構築における備忘録",
+    "objectID": "tips/240621_python_container/index.html",
+    "href": "tips/240621_python_container/index.html",
+    "title": "Python のための開発コンテナ",
     "section": "",
-    "text": "環境構築に関する記事をいくつかまとめてきましたが、頻繁にエラーに直面するので、その場合の対処法をまとめていきます。\n本記事は随時更新します。\n関連するエラーや不明点については一番下のコメントに書いていただけると幸いです。"
+    "text": "以前の記事で、Docker & VSCode を用いた R 環境の構築方法をご紹介しました。\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n今回は同じく Docker & VSCode で使える Python の環境テンプレートを作成しましたので、そちらをご紹介します。\n以前の R 環境でも Python は使えましたが、特に R や Julia 等が不要である方は、ぜひ参考にしてみてください。\nWSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub を使用されたことがあり、上の記事を読んでいただいた方は開発環境の構築まで飛んでいただいて大丈夫だと思います。"
   },
   {
-    "objectID": "tips/240619_trouble_shooting/index.html#footnotes",
-    "href": "tips/240619_trouble_shooting/index.html#footnotes",
-    "title": "環境構築における備忘録",
+    "objectID": "tips/240621_python_container/index.html#wsl2windows-ユーザーのみ",
+    "href": "tips/240621_python_container/index.html#wsl2windows-ユーザーのみ",
+    "title": "Python のための開発コンテナ",
+    "section": "WSL2（Windows ユーザーのみ）",
+    "text": "WSL2（Windows ユーザーのみ）\n\nアプリ一覧から PowerShell または Windows コマンドプロンプトを管理者権限で開く\n\n右クリックで管理者権限を使えます。\n\n\n\n\n\n\n\n\n以下のコマンドを入力して実行\n\nこれでインストールはできるはずですが、詳しくはこちらのサイトを参照してください。\n\n\n\n\nPowerShell\n\nwsl --install\n\n\nユーザー名とパスワードを設定\n\nインストールが終わると、Linux ディストリビューションのユーザー名とパスワードの作成を求められます1。\nユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。\nパスワードは画面上には表示されませんが、ちゃんと入力されています。慌てて何回も入力しないようにしてください。\n\n\nエクスプローラーから Linux に入り、\\Ubuntu\\home\\ユーザー名 がメインとなるディレクトリです。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#homebrewmac-ユーザーのみ",
+    "href": "tips/240621_python_container/index.html#homebrewmac-ユーザーのみ",
+    "title": "Python のための開発コンテナ",
+    "section": "Homebrew（Mac ユーザーのみ）",
+    "text": "Homebrew（Mac ユーザーのみ）\nMac ユーザーは Homebrew を使って諸々インストールしていくので、まだの方はここでインストールしてください。\n\nターミナルを開く\n\nアプリ一覧から「ターミナル」を探してください。\n\n以下のコマンドを入力して実行\n\nパスワードを求められるので、入力してください。\n\n\n\n\nTerminal\n\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#sec-vscode-setting",
+    "href": "tips/240621_python_container/index.html#sec-vscode-setting",
+    "title": "Python のための開発コンテナ",
+    "section": "VSCode",
+    "text": "VSCode\n\nVSCode のダウンロードサイトからダウンロード、インストール\n\nDownload for Windows2 をクリックしてダウンロードできます。\nインストールができたら、VSCode を開いてください。\n\n（任意）日本語の拡張機能をインストール\n\n画面左側に拡張機能のアイコン  があります。ここの検索ボックスに japanese と入力し、1番上に出てきたものをインストールします。\nインストール後、VSCode を再起動すれば日本語が反映されていると思います。\n\n\n\n\n拡張機能のインストール\n\n拡張機能の検索ボックスで、次の ID を入力し、インストールします。\nms-vscode-remote.remote-containers (Dev Containers)\nms-vscode-remote.remote-wsl (WSL, Windows ユーザーのみ)\n\nWSL に接続（Windows ユーザーのみ）\n\nVSCode から先ほどインストールした WSL に接続します。\n画面左下の &gt;&lt; アイコンをクリックして、「WSL への接続」をクリックします。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#docker",
+    "href": "tips/240621_python_container/index.html#docker",
+    "title": "Python のための開発コンテナ",
+    "section": "Docker",
+    "text": "Docker\nDocker をインストールします。\n\nWindows の方はここから Docker Desktop for Windows を、Mac の方はこちらからダウンロード＆インストール\n設定の確認（Windows のみ）\n\nインストール出来たら、画面上部の設定ボタンから Resources、WSL integration と進み、チェックボックスにチェック、Ubuntu がオンになっていることを確認してください。\nたまに、何もしていないのにここがオフになっていて、トラブることがあります。\n詳しくはこちらをご覧ください。日本語で書いてあります。\n\n\n\n\n画面左側の Volumes に進み、Create からボリュームを作成\n\npip という名前で作成します。\nR の開発コンテナを作成したことがある方で、もし pip を作成 & 使用している場合、名前を変える必要があります。\n以前紹介した R 環境の中にある Python とはバージョンが異なるので、同じボリュームを使うとエラーが出る可能性があります。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#git",
+    "href": "tips/240621_python_container/index.html#git",
+    "title": "Python のための開発コンテナ",
+    "section": "Git",
+    "text": "Git\n\nWindows\n\nUbuntu で git をインストール\n\nWindows のアプリ一覧から Ubuntu を探し、開いてください。開いたら、以下のコマンドを入力して実行します。\n\n\n\n\nUbuntu\n\nsudo apt-get install git\n\n\n\n\nUbuntu\n\n\n\n設定\n\n以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。\n\n\n\n\nUbuntu\n\ngit config --global user.name [任意のユーザ名]\ngit config --global user.email [任意のメールアドレス]\n\n\n\nMac\n\nHomebrew で git をインストール\n\nターミナルを開いて、以下のコマンドを入力して実行します。\n\n\n\n\nTerminal\n\nbrew install git\n\n\n\n\nこの Mac では2回目なので git is already installed と表示されてます…。\n\n\n\n設定\n\n以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。\nここに限らずですが、[] ごと置き換えてくださいね。\n\n\n\n\nTerminal\n\ngit config --global user.name [任意のユーザ名]\ngit config --global user.email [任意のメールアドレス]"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#github-アカウントの作成",
+    "href": "tips/240621_python_container/index.html#github-アカウントの作成",
+    "title": "Python のための開発コンテナ",
+    "section": "GitHub アカウントの作成",
+    "text": "GitHub アカウントの作成\nファイルは基本的に GitHub で管理するので、ここからアカウントを作成してください。\n\nポイント\nGitHub アカウントを作成したら、VSCode にログインしておきましょう。\n\nVSCode を開く\n画面左下のアイコンをクリック\n\nGitHub でサインインを行う\n\n\nGitHub にログインすることで、その後の作業がスムーズに進みます。\n事前準備は以上です！"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#github-リポジトリを作成",
+    "href": "tips/240621_python_container/index.html#github-リポジトリを作成",
+    "title": "Python のための開発コンテナ",
+    "section": "GitHub リポジトリを作成",
+    "text": "GitHub リポジトリを作成\n\nテンプレートの GitHub リポジトリ にアクセス\n画面右の「Use this template」から「Create a new repository」を選択\nRepository name を記入\nPrivate を選択\n\n通常のプロジェクトなら Private で OK\n\n「Create repository」をクリック"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#リポジトリをクローン",
+    "href": "tips/240621_python_container/index.html#リポジトリをクローン",
+    "title": "Python のための開発コンテナ",
+    "section": "リポジトリをクローン",
+    "text": "リポジトリをクローン\n\nVSCode を開く\n画面左側のアイコンから「ソース管理」3を開く\n「リポジトリの複製」を選択し、さらに「GitHub から複製」を選ぶ\nリポジトリを選択し、クローン\n\nリポジトリは、「ユーザー名/リポジトリ名」の形式で表示されます。\nクローンしたリポジトリを開くか問われるので、開いてください。\n\n画面右下に「コンテナーで再度開く」と出たらクリック\n\n出ない場合、画面左下「WSL: Ubuntu」4をクリックし、「コンテナーで再度開く」を選択してください。\n初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。\n\n\n\n\n\n「コンテナーで再度開く」をクリック\n\n\nエクスプローラーを開き、\\\\wsl.localhost\\Ubuntu\\home\\ユーザー名 を確認してみてください。リポジトリ名と同じフォルダができていると思います。\nMac の場合は、ユーザー名の下にできているはずです。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#python-の設定",
+    "href": "tips/240621_python_container/index.html#python-の設定",
+    "title": "Python のための開発コンテナ",
+    "section": "Python の設定",
+    "text": "Python の設定\nこの環境では、pip を使用してパッケージをインストールし、requirements.txt でパッケージを管理します。\n\nDVC のインストール\nまず初めに、データを管理するための dvc をインストールしてみます。\nGoogle ドライブを使用してデータを管理するので、ドライブ上の任意の場所にデータを保存するためのフォルダを作っておいてください。\n\nVSCode を開く\n画面上「ターミナル」から「新しいターミナル」を開く\n以下のコマンドを入力して実行\n\n\n\nTerminal\n\npip install dvc dvc-gdrive\n\n\n次のコマンドを入力しておく\n\n最後の四角括弧で囲まれた部分を置き換えるので、まだ実行しないでください！\n\n\n\n\nTerminal\n\ndvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]\n\n\nGoogle ドライブで作成したフォルダの ID をコピー\n\nID は、ドライブでフォルダを開いたときの URL で、最後のスラッシュ（~/folders/）より右側の部分です。\n\n[Google DriveのフォルダID]を置き換えて実行\n\n以上で DVC の設定ができました。\n次に、今使った DVC パッケージを記録しておきましょう5。\n以下のコマンドを実行してください。\n\n\nTerminal\n\npip freeze &gt; requirements.txt\n\nこれで requirements.txt というファイルが生成され、その中にインストールしたパッケージの情報が保存されます。\n新たなパッケージをインストールしたら、適宜実行して保存していってください。\n\n\n\n\n\n\nちなみに\n\n\n\nパッケージは Docker にキャッシュされるので、1度インストールしてしまえば、別のプロジェクトではインストールしなくても使えます。\nこれはこのテンプレートの設定を使っていればの話なので、ローカルの Python であれば話は変わりますが…。\n\n\n違う PC など、環境を作成した環境とは異なる環境で作業に移るときは、リポジトリをクローンした後、以下のコマンドで必要なパッケージをインストールできます。\n\n\nTerminal\n\npip install -r requirements.txt\n\n作業の流れについては後ほど詳述します。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#データの管理",
+    "href": "tips/240621_python_container/index.html#データの管理",
+    "title": "Python のための開発コンテナ",
+    "section": "データの管理",
+    "text": "データの管理\nデータは今インストールした DVC で管理します。データは Google ドライブ上で保管されます。\n\nワーキングディレクトリに、data というフォルダを作成\nデータが入ったら、以下のコードを実行\n\ndata フォルダごとドライブに追加します。\ndata フォルダは .gitignore に記載されているため、GitHub にはアップロードされません。\n\n\n\n\nTerminal\n\ndvc add data/\n\n\n\n\n\n\n\nデータの入れ方\n\n\n\nデータは、Windows のエクスプローラーや Mac の Finder から直接フォルダに入れて大丈夫です（通常の Windows や Mac での作業のように）。\nデータをプッシュした後に Google ドライブを見てもらえれば分かりますが、よくわからない形で保存されています。DVC の仕組みがそのような保存形式になっているからなので、決してファイルが破損しているわけではありません。\nちなみに Windows ユーザーの方で、一回ローカルに落としてから Linux にデータ等を入れたら Zone.Identifier というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。\n\n\n\nデータをアップロード\n\n以下のコードでデータをプッシュします。\n\n\n\n\nTerminal\n\ndvc push\n\n最初は add と push をする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください6。\n\nデータのダウンロード\n\nパッケージと同様、別環境でデータをダウンロードするためには以下のコードを実行して下さい。\n\n\n\n\nTerminal\n\ndvc pull\n\nこれでデータが管理できます。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#作業終了時",
+    "href": "tips/240621_python_container/index.html#作業終了時",
+    "title": "Python のための開発コンテナ",
+    "section": "作業終了時",
+    "text": "作業終了時\n一連の作業を終えたら、GitHub にコミット、プッシュしましょう。\n\n作業内容をコミット\n\n画面左側の「ソース管理」をクリックします。\nファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします7。\n画面上部の「メッセージを入力」にコミットメッセージ8を入力し、「✓コミット」をクリックしてください。\n\nプッシュ\n\n「ソース管理」の右側にある「…」をクリックし、「プッシュ」を選択してください。\nこれで、作業内容が GitHub にアップロードされます。\n\n\nプッシュをするのは最後で良いと思います。例えば作業を3つのファイルで行ったとしたら、それぞれのファイルでコミットメッセージを書いてコミットし、最後にプッシュすれば OK です。\n毎度毎度プッシュを行うより効率的ですね。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#作業手順",
+    "href": "tips/240621_python_container/index.html#作業手順",
+    "title": "Python のための開発コンテナ",
+    "section": "作業手順",
+    "text": "作業手順\n\n事前準備を行う\nリポジトリのクローン\n\nVSCode 内で行います。\nクローン出来たら、「コンテナーで再度開く」をクリックし開発コンテナに移動します。\n\nDVC の設定をする（データを使わない場合は5にスキップ）\n\npip install dvc dvc-gdrive\ndvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]\n\nデータの保存\n\nワーキングディレクトリに data フォルダを作成します。\ndata 内にデータを追加していきます。\n一通りデータを追加したら、dvc add data/ を実行します。\n\n作業をする\nパッケージを記録\n\npip freeze &gt; requirements.txt\nパッケージを追加したら適宜実行して下さい。\nパッケージごとに逐一実行する必要はありません。最後にまとめて、で大丈夫です。\n\ngit にコミット＆プッシュ\n\nVSCode 上でデータをコミット、プッシュします。\n\nデータをプッシュする\n\ndvc push\nこれを実行することでドライブにデータが送られます。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#別の環境で再現する",
+    "href": "tips/240621_python_container/index.html#別の環境で再現する",
+    "title": "Python のための開発コンテナ",
+    "section": "別の環境で再現する",
+    "text": "別の環境で再現する\n環境を変えた場合は、次の流れで環境を再現します。\n\n事前準備\nリポジトリのクローン\n\n開発コンテナに入ります。\n\nターミナルで以下を実行\n\nPython のパッケージがインストールされ、データもダウンロードされます。\n\n\n\n\nTerminal\n\npip install -r requirements.txt\ndvc pull\n\nあとは上の流れと同じです。"
+  },
+  {
+    "objectID": "tips/240621_python_container/index.html#footnotes",
+    "href": "tips/240621_python_container/index.html#footnotes",
+    "title": "Python のための開発コンテナ",
     "section": "注",
-    "text": "注\n\n\nこの記事で紹介した開発コンテナを使用。↩︎\n\\\\wsl.localhost\\Ubuntu\\home\\user 下にファイルがあると仮定している。フォルダのパスが異なる場合は、cd [your_path] でディレクトリを変更したうえで実行する。もしくは [フォルダ名] にパス含めて入力する↩︎\nこの記事で紹介した TinyTeX ボリュームを使用。↩︎\ntinytex::reinstall_tinytex() でもいけるのかもしれないけど、途中でエラーが出たので手順を踏むことにしました。↩︎"
-  },
-  {
-    "objectID": "tips/240520_latex/index.html",
-    "href": "tips/240520_latex/index.html",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "",
-    "text": "こんにちは、Windows ユーザーです。\nTeX Live はインストールするのが面倒だし、使い方もよくわからないので1、別の方法で\\(\\LaTeX\\) を使えるようにしました。\nまた、Mac での方法も併せてご紹介します。\nこれまで TeX Live に苦労していた方や Overleaf を使っていた方は、ぜひ試してみてください。"
-  },
-  {
-    "objectID": "tips/240520_latex/index.html#wsl-ubuntu-と-homebrew-の準備",
-    "href": "tips/240520_latex/index.html#wsl-ubuntu-と-homebrew-の準備",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "0. WSL, Ubuntu と Homebrew の準備",
-    "text": "0. WSL, Ubuntu と Homebrew の準備\nWindows のローカルでもできるとは思うのですが、Ubuntu でやる方が楽なので、WSL2 を使って Ubuntu でやります。何言ってるかわからない方は、気にしないでください。僕もよくわかりません。\n事前準備は少し面倒だけど、一度やってしまえば楽、みたいなイメージで使っています。とりあえず使えればよいと思っている一大学院生なので、そのあたりは許してください。\nMac の方は、Homebrew を使って TinyTeX をインストールしていきます。\n既にこれらの準備が出来ている方は、飛ばしてください。\n\n0-1. WSL と Ubuntu のインストール（Windows）\nまずは Windows Subsystem for Linux（WSL）をインストールします3。\nPowerShell を管理者権限で起動4し、以下のコマンドを実行します。\nwsl --install\nもし再起動を求められたら、再起動してください。インストールはこれだけです。\nインストールができたらユーザー名とパスワードの設定が求められるので、設定します。\nこれは何でも構いません。sudo コマンドを使う際にパスワードが必要になりますが、本当に簡単なもので大丈夫です5。\nまた、パスワード入力の際に、入力しても画面上には表示されませんが、きちんと入力されていますので慌てず続けてください。\n\n\n0-2. Homebrew のインストール（Mac）\nMac ユーザーは Homebrew を使って諸々インストールしていくので、まだの方はここでインストールしてください。\n\nターミナルを開く\n\nアプリ一覧から「ターミナル」を探してください。\n\n以下のコマンドを入力して実行\n\nパスワードを求められるので、入力してください。\n\n\n\n\nTerminal\n\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-  },
-  {
-    "objectID": "tips/240520_latex/index.html#tinytex-のインストール",
-    "href": "tips/240520_latex/index.html#tinytex-のインストール",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "1. TinyTeX のインストール",
-    "text": "1. TinyTeX のインストール\nTeX Live はインストールが面倒なので、TinyTeX という軽量な \\(\\LaTeX\\) ディストリビューションを使います。R Markdown でもよく使われているので、馴染みがある方も多いかもしれません。\nしかし今回は、R は使いません。目標とするのは TeX Live の代替として、簡潔に \\(\\LaTeX\\) を使えるようにすることです。\n\n1-1. Windows でのインストール\nWindows では、Ubuntu を開いて以下のコマンドを実行します。\nwget -qO- \"https://yihui.org/tinytex/install-bin-unix.sh\" | sh\nこれで TinyTeX のインストールは完了です。簡単ですね。\n\n\n1-2. Mac でのインストール\nMac の方は、ターミナルを開いて以下のコマンドを実行してください。\ncurl -sL \"https://yihui.org/tinytex/install-bin-unix.sh\" | sh"
-  },
-  {
-    "objectID": "tips/240520_latex/index.html#vscode-での設定",
-    "href": "tips/240520_latex/index.html#vscode-での設定",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "2. VSCode での設定",
-    "text": "2. VSCode での設定\n\n2-1. 拡張機能のインストール\nVSCode で LaTeX を使うためには、拡張機能をインストールする必要があります。\n画面左の拡張機能アイコン  をクリックし、検索バーに「LaTeX」と入力します。すると、LaTeX および LaTeX Workshop という拡張機能が表示されるので、2つをインストールします6。\n\n\n2-2. 設定の変更\n拡張機能をインストールしたら、設定を変更します。\n画面左下の管理ボタンから「設定」で設定画面を開き7、右上にある  をクリックして settings.json を開きます。\n以下の {} の中身を設定に追加します。もし既に何か設定がある場合は、最後をカンマで区切り、改行して追加してください。\n{\n    \"latex-workshop.latex.tools\": [\n        {\n          \"name\": \"latexmk\",\n          \"command\": \"latexmk\",\n          \"args\": [\n            \"-synctex=1\",\n            \"-interaction=nonstopmode\",\n            \"-file-line-error\",\n            \"-xelatex\",\n            \"%DOC%\"\n          ]\n        }\n    ],\n    \"latex-workshop.latex.recipes\": [\n        {\n          \"name\": \"latexmk (xelatex)\",\n          \"tools\": [\n            \"latexmk\"\n          ]\n        }\n    ],\n    \"latex-workshop.view.pdf.viewer\": \"tab\",\n    \"latex-workshop.latex.clean.fileTypes\": [\n        \"*.aux\", \"*.bbl\", \"*.blg\", \"*.idx\", \"*.ind\", \"*.lof\", \"*.lot\", \"*.out\", \"*.toc\", \"*.acn\", \n        \"*.acr\", \"*.alg\", \"*.glg\", \"*.glo\", \"*.gls\", \"*.ist\", \"*.fls\", \"*.log\", \"*.fdb_latexmk\", \"*.synctex.gz\",\n        // for Beamer files\n        \"_minted*\", \"*.nav\", \"*.snm\", \"*.vrb\",\n    ],\n    \"latex-workshop.latex.autoBuild.run\": \"onBuilt\",\n}\n\nこれで設定は完了です。"
-  },
-  {
-    "objectID": "tips/240520_latex/index.html#動作確認",
-    "href": "tips/240520_latex/index.html#動作確認",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "3. 動作確認",
-    "text": "3. 動作確認\nここからは Windows も Mac も共通です。\nはじめに今回使うフォントをインストールしましょう。VSCode のターミナルで以下のコマンドを実行してください。\ntlmgr install ipaex\n次に、VSCode で新しいファイルを作成し、GitHub Copilot が作ってくれた以下のコードを回してみます8。\n\\documentclass{article}\n\\usepackage{bookmark} \n\\usepackage{fontspec} \n\\usepackage{zxjatype} \n\\usepackage[ipaex]{zxjafont}\n\n\\title{サンプルドキュメント}\n\\author{あなたの名前}\n\\date{今日の日付}\n\n\\begin{document}\n\n\\maketitle\n\n\\section{導入}\n\nこれはサンプルのセクションです。\n\n\\subsection{サブセクション}\n\nこれはサンプルのサブセクションです。\n\n\\end{document}\nこれを保存し、右上の緑の三角ボタン  をクリックすると、PDF ファイルが生成されます。\nしかし、おそらくここでエラーに直面するでしょう。次のセクションでエラーの解決法について説明します。"
-  },
-  {
-    "objectID": "tips/240520_latex/index.html#エラーの解決",
-    "href": "tips/240520_latex/index.html#エラーの解決",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "4. エラーの解決",
-    "text": "4. エラーの解決\nこの段階のエラーのほとんどは、パッケージがインストールされていないことが原因です。\nコンパイルすると右下にエラーの表記とともに「Open compiler log」と出ると思うので、それをクリックしてエラーログを開きます。\n\n\n\nこれを押します。\n\n\nエラーログを少し遡ってみると、どのパッケージがインストールされていないかがわかります。例えば、「! LaTeX Error: File ‘xltxtra.sty’ not found.」と出た場合、xltxtra パッケージがインストールされていないことがわかります。\nその場合、ターミナルに戻り以下のコマンドを実行してください。\ntlmgr install xltxtra\nこれでインストールできますが、使い始めのうちは何度か似たようなエラーが出るかもしれません。エラーが出たらエラーログを見て、同様の方法で必要なパッケージをインストールしてください。\n\n\n\n\n\n\nエラーのトラップ\n\n\n\n先ほどのサンプルコードを実行しようとすると、\n! LaTeX Error: File `xeCJK.sty’ not found.\nというエラーが途中で出てきます。しかし、tlmgr install xeCJK としてもインストールできません。これは、xeCJK というパッケージが存在しないためです。\n代わりに、ctex パッケージをインストールすることで解決できます。ctex パッケージが xeCJK を含んでいるためです。\nややこしいですが、これで試してみてください。"
-  },
-  {
-    "objectID": "tips/240520_latex/index.html#再び動作確認",
-    "href": "tips/240520_latex/index.html#再び動作確認",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "5. 再び動作確認",
-    "text": "5. 再び動作確認\nエラーを解消するうちに、足りないパッケージがインストールでき、最終的には問題なくコンパイルできるようになるはずです。\n日本語で使う場合、フォントをインストールしていないミスが多いので、気を付けてください。\n最終的に次のように出力できました。"
-  },
-  {
-    "objectID": "tips/240520_latex/index.html#footnotes",
-    "href": "tips/240520_latex/index.html#footnotes",
-    "title": "TeX Live を使わずに LaTeX 環境を作る！",
-    "section": "注",
-    "text": "注\n\n\n実際には少し使っていたので、並程度には使えます（笑）↩︎\n日本語設定などもしておくと便利かもしれません↩︎\nWindows における WSL のインストールについてはこちらでも触れています。↩︎\nアプリ一覧から右クリックすれば「詳細」→「管理者として実行」で使えます。↩︎\nこちらの動画の 4:42~ あたりを見てみてください。パスワードは「a」です。a。↩︎\n怪しかったら、mathematic.vscode-latex と James-Yu.latex-workshop をそれぞれ入力すれば確実です。↩︎\nWindowsなら Ctrl ＋ , で、Mac ならcommand ＋ , でもいけます。↩︎\n少し日本語フォントなどの設定を加えています。↩︎\nその割によく手動でインストールさせられる気がしますが…↩︎"
-  },
-  {
-    "objectID": "tips/240516_archived_pkg/index.html",
-    "href": "tips/240516_archived_pkg/index.html",
-    "title": "【R】アーカイブされたパッケージを使う",
-    "section": "",
-    "text": "因果推論を勉強している人にはおなじみの Mixtape ですが、昨年勉強中にこの中の合成コントロール法の章でパッケージがインストールできない問題に直面しました。\nよく調べてみると、当時1 SCtools パッケージはアーカイブされてしまっており、install.packages('SCtools') ではインストールができないことが判明しました。\n現在2では復活してインストールできるようになっていますが、そんなときに備えて対処法をまとめます。"
-  },
-  {
-    "objectID": "tips/240516_archived_pkg/index.html#アーカイブされたパッケージを探す",
-    "href": "tips/240516_archived_pkg/index.html#アーカイブされたパッケージを探す",
-    "title": "【R】アーカイブされたパッケージを使う",
-    "section": "アーカイブされたパッケージを探す",
-    "text": "アーカイブされたパッケージを探す\nCRAN のアーカイブにアクセスして、アーカイブされたパッケージを探します。\n例えば当時アーカイブされていた SCtools を探すと、次のようになります。\n\nこの中で最新のものを右クリックし、リンクをコピーしてください。"
-  },
-  {
-    "objectID": "tips/240516_archived_pkg/index.html#rstudio-を開く",
-    "href": "tips/240516_archived_pkg/index.html#rstudio-を開く",
-    "title": "【R】アーカイブされたパッケージを使う",
-    "section": "RStudio を開く",
-    "text": "RStudio を開く\n続いて RStudio を開き、スクリプトに次のコードを入力してください。\n\n\nR\n\nurl &lt;- \"https://cran.r-project.org/src/contrib/Archive/SCtools/SCtools_0.3.2.tar.gz\"\npkgFile &lt;- \"SCtools_0.3.2.tar.gz\"\ndownload.file(url = url, destfile = pkgFile)\n\nここで URL はコピーしたものに変え、pkgFile は URL の最後の .tar.gz 部分をコピペしてください。\n実行するとエラーが出るかもしれませんが、それは依存しているパッケージがインストールされていないということです。エラーを読んでみて、足りなそうなパッケージを以下のコードの c() にまとめて入れて実行し、 改めて download.file() を実行してみてください。\n\n\nR\n\ninstall.packages(c(\"xxx\", \"yyy\", \"zzz\"))\n\nそしてパッケージをインストールします。次のコードを実行してください。\n\n\nR\n\ninstall.packages(pkgs=pkgFile, type=\"source\", repos=NULL)\n\n最後に以下を実行して下さい。\n\n\nR\n\nunlink(pkgFile)\n\n以上です。インストール出来たのではないでしょうか。"
-  },
-  {
-    "objectID": "tips/240516_archived_pkg/index.html#footnotes",
-    "href": "tips/240516_archived_pkg/index.html#footnotes",
-    "title": "【R】アーカイブされたパッケージを使う",
-    "section": "注",
-    "text": "注\n\n\n2023年秋↩︎\n2024年5月16日↩︎"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Yosuke Abe",
-    "section": "",
-    "text": "こんにちは！ 経済学系の大学院生です。\n学んだTipsなどをまとめていきます。"
-  },
-  {
-    "objectID": "tips/index.html",
-    "href": "tips/index.html",
-    "title": "Tips",
-    "section": "",
-    "text": "おすすめ記事\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\n\n\nPrevoius\n\n\n\nNext\n\n\n\n\n\n\n\n\n\n\n開発環境\n\n\n\n最終更新日：2024年07月23日\n\nUbuntu 22.04\nRStudio 2024.04.2+764 (Chocolate Cosmos) for Ubuntu Jammy\nR version 4.4.1 (2024-06-14)\nPython 3.10.12\njulia version 1.10.4\nQuarto 1.5.55\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\nQuarto\n\n\nR\n\n\nLaTeX\n\n\n\nQuarto を使って論文を書く方法（マークダウン、表、図）をまとめました。\n\n\n\n\n\n\n2024/06/29\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n国勢調査データのクレンジング\n\n\n\nR\n\n\n\n人口データのファイルを一括で読み込んで、分析で使いやすくするためのクレンジングコードです。\n\n\n\n\n\n\n2024/06/22\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPython のための開発コンテナ\n\n\n\nPython\n\n\nVSCode\n\n\nDocker\n\n\nUbuntu\n\n\n\nPython のための開発コンテナを作成する手順を紹介します。\n\n\n\n\n\n\n2024/06/21\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n環境構築における備忘録\n\n\n\n備忘録\n\n\n\n環境構築において直面したエラー等を随時まとめていきます。\n\n\n\n\n\n\n2024/06/19\n\n\n\n\n\n\n\n\n\n\n\n\n【WSL】割り当てるメモリを増やす方法\n\n\n\nWSL\n\n\nWindows\n\n\n備忘録\n\n\n\nWSL はデフォルトで PC の半分のメモリが割り当てられています。\n\n\n\n\n\n\n2024/05/31\n\n\n\n\n\n\n\n\n\n\n\n\n【ワークフロー】VSCode で GitHub を使う\n\n\n\nVSCode\n\n\nGitHub\n\n\n\nVSCode で GitHub を使った作業の流れを紹介します。\n\n\n\n\n\n\n2024/05/25\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTeX Live を使わずに LaTeX 環境を作る！\n\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nLaTeX\n\n\n\nTinyTeX を使って R 環境以外でも \\(\\LaTeX\\) を使えるようにしよう！\n\n\n\n\n\n\n2024/05/20\n\n\n\n\n\n\n\n\n\n\n\n\n【R】アーカイブされたパッケージを使う\n\n\n\nR\n\n\n\nパッケージがインストールできない？\n\n\n\n\n\n\n2024/05/16\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R】プロジェクトを使う\n\n\n\nR\n\n\n\nR プロジェクトを使って作業環境を整えよう！\n\n\n\n\n\n\n2024/05/15\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【日本語版】クリーンなスライドを Quarto で作る！\n\n\n\nQuarto\n\n\nR\n\n\n\n日本語でも使えるスライドをご紹介！\n\n\n\n\n\n\n2024/05/14\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nQuarto 経由で Beamer 風のスライドを作ろう！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】使い方解説！Reveal.js でスライドを作ろう\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nスライドも Quarto で作れる！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】チャンクオプションまとめてみた【R Markdown】\n\n\n\nR\n\n\nQuarto\n\n\nR Markdown\n\n\n備忘録\n\n\n\nチャンクオプションは忘れやすい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\n【R Markdown】相互参照を使いこなす【Quarto】\n\n\n\nR Markdown\n\n\nQuarto\n\n\nR\n\n\n\n図や表に自動で番号を振りたい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto で Python を使ってみよう！\n\n\n\nQuarto\n\n\nPython\n\n\nUbuntu\n\n\nVSCode\n\n\nR\n\n\n\nR ユーザーはこれでよくない？\n\n\n\n\n\n\n2024/05/08\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R パッケージ】インストールも読み込みも一撃で？【pacman】\n\n\n\nR\n\n\n\ninstall.packages() はもう不要！\n\n\n\n\n\n\n2024/05/07\n\n\n\n\n\n\n\n\n\n\n\n\nR でGIS を動かす【ハンドリング】\n\n\n\nR\n\n\nGIS\n\n\n\nR で GIS を動かそう！\n\n\n\n\n\n\n2024/05/06\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\nR\n\n\nDocker\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nVSCode\n\n\nGitHub\n\n\n\nローカル環境から卒業！\n\n\n\n\n\n\n2024/05/04\n\n\n\n\n\n\n\n\n\n\n\n\n政令指定都市・中核市の整理\n\n\n\nR\n\n\n備忘録\n\n\n\nRで市区町村データを整理するための政令指定都市・中核市をまとめたコードです。\n\n\n\n\n\n\n2024/04/14\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\nR\n\n\nR Markdown\n\n\nQuarto\n\n\nLaTeX\n\n\n\nレポートでR Markdown、使ってますか？\n\n\n\n\n\n\n2024/03/29\n\n\n\n\n\n\n\n\n一致なし"
-  },
-  {
-    "objectID": "tips/240507_pacman/index.html",
-    "href": "tips/240507_pacman/index.html",
-    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
-    "section": "",
-    "text": "何か新しいプロジェクトを始める際に、新しいパッケージをいちいちインストールして読み込むのは面倒ですよね。\nそんな時に便利な pacman パッケージのご紹介です。"
-  },
-  {
-    "objectID": "tips/240507_pacman/index.html#library",
-    "href": "tips/240507_pacman/index.html#library",
-    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
-    "section": "library()",
-    "text": "library()\nまず、インストールします。\n\ninstall.packages(\"tidyverse\")\ninstall.packages(\"sf\")\ninstall.packages(\"here\")\n\n次に、読み込みます。\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.1\n✔ ggplot2   3.5.1     ✔ tibble    3.2.1\n✔ lubridate 1.9.3     ✔ tidyr     1.3.1\n✔ purrr     1.0.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nlibrary(here)\n\nhere() starts at /home/rstudio/work\n\n\nこれで使えるようになりました。"
-  },
-  {
-    "objectID": "tips/240507_pacman/index.html#p_load",
-    "href": "tips/240507_pacman/index.html#p_load",
-    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
-    "section": "p_load()",
-    "text": "p_load()\npacman::p_load() はこれで一発です。\n\npacman::p_load(tidyverse, sf, here)\n\nこの場合、上に出てきたような読み込みに付随するメッセージは出てきません。"
-  },
-  {
-    "objectID": "tips/240507_pacman/index.html#footnotes",
-    "href": "tips/240507_pacman/index.html#footnotes",
-    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
-    "section": "注",
-    "text": "注\n\n\nこの書き方では、library() を使わずともパッケージ内の関数が使えます。一度だけ使いたい！というときに便利です。また、どのパッケージに属しているかが明確になるというメリットもあります。↩︎\nこちらを参照↩︎"
-  },
-  {
-    "objectID": "tips/240514_clean_slide/index.html",
-    "href": "tips/240514_clean_slide/index.html",
-    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
-    "section": "",
-    "text": "別記事で、Beamer 風の Reveal.js スライドをご紹介しましたが、英語にしか対応していませんでした。というのも、あのフォントと釣り合う日本語のフォントが思いつかなかったからです。\n今回は、別のデザインで日本語にも対応したスライドのテンプレートをご紹介します。デザインに困っている方はぜひ使ってみてください！"
-  },
-  {
-    "objectID": "tips/240514_clean_slide/index.html#とりあえず見てみよう",
-    "href": "tips/240514_clean_slide/index.html#とりあえず見てみよう",
-    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
-    "section": "とりあえず見てみよう",
-    "text": "とりあえず見てみよう\nこのスライドは、結構嬉しいポイントとして、移動ボタンが準備されているということがあります。\nこれはどういうことか、こちらをご覧ください。\n\n\n\n結構すごくないですか？PDF だと図や表に飛べたりしますが、自分でスライドを作っていて戻るのめんどいな、と思うことがあったので、結構重宝しています。"
-  },
-  {
-    "objectID": "tips/240514_clean_slide/index.html#使い方",
-    "href": "tips/240514_clean_slide/index.html#使い方",
-    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
-    "section": "使い方",
-    "text": "使い方\n使い方はデモスライドに書いた通り、[[図へ]{.button}](#sec-cars) です。これをする上で必要な準備があるので、それをまとめます。\n\nスライドにラベルを付ける\nこの機能、個人的には便利だなと思うのですが、図には直接飛べないのが玉に瑕です。要は図に飛ぶのではなく、図があるスライドに飛ぶ必要があるということです1。\nラベルを付けるには、次のようにします。\n\n\nQuarto\n\n## ヘッダー\n\n### サブヘッダー {#sec-hogehoge}\n\nhogehoge の部分は適宜変更してください。波括弧で囲み、#sec- で始めることでラベルを付けることができます。セクションの場合は必ず #sec- で始める必要があるので注意してください。\n\n\nボタンを作る\n先述の通り、ボタンを作るには、任意の場所で次のように書きます。\n\n\nQuarto\n\n[[図へ]{.button}](#sec-hogehoge)\n\n中の [] は表示したいテキストで、() の中はラベル名です。ラベル名はセクションのラベル名を指定してください。\n\n\n帰れないと意味がない\n図（があるセクション）へ飛ぶボタンを作ったら、図から戻るボタンも作りましょう。せっかく何ページも飛んでいったのに、戻るのに1スライドずつ戻っていたのでは意味がありません。\n例えば、次のようにします。\n\n\nQuarto\n\n[[戻る]{.button}](#sec-hogehoge)\n\nこれで、図から戻るボタンが作れます。1つの図を複数の箇所から参照する場合、「○○へ戻る」2として、複数のボタンを作るとよいでしょう。\n横に並べたいときは Quarto の機能を活かして、\n\n\nQuarto\n\n:::: {.columns}\n::: {.column width=\"50%\"}\n[[セクション1へ戻る]{.button}](#sec-hogehoge)\n:::\n\n::: {.column width=\"50%\"}\n[[セクション2へ戻る]{.button}](#sec-fugafuga)\n:::\n::::\n\nとすれば、横に並べてボタンを配置できます3。\n\n\nscss ファイルをゲット\nこのスライドを使うには、こちらをクローンするか、ZIP ファイルダウンロードするかして、clean-slide.scss を入手してください4。\nこれを Quarto ファイルと同じディレクトリに置いてください。\n重ねてになりますが、詳しいスライドの作り方はこちらを参照してください。"
-  },
-  {
-    "objectID": "tips/240514_clean_slide/index.html#footnotes",
-    "href": "tips/240514_clean_slide/index.html#footnotes",
-    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
-    "section": "注",
-    "text": "注\n\n\n図の参照自体はもちろんできます。Quarto での相互参照の仕方についてはこちら↩︎\n○○はセクションやサブセクションの名前など↩︎\nこの書き方の詳細や Quarto の機能についてはこちら↩︎\nもはや新しい scss ファイルを手動で作って、中身をコピーするでもいいですよ。↩︎\nスライド作成に自信がある方はすみません…↩︎"
+    "text": "注\n\n\n求められない場合は、続けて wsl とだけ入力して実行してください。↩︎\nもしくは Mac↩︎\n上から3番目↩︎\nMac なら &gt;&lt;↩︎\n記録しておくことで、違う PC に変えたり共同研究をしたりするなど違う環境で実行するときに、必要なパッケージを指定したバージョンで簡単にインストールすることができます。↩︎\n私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。↩︎\nステージしていないとコミットできません。↩︎\nどのような作業をしたのか↩︎"
   },
   {
     "objectID": "tips/240504_container/index.html",
@@ -574,186 +511,263 @@
     "text": "注\n\n\n求められない場合は、続けて wsl とだけ入力してください。↩︎\nもしくは Mac↩︎\n単に Japanese でも出てきます。笑↩︎\n上から3番目↩︎\nMac なら &gt;&lt;↩︎\nTRUE のところを FALSE にして再度実行すれば消せます。↩︎\n余談ですが、renv::init() のように パッケージ名::関数 のような書き方をすれば、library(パッケージ名) をせずとも関数を使えます。1度だけ使いたいようなときに便利です。↩︎\nCtrl は Mac だと command↩︎\nステージしていないとコミットできません。↩︎\nどのような作業をしたのか↩︎\n現段階ではまだローカルには main が反映されていません。↩︎\nインストールしただけでコード内で使用していない場合は記録できません。↩︎\n私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。↩︎"
   },
   {
-    "objectID": "tips/240621_python_container/index.html",
-    "href": "tips/240621_python_container/index.html",
-    "title": "Python のための開発コンテナ",
+    "objectID": "tips/240514_clean_slide/index.html",
+    "href": "tips/240514_clean_slide/index.html",
+    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
     "section": "",
-    "text": "以前の記事で、Docker & VSCode を用いた R 環境の構築方法をご紹介しました。\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n今回は同じく Docker & VSCode で使える Python の環境テンプレートを作成しましたので、そちらをご紹介します。\n以前の R 環境でも Python は使えましたが、特に R や Julia 等が不要である方は、ぜひ参考にしてみてください。\nWSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub を使用されたことがあり、上の記事を読んでいただいた方は開発環境の構築まで飛んでいただいて大丈夫だと思います。"
+    "text": "別記事で、Beamer 風の Reveal.js スライドをご紹介しましたが、英語にしか対応していませんでした。というのも、あのフォントと釣り合う日本語のフォントが思いつかなかったからです。\n今回は、別のデザインで日本語にも対応したスライドのテンプレートをご紹介します。デザインに困っている方はぜひ使ってみてください！"
   },
   {
-    "objectID": "tips/240621_python_container/index.html#wsl2windows-ユーザーのみ",
-    "href": "tips/240621_python_container/index.html#wsl2windows-ユーザーのみ",
-    "title": "Python のための開発コンテナ",
-    "section": "WSL2（Windows ユーザーのみ）",
-    "text": "WSL2（Windows ユーザーのみ）\n\nアプリ一覧から PowerShell または Windows コマンドプロンプトを管理者権限で開く\n\n右クリックで管理者権限を使えます。\n\n\n\n\n\n\n\n\n以下のコマンドを入力して実行\n\nこれでインストールはできるはずですが、詳しくはこちらのサイトを参照してください。\n\n\n\n\nPowerShell\n\nwsl --install\n\n\nユーザー名とパスワードを設定\n\nインストールが終わると、Linux ディストリビューションのユーザー名とパスワードの作成を求められます1。\nユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。\nパスワードは画面上には表示されませんが、ちゃんと入力されています。慌てて何回も入力しないようにしてください。\n\n\nエクスプローラーから Linux に入り、\\Ubuntu\\home\\ユーザー名 がメインとなるディレクトリです。"
+    "objectID": "tips/240514_clean_slide/index.html#とりあえず見てみよう",
+    "href": "tips/240514_clean_slide/index.html#とりあえず見てみよう",
+    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
+    "section": "とりあえず見てみよう",
+    "text": "とりあえず見てみよう\nこのスライドは、結構嬉しいポイントとして、移動ボタンが準備されているということがあります。\nこれはどういうことか、こちらをご覧ください。\n\n\n\n結構すごくないですか？PDF だと図や表に飛べたりしますが、自分でスライドを作っていて戻るのめんどいな、と思うことがあったので、結構重宝しています。"
   },
   {
-    "objectID": "tips/240621_python_container/index.html#homebrewmac-ユーザーのみ",
-    "href": "tips/240621_python_container/index.html#homebrewmac-ユーザーのみ",
-    "title": "Python のための開発コンテナ",
-    "section": "Homebrew（Mac ユーザーのみ）",
-    "text": "Homebrew（Mac ユーザーのみ）\nMac ユーザーは Homebrew を使って諸々インストールしていくので、まだの方はここでインストールしてください。\n\nターミナルを開く\n\nアプリ一覧から「ターミナル」を探してください。\n\n以下のコマンドを入力して実行\n\nパスワードを求められるので、入力してください。\n\n\n\n\nTerminal\n\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+    "objectID": "tips/240514_clean_slide/index.html#使い方",
+    "href": "tips/240514_clean_slide/index.html#使い方",
+    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
+    "section": "使い方",
+    "text": "使い方\n使い方はデモスライドに書いた通り、[[図へ]{.button}](#sec-cars) です。これをする上で必要な準備があるので、それをまとめます。\n\nスライドにラベルを付ける\nこの機能、個人的には便利だなと思うのですが、図には直接飛べないのが玉に瑕です。要は図に飛ぶのではなく、図があるスライドに飛ぶ必要があるということです1。\nラベルを付けるには、次のようにします。\n\n\nQuarto\n\n## ヘッダー\n\n### サブヘッダー {#sec-hogehoge}\n\nhogehoge の部分は適宜変更してください。波括弧で囲み、#sec- で始めることでラベルを付けることができます。セクションの場合は必ず #sec- で始める必要があるので注意してください。\n\n\nボタンを作る\n先述の通り、ボタンを作るには、任意の場所で次のように書きます。\n\n\nQuarto\n\n[[図へ]{.button}](#sec-hogehoge)\n\n中の [] は表示したいテキストで、() の中はラベル名です。ラベル名はセクションのラベル名を指定してください。\n\n\n帰れないと意味がない\n図（があるセクション）へ飛ぶボタンを作ったら、図から戻るボタンも作りましょう。せっかく何ページも飛んでいったのに、戻るのに1スライドずつ戻っていたのでは意味がありません。\n例えば、次のようにします。\n\n\nQuarto\n\n[[戻る]{.button}](#sec-hogehoge)\n\nこれで、図から戻るボタンが作れます。1つの図を複数の箇所から参照する場合、「○○へ戻る」2として、複数のボタンを作るとよいでしょう。\n横に並べたいときは Quarto の機能を活かして、\n\n\nQuarto\n\n:::: {.columns}\n::: {.column width=\"50%\"}\n[[セクション1へ戻る]{.button}](#sec-hogehoge)\n:::\n\n::: {.column width=\"50%\"}\n[[セクション2へ戻る]{.button}](#sec-fugafuga)\n:::\n::::\n\nとすれば、横に並べてボタンを配置できます3。\n\n\nscss ファイルをゲット\nこのスライドを使うには、こちらをクローンするか、ZIP ファイルダウンロードするかして、clean-slide.scss を入手してください4。\nこれを Quarto ファイルと同じディレクトリに置いてください。\n重ねてになりますが、詳しいスライドの作り方はこちらを参照してください。"
   },
   {
-    "objectID": "tips/240621_python_container/index.html#sec-vscode-setting",
-    "href": "tips/240621_python_container/index.html#sec-vscode-setting",
-    "title": "Python のための開発コンテナ",
-    "section": "VSCode",
-    "text": "VSCode\n\nVSCode のダウンロードサイトからダウンロード、インストール\n\nDownload for Windows2 をクリックしてダウンロードできます。\nインストールができたら、VSCode を開いてください。\n\n（任意）日本語の拡張機能をインストール\n\n画面左側に拡張機能のアイコン  があります。ここの検索ボックスに japanese と入力し、1番上に出てきたものをインストールします。\nインストール後、VSCode を再起動すれば日本語が反映されていると思います。\n\n\n\n\n拡張機能のインストール\n\n拡張機能の検索ボックスで、次の ID を入力し、インストールします。\nms-vscode-remote.remote-containers (Dev Containers)\nms-vscode-remote.remote-wsl (WSL, Windows ユーザーのみ)\n\nWSL に接続（Windows ユーザーのみ）\n\nVSCode から先ほどインストールした WSL に接続します。\n画面左下の &gt;&lt; アイコンをクリックして、「WSL への接続」をクリックします。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#docker",
-    "href": "tips/240621_python_container/index.html#docker",
-    "title": "Python のための開発コンテナ",
-    "section": "Docker",
-    "text": "Docker\nDocker をインストールします。\n\nWindows の方はここから Docker Desktop for Windows を、Mac の方はこちらからダウンロード＆インストール\n設定の確認（Windows のみ）\n\nインストール出来たら、画面上部の設定ボタンから Resources、WSL integration と進み、チェックボックスにチェック、Ubuntu がオンになっていることを確認してください。\nたまに、何もしていないのにここがオフになっていて、トラブることがあります。\n詳しくはこちらをご覧ください。日本語で書いてあります。\n\n\n\n\n画面左側の Volumes に進み、Create からボリュームを作成\n\npip という名前で作成します。\nR の開発コンテナを作成したことがある方で、もし pip を作成 & 使用している場合、名前を変える必要があります。\n以前紹介した R 環境の中にある Python とはバージョンが異なるので、同じボリュームを使うとエラーが出る可能性があります。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#git",
-    "href": "tips/240621_python_container/index.html#git",
-    "title": "Python のための開発コンテナ",
-    "section": "Git",
-    "text": "Git\n\nWindows\n\nUbuntu で git をインストール\n\nWindows のアプリ一覧から Ubuntu を探し、開いてください。開いたら、以下のコマンドを入力して実行します。\n\n\n\n\nUbuntu\n\nsudo apt-get install git\n\n\n\n\nUbuntu\n\n\n\n設定\n\n以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。\n\n\n\n\nUbuntu\n\ngit config --global user.name [任意のユーザ名]\ngit config --global user.email [任意のメールアドレス]\n\n\n\nMac\n\nHomebrew で git をインストール\n\nターミナルを開いて、以下のコマンドを入力して実行します。\n\n\n\n\nTerminal\n\nbrew install git\n\n\n\n\nこの Mac では2回目なので git is already installed と表示されてます…。\n\n\n\n設定\n\n以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。\nここに限らずですが、[] ごと置き換えてくださいね。\n\n\n\n\nTerminal\n\ngit config --global user.name [任意のユーザ名]\ngit config --global user.email [任意のメールアドレス]"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#github-アカウントの作成",
-    "href": "tips/240621_python_container/index.html#github-アカウントの作成",
-    "title": "Python のための開発コンテナ",
-    "section": "GitHub アカウントの作成",
-    "text": "GitHub アカウントの作成\nファイルは基本的に GitHub で管理するので、ここからアカウントを作成してください。\n\nポイント\nGitHub アカウントを作成したら、VSCode にログインしておきましょう。\n\nVSCode を開く\n画面左下のアイコンをクリック\n\nGitHub でサインインを行う\n\n\nGitHub にログインすることで、その後の作業がスムーズに進みます。\n事前準備は以上です！"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#github-リポジトリを作成",
-    "href": "tips/240621_python_container/index.html#github-リポジトリを作成",
-    "title": "Python のための開発コンテナ",
-    "section": "GitHub リポジトリを作成",
-    "text": "GitHub リポジトリを作成\n\nテンプレートの GitHub リポジトリ にアクセス\n画面右の「Use this template」から「Create a new repository」を選択\nRepository name を記入\nPrivate を選択\n\n通常のプロジェクトなら Private で OK\n\n「Create repository」をクリック"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#リポジトリをクローン",
-    "href": "tips/240621_python_container/index.html#リポジトリをクローン",
-    "title": "Python のための開発コンテナ",
-    "section": "リポジトリをクローン",
-    "text": "リポジトリをクローン\n\nVSCode を開く\n画面左側のアイコンから「ソース管理」3を開く\n「リポジトリの複製」を選択し、さらに「GitHub から複製」を選ぶ\nリポジトリを選択し、クローン\n\nリポジトリは、「ユーザー名/リポジトリ名」の形式で表示されます。\nクローンしたリポジトリを開くか問われるので、開いてください。\n\n画面右下に「コンテナーで再度開く」と出たらクリック\n\n出ない場合、画面左下「WSL: Ubuntu」4をクリックし、「コンテナーで再度開く」を選択してください。\n初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。\n\n\n\n\n\n「コンテナーで再度開く」をクリック\n\n\nエクスプローラーを開き、\\\\wsl.localhost\\Ubuntu\\home\\ユーザー名 を確認してみてください。リポジトリ名と同じフォルダができていると思います。\nMac の場合は、ユーザー名の下にできているはずです。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#python-の設定",
-    "href": "tips/240621_python_container/index.html#python-の設定",
-    "title": "Python のための開発コンテナ",
-    "section": "Python の設定",
-    "text": "Python の設定\nこの環境では、pip を使用してパッケージをインストールし、requirements.txt でパッケージを管理します。\n\nDVC のインストール\nまず初めに、データを管理するための dvc をインストールしてみます。\nGoogle ドライブを使用してデータを管理するので、ドライブ上の任意の場所にデータを保存するためのフォルダを作っておいてください。\n\nVSCode を開く\n画面上「ターミナル」から「新しいターミナル」を開く\n以下のコマンドを入力して実行\n\n\n\nTerminal\n\npip install dvc dvc-gdrive\n\n\n次のコマンドを入力しておく\n\n最後の四角括弧で囲まれた部分を置き換えるので、まだ実行しないでください！\n\n\n\n\nTerminal\n\ndvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]\n\n\nGoogle ドライブで作成したフォルダの ID をコピー\n\nID は、ドライブでフォルダを開いたときの URL で、最後のスラッシュ（~/folders/）より右側の部分です。\n\n[Google DriveのフォルダID]を置き換えて実行\n\n以上で DVC の設定ができました。\n次に、今使った DVC パッケージを記録しておきましょう5。\n以下のコマンドを実行してください。\n\n\nTerminal\n\npip freeze &gt; requirements.txt\n\nこれで requirements.txt というファイルが生成され、その中にインストールしたパッケージの情報が保存されます。\n新たなパッケージをインストールしたら、適宜実行して保存していってください。\n\n\n\n\n\n\nちなみに\n\n\n\nパッケージは Docker にキャッシュされるので、1度インストールしてしまえば、別のプロジェクトではインストールしなくても使えます。\nこれはこのテンプレートの設定を使っていればの話なので、ローカルの Python であれば話は変わりますが…。\n\n\n違う PC など、環境を作成した環境とは異なる環境で作業に移るときは、リポジトリをクローンした後、以下のコマンドで必要なパッケージをインストールできます。\n\n\nTerminal\n\npip install -r requirements.txt\n\n作業の流れについては後ほど詳述します。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#データの管理",
-    "href": "tips/240621_python_container/index.html#データの管理",
-    "title": "Python のための開発コンテナ",
-    "section": "データの管理",
-    "text": "データの管理\nデータは今インストールした DVC で管理します。データは Google ドライブ上で保管されます。\n\nワーキングディレクトリに、data というフォルダを作成\nデータが入ったら、以下のコードを実行\n\ndata フォルダごとドライブに追加します。\ndata フォルダは .gitignore に記載されているため、GitHub にはアップロードされません。\n\n\n\n\nTerminal\n\ndvc add data/\n\n\n\n\n\n\n\nデータの入れ方\n\n\n\nデータは、Windows のエクスプローラーや Mac の Finder から直接フォルダに入れて大丈夫です（通常の Windows や Mac での作業のように）。\nデータをプッシュした後に Google ドライブを見てもらえれば分かりますが、よくわからない形で保存されています。DVC の仕組みがそのような保存形式になっているからなので、決してファイルが破損しているわけではありません。\nちなみに Windows ユーザーの方で、一回ローカルに落としてから Linux にデータ等を入れたら Zone.Identifier というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。\n\n\n\nデータをアップロード\n\n以下のコードでデータをプッシュします。\n\n\n\n\nTerminal\n\ndvc push\n\n最初は add と push をする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください6。\n\nデータのダウンロード\n\nパッケージと同様、別環境でデータをダウンロードするためには以下のコードを実行して下さい。\n\n\n\n\nTerminal\n\ndvc pull\n\nこれでデータが管理できます。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#作業終了時",
-    "href": "tips/240621_python_container/index.html#作業終了時",
-    "title": "Python のための開発コンテナ",
-    "section": "作業終了時",
-    "text": "作業終了時\n一連の作業を終えたら、GitHub にコミット、プッシュしましょう。\n\n作業内容をコミット\n\n画面左側の「ソース管理」をクリックします。\nファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします7。\n画面上部の「メッセージを入力」にコミットメッセージ8を入力し、「✓コミット」をクリックしてください。\n\nプッシュ\n\n「ソース管理」の右側にある「…」をクリックし、「プッシュ」を選択してください。\nこれで、作業内容が GitHub にアップロードされます。\n\n\nプッシュをするのは最後で良いと思います。例えば作業を3つのファイルで行ったとしたら、それぞれのファイルでコミットメッセージを書いてコミットし、最後にプッシュすれば OK です。\n毎度毎度プッシュを行うより効率的ですね。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#作業手順",
-    "href": "tips/240621_python_container/index.html#作業手順",
-    "title": "Python のための開発コンテナ",
-    "section": "作業手順",
-    "text": "作業手順\n\n事前準備を行う\nリポジトリのクローン\n\nVSCode 内で行います。\nクローン出来たら、「コンテナーで再度開く」をクリックし開発コンテナに移動します。\n\nDVC の設定をする（データを使わない場合は5にスキップ）\n\npip install dvc dvc-gdrive\ndvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]\n\nデータの保存\n\nワーキングディレクトリに data フォルダを作成します。\ndata 内にデータを追加していきます。\n一通りデータを追加したら、dvc add data/ を実行します。\n\n作業をする\nパッケージを記録\n\npip freeze &gt; requirements.txt\nパッケージを追加したら適宜実行して下さい。\nパッケージごとに逐一実行する必要はありません。最後にまとめて、で大丈夫です。\n\ngit にコミット＆プッシュ\n\nVSCode 上でデータをコミット、プッシュします。\n\nデータをプッシュする\n\ndvc push\nこれを実行することでドライブにデータが送られます。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#別の環境で再現する",
-    "href": "tips/240621_python_container/index.html#別の環境で再現する",
-    "title": "Python のための開発コンテナ",
-    "section": "別の環境で再現する",
-    "text": "別の環境で再現する\n環境を変えた場合は、次の流れで環境を再現します。\n\n事前準備\nリポジトリのクローン\n\n開発コンテナに入ります。\n\nターミナルで以下を実行\n\nPython のパッケージがインストールされ、データもダウンロードされます。\n\n\n\n\nTerminal\n\npip install -r requirements.txt\ndvc pull\n\nあとは上の流れと同じです。"
-  },
-  {
-    "objectID": "tips/240621_python_container/index.html#footnotes",
-    "href": "tips/240621_python_container/index.html#footnotes",
-    "title": "Python のための開発コンテナ",
+    "objectID": "tips/240514_clean_slide/index.html#footnotes",
+    "href": "tips/240514_clean_slide/index.html#footnotes",
+    "title": "【日本語版】クリーンなスライドを Quarto で作る！",
     "section": "注",
-    "text": "注\n\n\n求められない場合は、続けて wsl とだけ入力して実行してください。↩︎\nもしくは Mac↩︎\n上から3番目↩︎\nMac なら &gt;&lt;↩︎\n記録しておくことで、違う PC に変えたり共同研究をしたりするなど違う環境で実行するときに、必要なパッケージを指定したバージョンで簡単にインストールすることができます。↩︎\n私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。↩︎\nステージしていないとコミットできません。↩︎\nどのような作業をしたのか↩︎"
+    "text": "注\n\n\n図の参照自体はもちろんできます。Quarto での相互参照の仕方についてはこちら↩︎\n○○はセクションやサブセクションの名前など↩︎\nこの書き方の詳細や Quarto の機能についてはこちら↩︎\nもはや新しい scss ファイルを手動で作って、中身をコピーするでもいいですよ。↩︎\nスライド作成に自信がある方はすみません…↩︎"
   },
   {
-    "objectID": "tips/240512_beamer/index.html",
-    "href": "tips/240512_beamer/index.html",
-    "title": "【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい",
+    "objectID": "tips/240507_pacman/index.html",
+    "href": "tips/240507_pacman/index.html",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
     "section": "",
-    "text": "\\(\\LaTeX\\) の Beamer で使える Metropolis テーマがおしゃれだと思ったので使ってみたい！というモチベーションです。\n普段は Reveal.js を使っているので、Metropolis テーマを Reveal.js で再現したいと思い、できる限り頑張ってみました。\n\n\n\nMetropolis テーマはこんな感じです（GitHub リポジトリより）"
+    "text": "何か新しいプロジェクトを始める際に、新しいパッケージをいちいちインストールして読み込むのは面倒ですよね。\nそんな時に便利な pacman パッケージのご紹介です。"
   },
   {
-    "objectID": "tips/240512_beamer/index.html#footnotes",
-    "href": "tips/240512_beamer/index.html#footnotes",
-    "title": "【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい",
+    "objectID": "tips/240507_pacman/index.html#library",
+    "href": "tips/240507_pacman/index.html#library",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
+    "section": "library()",
+    "text": "library()\nまず、インストールします。\n\ninstall.packages(\"tidyverse\")\ninstall.packages(\"sf\")\ninstall.packages(\"here\")\n\n次に、読み込みます。\n\nlibrary(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.1.4     ✔ readr     2.1.5\n✔ forcats   1.0.0     ✔ stringr   1.5.1\n✔ ggplot2   3.5.1     ✔ tibble    3.2.1\n✔ lubridate 1.9.3     ✔ tidyr     1.3.1\n✔ purrr     1.0.2     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nlibrary(sf)\n\nLinking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE\n\nlibrary(here)\n\nhere() starts at /home/rstudio/work\n\n\nこれで使えるようになりました。"
+  },
+  {
+    "objectID": "tips/240507_pacman/index.html#p_load",
+    "href": "tips/240507_pacman/index.html#p_load",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
+    "section": "p_load()",
+    "text": "p_load()\npacman::p_load() はこれで一発です。\n\npacman::p_load(tidyverse, sf, here)\n\nこの場合、上に出てきたような読み込みに付随するメッセージは出てきません。"
+  },
+  {
+    "objectID": "tips/240507_pacman/index.html#footnotes",
+    "href": "tips/240507_pacman/index.html#footnotes",
+    "title": "【R パッケージ】インストールも読み込みも一撃で？【pacman】",
     "section": "注",
-    "text": "注\n\n\n塗りつぶしがうまくいかなかっただけです。↩︎"
+    "text": "注\n\n\nこの書き方では、library() を使わずともパッケージ内の関数が使えます。一度だけ使いたい！というときに便利です。また、どのパッケージに属しているかが明確になるというメリットもあります。↩︎\nこちらを参照↩︎"
   },
   {
-    "objectID": "tips/240506_gis_on_r/index.html",
-    "href": "tips/240506_gis_on_r/index.html",
-    "title": "R でGIS を動かす【ハンドリング】",
+    "objectID": "tips/index.html",
+    "href": "tips/index.html",
+    "title": "Tips",
     "section": "",
-    "text": "R 上で GIS を操作する方法を簡単に紹介します。\nGIS を R 上で実行するメリットは、再現性が担保できることです。同じ作業を繰り返しするような場合、力を発揮すると思います。また、ggplot2 で可視化できる点も便利です。\n主に、使用するパッケージ、データの読み込み、簡単なデータハンドリング、そして交差する地物の抽出を少しご紹介します。"
+    "text": "おすすめ記事\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\n\n\nPrevoius\n\n\n\nNext\n\n\n\n\n\n\n\n\n\n\n開発環境\n\n\n\n最終更新日：2024年07月23日\n\nUbuntu 22.04\nRStudio 2024.04.2+764 (Chocolate Cosmos) for Ubuntu Jammy\nR version 4.4.1 (2024-06-14)\nPython 3.10.12\njulia version 1.10.4\nQuarto 1.5.55\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】論文の体裁を整える\n\n\n\nQuarto\n\n\nLaTeX\n\n\n\nQuarto × \\(\\LaTeX\\) で論文の体裁を整える方法について考えます。随時更新予定です。\n\n\n\n\n\n\n2024/07/22\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\nQuarto\n\n\nR\n\n\nLaTeX\n\n\n\nQuarto を使って論文を書く方法（マークダウン、表、図）をまとめました。\n\n\n\n\n\n\n2024/06/29\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n国勢調査データのクレンジング\n\n\n\nR\n\n\n\n人口データのファイルを一括で読み込んで、分析で使いやすくするためのクレンジングコードです。\n\n\n\n\n\n\n2024/06/22\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPython のための開発コンテナ\n\n\n\nPython\n\n\nVSCode\n\n\nDocker\n\n\nUbuntu\n\n\n\nPython のための開発コンテナを作成する手順を紹介します。\n\n\n\n\n\n\n2024/06/21\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n環境構築における備忘録\n\n\n\n備忘録\n\n\n\n環境構築において直面したエラー等を随時まとめていきます。\n\n\n\n\n\n\n2024/06/19\n\n\n\n\n\n\n\n\n\n\n\n\n【WSL】割り当てるメモリを増やす方法\n\n\n\nWSL\n\n\nWindows\n\n\n備忘録\n\n\n\nWSL はデフォルトで PC の半分のメモリが割り当てられています。\n\n\n\n\n\n\n2024/05/31\n\n\n\n\n\n\n\n\n\n\n\n\n【ワークフロー】VSCode で GitHub を使う\n\n\n\nVSCode\n\n\nGitHub\n\n\n\nVSCode で GitHub を使った作業の流れを紹介します。\n\n\n\n\n\n\n2024/05/25\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTeX Live を使わずに LaTeX 環境を作る！\n\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nLaTeX\n\n\n\nTinyTeX を使って R 環境以外でも \\(\\LaTeX\\) を使えるようにしよう！\n\n\n\n\n\n\n2024/05/20\n\n\n\n\n\n\n\n\n\n\n\n\n【R】アーカイブされたパッケージを使う\n\n\n\nR\n\n\n\nパッケージがインストールできない？\n\n\n\n\n\n\n2024/05/16\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R】プロジェクトを使う\n\n\n\nR\n\n\n\nR プロジェクトを使って作業環境を整えよう！\n\n\n\n\n\n\n2024/05/15\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【日本語版】クリーンなスライドを Quarto で作る！\n\n\n\nQuarto\n\n\nR\n\n\n\n日本語でも使えるスライドをご紹介！\n\n\n\n\n\n\n2024/05/14\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nQuarto 経由で Beamer 風のスライドを作ろう！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】使い方解説！Reveal.js でスライドを作ろう\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nスライドも Quarto で作れる！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】チャンクオプションまとめてみた【R Markdown】\n\n\n\nR\n\n\nQuarto\n\n\nR Markdown\n\n\n備忘録\n\n\n\nチャンクオプションは忘れやすい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\n【R Markdown】相互参照を使いこなす【Quarto】\n\n\n\nR Markdown\n\n\nQuarto\n\n\nR\n\n\n\n図や表に自動で番号を振りたい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto で Python を使ってみよう！\n\n\n\nQuarto\n\n\nPython\n\n\nUbuntu\n\n\nVSCode\n\n\nR\n\n\n\nR ユーザーはこれでよくない？\n\n\n\n\n\n\n2024/05/08\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R パッケージ】インストールも読み込みも一撃で？【pacman】\n\n\n\nR\n\n\n\ninstall.packages() はもう不要！\n\n\n\n\n\n\n2024/05/07\n\n\n\n\n\n\n\n\n\n\n\n\nR でGIS を動かす【ハンドリング】\n\n\n\nR\n\n\nGIS\n\n\n\nR で GIS を動かそう！\n\n\n\n\n\n\n2024/05/06\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\nR\n\n\nDocker\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nVSCode\n\n\nGitHub\n\n\n\nローカル環境から卒業！\n\n\n\n\n\n\n2024/05/04\n\n\n\n\n\n\n\n\n\n\n\n\n政令指定都市・中核市の整理\n\n\n\nR\n\n\n備忘録\n\n\n\nRで市区町村データを整理するための政令指定都市・中核市をまとめたコードです。\n\n\n\n\n\n\n2024/04/14\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\nR\n\n\nR Markdown\n\n\nQuarto\n\n\nLaTeX\n\n\n\nレポートでR Markdown、使ってますか？\n\n\n\n\n\n\n2024/03/29\n\n\n\n\n\n\n\n\n一致なし"
   },
   {
-    "objectID": "tips/240506_gis_on_r/index.html#鉄道データ",
-    "href": "tips/240506_gis_on_r/index.html#鉄道データ",
-    "title": "R でGIS を動かす【ハンドリング】",
-    "section": "鉄道データ",
-    "text": "鉄道データ\n今回は日本の鉄道（駅）データを使用してみます。\n\n国土数値情報ダウンロードサイトより「鉄道（ライン）」をクリック、2022年のデータをダウンロード\n\n\n\n\n一番上の2022年データを今回は使用"
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Yosuke Abe",
+    "section": "",
+    "text": "こんにちは！ 経済学系の大学院生です。\n学んだTipsなどをまとめていきます。"
   },
   {
-    "objectID": "tips/240506_gis_on_r/index.html#行政区域データ",
-    "href": "tips/240506_gis_on_r/index.html#行政区域データ",
-    "title": "R でGIS を動かす【ハンドリング】",
-    "section": "行政区域データ",
-    "text": "行政区域データ\n後ほど鉄道データと重ねて使うために使用します。\n同様に国土数値情報ダウンロードサイトから、「行政区域」に進み、今回は福島県の2024年データをダウンロードします。\n鉄道データと同じフォルダに入れておいてください。"
+    "objectID": "tips/240516_archived_pkg/index.html",
+    "href": "tips/240516_archived_pkg/index.html",
+    "title": "【R】アーカイブされたパッケージを使う",
+    "section": "",
+    "text": "因果推論を勉強している人にはおなじみの Mixtape ですが、昨年勉強中にこの中の合成コントロール法の章でパッケージがインストールできない問題に直面しました。\nよく調べてみると、当時1 SCtools パッケージはアーカイブされてしまっており、install.packages('SCtools') ではインストールができないことが判明しました。\n現在2では復活してインストールできるようになっていますが、そんなときに備えて対処法をまとめます。"
   },
   {
-    "objectID": "tips/240506_gis_on_r/index.html#ggplot2",
-    "href": "tips/240506_gis_on_r/index.html#ggplot2",
-    "title": "R でGIS を動かす【ハンドリング】",
-    "section": "ggplot2",
-    "text": "ggplot2\nおなじみ ggplot2 パッケージを使ってこれらの路線を可視化します1。\n\nstation |&gt; \n  ggplot() + \n  geom_sf() + # GIS 用\n  theme_void() # 背景や罫線を除去\n\n\n\n\n\n\n\n図 1: 日本の駅\n\n\n\n\n\nなんとなく日本が形作られましたね。東京と大阪に特に駅が多いことも一目瞭然です。\n同様に路線もプロットします。\n\nrail |&gt; \n  ggplot() + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n図 2: 日本の鉄道路線\n\n\n\n\n\nこうして見るとなんか面白いですよね。北海道の北東部は線路がないみたいです。\nここまでシンプルに可視化する方法をご紹介しました。次のセクションでもう少し地域にフォーカスして見ていきます。"
+    "objectID": "tips/240516_archived_pkg/index.html#アーカイブされたパッケージを探す",
+    "href": "tips/240516_archived_pkg/index.html#アーカイブされたパッケージを探す",
+    "title": "【R】アーカイブされたパッケージを使う",
+    "section": "アーカイブされたパッケージを探す",
+    "text": "アーカイブされたパッケージを探す\nCRAN のアーカイブにアクセスして、アーカイブされたパッケージを探します。\n例えば当時アーカイブされていた SCtools を探すと、次のようになります。\n\nこの中で最新のものを右クリックし、リンクをコピーしてください。"
   },
   {
-    "objectID": "tips/240506_gis_on_r/index.html#データの抽出",
-    "href": "tips/240506_gis_on_r/index.html#データの抽出",
-    "title": "R でGIS を動かす【ハンドリング】",
-    "section": "データの抽出",
-    "text": "データの抽出\n例えば、新幹線の駅だけデータとして使いたいとします。\n先ほどのダウンロードサイトの属性情報の部分をご覧ください。そこから事業者種別コード（変数名：N02-002）を確認してみると、1が新幹線に該当することが分かります。\nここで、tidyverse パッケージを使用しながら、東北新幹線の駅だけを抽出してみましょう。また、列名を変更しながら必要な変数のみ抽出します。\n\nsta_tohoku &lt;- station |&gt; \n  filter(N02_002 == 1, N02_003 == \"東北新幹線\") |&gt; \n  select(\"路線名\" = N02_003, \"駅名\" = N02_005, geometry)\n\n\n\n\n\n表 1: 東北新幹線の駅情報（上から6行を表示）\n\n\n\n\n\n\n\n\n\n路線名\n駅名\ngeometry\n\n\n\n\n東北新幹線\n二戸\nc(141.28627, 141.28491, 40.26107, 40.25848)\n\n\n東北新幹線\nいわて沼宮内\nc(141.21742, 141.21742, 39.96114, 39.96009)\n\n\n東北新幹線\n八戸\nc(141.42981, 141.43206, 40.50822, 40.51043)\n\n\n東北新幹線\n盛岡\nc(141.13807, 141.13499, 39.70015, 39.70295)\n\n\n東北新幹線\n北上\nc(141.12356, 141.12285, 141.12234, 141.12168, 39.28386, 39.28272, 39.28188, 39.28054)\n\n\n東北新幹線\n水沢江刺\nc(141.18919, 141.18822, 39.14381, 39.14651)\n\n\n\n\n\n\n\n\n\n\n表 1 をご覧いただくと分かる通り、東北新幹線の駅のみを抽出できています。また、geometry 変数が地理情報を示しています。"
+    "objectID": "tips/240516_archived_pkg/index.html#rstudio-を開く",
+    "href": "tips/240516_archived_pkg/index.html#rstudio-を開く",
+    "title": "【R】アーカイブされたパッケージを使う",
+    "section": "RStudio を開く",
+    "text": "RStudio を開く\n続いて RStudio を開き、スクリプトに次のコードを入力してください。\n\n\nR\n\nurl &lt;- \"https://cran.r-project.org/src/contrib/Archive/SCtools/SCtools_0.3.2.tar.gz\"\npkgFile &lt;- \"SCtools_0.3.2.tar.gz\"\ndownload.file(url = url, destfile = pkgFile)\n\nここで URL はコピーしたものに変え、pkgFile は URL の最後の .tar.gz 部分をコピペしてください。\n実行するとエラーが出るかもしれませんが、それは依存しているパッケージがインストールされていないということです。エラーを読んでみて、足りなそうなパッケージを以下のコードの c() にまとめて入れて実行し、 改めて download.file() を実行してみてください。\n\n\nR\n\ninstall.packages(c(\"xxx\", \"yyy\", \"zzz\"))\n\nそしてパッケージをインストールします。次のコードを実行してください。\n\n\nR\n\ninstall.packages(pkgs=pkgFile, type=\"source\", repos=NULL)\n\n最後に以下を実行して下さい。\n\n\nR\n\nunlink(pkgFile)\n\n以上です。インストール出来たのではないでしょうか。"
   },
   {
-    "objectID": "tips/240506_gis_on_r/index.html#ラインデータをポイントデータ化する",
-    "href": "tips/240506_gis_on_r/index.html#ラインデータをポイントデータ化する",
-    "title": "R でGIS を動かす【ハンドリング】",
-    "section": "ラインデータをポイントデータ化する",
-    "text": "ラインデータをポイントデータ化する\n駅はラインデータになっています。駅は幅を持っているためです。そこで、これをポイントデータ化し、駅の位置を1点で特定します。\nまず、ラインデータがどうなっているか確認しましょう。地図を拡大して見てみると、線状になっていることが分かります。\n\n\n\n\n\n\n\nこれをポイント化するために使用するのが、sf::st_centroid() です。地物の重心を求めてくれます。\nコードは以下です。\n\nsta_tohoku_c &lt;- sta_tohoku |&gt; \n  st_centroid(geometry)\n\n改めて見てみると、ポイントになっていることが分かります。\n\n\n\n\n\n\n\nポイントデータ化するメリットとしては、距離の算出に使えることなどがあります。ある地点から駅までの距離を算出したい場合、駅が幅を持っていると距離算出の基準が曖昧になってしまうので、そこでポイント化すればその基準を明確化できるというわけです。\n以上、sf::st_centroid() を用いてポイントデータ化する方法をご紹介しました。"
-  },
-  {
-    "objectID": "tips/240506_gis_on_r/index.html#行政区域データ-1",
-    "href": "tips/240506_gis_on_r/index.html#行政区域データ-1",
-    "title": "R でGIS を動かす【ハンドリング】",
-    "section": "行政区域データ",
-    "text": "行政区域データ\nまず、福島県の行政区域データを読み込み、可視化しましょう。\n\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))\n\n\nfukushima |&gt; \n  ggplot() + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n図 3: 福島県"
-  },
-  {
-    "objectID": "tips/240506_gis_on_r/index.html#抽出",
-    "href": "tips/240506_gis_on_r/index.html#抽出",
-    "title": "R でGIS を動かす【ハンドリング】",
-    "section": "抽出",
-    "text": "抽出\n次に、sta_tohoku_c を用いて、福島県と交差する（含まれる）駅を抽出します。\n交差する地物を抽出するためには、sf::st_intersects() もしくは sf::st_intersection() を用います。\n正直後者の方がシンプルなのですが、両者には次のような違いがあります。\n\nst_intersects(): 2つのジオメトリが交差するかどうかの論理判定（TRUE/FALSEやインデックスのリスト）を返す\nst_intersection(): 交差部分のジオメトリそのものを新しいオブジェクトとして返します。\n\n何やら難しいので、わかんなくて困ったら後者を使っておけばよいのではないでしょうか3。\nコードは以下のようになります。\n\nsta_07_a &lt;- sta_tohoku_c |&gt; \n  filter(\n    row_number() %in% \n      st_intersects(fukushima, sta_tohoku_c) |&gt; \n      unlist()\n  )\n\n\nsta_07_b &lt;- st_intersection(fukushima, sta_tohoku_c)\n\n\n\n\n\n\n\n1つ目の方法について\n\n\n\n\n\n1つ目は大変複雑ですね。プロセスを紐解くと次のようになります。\n\nsta_tohoku_c から抽出するので、sta_tohoku_c からスタート\n抽出するので dplyr::filter() を使用\nsf::st_intersects() で、fukushima と重なる sta_tohoku_cを抽出\nsf::st_intersects() はリスト形式で結果を返すので、unlist() を用いてリスト形式を解除\nsta_tohoku_c の行番号と照らし合わせ、返ってきた結果と同じもののみ抽出\n\n\n\n\n結果は次のようになります。\n\n\n\n\n表 2: st_intersects() を用いた場合\n\n\n\n\n\n\n\n\n\n路線名\n駅名\ngeometry\n\n\n\n\n東北新幹線\n福島\nc(140.458612067603, 37.7540599673619)\n\n\n東北新幹線\n郡山\nc(140.388619989856, 37.3986200007428)\n\n\n東北新幹線\n新白河\nc(140.188827537169, 37.1233084742238)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n表 3: st_intersection() を用いた場合\n\n\n\n\n\n\n\n\n\nN03_001\nN03_002\nN03_003\nN03_004\nN03_005\nN03_007\n路線名\n駅名\ngeometry\n\n\n\n\n福島県\nNA\nNA\n福島市\nNA\n07201\n東北新幹線\n福島\nc(140.458612067603, 37.7540599673619)\n\n\n福島県\nNA\nNA\n郡山市\nNA\n07203\n東北新幹線\n郡山\nc(140.388619989856, 37.3986200007428)\n\n\n福島県\nNA\n西白河郡\n西郷村\nNA\n07461\n東北新幹線\n新白河\nc(140.188827537169, 37.1233084742238)\n\n\n\n\n\n\n\n\n\n\n2つ目のやり方の方が少しごちゃっとしたデータとして返ってきました。\nめんどくさいけどクリーンな方か、簡単だけど煩雑な方か、お好みで使ってみてください。"
-  },
-  {
-    "objectID": "tips/240506_gis_on_r/index.html#footnotes",
-    "href": "tips/240506_gis_on_r/index.html#footnotes",
-    "title": "R でGIS を動かす【ハンドリング】",
+    "objectID": "tips/240516_archived_pkg/index.html#footnotes",
+    "href": "tips/240516_archived_pkg/index.html#footnotes",
+    "title": "【R】アーカイブされたパッケージを使う",
     "section": "注",
-    "text": "注\n\n\nあまりなじみのない方に向けて言っておくと、tidyverse パッケージの中に ggplot2 も含まれています。↩︎\n正直この程度であればこんなことするまでもないですが、例ということで悪しからず。いろいろ応用は利きますよ！↩︎\nしかし後者の方が時間はかかりますし、2つのデータをもとに新しいデータを作るので、できたデータは2つのデータフレームの情報を含みます。つまり、ちょっと煩雑なデータが出来上がります。↩︎"
+    "text": "注\n\n\n2023年秋↩︎\n2024年5月16日↩︎"
+  },
+  {
+    "objectID": "tips/240520_latex/index.html",
+    "href": "tips/240520_latex/index.html",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "",
+    "text": "こんにちは、Windows ユーザーです。\nTeX Live はインストールするのが面倒だし、使い方もよくわからないので1、別の方法で\\(\\LaTeX\\) を使えるようにしました。\nまた、Mac での方法も併せてご紹介します。\nこれまで TeX Live に苦労していた方や Overleaf を使っていた方は、ぜひ試してみてください。"
+  },
+  {
+    "objectID": "tips/240520_latex/index.html#wsl-ubuntu-と-homebrew-の準備",
+    "href": "tips/240520_latex/index.html#wsl-ubuntu-と-homebrew-の準備",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "0. WSL, Ubuntu と Homebrew の準備",
+    "text": "0. WSL, Ubuntu と Homebrew の準備\nWindows のローカルでもできるとは思うのですが、Ubuntu でやる方が楽なので、WSL2 を使って Ubuntu でやります。何言ってるかわからない方は、気にしないでください。僕もよくわかりません。\n事前準備は少し面倒だけど、一度やってしまえば楽、みたいなイメージで使っています。とりあえず使えればよいと思っている一大学院生なので、そのあたりは許してください。\nMac の方は、Homebrew を使って TinyTeX をインストールしていきます。\n既にこれらの準備が出来ている方は、飛ばしてください。\n\n0-1. WSL と Ubuntu のインストール（Windows）\nまずは Windows Subsystem for Linux（WSL）をインストールします3。\nPowerShell を管理者権限で起動4し、以下のコマンドを実行します。\nwsl --install\nもし再起動を求められたら、再起動してください。インストールはこれだけです。\nインストールができたらユーザー名とパスワードの設定が求められるので、設定します。\nこれは何でも構いません。sudo コマンドを使う際にパスワードが必要になりますが、本当に簡単なもので大丈夫です5。\nまた、パスワード入力の際に、入力しても画面上には表示されませんが、きちんと入力されていますので慌てず続けてください。\n\n\n0-2. Homebrew のインストール（Mac）\nMac ユーザーは Homebrew を使って諸々インストールしていくので、まだの方はここでインストールしてください。\n\nターミナルを開く\n\nアプリ一覧から「ターミナル」を探してください。\n\n以下のコマンドを入力して実行\n\nパスワードを求められるので、入力してください。\n\n\n\n\nTerminal\n\n/bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+  },
+  {
+    "objectID": "tips/240520_latex/index.html#tinytex-のインストール",
+    "href": "tips/240520_latex/index.html#tinytex-のインストール",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "1. TinyTeX のインストール",
+    "text": "1. TinyTeX のインストール\nTeX Live はインストールが面倒なので、TinyTeX という軽量な \\(\\LaTeX\\) ディストリビューションを使います。R Markdown でもよく使われているので、馴染みがある方も多いかもしれません。\nしかし今回は、R は使いません。目標とするのは TeX Live の代替として、簡潔に \\(\\LaTeX\\) を使えるようにすることです。\n\n1-1. Windows でのインストール\nWindows では、Ubuntu を開いて以下のコマンドを実行します。\nwget -qO- \"https://yihui.org/tinytex/install-bin-unix.sh\" | sh\nこれで TinyTeX のインストールは完了です。簡単ですね。\n\n\n1-2. Mac でのインストール\nMac の方は、ターミナルを開いて以下のコマンドを実行してください。\ncurl -sL \"https://yihui.org/tinytex/install-bin-unix.sh\" | sh"
+  },
+  {
+    "objectID": "tips/240520_latex/index.html#vscode-での設定",
+    "href": "tips/240520_latex/index.html#vscode-での設定",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "2. VSCode での設定",
+    "text": "2. VSCode での設定\n\n2-1. 拡張機能のインストール\nVSCode で LaTeX を使うためには、拡張機能をインストールする必要があります。\n画面左の拡張機能アイコン  をクリックし、検索バーに「LaTeX」と入力します。すると、LaTeX および LaTeX Workshop という拡張機能が表示されるので、2つをインストールします6。\n\n\n2-2. 設定の変更\n拡張機能をインストールしたら、設定を変更します。\n画面左下の管理ボタンから「設定」で設定画面を開き7、右上にある  をクリックして settings.json を開きます。\n以下の {} の中身を設定に追加します。もし既に何か設定がある場合は、最後をカンマで区切り、改行して追加してください。\n{\n    \"latex-workshop.latex.tools\": [\n        {\n          \"name\": \"latexmk\",\n          \"command\": \"latexmk\",\n          \"args\": [\n            \"-synctex=1\",\n            \"-interaction=nonstopmode\",\n            \"-file-line-error\",\n            \"-xelatex\",\n            \"%DOC%\"\n          ]\n        }\n    ],\n    \"latex-workshop.latex.recipes\": [\n        {\n          \"name\": \"latexmk (xelatex)\",\n          \"tools\": [\n            \"latexmk\"\n          ]\n        }\n    ],\n    \"latex-workshop.view.pdf.viewer\": \"tab\",\n    \"latex-workshop.latex.clean.fileTypes\": [\n        \"*.aux\", \"*.bbl\", \"*.blg\", \"*.idx\", \"*.ind\", \"*.lof\", \"*.lot\", \"*.out\", \"*.toc\", \"*.acn\", \n        \"*.acr\", \"*.alg\", \"*.glg\", \"*.glo\", \"*.gls\", \"*.ist\", \"*.fls\", \"*.log\", \"*.fdb_latexmk\", \"*.synctex.gz\",\n        // for Beamer files\n        \"_minted*\", \"*.nav\", \"*.snm\", \"*.vrb\",\n    ],\n    \"latex-workshop.latex.autoBuild.run\": \"onBuilt\",\n}\n\nこれで設定は完了です。"
+  },
+  {
+    "objectID": "tips/240520_latex/index.html#動作確認",
+    "href": "tips/240520_latex/index.html#動作確認",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "3. 動作確認",
+    "text": "3. 動作確認\nここからは Windows も Mac も共通です。\nはじめに今回使うフォントをインストールしましょう。VSCode のターミナルで以下のコマンドを実行してください。\ntlmgr install ipaex\n次に、VSCode で新しいファイルを作成し、GitHub Copilot が作ってくれた以下のコードを回してみます8。\n\\documentclass{article}\n\\usepackage{bookmark} \n\\usepackage{fontspec} \n\\usepackage{zxjatype} \n\\usepackage[ipaex]{zxjafont}\n\n\\title{サンプルドキュメント}\n\\author{あなたの名前}\n\\date{今日の日付}\n\n\\begin{document}\n\n\\maketitle\n\n\\section{導入}\n\nこれはサンプルのセクションです。\n\n\\subsection{サブセクション}\n\nこれはサンプルのサブセクションです。\n\n\\end{document}\nこれを保存し、右上の緑の三角ボタン  をクリックすると、PDF ファイルが生成されます。\nしかし、おそらくここでエラーに直面するでしょう。次のセクションでエラーの解決法について説明します。"
+  },
+  {
+    "objectID": "tips/240520_latex/index.html#エラーの解決",
+    "href": "tips/240520_latex/index.html#エラーの解決",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "4. エラーの解決",
+    "text": "4. エラーの解決\nこの段階のエラーのほとんどは、パッケージがインストールされていないことが原因です。\nコンパイルすると右下にエラーの表記とともに「Open compiler log」と出ると思うので、それをクリックしてエラーログを開きます。\n\n\n\nこれを押します。\n\n\nエラーログを少し遡ってみると、どのパッケージがインストールされていないかがわかります。例えば、「! LaTeX Error: File ‘xltxtra.sty’ not found.」と出た場合、xltxtra パッケージがインストールされていないことがわかります。\nその場合、ターミナルに戻り以下のコマンドを実行してください。\ntlmgr install xltxtra\nこれでインストールできますが、使い始めのうちは何度か似たようなエラーが出るかもしれません。エラーが出たらエラーログを見て、同様の方法で必要なパッケージをインストールしてください。\n\n\n\n\n\n\nエラーのトラップ\n\n\n\n先ほどのサンプルコードを実行しようとすると、\n! LaTeX Error: File `xeCJK.sty’ not found.\nというエラーが途中で出てきます。しかし、tlmgr install xeCJK としてもインストールできません。これは、xeCJK というパッケージが存在しないためです。\n代わりに、ctex パッケージをインストールすることで解決できます。ctex パッケージが xeCJK を含んでいるためです。\nややこしいですが、これで試してみてください。"
+  },
+  {
+    "objectID": "tips/240520_latex/index.html#再び動作確認",
+    "href": "tips/240520_latex/index.html#再び動作確認",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "5. 再び動作確認",
+    "text": "5. 再び動作確認\nエラーを解消するうちに、足りないパッケージがインストールでき、最終的には問題なくコンパイルできるようになるはずです。\n日本語で使う場合、フォントをインストールしていないミスが多いので、気を付けてください。\n最終的に次のように出力できました。"
+  },
+  {
+    "objectID": "tips/240520_latex/index.html#footnotes",
+    "href": "tips/240520_latex/index.html#footnotes",
+    "title": "TeX Live を使わずに LaTeX 環境を作る！",
+    "section": "注",
+    "text": "注\n\n\n実際には少し使っていたので、並程度には使えます（笑）↩︎\n日本語設定などもしておくと便利かもしれません↩︎\nWindows における WSL のインストールについてはこちらでも触れています。↩︎\nアプリ一覧から右クリックすれば「詳細」→「管理者として実行」で使えます。↩︎\nこちらの動画の 4:42~ あたりを見てみてください。パスワードは「a」です。a。↩︎\n怪しかったら、mathematic.vscode-latex と James-Yu.latex-workshop をそれぞれ入力すれば確実です。↩︎\nWindowsなら Ctrl ＋ , で、Mac ならcommand ＋ , でもいけます。↩︎\n少し日本語フォントなどの設定を加えています。↩︎\nその割によく手動でインストールさせられる気がしますが…↩︎"
+  },
+  {
+    "objectID": "tips/240619_trouble_shooting/index.html",
+    "href": "tips/240619_trouble_shooting/index.html",
+    "title": "環境構築における備忘録",
+    "section": "",
+    "text": "環境構築に関する記事をいくつかまとめてきましたが、頻繁にエラーに直面するので、その場合の対処法をまとめていきます。\n本記事は随時更新します。\n関連するエラーや不明点については一番下のコメントに書いていただけると幸いです。"
+  },
+  {
+    "objectID": "tips/240619_trouble_shooting/index.html#footnotes",
+    "href": "tips/240619_trouble_shooting/index.html#footnotes",
+    "title": "環境構築における備忘録",
+    "section": "注",
+    "text": "注\n\n\nこの記事で紹介した開発コンテナを使用。↩︎\n\\\\wsl.localhost\\Ubuntu\\home\\user 下にファイルがあると仮定している。フォルダのパスが異なる場合は、cd [your_path] でディレクトリを変更したうえで実行する。もしくは [フォルダ名] にパス含めて入力する↩︎\nこの記事で紹介した TinyTeX ボリュームを使用。↩︎\ntinytex::reinstall_tinytex() でもいけるのかもしれないけど、途中でエラーが出たので手順を踏むことにしました。↩︎"
+  },
+  {
+    "objectID": "tips/240515_rproj/index.html",
+    "href": "tips/240515_rproj/index.html",
+    "title": "【R】プロジェクトを使う",
+    "section": "",
+    "text": "R プロジェクトは、RStudio で作成できるプロジェクトです。プロジェクトを作成すると、プロジェクトのためのディレクトリが作成され、そのディレクトリ内で作業することになります。\nプロジェクトを作成すると、プロジェクトのための .Rproj ファイルが作成され、RStudio でそのファイルを開くことで、プロジェクトが開かれます。"
+  },
+  {
+    "objectID": "tips/240515_rproj/index.html#強み",
+    "href": "tips/240515_rproj/index.html#強み",
+    "title": "【R】プロジェクトを使う",
+    "section": "強み",
+    "text": "強み\nプロジェクトの強みとして、そのディレクトリ内で作業が完結することが挙げられます。\nデータやソースコードは、プロジェクトのディレクトリ内に保存しておきましょう。その上で強みを発揮するのが、here パッケージを使った相対パスの指定です。\n例えば、次のようなディレクトリであるとします。\nproject-root/\n├── proj.Rproj\n├── code/\n│   ├── script1.R\n│   ├── script2.R\n│   └── utils/\n│       ├── helper1.R\n│       └── helper2.R\n└── data/\n    ├── raw/\n    │   ├── dataset1.csv\n    │   └── dataset2.csv\n    └── processed/\n        ├── processed1.csv\n        └── processed2.csv\nこのもとで話を進めます。"
+  },
+  {
+    "objectID": "tips/240515_rproj/index.html#here-パッケージ",
+    "href": "tips/240515_rproj/index.html#here-パッケージ",
+    "title": "【R】プロジェクトを使う",
+    "section": "here パッケージ",
+    "text": "here パッケージ\nhere パッケージを使うと、.Rproj ファイルがあるディレクトリを基準として、相対パスを指定することができます。\nまずはインストールしましょう。\n\n\nR\n\ninstall.packages(\"here\")\n\n次に読み込みます。\n\n\nR\n\nlibrary(here)\n\n例えばここで、processed1.csv を使いたいとします。\nC: から始まるパスを指定していたのでは長いですし、setwd() でワーキングディレクトリを設定していたとしても、その都度設定するのも非効率です1。\nパッケージの主要関数である here() は、.Rproj があるディレクトリ起点とした相対パスを使用可能です。\n百聞は一見に如かずということで、次のコードをご覧ください。\n\n\nR\n\ndf &lt;- readr::read_csv(here(\"data/processed/processed1.csv\"))\n\n&lt;ポイント&gt;\n\n引数がデータのところで here() を使う\n.Rproj があるディレクトリからのパスを書く\nhere() 内ではダブルクォーテーションでパスを囲む\n\nこのようにすれば、フォルダの位置が PC 内で変わるなどの環境の変化に対応しながらコーディングができます。"
+  },
+  {
+    "objectID": "tips/240515_rproj/index.html#footnotes",
+    "href": "tips/240515_rproj/index.html#footnotes",
+    "title": "【R】プロジェクトを使う",
+    "section": "注",
+    "text": "注\n\n\n共同研究を行うなら PC ごとに環境が異なりますから、なおさら非効率的です。↩︎"
+  },
+  {
+    "objectID": "tips/240508_jupyter/index.html",
+    "href": "tips/240508_jupyter/index.html",
+    "title": "Quarto で Python を使ってみよう！",
+    "section": "",
+    "text": "注意\n\n\n\nこの記事は Windows ユーザー向けです。ただ、事前準備が異なるだけで、それ以降は Mac ユーザーの方でも参考になると思います。\n\n\nPython の環境構築って初心者にはなんだかめんどくさいですよね。私も Python はあまり使わないので、環境構築には苦労しています。\n今回はR Markdown に似ているでおなじみ（？）の Quarto を用いた、Python の環境構築の方法をご紹介します。\nAnaconda をインストールして Jupiter Notebook を使っている方も多いと思いますが、今回は Anaconda ではなく Quarto で Python を使ってみましょう。"
+  },
+  {
+    "objectID": "tips/240508_jupyter/index.html#前提",
+    "href": "tips/240508_jupyter/index.html#前提",
+    "title": "Quarto で Python を使ってみよう！",
+    "section": "前提",
+    "text": "前提\n\nVSCode をインストールしていること\nWSL2, Ubuntu をインストールしていること\n\nUbuntu はデフォルトで Python がインストールされています。\n\n\nここまではそれほど難しくありませんので、まだの方はこちらの記事をご覧ください。"
+  },
+  {
+    "objectID": "tips/240508_jupyter/index.html#wsl2-に接続",
+    "href": "tips/240508_jupyter/index.html#wsl2-に接続",
+    "title": "Quarto で Python を使ってみよう！",
+    "section": "WSL2 に接続",
+    "text": "WSL2 に接続\nVSCode を起動して、画面左下の &gt;&lt; マークをクリックして、「WSL への接続」を選択します。\n\n\n\nWSL2 に接続"
+  },
+  {
+    "objectID": "tips/240508_jupyter/index.html#quarto-のインストール",
+    "href": "tips/240508_jupyter/index.html#quarto-のインストール",
+    "title": "Quarto で Python を使ってみよう！",
+    "section": "Quarto のインストール",
+    "text": "Quarto のインストール\n\n画面上部「ターミナル」から「新しいターミナル」を選択2し、ターミナルを開く\n以下のコマンドを入力して実行\n\nURL の部分は最新のものに変えてください。\nQuarto ホームページからプラットフォームが Ubuntu 18+/Debian 10+ であるダウンロードリンクを使用してください。\n\n\n\n\nbash\n\n# Quartoパッケージをダウンロード（URL は適宜更新）\nwget https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.554/quarto-1.4.554-linux-amd64.deb\n\n# パッケージをインストール（バージョン部分は適宜変更）\nsudo dpkg -i quarto-1.4.554-linux-amd64.deb\n\n\n\n\n\n\n\nDocker を使う場合\n\n\n\n\n\nDocker を使っている場合は、Dockerfile に以下のコマンドを追加してください。\n\n\nDockerfile\n\nRUN wget -O quarto.deb \"https://github.com/quarto-dev/quarto-cli/releases/download/v1.4.553/quarto-1.4.553-linux-amd64.deb\" && \\\n    dpkg -i quarto.deb && \\\n    rm quarto.deb\n\nちなみに、私の記事で紹介しているテンプレートを使用される場合は、既にこのコマンドが追加されているので、追加する必要はありません。\n\n\n\nこれで Quarto のインストールは完了です。"
+  },
+  {
+    "objectID": "tips/240508_jupyter/index.html#拡張機能の準備",
+    "href": "tips/240508_jupyter/index.html#拡張機能の準備",
+    "title": "Quarto で Python を使ってみよう！",
+    "section": "拡張機能の準備",
+    "text": "拡張機能の準備\n拡張機能の検索窓から、次の拡張機能をインストールしてください。\n\nquarto.quarto（Quarto）\nms-python.python（Python）\nms-toolsai.jupyter（Jupyter）"
+  },
+  {
+    "objectID": "tips/240508_jupyter/index.html#新しい-quarto-ファイルを作成",
+    "href": "tips/240508_jupyter/index.html#新しい-quarto-ファイルを作成",
+    "title": "Quarto で Python を使ってみよう！",
+    "section": "新しい Quarto ファイルを作成",
+    "text": "新しい Quarto ファイルを作成\n\n画面左上の「ファイル」から「新しいファイル」を選択、「Quarto Document」を選んで新規ファイルを作成します。\n\nCtrl + S でファイルを保存できます。保存する際に任意のフォルダに test.qmd などの名前で保存してください。\n\nyaml ヘッダーを次のように編集します。\n\n\n\nYAML ヘッダー\n\n---\ntitle: \"タイトル\"\nauthor: \"著者\"\nformat: html\njupyter: python3\n---\n\n\n以下のようにコードを書いてみましょう。\n\n\n\nQuarto\n\nFor a demonstration of a line plot on a polar axis, see @fig-polar.\n\n```{python}\n#| label: fig-polar\n#| fig-cap: \"A line plot on a polar axis\"\n\nimport numpy as np\nimport matplotlib.pyplot as plt\n\nr = np.arange(0, 2, 0.01)\ntheta = 2 * np.pi * r\nfig, ax = plt.subplots(\n  subplot_kw = {'projection': 'polar'} \n)\nax.plot(theta, r)\nax.set_rticks([0.5, 1, 1.5, 2])\nax.grid(True)\nplt.show()\n```\n\n\nパッケージのインストール\n\n今回、numpy と matplotlib を使っているので、はじめにこれらをインストールしないとエラーが出ます。\nまた、実行する際に ModuleNotFoundError: が出たら、そのモジュールもインストールする必要があります3。\nターミナルから以下のコマンドを実行してください。\n\n\n\n\nbash\n\npip install numpy matplotlib nbformat nbclient\n\n\n実行\n\n画面右上のボタンの中から「Preview」を選択して、ファイルをレンダリングします。\n\n\n\n\n\n実行結果\n\n\nR を使うときと同様に、Python のコードを書いて実行することができました。"
+  },
+  {
+    "objectID": "tips/240508_jupyter/index.html#footnotes",
+    "href": "tips/240508_jupyter/index.html#footnotes",
+    "title": "Quarto で Python を使ってみよう！",
+    "section": "注",
+    "text": "注\n\n\n今回は Python がメインなので RStudio は使いませんが、普段 R を使う方はぜひ RStudio でも使ってみてください。↩︎\nショートカット：Ctrl + Shift + @↩︎\n今回は nbformat と nbclient が出ると思います。↩︎\nR では Knitr を使って Python では Jupyter を使うためです。↩︎"
+  },
+  {
+    "objectID": "tips/240722_quarto_latex_setting/index.html",
+    "href": "tips/240722_quarto_latex_setting/index.html",
+    "title": "【Quarto】論文の体裁を整える",
+    "section": "",
+    "text": "以下の記事で、Quarto × \\(\\LaTeX\\) で論文を書く方法についてまとめました。\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n今回はもう少し踏み込んで、論文の体裁を整える設定について考えます1。"
+  },
+  {
+    "objectID": "tips/240722_quarto_latex_setting/index.html#footnotes",
+    "href": "tips/240722_quarto_latex_setting/index.html#footnotes",
+    "title": "【Quarto】論文の体裁を整える",
+    "section": "注",
+    "text": "注\n\n\n僕自身も試行錯誤中です。↩︎"
   },
   {
     "objectID": "tips/240509_chunk_option/index.html",
