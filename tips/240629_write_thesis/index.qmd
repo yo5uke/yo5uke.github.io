@@ -159,7 +159,7 @@ $$ {#eq-equation-name}
 
 コードチャンクを使うときは、上記のように記述します。コードは YAML ヘッダーで `echo: false` としているので、出力されません。結果は出力されます^[結果も隠したいときは、代わりに `include: false` を指定します。チャンクオプションについては[こちら](../240509_chunk_option/index.html)]。
 
-出力された PDF は[こちら](https://drive.google.com/file/d/1fMClmrPQzGhZvzmn2cJkuVT3H-nMJX_H/view?usp=sharing)から確認してください。
+出力された PDF は[こちら](demo/demo1.pdf)から確認してください。
 
 # 本文の書き方（テーブル編）
 
@@ -255,7 +255,7 @@ msummary(regression, estimate = "{estimate}{stars}",
   group_tt(j = list("がく片の長さ（cm）" = 2:4))
 ```
 
-出力された PDF は[こちら](https://drive.google.com/file/d/1eXA9ElJUtSfFGN5W0MSdeX5EHIzkVhVF/view?usp=sharing)から確認してください。
+出力された PDF は[こちら](demo/demo2.pdf)から確認してください。
 
 また、このサイトのフォント的に `<-` や `|>` と表示されていますが、それぞれ `<` と `-`、`|` と `>` になります。ご了承ください。
 
@@ -333,11 +333,11 @@ p <- iris |>
        y = "花弁の長さ（cm）") + 
   theme_minimal()
 
-ggsave("iris_plot.png", p, dpi = 500)
+ggsave("iris_plot.pdf", p, device = cairo_pdf)
 ```
 
 ```markdown
-![iris を使用したプロット](iris_plot.png){#fig-iris}
+![iris を使用したプロット](iris_plot.pdf){#fig-iris}
 ```
 
 ```{r}
@@ -354,7 +354,7 @@ iris |>
   theme_minimal()
 ```
 
-出力された PDF は[こちら](https://drive.google.com/file/d/1JiV4DzOiD-uWAxc6fnu-8tjnxUcWpmVg/view?usp=sharing)から確認してください。
+出力された PDF は[こちら](demo/demo3.pdf)から確認してください。
 
 ここでもポイントを説明します。
 
@@ -388,17 +388,15 @@ iris |>
 
 5. `ggsave`
 
-    - `ggsave` でプロットを保存しています。ここでは `iris_plot.png` という名前で保存しています。"iris_plot.png" の部分は任意の名前で構いません。また、パスを指定して保存することももちろんできます。`here` を使っている場合は、`here("output/iris_plot.png")` などとして保存することができます^[`here` については[こちら](../240515_rproj/index.html)]。
+    - `ggsave` でプロットを保存しています。ここでは `iris_plot.pdf` という名前で保存しています。"iris_plot.pdf" の部分は任意の名前で構いません。また、パスを指定して保存することももちろんできます。`here` を使っている場合は、`here("output/iris_plot.pdf")` などとして保存することができます^[`here` については[こちら](../240515_rproj/index.html)]。
     
-    - dpi は 500 に設定しています。dpi は解像度を表しており、大きいほど画質が良くなります^[デフォルトでは300です。]。
-
-    - なぜわざわざ一旦保存するのかということですが、図内に日本語が混ざっていると、直接出力すると文字化けしてしまうことがあるためです。保存してから出力することで、文字化けを防ぐことができます。
+    - `device` を `cairo_pdf` にしています。`.png` など他の形式でも出力できますが、環境によっては文字化けなどに大変苦しめられるので^[僕の場合は Linux で苦労しました。]、`cairo_pdf` がおすすめです。僕の環境では一番安定しました。
     
-    - ちなみに、画像の解像度が上がるので英語論文でも1度保存するのがいいと思います。
+    - ちなみに、画像の解像度が上がるので、とりあえず一度保存するのがいいと思います。
 
 6. マークダウン表記で図を出力
 
-    - `![iris を使用したプロット](iris_plot.png){#fig-iris}` で図を出力しています。`iris_plot.png` の部分は保存したファイル名になります。`{#fig-iris}` はラベルを付けるためのものです。論文内で参照するときに必要です。`@fig-iris` という書き方で論文内で参照できます。
+    - `![iris を使用したプロット](iris_plot.pdf){#fig-iris}` で図を出力しています。`iris_plot.pdf` の部分は保存したファイル名になります。`{#fig-iris}` はラベルを付けるためのものです。論文内で参照するときに必要です。`@fig-iris` という書き方で論文内で参照できます。
 
 ::: {.callout-tip title="パスの指定" collapse="true"}
 例えば画像を `output` というフォルダに保存しており、書いているコードは `code` フォルダにあるとします。すなわち以下のような形です。
@@ -406,12 +404,12 @@ iris |>
 ```markdown
 main_directory/
 ├── output/
-│   └── iris_plot.png
+│   └── iris_plot.pdf
 └── code/
     └── code.qmd
 ```
 
-この場合、`![iris を使用したプロット](iris_plot.png){#fig-iris}` としても図が表示されません。その場合は、コードファイルからの相対パスを使用しなければなりません。すなわち `![iris を使用したプロット](../output/iris_plot.png){#fig-iris}` としてください。`../` は一つ上の階層を示しています。
+この場合、`![iris を使用したプロット](iris_plot.pdf){#fig-iris}` としても図が表示されません。その場合は、コードファイルからの相対パスを使用しなければなりません。すなわち `![iris を使用したプロット](../output/iris_plot.pdf){#fig-iris}` としてください。`../` は一つ上の階層を示しています。
 :::
 
 もちろん、既に所有している画像もマークダウン記法で出力することができます。その場合は、`![画像の説明](画像のパス){#fig-label}` のように記述します。キャプションは抜かせるので、`![](画像のパス){#fig-label}` としても構いません。
