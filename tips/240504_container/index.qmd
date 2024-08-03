@@ -15,7 +15,7 @@ categories:
 image: image/Rlogo.png
 ---
 
-# はじめに
+## はじめに
 
 Docker と VSCode を使って R の環境を構築する方法を説明します。
 
@@ -29,13 +29,13 @@ Docker と VSCode を使って R の環境を構築する方法を説明しま�
 
 また、最初は設定の際に結構待ち時間が生じますので、ご了承ください。
 
-# 事前準備
+## 事前準備
 
 まず、WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, そして GitHub の準備をします。Windows と Mac での設定が異なるため、それぞれについて説明します。
 
 ホスト側、共同作業者ともに事前準備が必要です。
 
-## WSL2（Windows ユーザーのみ） {#sec-wsl2-setting}
+### WSL2（Windows ユーザーのみ） {#sec-wsl2-setting}
 
 1. PowerShell または Windows コマンドプロンプトを管理者権限で開く
     - 右クリックで管理者権限を使えます。
@@ -55,7 +55,7 @@ wsl --install
 
 エクスプローラーから Linux に入り、`\Ubuntu\home\ユーザー名` がメインとなるディレクトリです。
 
-## Homebrew（Mac ユーザーのみ）
+### Homebrew（Mac ユーザーのみ）
 
 Mac ユーザーは Homebrew を使って諸々インストールしていくので、まだの方はここでインストールしてください。
 
@@ -68,7 +68,7 @@ Mac ユーザーは Homebrew を使って諸々インストールしていくの
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-## VSCode {#sec-vscode-setting}
+### VSCode {#sec-vscode-setting}
 
 1. VSCode の[ダウンロードサイト](https://code.visualstudio.com/)からダウンロード、インストール
     - Download for Windows^[もしくは Mac] をクリックしてダウンロードできます。
@@ -89,7 +89,7 @@ Mac ユーザーは Homebrew を使って諸々インストールしていくの
 
 ![](image/vscode-wsl.png)
     
-## Docker
+### Docker
 
 Docker をインストールします。
 
@@ -107,9 +107,9 @@ Docker をインストールします。
 
 ![Mac での画面](image/create_volume_mac.png)
 
-## Git
+### Git
 
-### Windows
+#### Windows
 
 1. Ubuntu で git をインストール
     - Windows のアプリ一覧から Ubuntu を探し、開いてください。開いたら、以下のコマンドを入力して実行します。
@@ -128,7 +128,7 @@ git config --global user.name [任意のユーザ名]
 git config --global user.email [任意のメールアドレス]
 ```
 
-### Mac
+#### Mac
 
 1. Homebrew で git をインストール
       - ターミナルを開いて、以下のコマンドを入力して実行します。
@@ -148,11 +148,11 @@ git config --global user.name [任意のユーザ名]
 git config --global user.email [任意のメールアドレス]
 ```
 
-## GitHub アカウントの作成
+### GitHub アカウントの作成
 
 ファイルは基本的に GitHub で管理するので、[ここ](https://github.com/)からアカウントを作成してください。
 
-### ポイント
+#### ポイント
 
 GitHub アカウントを作成したら、VSCode にログインしておきましょう。
 
@@ -164,7 +164,7 @@ GitHub にログインすることで、その後の作業がスムーズに進�
 
 事前準備は以上です！
 
-# 開発環境の構築
+## 開発環境の構築
 
 Docker を用いて環境を構築するにあたり、[柳本和春さん](https://kazuyanagimoto.com/)のテンプレートをベースに作成しています。詳しくは柳本さんの [記事](https://zenn.dev/nicetak/articles/vscode-docker-2023) をご覧ください。
 
@@ -190,9 +190,9 @@ RStudio でこの後作業することになりますが、コマンドを打つ
 
 まずは基本設定^[単独研究ならここのみで OK、共同研究ならホストが行う設定。]から説明します。
 
-## 基本設定
+### 基本設定
 
-### GitHub リポジトリを作成
+#### GitHub リポジトリを作成
 
 1. テンプレートの [GitHub リポジトリ](https://github.com/yo5uke/template-R) にアクセス
 1. 画面右の「Use this template」から「Create a new repository」を選択
@@ -201,7 +201,7 @@ RStudio でこの後作業することになりますが、コマンドを打つ
     - 通常のプロジェクトなら Private で OK
 1. 「Create repository」をクリック
 
-### リポジトリをクローン {#sec-host-vscode}
+#### リポジトリをクローン {#sec-host-vscode}
 
 <!--
 1. GitHub 画面右上の自分のアイコンをクリックし、Your repositories を選択
@@ -263,7 +263,7 @@ killall Finder
 正直なところ、この設定は隠しファイルが邪魔であればしなくてもよいと思います^[TRUE のところを FALSE にして再度実行すれば消せます。]。VSCode 上ではきちんと表示されますので。
 :::
 
-### RStudio で開く
+#### RStudio で開く
 
 ここで、ブラウザを用いて RStudio を開きます。
 
@@ -280,7 +280,7 @@ killall Finder
 renv::init()
 ```
 
-### Python の設定
+#### Python の設定
 
 Python を使う場合、以下のパッケージをインストールしておきます。使わない場合はスキップしてください。
 
@@ -296,7 +296,7 @@ pip install ipykernel jupyter
 
 パッケージは cache にキャッシュがあるので、1回インストールすれば、2回目以降の環境構築では不要です。
 
-### DVC の設定 {#sec-dvc-setting}
+#### DVC の設定 {#sec-dvc-setting}
 
 DVC はデータを管理するためのツールです。
 
@@ -323,7 +323,7 @@ pip install dvc dvc-gdrive
 dvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]
 ```
 
-### LaTeX の設定
+#### LaTeX の設定
 
 R Markdown などで $\LaTeX$ を使用するために、TinyTeX をインストールします。
 
@@ -340,7 +340,7 @@ TinyTeX は、$\LaTeX$ コードをコンパイルする際に必要なパッケ
 
 R Markdown や Quarto での PDF 出力の仕方については、[こちらの記事](https://yo5uke.github.io/tips/240329_rmarkdown_pdf/)もご覧ください。
 
-### Julia の設定 {#sec-julia-setting}
+#### Julia の設定 {#sec-julia-setting}
 
 [参考記事](https://zenn.dev/nicetak/articles/vscode-docker-2023)の設定に基づき、Julia が使えるようになっているため、その始め方についても書いておきます。特に使う予定がなければ、スキップしてください。
 
@@ -377,7 +377,7 @@ Pkg.activate()
 
 以上で Julia の事前準備ができました。
 
-### 共同プロジェクトの場合
+#### 共同プロジェクトの場合
 
 共同プロジェクトの場合は、GitHub で共有するため、以下の手順を踏んでおいてください。
 
@@ -387,7 +387,7 @@ Pkg.activate()
 
 また、ホスト側の環境構築もここで一区切りです！
 
-## 共同作業者の設定
+### 共同作業者の設定
 
 共同作業者も事前準備は終わらせておいてください。
 
@@ -400,7 +400,7 @@ Pkg.activate()
 
 一旦ここまでで、共同作業者の設定は終わりです。
 
-# 作業
+## 作業
 
 ワークフローについて説明します。
 
@@ -424,7 +424,7 @@ Pkg.activate()
 以上、ChatGPT さんの解説でした。
 :::
 
-## 作業開始時
+### 作業開始時
 
 作業を開始する際は、以下の手順で作業を開始してください。
 
@@ -438,7 +438,7 @@ Pkg.activate()
     - 再び `main` と書かれているところをクリックし、作成したブランチを選択してください。
 1. 作業を開始
 
-## 作業終了時
+### 作業終了時
 
 先に作業終了時について説明します。ここで想定しているのは共同作業を行っている場合です。
 
@@ -477,7 +477,7 @@ Pkg.activate()
 
 繰り返しになりますが、GitHub については[こちらの記事](https://yo5uke.github.io/tips/240525_vscode_github/)も参考にしてください。
 
-## R のパッケージ
+### R のパッケージ
 
 ::: {.callout-important}
 ## パッケージの記録
@@ -517,7 +517,7 @@ renv::restore()
 
 また、新しいパッケージを使ったら、その作業が終わるごとに `renv::snapshot()` 記録し、共同作業者は `renv::restore()` でインストールしてください。
 
-## Python のパッケージ
+### Python のパッケージ
 
 設定では Python の設定も加えていますので、必要に応じて Python も使用できます。
 
@@ -547,7 +547,7 @@ pip freeze > requirements.txt
 pip install -r requirements.txt
 ```
 
-## データの管理
+### データの管理
 
 データは DVC で管理します。データは Google Drive 上で保管されます。
 
@@ -586,7 +586,7 @@ dvc push
 dvc pull
 ```
 
-## Julia のパッケージ
+### Julia のパッケージ
 
 Julia はパッケージが自動で `Project.toml` に保存されるため、共同作業者がインストールするだけで大丈夫です。
 
@@ -597,7 +597,7 @@ Julia はパッケージが自動で `Project.toml` に保存されるため、�
 Pkg.instantiate()
 ```
 
-## まとめ
+### まとめ
 
 これらの作業を通じて、共同作業者もホスト側と同じ環境を揃えることができます。
 
@@ -607,11 +607,11 @@ Pkg.instantiate()
 
 以上がワークフローです。お疲れ様でした！
 
-# 環境構築まとめ
+## 環境構築まとめ
 
 作業フローは、~~超適当にまとめると~~次のようになります。
 
-## ホスト
+### ホスト
 
 0. 必要なソフト等をインストールし、事前準備を行う。
     - WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
@@ -624,7 +624,7 @@ Pkg.instantiate()
     - `dvc add data/` と`dvc push` を使用
 0. VSCode 上でコミット、プッシュ
 
-## 共同作業者
+### 共同作業者
 
 0. 必要なソフト等をインストールし、事前準備を行う。
     - WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
@@ -635,12 +635,12 @@ Pkg.instantiate()
 0. `dvc pull` でデータをダウンロード
 0. VSCode 上でコミット、プッシュ
 
-## 作業中
+### 作業中
 
 - GitHub にコミット、プッシュ、プルを繰り返す。
 - データも新たに追加した場合、DVC で add, push, pull を行う。
 
-# おわりに
+## おわりに
 
 今回は Docker & VSCode を用いた開発環境を説明しました。
 
@@ -648,7 +648,7 @@ Pkg.instantiate()
 
 何かエラー等ありましたら、コメントしていただけると幸いです。
 
-# 参考文献
+## 参考文献
 
 :::{.callout-tip appearance="minimal"}
 [VSCode + Dockerでよりミニマルでポータブルな研究環境を](https://zenn.dev/nicetak/articles/vscode-docker-2023)
@@ -662,7 +662,7 @@ Pkg.instantiate()
 [githubを使った共同作業の手順](https://qiita.com/future_kame/items/9fa256aea09faa28b357)
 :::
 
-# 追記
+## 追記
 
 2024/5/11：リポジトリ作成の手順を変更
 
