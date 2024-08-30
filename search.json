@@ -616,221 +616,46 @@
     "text": "注\n\n\n直接 LaTeX コードを埋め込むこともできます。↩︎\n僕は使い方が分かりません。↩︎\n僕は基本的に code フォルダを作ってそこに保存しています。↩︎\n本当は lang: ja を設定するだけで万事解決のはずなのですが、パッケージのインストールでトラブるので、このような場当たり的な対処になっています。↩︎\n結果も隠したいときは、代わりに include: false を指定します。チャンクオプションについてはこちら↩︎\ngm もそうですが、名前は何でもよいです。↩︎\n“nobs”, “r.squared” の2つの項目を表示し、その表記を “観測数”, “\\(R^2\\)” とし、小数点以下は観測数がなし、\\(R^2\\) は第2位までにしています。↩︎\nmsummary でも modelsummary でも使用できます。↩︎\nggplot(iris, aes(~)) の形でも図は作れますが、変数名は予測変換で出てきません。↩︎\nhere についてはこちら↩︎\n僕の場合は Linux で苦労しました。↩︎"
   },
   {
-    "objectID": "tips/240509_cross_reference/index.html",
-    "href": "tips/240509_cross_reference/index.html",
-    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "objectID": "tips/240831_google_cloud_project/index.html",
+    "href": "tips/240831_google_cloud_project/index.html",
+    "title": "DVCのためのGoogle Cloud Project",
     "section": "",
-    "text": "R Markdown や Quarto で文書を書いているとき、相互参照をどうしようと思ったことはありませんか？僕はありました。\n手書きで「図1：Hogehoge」と書くとなんだかスマートさに欠けるし、前に図を挿入したくなった時に数字を書き換えなければならず不便ですよね。\n今回は R Markdown ＆ Quarto における相互参照の使い方をご紹介します。\nR Markdown と Quarto で設定が異なりますので、それぞれ見ていきましょう。"
+    "text": "以下の記事で紹介した開発コンテナですが、そのままやるとDVCの認証プロセスでエラーが出ます。\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\n認証を進めるとこのように出てきます。\n\n\nもしかすると今後対応されて何の問題もなく使えるようになるかもしれませんが、公式で推奨されているGoogle Cloud Projectを使えばこの問題に対処できるため、今回はその方法についてまとめていきます。"
   },
   {
-    "objectID": "tips/240509_cross_reference/index.html#はじめに",
-    "href": "tips/240509_cross_reference/index.html#はじめに",
-    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "objectID": "tips/240831_google_cloud_project/index.html#はじめに",
+    "href": "tips/240831_google_cloud_project/index.html#はじめに",
+    "title": "DVCのためのGoogle Cloud Project",
     "section": "",
-    "text": "R Markdown や Quarto で文書を書いているとき、相互参照をどうしようと思ったことはありませんか？僕はありました。\n手書きで「図1：Hogehoge」と書くとなんだかスマートさに欠けるし、前に図を挿入したくなった時に数字を書き換えなければならず不便ですよね。\n今回は R Markdown ＆ Quarto における相互参照の使い方をご紹介します。\nR Markdown と Quarto で設定が異なりますので、それぞれ見ていきましょう。"
+    "text": "以下の記事で紹介した開発コンテナですが、そのままやるとDVCの認証プロセスでエラーが出ます。\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\n認証を進めるとこのように出てきます。\n\n\nもしかすると今後対応されて何の問題もなく使えるようになるかもしれませんが、公式で推奨されているGoogle Cloud Projectを使えばこの問題に対処できるため、今回はその方法についてまとめていきます。"
   },
   {
-    "objectID": "tips/240509_cross_reference/index.html#r-markdown",
-    "href": "tips/240509_cross_reference/index.html#r-markdown",
-    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
-    "section": "R Markdown",
-    "text": "R Markdown\n\nYAML ヘッダー\nまず、新しいファイルを開くと出てくる --- で囲まれた部分を、YAML ヘッダーと呼びます。\n\n\n\nR Markdown ファイルを開くとこれが出てきますよね\n\n\nR Markdown はデフォルトでは相互参照が使えません（私調べ）（そんな馬鹿な）。そのため、パッケージを使って設定します。\nデフォルトの設定はこのような感じになっています。\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nauthor: \"Yosuke Abe\"\ndate: \"2024-08-03\"\noutput: html_document\n---\n\nこれを bookdown パッケージを用いて変更します。\nまずはインストール。\n\n\nR\n\ninstall.packages(\"bookdown\")\n\n次にヘッダーを次のように変更。\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nauthor: \"Yosuke Abe\"\ndate: \"2024-08-03\"\noutput:\n  bookdown::html_document2: default\n---\n\nこれで準備が整いました。\n\n\n相互参照\nでは何かプロットして、それを参照してみましょう。例えば次の図をプロットしたいとします。\n\n\n\n\n\n\n\n\n\nこれを参照するために R Markdown 内で入力すると次のようになります。\n\n\nR Markdown\n\n```{r pressure, fig.cap=\"図のキャプションです。\"}\nplot(pressure)\n```\n\nここでのポイントは、{r pressure} の部分です。デフォルトでは {r} だけだと思いますが、スペースを空けることでチャンク1に名前を付けることができ、このチャンク名を使って参照します。また、カンマで区切った後の fig.cap は図のキャプションです。\n文中で参照したいときは、次のように書きます。\n\n\nR Markdown\n\n表 \\@ref(fig:pressure) を参照する。\n\nすると…\n\nこのように、文中での参照ができます。前に新たに図が入っても、自動で番号を振り直してくれます。\n\n\n\n\n\n\n図以外の場合\n\n\n\n\n\nもちろん、表や数式の場合にも使えます。\n\n表の場合\n\n様々な表の関数がありますが、R Markdown では基本的に関数内でキャプションを付けます。\n図の場合とは違い、参照の際には tab:を使います。\n\n\n\n\nQuarto\n\n```{r mtcars}\nknitr::kable(mtcars[1:5, 1:5], caption = \"mtcars データ\")\n```\n\n表 \\@ref(tab:mtcars) を参照する。\n\n\n数式の場合\n\n\\(\\LaTeX\\) 形式で書きます。HTML 出力でも、この書き方が可能です。\n$ で挟む方法もありますが、これだと参照ができません2。\n参照の際には、eq: を使います。\n\n\n\n\nQuarto\n\n\\begin{equation}\n\\bar{X} = \\frac{\\sum_{i=1}^n X_i}{n} (\\#eq:mean)\n\\end{equation}\n\n式 \\@ref(eq:mean) を参照する。\n\n以上のやり方で表や数式の参照にも対応しています。"
+    "objectID": "tips/240831_google_cloud_project/index.html#手順",
+    "href": "tips/240831_google_cloud_project/index.html#手順",
+    "title": "DVCのためのGoogle Cloud Project",
+    "section": "手順",
+    "text": "手順\nまず前提として、以下のコマンドまでは問題なく行えます。\n\n\nTerminal\n\ndvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]\n\nここからさらにdvc pushやdvc pullを行おうとするときに先ほどの画面が出てきます。\n先述の通りGoogle Cloud Projectを使えば対処できますので、その設定を行います。\n\n次のリンクからGoogle API Consoleにアクセス\n\nhttps://console.developers.google.com/\nなにやら同意を求められた場合は同意して進めて下さい。\n使いたいGoogleアカウントでログインしていることを確認してください。\n\n「プロジェクトを作成」を選択\n\n\n\n\n初めてであれば画面右に出てきます。\n\n\n\nプロジェクト名を設定し、作成する\n\nこだわりがなければそのままで大丈夫です。\n場所も無視して下さい。\n\n「APIとサービスを有効にする」を選択\n\n3の手順を踏むと「APIとサービス」の右に出てきます。\n\n\n\n\n\n\n\n\nGoogle Drive APIに入り、「有効にする」をクリック\n\n少し下にあります。\n\n\n\n\n\n有効にします\n\n\n\nOAuth同意画面\n\n画面左の「OAuth 同意画面」に入り、外部を選択して作成します。\nアプリ名は何でもいいです（例：DVC remote storage）。\nユーザーサポートメールとデベロッパーの連絡先情報は自分のメールアドレスを入れ、その他は空欄でよいです。\n保存して次へ、その次は無視して保存して次へ、最後にAdd usersで自分のメールアドレス（使っているGoogleアカウントのGmailアドレス）を入れて追加し、保存して次へを押して下さい。\n\n認証情報を作成\n\n画面左の「認証情報」に入り、上部に出てくる「認証情報を作成」から「OAuth クライアント ID」を選択して下さい。\nアプリケーションの種類は、「デスクトップ アプリ」、名前はそのままでよいので、作成して下さい。\n\n\n\n\n\n\n\nここまでが第1段階です。クライアントIDとクライアントシークレットが表示されていると思いますが、これは後から確認できるのでOKで閉じても大丈夫です。\n一応どこかにコピーして控えておくと楽かもしれません。"
   },
   {
-    "objectID": "tips/240509_cross_reference/index.html#quarto",
-    "href": "tips/240509_cross_reference/index.html#quarto",
-    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
-    "section": "Quarto",
-    "text": "Quarto\nQuarto もほとんど同じ方法で参照が可能ですが、書き方はもっとシンプルです。\n\nYAML ヘッダー\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nformat: html\n---\n\nデフォルトでは著者も日付もないのでめちゃくちゃシンプルですね3。\nQuarto では、相互参照のためにこれをいじる必要はありません（素晴らしい！）。\nその代わり、チャンクの方をいろいろいじっていきます。\n\n\nチャンクオプション\n改めてになりますが、``` で囲まれたコード部分をチャンクと言います。\nR Markdown では、{r}の中にチャンク名を書きましたが、Quarto ではチャンクの中に書いていきます4。\n\n\nR Markdown\n\n```{r}\n#| label: fig-pressure\n#| fig-cap: \"図のキャプションです。\"\n\nplot(pressure)\n```\n\nポイントは以下の2つです。\n\n#| の後ろにオプションを指定して書くことができます。\nlabel は fig- で始めないと参照できません。\n\n\n\n相互参照\n文中では以下のように書いていきます。\n\n\nQuarto\n\n@fig-pressure を参照する。\n\n@ だけだなんて、なんてシンプルなのでしょう。以下のように出力されます。\n\nとても簡単に引用できました。よく見ると、図 @fig-pressure とは書かずとも Figure 1 となっています。図～とは書かなくてよいということですね。英語になっているのが気になる方は、後のセクションで解説しているのでご覧ください。\n\n\n\n\n\n\n図以外の場合\n\n\n\n\n\nもちろん、表や数式の場合にも使えます。\n\n表の場合\n\nQuarto では、表もチャンクオプションを使ってキャプションがつけられます。\nR Markdown では、参照の際に tab: を使っていたのに対し、Quarto では tbl- となります。ややこしい！\n\n\n\n\nQuarto\n\n```{r}\n#| label: tbl-mtcars\n#| tbl-cap: \"mtcars データ\"\n\nknitr::kable(mtcars[1:5, 1:5])\n```\n\n@tbl-mtcars を参照する。\n\n\n数式の場合\n\n\\(\\LaTeX\\) 形式でも書けますが、$$ で囲む方法が便利です。\n数式自体は \\(\\LaTeX\\) 表記です。\n自分で打ってみるとわかりますが、プレビューできるのもいい点です。\n\n\n\n\nQuarto\n\n$$\n\\bar{X} = \\frac{\\sum_{i=1}^n X_i}{n}\n$$ {#eq-mean}\n\n@eq-mean を参照する。\n\n以上のやり方で表や数式も参照できます。"
+    "objectID": "tips/240831_google_cloud_project/index.html#vscode",
+    "href": "tips/240831_google_cloud_project/index.html#vscode",
+    "title": "DVCのためのGoogle Cloud Project",
+    "section": "@VSCode",
+    "text": "@VSCode\nVSCodeに戻ります。\nCtrl ＋ J1でターミナルを開き、次のコードを入力します。\ndvc remote modify --local myremote gdrive_client_id 'client-id'\ndvc remote modify --local myremote gdrive_client_secret 'client-secret'\nここで、client-idとclient-secretは先ほどのクライアントIDとクライアントシークレットに置き換えて、それぞれ実行してください（シングルクォーテーションは残してください）。\nこれで第2段階も終了しました。\ndvc pushやdvc pullを実行すると、今度はブロックされずに進められるのではないでしょうか。途中「続行」を選ぶところがあれば、選んで進めてください。\n認証が成功したら、VSCodeに戻るとプッシュやプルが進められているはずです。"
   },
   {
-    "objectID": "tips/240509_cross_reference/index.html#sec-lang-setting",
-    "href": "tips/240509_cross_reference/index.html#sec-lang-setting",
-    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
-    "section": "言語の設定について",
-    "text": "言語の設定について\n特に Quarto で、@fig- で参照すると Figure ~ となってしまう問題について、気になる方は次の設定で修正できます。\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nformat: html\nlang: ja\n---\n\nlang: ja を追加しました。これが日本語設定です。\nこれを設定したうえで実行すると、\n\n無事日本語にできました。表や式もこれでいけます。"
-  },
-  {
-    "objectID": "tips/240509_cross_reference/index.html#おわりに",
-    "href": "tips/240509_cross_reference/index.html#おわりに",
-    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "objectID": "tips/240831_google_cloud_project/index.html#おわりに",
+    "href": "tips/240831_google_cloud_project/index.html#おわりに",
+    "title": "DVCのためのGoogle Cloud Project",
     "section": "おわりに",
-    "text": "おわりに\n今回は R Markdown と Quarto で相互参照を使う方法をご紹介しました。\n相互参照が簡単にできるだけで、かなり Markdown を使う魅力が増すと思います。修士学生の私としては、Quarto で修論を書き上げるのが目標です^^\nご参考になれば幸いです。それでは。"
+    "text": "おわりに\nなにやら面倒な設定でしたが、今のところこれが（多分）唯一の解決策っぽいです。\nそもそもDVCを使わずにデータもGitHubで実行すればという話でもあるのですが、データサイズの制約もありますので、自分のプロジェクトに合わせて使ってもらえればと思います。\nGoogle Cloud Projectは普段あまり使うことがないと思うので、お役に立てれば幸いです。\nうまくいかないことがあればコメントください。"
   },
   {
-    "objectID": "tips/240509_cross_reference/index.html#footnotes",
-    "href": "tips/240509_cross_reference/index.html#footnotes",
-    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "objectID": "tips/240831_google_cloud_project/index.html#footnotes",
+    "href": "tips/240831_google_cloud_project/index.html#footnotes",
+    "title": "DVCのためのGoogle Cloud Project",
     "section": "注",
-    "text": "注\n\n\n``` で囲まれているコード部分↩︎\nする方法をご存じの方がいらっしゃいましたら、是非コメントください。↩︎\nもちろん author: \"著者\" や date: 2024-05-09 などで入力できますよ。↩︎\nR Markdown と同様の書き方もできるのですが、私は今回紹介している方法の方がすっきりしていて好みです。↩︎"
-  },
-  {
-    "objectID": "tips/index.html",
-    "href": "tips/index.html",
-    "title": "Tips",
-    "section": "",
-    "text": "おすすめ記事\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\n\n\nPrevoius\n\n\n\nNext\n\n\n\n\n\n\n\n\n\n\n開発環境\n\n\n\n最終更新日：2024年08月29日\n\nUbuntu 22.04\nRStudio 2024.04.2+764 (Chocolate Cosmos) for Ubuntu Jammy\nR version 4.4.1 (2024-06-14)\nPython 3.10.12\njulia version 1.10.4\nQuarto 1.5.56\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【RStudio】ローカルへのインストールまとめ\n\n\n\nR\n\n\nRStudio\n\n\n\nRが初めての方へ。～リンクも添えて～\n\n\n\n\n\n\n2024/08/29\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】マークダウンでできること！\n\n\n\nQuarto\n\n\n\nマークダウンでできることは意外と奥が深い。独断と偏見で使う順にまとめます！\n\n\n\n\n\n\n2024/08/02\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】論文の体裁を整える\n\n\n\nQuarto\n\n\nLaTeX\n\n\n\nQuarto × \\(\\LaTeX\\) で論文の体裁を整える方法について考えます。随時更新予定です。\n\n\n\n\n\n\n2024/07/22\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\nQuarto\n\n\nR\n\n\nLaTeX\n\n\n\nQuarto を使って論文を書く方法（マークダウン、表、図）をまとめました。\n\n\n\n\n\n\n2024/06/29\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n国勢調査データのクレンジング\n\n\n\nR\n\n\n\n人口データのファイルを一括で読み込んで、分析で使いやすくするためのクレンジングコードです。\n\n\n\n\n\n\n2024/06/22\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPython のための開発コンテナ\n\n\n\nPython\n\n\nVSCode\n\n\nDocker\n\n\nUbuntu\n\n\n\nPython のための開発コンテナを作成する手順を紹介します。\n\n\n\n\n\n\n2024/06/21\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n環境構築における備忘録\n\n\n\n備忘録\n\n\n\n環境構築において直面したエラー等を随時まとめていきます。\n\n\n\n\n\n\n2024/06/19\n\n\n\n\n\n\n\n\n\n\n\n\n【WSL】割り当てるメモリを増やす方法\n\n\n\nWSL\n\n\nWindows\n\n\n備忘録\n\n\n\nWSL はデフォルトで PC の半分のメモリが割り当てられています。\n\n\n\n\n\n\n2024/05/31\n\n\n\n\n\n\n\n\n\n\n\n\n【ワークフロー】VSCode で GitHub を使う\n\n\n\nVSCode\n\n\nGitHub\n\n\n\nVSCode で GitHub を使った作業の流れを紹介します。\n\n\n\n\n\n\n2024/05/25\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTeX Live を使わずに LaTeX 環境を作る！\n\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nLaTeX\n\n\n\nTinyTeX を使って R 環境以外でも \\(\\LaTeX\\) を使えるようにしよう！\n\n\n\n\n\n\n2024/05/20\n\n\n\n\n\n\n\n\n\n\n\n\n【R】アーカイブされたパッケージを使う\n\n\n\nR\n\n\n\nパッケージがインストールできない？\n\n\n\n\n\n\n2024/05/16\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R】プロジェクトを使う\n\n\n\nR\n\n\n\nR プロジェクトを使って作業環境を整えよう！\n\n\n\n\n\n\n2024/05/15\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【日本語版】クリーンなスライドを Quarto で作る！\n\n\n\nQuarto\n\n\nR\n\n\n\n日本語でも使えるスライドをご紹介！\n\n\n\n\n\n\n2024/05/14\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nQuarto 経由で Beamer 風のスライドを作ろう！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】使い方解説！Reveal.js でスライドを作ろう\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nスライドも Quarto で作れる！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】チャンクオプションまとめてみた【R Markdown】\n\n\n\nR\n\n\nQuarto\n\n\nR Markdown\n\n\n備忘録\n\n\n\nチャンクオプションは忘れやすい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\n【R Markdown】相互参照を使いこなす【Quarto】\n\n\n\nR Markdown\n\n\nQuarto\n\n\nR\n\n\n\n図や表に自動で番号を振りたい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto で Python を使ってみよう！\n\n\n\nQuarto\n\n\nPython\n\n\nUbuntu\n\n\nVSCode\n\n\nR\n\n\n\nR ユーザーはこれでよくない？\n\n\n\n\n\n\n2024/05/08\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R パッケージ】インストールも読み込みも一撃で？【pacman】\n\n\n\nR\n\n\n\ninstall.packages() はもう不要！\n\n\n\n\n\n\n2024/05/07\n\n\n\n\n\n\n\n\n\n\n\n\nR でGIS を動かす【ハンドリング】\n\n\n\nR\n\n\nGIS\n\n\n\nR で GIS を動かそう！\n\n\n\n\n\n\n2024/05/06\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\nR\n\n\nDocker\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nVSCode\n\n\nGitHub\n\n\n\nローカル環境から卒業！\n\n\n\n\n\n\n2024/05/04\n\n\n\n\n\n\n\n\n\n\n\n\n政令指定都市・中核市の整理\n\n\n\nR\n\n\n備忘録\n\n\n\nRで市区町村データを整理するための政令指定都市・中核市をまとめたコードです。\n\n\n\n\n\n\n2024/04/14\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\nR\n\n\nR Markdown\n\n\nQuarto\n\n\nLaTeX\n\n\n\nレポートでR Markdown、使ってますか？\n\n\n\n\n\n\n2024/03/29\n\n\n\n\n\n\n\n\n一致なし"
-  },
-  {
-    "objectID": "blog/240723_typst/index.html",
-    "href": "blog/240723_typst/index.html",
-    "title": "もはや TinyTeX も要らないのか…？",
-    "section": "",
-    "text": "これまで PDF 出力は Quarto × TinyTeX でやってきたけど、たまたま Typst なるものを見つけた。\n疲れたら Quarto 公式ドキュメントを読んでいるのだけど、PDF 出力 = \\(\\LaTeX\\) との先入観があったので、Typst に気が付かなかったのだ。\nどうやら \\(\\LaTeX\\) 出力よりは速いらしい。早速使ってみる。"
-  },
-  {
-    "objectID": "blog/240723_typst/index.html#typst",
-    "href": "blog/240723_typst/index.html#typst",
-    "title": "もはや TinyTeX も要らないのか…？",
-    "section": "",
-    "text": "これまで PDF 出力は Quarto × TinyTeX でやってきたけど、たまたま Typst なるものを見つけた。\n疲れたら Quarto 公式ドキュメントを読んでいるのだけど、PDF 出力 = \\(\\LaTeX\\) との先入観があったので、Typst に気が付かなかったのだ。\nどうやら \\(\\LaTeX\\) 出力よりは速いらしい。早速使ってみる。"
-  },
-  {
-    "objectID": "blog/240723_typst/index.html#確かに早いし楽",
-    "href": "blog/240723_typst/index.html#確かに早いし楽",
-    "title": "もはや TinyTeX も要らないのか…？",
-    "section": "確かに早いし、楽。",
-    "text": "確かに早いし、楽。\nとりあえず、以下のようにして書き始めてみる。\nYAML ヘッダーに keywords の項目あるのにPDFには出力できないのはなぜなんだろうか…。公式見ると HTML とかではいけそうなんだけどね。\n---\ntitle: Typst demo\nauthor: \n  - name: Yosuke Abe\n    affiliation: OSIPP\nabstract: |\n  Here is an abstract.\ndate: today\ndate-format: long\nlang: en\nformat: \n  typst: \n    keep-typ: true\n---\nそんで出力できたのがこちら\n結構いい感じですねー。そんなに \\(\\LaTeX\\) と比べても遜色ない。\nこれはもう少し丁寧にまとめて Tips に追加したい。\nそれでは。"
-  },
-  {
-    "objectID": "blog/240708_positron/index.html",
-    "href": "blog/240708_positron/index.html",
-    "title": "Positron は何者？",
-    "section": "",
-    "text": "先日後輩に教えられて「Positron」なるものの存在を知りました。\nどうやら RStudio に次ぐ IDE（統合開発環境）のようで、R には RStudio しか勝たんだろうと思っていた僕としては少し驚きました。\nというのも、VSCode での R 操作も試していたことがあり、その際に不便を感じることが多かったからです。特にキーボードショートカットで、は万能な VSCode であるがゆえに他の言語や機能と干渉してしまい、設定も面倒でした。その後は開発コンテナを使用している場合も RStudio Server を使用してきました。\nしかし今度は RStudio を提供する Posit 社が直々に新たな IDE を提供してきたと聞いて、大変興味を惹かれさっそくインストールすることにしました。\nとりあえず、R と Python のどちらとも親和性が高いことが売りみたいです！"
-  },
-  {
-    "objectID": "blog/240708_positron/index.html#positron",
-    "href": "blog/240708_positron/index.html#positron",
-    "title": "Positron は何者？",
-    "section": "",
-    "text": "先日後輩に教えられて「Positron」なるものの存在を知りました。\nどうやら RStudio に次ぐ IDE（統合開発環境）のようで、R には RStudio しか勝たんだろうと思っていた僕としては少し驚きました。\nというのも、VSCode での R 操作も試していたことがあり、その際に不便を感じることが多かったからです。特にキーボードショートカットで、は万能な VSCode であるがゆえに他の言語や機能と干渉してしまい、設定も面倒でした。その後は開発コンテナを使用している場合も RStudio Server を使用してきました。\nしかし今度は RStudio を提供する Posit 社が直々に新たな IDE を提供してきたと聞いて、大変興味を惹かれさっそくインストールすることにしました。\nとりあえず、R と Python のどちらとも親和性が高いことが売りみたいです！"
-  },
-  {
-    "objectID": "blog/240708_positron/index.html#インストール",
-    "href": "blog/240708_positron/index.html#インストール",
-    "title": "Positron は何者？",
-    "section": "インストール！",
-    "text": "インストール！\nまだ正式リリースはされていないようです。\nGitHub からリリースページに飛んでインストールをしてみます。ここからインストールできます。\nインストールに難しいことはなく、サクサクと進みました。"
-  },
-  {
-    "objectID": "blog/240708_positron/index.html#開いてみる",
-    "href": "blog/240708_positron/index.html#開いてみる",
-    "title": "Positron は何者？",
-    "section": "開いてみる",
-    "text": "開いてみる\n画面はこんな感じです。\n\nこれを開くまで知らなかったのですが、これは VSCode をフォークして作られているっぽいですね。\nVSCode での R に挫折した僕としては、少し不穏なスタートです😅"
-  },
-  {
-    "objectID": "blog/240708_positron/index.html#コードを実行してみる",
-    "href": "blog/240708_positron/index.html#コードを実行してみる",
-    "title": "Positron は何者？",
-    "section": "コードを実行してみる",
-    "text": "コードを実行してみる\n試しに ggplot2::ggplot() を使ってプロットしてみることにします。\n\nうーん、現段階では課題が多そうですね。プレリリース版なので仕方なしです。\n\nショートカットが違う\n\nVSCode ベースの時点でなんとなく察していましたが、いろいろと違います。設定の必要あり。\n例えばチャンクの挿入は RStudio では Ctrl + Alt + I でしたが、Positron では Alt ではなく Shift。\nパイプも Ctrl + Shift + M では入れられない。など…。\n\nインライン出力未対応\n\nRStudio ではコードの下に実行結果が出ていましたが、Positron では対応していないようです。\n後で触れますが、今後対応していくみたい。\n\nggplot() で日本語を使うと文字化けする\n\nRStudio では文字化けしないので、今後修正されるのかな？\n\n\n\n\n\nRStudio"
-  },
-  {
-    "objectID": "blog/240708_positron/index.html#レンダリングしてみる",
-    "href": "blog/240708_positron/index.html#レンダリングしてみる",
-    "title": "Positron は何者？",
-    "section": "レンダリングしてみる",
-    "text": "レンダリングしてみる\nではレンダリング（R Markdown で言うところの Knit）してみます。\n\nあれ、なんか普通に日本語出力できてますね…笑\n\nでも PDF だといつも通り文字化けします。ここは YAML ヘッダーの設定で対応できそうです。"
-  },
-  {
-    "objectID": "blog/240708_positron/index.html#感想",
-    "href": "blog/240708_positron/index.html#感想",
-    "title": "Positron は何者？",
-    "section": "感想",
-    "text": "感想\n\n今後の期待が高まる\n現時点では VSCode の時の不便さを解消しきれておらず、まだ乗り換えられないなというのが正直なところです。\nしかし、他ではコンソールで予測変換が使えるようになってて、それが結構いい感じです。install.packages() と書く時間が短縮できます(^^)（他にもっとないのか()）\n次の課題を乗り越えてきたら、僕は Positron に移行するかもしれません。\n\nインライン出力\n\n実行結果がコードの下に出てほしいです。\n\n拡張機能の充実\n\n現時点では主要な拡張機能が使えません。Microsoft が提供する拡張機能は純正 VSCode でしか使えないようです。\n\nリモート開発機能への対応\n\nTips でも紹介している通り、開発コンテナを使用した環境構築をしているので、ここへの対応は必須です。\n\n\nちなみに、Posit 公式が言っているように、現在は多くの課題を抱えていて、データサイエンティストにとってすぐに最適なものになるとは考えていないようです。\nまた、今後のビジョンも示されており、上に挙げたような課題も克服されると思います。\nこれからのアップデートに期待しましょう！"
-  },
-  {
-    "objectID": "gis_in_r.html",
-    "href": "gis_in_r.html",
-    "title": "R で GIS",
-    "section": "",
-    "text": "R で GIS を使う方法についてまとめています。\n\n\n\n\n   \n     \n     \n       並び替え\n       デフォルト\n         \n          公開日 - 日付（昇順）\n        \n         \n          公開日 - 日付（降順）\n        \n         \n          トピック\n        \n     \n  \n    \n      \n      \n    \n\n\n\n\n\nトピック\n\n\n公開日\n\n\n\n\n\n\n導入 + ハンドリング\n\n\n2024/05/16\n\n\n\n\n\n一致なし"
-  },
-  {
-    "objectID": "about.html",
-    "href": "about.html",
-    "title": "About",
-    "section": "",
-    "text": "福島県立福島高等学校\n\n2016年4月 - 2019年3月\n\n千葉大学 法政経学部 法政経学科\n\n2019年4月 - 2023年3月\n\n大阪大学大学院 国際公共政策研究科\n\n2023年4月 - （在学中）"
-  },
-  {
-    "objectID": "about.html#学歴",
-    "href": "about.html#学歴",
-    "title": "About",
-    "section": "",
-    "text": "福島県立福島高等学校\n\n2016年4月 - 2019年3月\n\n千葉大学 法政経学部 法政経学科\n\n2019年4月 - 2023年3月\n\n大阪大学大学院 国際公共政策研究科\n\n2023年4月 - （在学中）"
-  },
-  {
-    "objectID": "index.html",
-    "href": "index.html",
-    "title": "Yosuke Abe",
-    "section": "",
-    "text": "こんにちは！ 経済学系の大学院生です。\n学んだTipsなどをまとめていきます。"
-  },
-  {
-    "objectID": "blog/index.html",
-    "href": "blog/index.html",
-    "title": "Blog",
-    "section": "",
-    "text": "DVCが使えない…？\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nもはや TinyTeX も要らないのか…？\n\n\n\n\n\n\nTypst\n\n\nQuarto\n\n\n\n\n\n\n\n\n\n2024/07/23\n\n\n\n\n\n\n\n\n\n\n\n\nPositron は何者？\n\n\n\n\n\n\nR\n\n\nPositron\n\n\n\nPosit社が出した新たなIDE！ \n\n\n\n\n\n2024/07/08\n\n\n\n\n\n\n一致なし"
-  },
-  {
-    "objectID": "blog/240824_dvc/index.html",
-    "href": "blog/240824_dvc/index.html",
-    "title": "DVCが使えない…？",
-    "section": "",
-    "text": "なんかDVCが使えなくなった。\ndvc pushやdvc pullをしようとするとはじめは認証が必要になると思うのだが、認証しようとするとこんなものが出る。\n\n\n\n\n\nえー、という感じ。\nDVCの公式を覗いてみたら、やっぱりこれは問題らしい。\n\n\n\n\n\n\n\nDVC公式ドキュメント\n\n\nちょっと読んでみると、Google Cloudプロジェクトを使えば何とかなるような感じがする。\nしばらくして治らなかったら、このやり方もまとめるとしようかなー。"
-  },
-  {
-    "objectID": "blog/240824_dvc/index.html#データはdvcで管理しているのだが",
-    "href": "blog/240824_dvc/index.html#データはdvcで管理しているのだが",
-    "title": "DVCが使えない…？",
-    "section": "",
-    "text": "なんかDVCが使えなくなった。\ndvc pushやdvc pullをしようとするとはじめは認証が必要になると思うのだが、認証しようとするとこんなものが出る。\n\n\n\n\n\nえー、という感じ。\nDVCの公式を覗いてみたら、やっぱりこれは問題らしい。\n\n\n\n\n\n\n\nDVC公式ドキュメント\n\n\nちょっと読んでみると、Google Cloudプロジェクトを使えば何とかなるような感じがする。\nしばらくして治らなかったら、このやり方もまとめるとしようかなー。"
-  },
-  {
-    "objectID": "blog/240824_dvc/index.html#結論",
-    "href": "blog/240824_dvc/index.html#結論",
-    "title": "DVCが使えない…？",
-    "section": "結論",
-    "text": "結論\nこれまでのが楽でよかった。"
-  },
-  {
-    "objectID": "tips/240722_quarto_latex_setting/index.html",
-    "href": "tips/240722_quarto_latex_setting/index.html",
-    "title": "【Quarto】論文の体裁を整える",
-    "section": "",
-    "text": "以下の記事で、Quarto × \\(\\LaTeX\\) で論文を書く方法についてまとめました。\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n今回はもう少し踏み込んで、論文の体裁を整える設定について考えます1。"
-  },
-  {
-    "objectID": "tips/240722_quarto_latex_setting/index.html#はじめに",
-    "href": "tips/240722_quarto_latex_setting/index.html#はじめに",
-    "title": "【Quarto】論文の体裁を整える",
-    "section": "",
-    "text": "以下の記事で、Quarto × \\(\\LaTeX\\) で論文を書く方法についてまとめました。\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n今回はもう少し踏み込んで、論文の体裁を整える設定について考えます1。"
-  },
-  {
-    "objectID": "tips/240722_quarto_latex_setting/index.html#yaml-ヘッダーをいじる",
-    "href": "tips/240722_quarto_latex_setting/index.html#yaml-ヘッダーをいじる",
-    "title": "【Quarto】論文の体裁を整える",
-    "section": "YAML ヘッダーをいじる",
-    "text": "YAML ヘッダーをいじる\nQuarto や R Markdown でお馴染みの YAML ヘッダーですが、以前の記事での設定は以下の通りでした。\n---\ntitle: \"【PDF】Quarto で論文を書く\"\nauthor: \"阿部洋輔\"\ndate: 2024-07-08  # todayで今日の日付にできます\ndate-format: \"YYYY年M月D日\" \nformat: \n  pdf: \n    documentclass: article\n    number-sections: true\n    include-in-header: \n      - text: |\n          \\usepackage{zxjatype}\n          \\usepackage[ipaex]{zxjafont} \n          # これらは日本語フォントの設定のために記述しています\nexecute: \n  echo: false  # コードを表示しない\n  warning: false # 警告とメッセージを表示しない\nlanguage: \n  crossref-fig-title: \"図\"\n  crossref-tbl-title: \"表\"\n  crossref-eq-prefix: \"式\"\n---\n今回は簡単化のため英語で設定していきますが、さっそく今回の結論は次の通りです。\n---\ntitle: \"Title\"\nauthor: \n  - \"Yosuke Abe\\\\thanks{Osaka School of International Public Policy}\"\n  - \"Author 2\\\\thanks{Osaka School of International Public Policy}\"\ndate: 2024-07-22\ndate-format: long\nlang: en\nabstract: &gt;\n  Here is the abstract.\nformat: \n  pdf: \n    documentclass: article\n    papersize: a4paper\n    geometry: \n      - top=2.5cm\n      - bottom=2.5cm\n      - left=2.5cm\n      - right=2.5cm\n    keep-tex: true\n# bibliography: bibliography.bib\n# 必要に応じて入れる\n---\n\n**JEL classification:** C12, D24, E31\n\n**keywords:** Keyword 1, Keyword 2...\n\n\\newpage\n# Section 1\n\nWrite the text here.\n\n# Section 2\n\n@fig-cars is a plot of CARS data.\n今回発見したのは、abstract が書けるところです。これは助かります。\nkeyword と JEL classification の部分はもう少し工夫が必要そうです。\n出力するとこのような感じになります。\nとりあえず、ポイントとしては\n\nauthor に \\\\thanks{} を使って所属を書くことができる\nabstract が書ける\n\n&gt; で改行を入れ、2スペース分インデントして書き始めるとよい。\n\nformat で pdf の設定を変更できる\n\ndocumentclass で文書クラスを指定できる。article で十分だと思う。\npapersize で用紙サイズを指定できる。\ngeometry で余白を設定できる。\nkeep-tex: true で .tex ファイルを残すことができる。\n\nbibliography で参考文献を指定できる\n\nZotero など使用して文献管理をしましょう。\n\n\nといったところでしょうか。"
-  },
-  {
-    "objectID": "tips/240722_quarto_latex_setting/index.html#おわりに",
-    "href": "tips/240722_quarto_latex_setting/index.html#おわりに",
-    "title": "【Quarto】論文の体裁を整える",
-    "section": "おわりに",
-    "text": "おわりに\nQuarto で論文を書く際の体裁について考えてみました。\n自分でも論文を書いていくうちに、また新しい発見があれば追記していきたいと思います。"
-  },
-  {
-    "objectID": "tips/240722_quarto_latex_setting/index.html#footnotes",
-    "href": "tips/240722_quarto_latex_setting/index.html#footnotes",
-    "title": "【Quarto】論文の体裁を整える",
-    "section": "注",
-    "text": "注\n\n\n僕自身も試行錯誤中です。↩︎"
+    "text": "注\n\n\nMacなら⌘ ＋ J↩︎"
   },
   {
     "objectID": "tips/240621_python_container/index.html",
@@ -887,6 +712,223 @@
     "title": "Python のための開発コンテナ",
     "section": "注",
     "text": "注\n\n\n求められない場合は、続けて wsl とだけ入力して実行してください。↩︎\nもしくは Mac↩︎\n上から3番目↩︎\nMac なら &gt;&lt;↩︎\n記録しておくことで、違う PC に変えたり共同研究をしたりするなど違う環境で実行するときに、必要なパッケージを指定したバージョンで簡単にインストールすることができます。↩︎\n私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。↩︎\nステージしていないとコミットできません。↩︎\nどのような作業をしたのか↩︎"
+  },
+  {
+    "objectID": "tips/240722_quarto_latex_setting/index.html",
+    "href": "tips/240722_quarto_latex_setting/index.html",
+    "title": "【Quarto】論文の体裁を整える",
+    "section": "",
+    "text": "以下の記事で、Quarto × \\(\\LaTeX\\) で論文を書く方法についてまとめました。\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n今回はもう少し踏み込んで、論文の体裁を整える設定について考えます1。"
+  },
+  {
+    "objectID": "tips/240722_quarto_latex_setting/index.html#はじめに",
+    "href": "tips/240722_quarto_latex_setting/index.html#はじめに",
+    "title": "【Quarto】論文の体裁を整える",
+    "section": "",
+    "text": "以下の記事で、Quarto × \\(\\LaTeX\\) で論文を書く方法についてまとめました。\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n今回はもう少し踏み込んで、論文の体裁を整える設定について考えます1。"
+  },
+  {
+    "objectID": "tips/240722_quarto_latex_setting/index.html#yaml-ヘッダーをいじる",
+    "href": "tips/240722_quarto_latex_setting/index.html#yaml-ヘッダーをいじる",
+    "title": "【Quarto】論文の体裁を整える",
+    "section": "YAML ヘッダーをいじる",
+    "text": "YAML ヘッダーをいじる\nQuarto や R Markdown でお馴染みの YAML ヘッダーですが、以前の記事での設定は以下の通りでした。\n---\ntitle: \"【PDF】Quarto で論文を書く\"\nauthor: \"阿部洋輔\"\ndate: 2024-07-08  # todayで今日の日付にできます\ndate-format: \"YYYY年M月D日\" \nformat: \n  pdf: \n    documentclass: article\n    number-sections: true\n    include-in-header: \n      - text: |\n          \\usepackage{zxjatype}\n          \\usepackage[ipaex]{zxjafont} \n          # これらは日本語フォントの設定のために記述しています\nexecute: \n  echo: false  # コードを表示しない\n  warning: false # 警告とメッセージを表示しない\nlanguage: \n  crossref-fig-title: \"図\"\n  crossref-tbl-title: \"表\"\n  crossref-eq-prefix: \"式\"\n---\n今回は簡単化のため英語で設定していきますが、さっそく今回の結論は次の通りです。\n---\ntitle: \"Title\"\nauthor: \n  - \"Yosuke Abe\\\\thanks{Osaka School of International Public Policy}\"\n  - \"Author 2\\\\thanks{Osaka School of International Public Policy}\"\ndate: 2024-07-22\ndate-format: long\nlang: en\nabstract: &gt;\n  Here is the abstract.\nformat: \n  pdf: \n    documentclass: article\n    papersize: a4paper\n    geometry: \n      - top=2.5cm\n      - bottom=2.5cm\n      - left=2.5cm\n      - right=2.5cm\n    keep-tex: true\n# bibliography: bibliography.bib\n# 必要に応じて入れる\n---\n\n**JEL classification:** C12, D24, E31\n\n**keywords:** Keyword 1, Keyword 2...\n\n\\newpage\n# Section 1\n\nWrite the text here.\n\n# Section 2\n\n@fig-cars is a plot of CARS data.\n今回発見したのは、abstract が書けるところです。これは助かります。\nkeyword と JEL classification の部分はもう少し工夫が必要そうです。\n出力するとこのような感じになります。\nとりあえず、ポイントとしては\n\nauthor に \\\\thanks{} を使って所属を書くことができる\nabstract が書ける\n\n&gt; で改行を入れ、2スペース分インデントして書き始めるとよい。\n\nformat で pdf の設定を変更できる\n\ndocumentclass で文書クラスを指定できる。article で十分だと思う。\npapersize で用紙サイズを指定できる。\ngeometry で余白を設定できる。\nkeep-tex: true で .tex ファイルを残すことができる。\n\nbibliography で参考文献を指定できる\n\nZotero など使用して文献管理をしましょう。\n\n\nといったところでしょうか。"
+  },
+  {
+    "objectID": "tips/240722_quarto_latex_setting/index.html#おわりに",
+    "href": "tips/240722_quarto_latex_setting/index.html#おわりに",
+    "title": "【Quarto】論文の体裁を整える",
+    "section": "おわりに",
+    "text": "おわりに\nQuarto で論文を書く際の体裁について考えてみました。\n自分でも論文を書いていくうちに、また新しい発見があれば追記していきたいと思います。"
+  },
+  {
+    "objectID": "tips/240722_quarto_latex_setting/index.html#footnotes",
+    "href": "tips/240722_quarto_latex_setting/index.html#footnotes",
+    "title": "【Quarto】論文の体裁を整える",
+    "section": "注",
+    "text": "注\n\n\n僕自身も試行錯誤中です。↩︎"
+  },
+  {
+    "objectID": "blog/240824_dvc/index.html",
+    "href": "blog/240824_dvc/index.html",
+    "title": "DVCが使えない…？",
+    "section": "",
+    "text": "なんかDVCが使えなくなった。\ndvc pushやdvc pullをしようとするとはじめは認証が必要になると思うのだが、認証しようとするとこんなものが出る。\n\n\n\n\n\nえー、という感じ。\nDVCの公式を覗いてみたら、やっぱりこれは問題らしい。\n\n\n\n\n\n\n\nDVC公式ドキュメント\n\n\nちょっと読んでみると、Google Cloudプロジェクトを使えば何とかなるような感じがする。\nしばらくして治らなかったら、このやり方もまとめるとしようかなー。"
+  },
+  {
+    "objectID": "blog/240824_dvc/index.html#データはdvcで管理しているのだが",
+    "href": "blog/240824_dvc/index.html#データはdvcで管理しているのだが",
+    "title": "DVCが使えない…？",
+    "section": "",
+    "text": "なんかDVCが使えなくなった。\ndvc pushやdvc pullをしようとするとはじめは認証が必要になると思うのだが、認証しようとするとこんなものが出る。\n\n\n\n\n\nえー、という感じ。\nDVCの公式を覗いてみたら、やっぱりこれは問題らしい。\n\n\n\n\n\n\n\nDVC公式ドキュメント\n\n\nちょっと読んでみると、Google Cloudプロジェクトを使えば何とかなるような感じがする。\nしばらくして治らなかったら、このやり方もまとめるとしようかなー。"
+  },
+  {
+    "objectID": "blog/240824_dvc/index.html#結論",
+    "href": "blog/240824_dvc/index.html#結論",
+    "title": "DVCが使えない…？",
+    "section": "結論",
+    "text": "結論\nこれまでのが楽でよかった。"
+  },
+  {
+    "objectID": "blog/index.html",
+    "href": "blog/index.html",
+    "title": "Blog",
+    "section": "",
+    "text": "DVCが使えない…？\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nもはや TinyTeX も要らないのか…？\n\n\n\n\n\n\nTypst\n\n\nQuarto\n\n\n\n\n\n\n\n\n\n2024/07/23\n\n\n\n\n\n\n\n\n\n\n\n\nPositron は何者？\n\n\n\n\n\n\nR\n\n\nPositron\n\n\n\nPosit社が出した新たなIDE！ \n\n\n\n\n\n2024/07/08\n\n\n\n\n\n\n一致なし"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Yosuke Abe",
+    "section": "",
+    "text": "こんにちは！ 経済学系の大学院生です。\n学んだTipsなどをまとめていきます。"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "福島県立福島高等学校\n\n2016年4月 - 2019年3月\n\n千葉大学 法政経学部 法政経学科\n\n2019年4月 - 2023年3月\n\n大阪大学大学院 国際公共政策研究科\n\n2023年4月 - （在学中）"
+  },
+  {
+    "objectID": "about.html#学歴",
+    "href": "about.html#学歴",
+    "title": "About",
+    "section": "",
+    "text": "福島県立福島高等学校\n\n2016年4月 - 2019年3月\n\n千葉大学 法政経学部 法政経学科\n\n2019年4月 - 2023年3月\n\n大阪大学大学院 国際公共政策研究科\n\n2023年4月 - （在学中）"
+  },
+  {
+    "objectID": "gis_in_r.html",
+    "href": "gis_in_r.html",
+    "title": "R で GIS",
+    "section": "",
+    "text": "R で GIS を使う方法についてまとめています。\n\n\n\n\n   \n     \n     \n       並び替え\n       デフォルト\n         \n          公開日 - 日付（昇順）\n        \n         \n          公開日 - 日付（降順）\n        \n         \n          トピック\n        \n     \n  \n    \n      \n      \n    \n\n\n\n\n\nトピック\n\n\n公開日\n\n\n\n\n\n\n導入 + ハンドリング\n\n\n2024/05/16\n\n\n\n\n\n一致なし"
+  },
+  {
+    "objectID": "blog/240708_positron/index.html",
+    "href": "blog/240708_positron/index.html",
+    "title": "Positron は何者？",
+    "section": "",
+    "text": "先日後輩に教えられて「Positron」なるものの存在を知りました。\nどうやら RStudio に次ぐ IDE（統合開発環境）のようで、R には RStudio しか勝たんだろうと思っていた僕としては少し驚きました。\nというのも、VSCode での R 操作も試していたことがあり、その際に不便を感じることが多かったからです。特にキーボードショートカットで、は万能な VSCode であるがゆえに他の言語や機能と干渉してしまい、設定も面倒でした。その後は開発コンテナを使用している場合も RStudio Server を使用してきました。\nしかし今度は RStudio を提供する Posit 社が直々に新たな IDE を提供してきたと聞いて、大変興味を惹かれさっそくインストールすることにしました。\nとりあえず、R と Python のどちらとも親和性が高いことが売りみたいです！"
+  },
+  {
+    "objectID": "blog/240708_positron/index.html#positron",
+    "href": "blog/240708_positron/index.html#positron",
+    "title": "Positron は何者？",
+    "section": "",
+    "text": "先日後輩に教えられて「Positron」なるものの存在を知りました。\nどうやら RStudio に次ぐ IDE（統合開発環境）のようで、R には RStudio しか勝たんだろうと思っていた僕としては少し驚きました。\nというのも、VSCode での R 操作も試していたことがあり、その際に不便を感じることが多かったからです。特にキーボードショートカットで、は万能な VSCode であるがゆえに他の言語や機能と干渉してしまい、設定も面倒でした。その後は開発コンテナを使用している場合も RStudio Server を使用してきました。\nしかし今度は RStudio を提供する Posit 社が直々に新たな IDE を提供してきたと聞いて、大変興味を惹かれさっそくインストールすることにしました。\nとりあえず、R と Python のどちらとも親和性が高いことが売りみたいです！"
+  },
+  {
+    "objectID": "blog/240708_positron/index.html#インストール",
+    "href": "blog/240708_positron/index.html#インストール",
+    "title": "Positron は何者？",
+    "section": "インストール！",
+    "text": "インストール！\nまだ正式リリースはされていないようです。\nGitHub からリリースページに飛んでインストールをしてみます。ここからインストールできます。\nインストールに難しいことはなく、サクサクと進みました。"
+  },
+  {
+    "objectID": "blog/240708_positron/index.html#開いてみる",
+    "href": "blog/240708_positron/index.html#開いてみる",
+    "title": "Positron は何者？",
+    "section": "開いてみる",
+    "text": "開いてみる\n画面はこんな感じです。\n\nこれを開くまで知らなかったのですが、これは VSCode をフォークして作られているっぽいですね。\nVSCode での R に挫折した僕としては、少し不穏なスタートです😅"
+  },
+  {
+    "objectID": "blog/240708_positron/index.html#コードを実行してみる",
+    "href": "blog/240708_positron/index.html#コードを実行してみる",
+    "title": "Positron は何者？",
+    "section": "コードを実行してみる",
+    "text": "コードを実行してみる\n試しに ggplot2::ggplot() を使ってプロットしてみることにします。\n\nうーん、現段階では課題が多そうですね。プレリリース版なので仕方なしです。\n\nショートカットが違う\n\nVSCode ベースの時点でなんとなく察していましたが、いろいろと違います。設定の必要あり。\n例えばチャンクの挿入は RStudio では Ctrl + Alt + I でしたが、Positron では Alt ではなく Shift。\nパイプも Ctrl + Shift + M では入れられない。など…。\n\nインライン出力未対応\n\nRStudio ではコードの下に実行結果が出ていましたが、Positron では対応していないようです。\n後で触れますが、今後対応していくみたい。\n\nggplot() で日本語を使うと文字化けする\n\nRStudio では文字化けしないので、今後修正されるのかな？\n\n\n\n\n\nRStudio"
+  },
+  {
+    "objectID": "blog/240708_positron/index.html#レンダリングしてみる",
+    "href": "blog/240708_positron/index.html#レンダリングしてみる",
+    "title": "Positron は何者？",
+    "section": "レンダリングしてみる",
+    "text": "レンダリングしてみる\nではレンダリング（R Markdown で言うところの Knit）してみます。\n\nあれ、なんか普通に日本語出力できてますね…笑\n\nでも PDF だといつも通り文字化けします。ここは YAML ヘッダーの設定で対応できそうです。"
+  },
+  {
+    "objectID": "blog/240708_positron/index.html#感想",
+    "href": "blog/240708_positron/index.html#感想",
+    "title": "Positron は何者？",
+    "section": "感想",
+    "text": "感想\n\n今後の期待が高まる\n現時点では VSCode の時の不便さを解消しきれておらず、まだ乗り換えられないなというのが正直なところです。\nしかし、他ではコンソールで予測変換が使えるようになってて、それが結構いい感じです。install.packages() と書く時間が短縮できます(^^)（他にもっとないのか()）\n次の課題を乗り越えてきたら、僕は Positron に移行するかもしれません。\n\nインライン出力\n\n実行結果がコードの下に出てほしいです。\n\n拡張機能の充実\n\n現時点では主要な拡張機能が使えません。Microsoft が提供する拡張機能は純正 VSCode でしか使えないようです。\n\nリモート開発機能への対応\n\nTips でも紹介している通り、開発コンテナを使用した環境構築をしているので、ここへの対応は必須です。\n\n\nちなみに、Posit 公式が言っているように、現在は多くの課題を抱えていて、データサイエンティストにとってすぐに最適なものになるとは考えていないようです。\nまた、今後のビジョンも示されており、上に挙げたような課題も克服されると思います。\nこれからのアップデートに期待しましょう！"
+  },
+  {
+    "objectID": "blog/240723_typst/index.html",
+    "href": "blog/240723_typst/index.html",
+    "title": "もはや TinyTeX も要らないのか…？",
+    "section": "",
+    "text": "これまで PDF 出力は Quarto × TinyTeX でやってきたけど、たまたま Typst なるものを見つけた。\n疲れたら Quarto 公式ドキュメントを読んでいるのだけど、PDF 出力 = \\(\\LaTeX\\) との先入観があったので、Typst に気が付かなかったのだ。\nどうやら \\(\\LaTeX\\) 出力よりは速いらしい。早速使ってみる。"
+  },
+  {
+    "objectID": "blog/240723_typst/index.html#typst",
+    "href": "blog/240723_typst/index.html#typst",
+    "title": "もはや TinyTeX も要らないのか…？",
+    "section": "",
+    "text": "これまで PDF 出力は Quarto × TinyTeX でやってきたけど、たまたま Typst なるものを見つけた。\n疲れたら Quarto 公式ドキュメントを読んでいるのだけど、PDF 出力 = \\(\\LaTeX\\) との先入観があったので、Typst に気が付かなかったのだ。\nどうやら \\(\\LaTeX\\) 出力よりは速いらしい。早速使ってみる。"
+  },
+  {
+    "objectID": "blog/240723_typst/index.html#確かに早いし楽",
+    "href": "blog/240723_typst/index.html#確かに早いし楽",
+    "title": "もはや TinyTeX も要らないのか…？",
+    "section": "確かに早いし、楽。",
+    "text": "確かに早いし、楽。\nとりあえず、以下のようにして書き始めてみる。\nYAML ヘッダーに keywords の項目あるのにPDFには出力できないのはなぜなんだろうか…。公式見ると HTML とかではいけそうなんだけどね。\n---\ntitle: Typst demo\nauthor: \n  - name: Yosuke Abe\n    affiliation: OSIPP\nabstract: |\n  Here is an abstract.\ndate: today\ndate-format: long\nlang: en\nformat: \n  typst: \n    keep-typ: true\n---\nそんで出力できたのがこちら\n結構いい感じですねー。そんなに \\(\\LaTeX\\) と比べても遜色ない。\nこれはもう少し丁寧にまとめて Tips に追加したい。\nそれでは。"
+  },
+  {
+    "objectID": "tips/index.html",
+    "href": "tips/index.html",
+    "title": "Tips",
+    "section": "",
+    "text": "おすすめ記事\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\n\n\nPrevoius\n\n\n\nNext\n\n\n\n\n\n\n\n\n\n\n開発環境\n\n\n\n最終更新日：2024年08月29日\n\nUbuntu 22.04\nRStudio 2024.04.2+764 (Chocolate Cosmos) for Ubuntu Jammy\nR version 4.4.1 (2024-06-14)\nPython 3.10.12\njulia version 1.10.4\nQuarto 1.5.56\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDVCのためのGoogle Cloud Project\n\n\n\nDVC\n\n\n備忘録\n\n\n\nDVCにおける設定のエラーへの対処です（2024年8月31日）\n\n\n\n\n\n\n2024/08/31\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【RStudio】ローカルへのインストールまとめ\n\n\n\nR\n\n\nRStudio\n\n\n\nRが初めての方へ。～リンクも添えて～\n\n\n\n\n\n\n2024/08/29\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】マークダウンでできること！\n\n\n\nQuarto\n\n\n\nマークダウンでできることは意外と奥が深い。独断と偏見で使う順にまとめます！\n\n\n\n\n\n\n2024/08/02\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】論文の体裁を整える\n\n\n\nQuarto\n\n\nLaTeX\n\n\n\nQuarto × \\(\\LaTeX\\) で論文の体裁を整える方法について考えます。随時更新予定です。\n\n\n\n\n\n\n2024/07/22\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【PDF】Quarto で論文を書く\n\n\n\nQuarto\n\n\nR\n\n\nLaTeX\n\n\n\nQuarto を使って論文を書く方法（マークダウン、表、図）をまとめました。\n\n\n\n\n\n\n2024/06/29\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n国勢調査データのクレンジング\n\n\n\nR\n\n\n\n人口データのファイルを一括で読み込んで、分析で使いやすくするためのクレンジングコードです。\n\n\n\n\n\n\n2024/06/22\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPython のための開発コンテナ\n\n\n\nPython\n\n\nVSCode\n\n\nDocker\n\n\nUbuntu\n\n\n\nPython のための開発コンテナを作成する手順を紹介します。\n\n\n\n\n\n\n2024/06/21\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n環境構築における備忘録\n\n\n\n備忘録\n\n\n\n環境構築において直面したエラー等を随時まとめていきます。\n\n\n\n\n\n\n2024/06/19\n\n\n\n\n\n\n\n\n\n\n\n\n【WSL】割り当てるメモリを増やす方法\n\n\n\nWSL\n\n\nWindows\n\n\n備忘録\n\n\n\nWSL はデフォルトで PC の半分のメモリが割り当てられています。\n\n\n\n\n\n\n2024/05/31\n\n\n\n\n\n\n\n\n\n\n\n\n【ワークフロー】VSCode で GitHub を使う\n\n\n\nVSCode\n\n\nGitHub\n\n\n\nVSCode で GitHub を使った作業の流れを紹介します。\n\n\n\n\n\n\n2024/05/25\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTeX Live を使わずに LaTeX 環境を作る！\n\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nLaTeX\n\n\n\nTinyTeX を使って R 環境以外でも \\(\\LaTeX\\) を使えるようにしよう！\n\n\n\n\n\n\n2024/05/20\n\n\n\n\n\n\n\n\n\n\n\n\n【R】アーカイブされたパッケージを使う\n\n\n\nR\n\n\n\nパッケージがインストールできない？\n\n\n\n\n\n\n2024/05/16\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R】プロジェクトを使う\n\n\n\nR\n\n\n\nR プロジェクトを使って作業環境を整えよう！\n\n\n\n\n\n\n2024/05/15\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【日本語版】クリーンなスライドを Quarto で作る！\n\n\n\nQuarto\n\n\nR\n\n\n\n日本語でも使えるスライドをご紹介！\n\n\n\n\n\n\n2024/05/14\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【スライド】Beamer の Metropolis テーマを Reveal.js で再現したい\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nQuarto 経由で Beamer 風のスライドを作ろう！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】使い方解説！Reveal.js でスライドを作ろう\n\n\n\nQuarto\n\n\nReveal.js\n\n\nR\n\n\n\nスライドも Quarto で作れる！\n\n\n\n\n\n\n2024/05/12\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【Quarto】チャンクオプションまとめてみた【R Markdown】\n\n\n\nR\n\n\nQuarto\n\n\nR Markdown\n\n\n備忘録\n\n\n\nチャンクオプションは忘れやすい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\n【R Markdown】相互参照を使いこなす【Quarto】\n\n\n\nR Markdown\n\n\nQuarto\n\n\nR\n\n\n\n図や表に自動で番号を振りたい！\n\n\n\n\n\n\n2024/05/09\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto で Python を使ってみよう！\n\n\n\nQuarto\n\n\nPython\n\n\nUbuntu\n\n\nVSCode\n\n\nR\n\n\n\nR ユーザーはこれでよくない？\n\n\n\n\n\n\n2024/05/08\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n【R パッケージ】インストールも読み込みも一撃で？【pacman】\n\n\n\nR\n\n\n\ninstall.packages() はもう不要！\n\n\n\n\n\n\n2024/05/07\n\n\n\n\n\n\n\n\n\n\n\n\nR でGIS を動かす【ハンドリング】\n\n\n\nR\n\n\nGIS\n\n\n\nR で GIS を動かそう！\n\n\n\n\n\n\n2024/05/06\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n開発コンテナを使って R 環境を構築！\n\n\n\nR\n\n\nDocker\n\n\nWindows\n\n\nMac\n\n\nUbuntu\n\n\nVSCode\n\n\nGitHub\n\n\n\nローカル環境から卒業！\n\n\n\n\n\n\n2024/05/04\n\n\n\n\n\n\n\n\n\n\n\n\n政令指定都市・中核市の整理\n\n\n\nR\n\n\n備忘録\n\n\n\nRで市区町村データを整理するための政令指定都市・中核市をまとめたコードです。\n\n\n\n\n\n\n2024/04/14\n\n\n\n\n\n\n\n\n\n\n\n\nQuarto & R MarkdownでPDF出力【LaTeX】\n\n\n\nR\n\n\nR Markdown\n\n\nQuarto\n\n\nLaTeX\n\n\n\nレポートでR Markdown、使ってますか？\n\n\n\n\n\n\n2024/03/29\n\n\n\n\n\n\n\n\n一致なし"
+  },
+  {
+    "objectID": "tips/240509_cross_reference/index.html",
+    "href": "tips/240509_cross_reference/index.html",
+    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "section": "",
+    "text": "R Markdown や Quarto で文書を書いているとき、相互参照をどうしようと思ったことはありませんか？僕はありました。\n手書きで「図1：Hogehoge」と書くとなんだかスマートさに欠けるし、前に図を挿入したくなった時に数字を書き換えなければならず不便ですよね。\n今回は R Markdown ＆ Quarto における相互参照の使い方をご紹介します。\nR Markdown と Quarto で設定が異なりますので、それぞれ見ていきましょう。"
+  },
+  {
+    "objectID": "tips/240509_cross_reference/index.html#はじめに",
+    "href": "tips/240509_cross_reference/index.html#はじめに",
+    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "section": "",
+    "text": "R Markdown や Quarto で文書を書いているとき、相互参照をどうしようと思ったことはありませんか？僕はありました。\n手書きで「図1：Hogehoge」と書くとなんだかスマートさに欠けるし、前に図を挿入したくなった時に数字を書き換えなければならず不便ですよね。\n今回は R Markdown ＆ Quarto における相互参照の使い方をご紹介します。\nR Markdown と Quarto で設定が異なりますので、それぞれ見ていきましょう。"
+  },
+  {
+    "objectID": "tips/240509_cross_reference/index.html#r-markdown",
+    "href": "tips/240509_cross_reference/index.html#r-markdown",
+    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "section": "R Markdown",
+    "text": "R Markdown\n\nYAML ヘッダー\nまず、新しいファイルを開くと出てくる --- で囲まれた部分を、YAML ヘッダーと呼びます。\n\n\n\nR Markdown ファイルを開くとこれが出てきますよね\n\n\nR Markdown はデフォルトでは相互参照が使えません（私調べ）（そんな馬鹿な）。そのため、パッケージを使って設定します。\nデフォルトの設定はこのような感じになっています。\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nauthor: \"Yosuke Abe\"\ndate: \"2024-08-03\"\noutput: html_document\n---\n\nこれを bookdown パッケージを用いて変更します。\nまずはインストール。\n\n\nR\n\ninstall.packages(\"bookdown\")\n\n次にヘッダーを次のように変更。\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nauthor: \"Yosuke Abe\"\ndate: \"2024-08-03\"\noutput:\n  bookdown::html_document2: default\n---\n\nこれで準備が整いました。\n\n\n相互参照\nでは何かプロットして、それを参照してみましょう。例えば次の図をプロットしたいとします。\n\n\n\n\n\n\n\n\n\nこれを参照するために R Markdown 内で入力すると次のようになります。\n\n\nR Markdown\n\n```{r pressure, fig.cap=\"図のキャプションです。\"}\nplot(pressure)\n```\n\nここでのポイントは、{r pressure} の部分です。デフォルトでは {r} だけだと思いますが、スペースを空けることでチャンク1に名前を付けることができ、このチャンク名を使って参照します。また、カンマで区切った後の fig.cap は図のキャプションです。\n文中で参照したいときは、次のように書きます。\n\n\nR Markdown\n\n表 \\@ref(fig:pressure) を参照する。\n\nすると…\n\nこのように、文中での参照ができます。前に新たに図が入っても、自動で番号を振り直してくれます。\n\n\n\n\n\n\n図以外の場合\n\n\n\n\n\nもちろん、表や数式の場合にも使えます。\n\n表の場合\n\n様々な表の関数がありますが、R Markdown では基本的に関数内でキャプションを付けます。\n図の場合とは違い、参照の際には tab:を使います。\n\n\n\n\nQuarto\n\n```{r mtcars}\nknitr::kable(mtcars[1:5, 1:5], caption = \"mtcars データ\")\n```\n\n表 \\@ref(tab:mtcars) を参照する。\n\n\n数式の場合\n\n\\(\\LaTeX\\) 形式で書きます。HTML 出力でも、この書き方が可能です。\n$ で挟む方法もありますが、これだと参照ができません2。\n参照の際には、eq: を使います。\n\n\n\n\nQuarto\n\n\\begin{equation}\n\\bar{X} = \\frac{\\sum_{i=1}^n X_i}{n} (\\#eq:mean)\n\\end{equation}\n\n式 \\@ref(eq:mean) を参照する。\n\n以上のやり方で表や数式の参照にも対応しています。"
+  },
+  {
+    "objectID": "tips/240509_cross_reference/index.html#quarto",
+    "href": "tips/240509_cross_reference/index.html#quarto",
+    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "section": "Quarto",
+    "text": "Quarto\nQuarto もほとんど同じ方法で参照が可能ですが、書き方はもっとシンプルです。\n\nYAML ヘッダー\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nformat: html\n---\n\nデフォルトでは著者も日付もないのでめちゃくちゃシンプルですね3。\nQuarto では、相互参照のためにこれをいじる必要はありません（素晴らしい！）。\nその代わり、チャンクの方をいろいろいじっていきます。\n\n\nチャンクオプション\n改めてになりますが、``` で囲まれたコード部分をチャンクと言います。\nR Markdown では、{r}の中にチャンク名を書きましたが、Quarto ではチャンクの中に書いていきます4。\n\n\nR Markdown\n\n```{r}\n#| label: fig-pressure\n#| fig-cap: \"図のキャプションです。\"\n\nplot(pressure)\n```\n\nポイントは以下の2つです。\n\n#| の後ろにオプションを指定して書くことができます。\nlabel は fig- で始めないと参照できません。\n\n\n\n相互参照\n文中では以下のように書いていきます。\n\n\nQuarto\n\n@fig-pressure を参照する。\n\n@ だけだなんて、なんてシンプルなのでしょう。以下のように出力されます。\n\nとても簡単に引用できました。よく見ると、図 @fig-pressure とは書かずとも Figure 1 となっています。図～とは書かなくてよいということですね。英語になっているのが気になる方は、後のセクションで解説しているのでご覧ください。\n\n\n\n\n\n\n図以外の場合\n\n\n\n\n\nもちろん、表や数式の場合にも使えます。\n\n表の場合\n\nQuarto では、表もチャンクオプションを使ってキャプションがつけられます。\nR Markdown では、参照の際に tab: を使っていたのに対し、Quarto では tbl- となります。ややこしい！\n\n\n\n\nQuarto\n\n```{r}\n#| label: tbl-mtcars\n#| tbl-cap: \"mtcars データ\"\n\nknitr::kable(mtcars[1:5, 1:5])\n```\n\n@tbl-mtcars を参照する。\n\n\n数式の場合\n\n\\(\\LaTeX\\) 形式でも書けますが、$$ で囲む方法が便利です。\n数式自体は \\(\\LaTeX\\) 表記です。\n自分で打ってみるとわかりますが、プレビューできるのもいい点です。\n\n\n\n\nQuarto\n\n$$\n\\bar{X} = \\frac{\\sum_{i=1}^n X_i}{n}\n$$ {#eq-mean}\n\n@eq-mean を参照する。\n\n以上のやり方で表や数式も参照できます。"
+  },
+  {
+    "objectID": "tips/240509_cross_reference/index.html#sec-lang-setting",
+    "href": "tips/240509_cross_reference/index.html#sec-lang-setting",
+    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "section": "言語の設定について",
+    "text": "言語の設定について\n特に Quarto で、@fig- で参照すると Figure ~ となってしまう問題について、気になる方は次の設定で修正できます。\n\n\nYAML ヘッダー\n\n---\ntitle: \"Untitled\"\nformat: html\nlang: ja\n---\n\nlang: ja を追加しました。これが日本語設定です。\nこれを設定したうえで実行すると、\n\n無事日本語にできました。表や式もこれでいけます。"
+  },
+  {
+    "objectID": "tips/240509_cross_reference/index.html#おわりに",
+    "href": "tips/240509_cross_reference/index.html#おわりに",
+    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "section": "おわりに",
+    "text": "おわりに\n今回は R Markdown と Quarto で相互参照を使う方法をご紹介しました。\n相互参照が簡単にできるだけで、かなり Markdown を使う魅力が増すと思います。修士学生の私としては、Quarto で修論を書き上げるのが目標です^^\nご参考になれば幸いです。それでは。"
+  },
+  {
+    "objectID": "tips/240509_cross_reference/index.html#footnotes",
+    "href": "tips/240509_cross_reference/index.html#footnotes",
+    "title": "【R Markdown】相互参照を使いこなす【Quarto】",
+    "section": "注",
+    "text": "注\n\n\n``` で囲まれているコード部分↩︎\nする方法をご存じの方がいらっしゃいましたら、是非コメントください。↩︎\nもちろん author: \"著者\" や date: 2024-05-09 などで入力できますよ。↩︎\nR Markdown と同様の書き方もできるのですが、私は今回紹介している方法の方がすっきりしていて好みです。↩︎"
   },
   {
     "objectID": "tips/240512_revealjs/index.html",
@@ -1243,7 +1285,7 @@
     "href": "tips/240504_container/index.html",
     "title": "開発コンテナを使って R 環境を構築！",
     "section": "",
-    "text": "DVCについて\n\n\n\n2024年8月29日現在、DVCの認証プロセスでエラーが出るようになっています。そのうち改善されるかもしれませんが、エラーが出る場合はデータもGitHubで管理するようにするのが良いかもしれません。データサイズの制限はあるのですが、そこまで大きなデータを使わなければ問題ないと思います。"
+    "text": "DVCについて\n\n\n\n2024年8月29日：DVCの認証プロセスでエラーが出るようになっています。そのうち改善されるかもしれませんが、エラーが出る場合はデータもGitHubで管理するようにするのが良いかもしれません。データサイズの制限はあるのですが、そこまで大きなデータを使わなければ問題ないと思います。\n2024年8月31日：Google Cloud Projectを用いた解決策について別記事でまとめましたので、その案内を追加しました。"
   },
   {
     "objectID": "tips/240504_container/index.html#はじめに",
@@ -1271,7 +1313,7 @@
     "href": "tips/240504_container/index.html#作業",
     "title": "開発コンテナを使って R 環境を構築！",
     "section": "作業",
-    "text": "作業\nワークフローについて説明します。\nワークフロー、特に GitHub 関連についてはこちらの記事で詳しめに解説しましたので、そちらも参考にしてください。\n\n\n\n\n\n\n単独プロジェクトの場合\n\n\n\n\n\n単独研究の場合でも、GitHubでブランチを作成することは非常に有用です。以下の理由から、ブランチの作成を推奨します。\n\n機能の分離\n\n新しい機能や実験的な変更を行う際に、メインの作業を妨げることなく独立して作業ができます。\n例えば、新しい分析手法を試す場合、その作業を独立したブランチで行うことで、問題があってもメインのコードに影響を与えません。\n\nバージョン管理\n\nブランチを使うことで、異なるバージョンの作業を分離して管理できます。以前の状態に簡単に戻すことができます。\n\n安全な実験環境\n\n実験的な変更や新しいアイデアの試行錯誤を安全に行える環境が確保できます。メインのコードベースが壊れる心配がありません。\n\nバックアップとリカバリ\n\n作業が進行中の状態をこまめにコミットし、ブランチを使って管理することで、失敗した場合でも簡単に元の状態に戻れます。\n\n\n以上、ChatGPT さんの解説でした。\n\n\n\n\n作業開始時\n作業を開始する際は、以下の手順で作業を開始してください。\n\nVSCode で開く\n\nホスト側、共同作業者ともに、VSCode の開発コンテナで開いてください。\n\n作業ブランチを作成\n\n画面左下、main と書かれているところをクリックし、「＋新しいブランチの作成…」を選択してください。\nブランチ名は、作業内容がわかるようにしてください。\n例えば、feature/作業内容 など。\n\n作業ブランチに切り替え\n\n再び main と書かれているところをクリックし、作成したブランチを選択してください。\n\n作業を開始\n\n\n\n作業終了時\n先に作業終了時について説明します。ここで想定しているのは共同作業を行っている場合です。\n単独での業務の場合は、ブランチを作成する必要はないと思います。コミットとプッシュを繰り返す流れで十分です。\n\n作業内容をコミット\n\n画面左側の「ソース管理」をクリックします。\nファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします10。\n画面上部の「メッセージを入力」にコミットメッセージ11を入力し、「✓コミット」をクリックしてください。\n\nプッシュ\n\n「ソース管理」の右側にある「…」をクリックし、「プッシュ」を選択してください。\nこれで、作業内容が GitHub にアップロードされます。\nブランチを公開しますか？と聞かれたら「OK」を選択してください。\n\n\n\n\n\n\n\nところで、現在は作業中のブランチが先ほど作成したブランチになっていると思います。\nこれを main にマージするために、プルリクエストを作成します。要は、自分が作成したブランチをホスト側に main へ取り込んでもらうための手続きです。\nこのステップを挟む理由は、例えば正常に作動しないコードが main に勝手にマージされることを防ぐためです。\n\nプルリクエスト（GitHub）\n\nGitHub にアクセスし、作業中のリポジトリを開いてください。\n画面上部の「Pull requests」をクリックし、「New pull request」をクリックしてください。\n作業中のブランチと main を比較して、プルリクエストを作成します。\n作業内容を説明し、ホスト側にマージしてもらうようにリクエストします。\n承認されれば、無事 main にマージされます。\n\nプル（VSCode）\n\nホスト側で、プルリクエストが承認されたら、main にマージされた内容を取り込むためにプルします12。\n画面下部のブランチ名をクリックし、main を選択してください。これで再び main に切り替わります。\n再び画面左からの「ソース管理」から、「ソース管理」の右側にある「…」をクリックし、「プル」を選択してください。\nこれで、ローカルの main が最新の状態になります。\n\n\nこの流れを繰り返すことで作業のサイクルを回していきます。\n繰り返しになりますが、GitHub についてはこちらの記事も参考にしてください。\n\n\nR のパッケージ\n\n\n\n\n\n\nパッケージの記録\n\n\n\nここからの作業で重要なことですが、これから説明する renv 等で記録したら、コミット、プッシュ、プルを通じてファイルを共有することを忘れないでください。\n\n\n作業中新たにパッケージを使用した場合、それを renv.lock ファイルに記録することで、必要なパッケージを共同作業者と共有することができます。\nバージョンごと記録できるので、全く同じ環境を再現することが可能です。\n\nR のコンソールで以下を実行\n\n新しいパッケージをインストールし、コード内で使用したら、以下のコードを実行してください13。\nrenv がアクティベートされていない場合、アクティベートする必要がありますが、おそらく実行した際に「renv をアクティベートして lock ファイルに記録する」というような選択肢が提示されますので、それを選んでください。\n以下のコードでアクティベートすることも可能です。\n\n\n\n\nR\n\nrenv::snapshot()\n\n\n\nR\n\nrenv::activate()\n\n\n（共同作業者）パッケージをインストール\n\n使用したパッケージは renv.lock に記録されているため、そこから（バージョンもホスト側に揃えて）インストールが可能です。\n作業者は lock ファイルをアップデートしたら、コミットとプッシュを行ってください。\n共同作業者はその lock ファイルをプルしておいてください。\nバージョンの違いにより実行できないようなことを防げます。\n以下のコードを実行してください。\n\n\n\n\nR\n\nrenv::restore()\n\nこれで R の開発環境を揃えることができます。\nまた、新しいパッケージを使ったら、その作業が終わるごとに renv::snapshot() 記録し、共同作業者は renv::restore() でインストールしてください。\n\n\nPython のパッケージ\n設定では Python の設定も加えていますので、必要に応じて Python も使用できます。\nまた、そもそも DVC が Python のパッケージなので、それも renv と同様に記録して共有します。\n\nPython のパッケージを追加\n\n先ほどと同様に、新しいターミナルを開いて、以下のコードでパッケージをインストールします。\nDVC 以外特に使うものがなければ、ここはスキップしてください。\n\n\n\n\nTerminal\n\npip install [パッケージ名]\n\n\nパッケージを記録\n\nR と同様に、作業が終わったら以下のコードでパッケージを記録します。\n特に何もインストールしていなくても、DVC を使っていますので、これは実行してください。\n\n\n\n\nTerminal\n\npip freeze &gt; requirements.txt\n\n\n（共同作業者）パッケージをインストール\n\nここでも事前に .txt ファイルを共有しておいてください。\n共同作業者は、次のコードで Python パッケージをインストールします。\n\n\n\n\nTerminal\n\npip install -r requirements.txt\n\n\n\nデータの管理\nデータは DVC で管理します。データは Google Drive 上で保管されます。\n\nワーキングディレクトリに、data というフォルダを作成\nデータが入ったら、以下のコードを実行\n\ndata フォルダごとドライブに追加します。\ndata フォルダは .gitignore に記載されているため、GitHub にはアップロードされません。\n\n\n\n\nTerminal\n\ndvc add data/\n\n\n\n\n\n\n\nデータの入れ方\n\n\n\nデータは、Windows のエクスプローラーや Mac の Finder から直接フォルダに入れて大丈夫です（通常の Windows や Mac での作業のように）。\nデータをプッシュした後に Google Drive を見てもらえれば分かりますが、よくわからない形で保存されています。DVC の仕組みがそうなっているからなので、決してファイルが破損しているわけではありません。\nちなみに Windows ユーザーの方で、一回ローカルに落としてから Linux にデータ等を入れたら Zone.Identifier というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。\n\n\n\nデータをアップロード\n\n以下のコードでデータをプッシュします。\n\n\n\n\nTerminal\n\ndvc push\n\n最初は add と push をする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください14。\n\n（共同作業者）データのダウンロード\n\n以下のコードでデータをダウンロードします。\n\n\n\n\nTerminal\n\ndvc pull\n\n\n\nJulia のパッケージ\nJulia はパッケージが自動で Project.toml に保存されるため、共同作業者がインストールするだけで大丈夫です。\n\n先ほどと同じ手順で環境をアクティベートする\n以下のコードでパッケージをインストール\n\n\n\nJulia\n\nPkg.instantiate()\n\n\n\nまとめ\nこれらの作業を通じて、共同作業者もホスト側と同じ環境を揃えることができます。\n環境を揃えるためには、コミット、プッシュ、プルを行い、記録したファイルを共有することが重要です。\n単独での場合は、ブランチを作成する必要はないですが、コミット、プッシュで管理を行いましょう。\n以上がワークフローです。お疲れ様でした！"
+    "text": "作業\nワークフローについて説明します。\nワークフロー、特に GitHub 関連についてはこちらの記事で詳しめに解説しましたので、そちらも参考にしてください。\n\n\n\n\n\n\n単独プロジェクトの場合\n\n\n\n\n\n単独研究の場合でも、GitHubでブランチを作成することは非常に有用です。以下の理由から、ブランチの作成を推奨します。\n\n機能の分離\n\n新しい機能や実験的な変更を行う際に、メインの作業を妨げることなく独立して作業ができます。\n例えば、新しい分析手法を試す場合、その作業を独立したブランチで行うことで、問題があってもメインのコードに影響を与えません。\n\nバージョン管理\n\nブランチを使うことで、異なるバージョンの作業を分離して管理できます。以前の状態に簡単に戻すことができます。\n\n安全な実験環境\n\n実験的な変更や新しいアイデアの試行錯誤を安全に行える環境が確保できます。メインのコードベースが壊れる心配がありません。\n\nバックアップとリカバリ\n\n作業が進行中の状態をこまめにコミットし、ブランチを使って管理することで、失敗した場合でも簡単に元の状態に戻れます。\n\n\n以上、ChatGPT さんの解説でした。\n\n\n\n\n作業開始時\n作業を開始する際は、以下の手順で作業を開始してください。\n\nVSCode で開く\n\nホスト側、共同作業者ともに、VSCode の開発コンテナで開いてください。\n\n作業ブランチを作成\n\n画面左下、main と書かれているところをクリックし、「＋新しいブランチの作成…」を選択してください。\nブランチ名は、作業内容がわかるようにしてください。\n例えば、feature/作業内容 など。\n\n作業ブランチに切り替え\n\n再び main と書かれているところをクリックし、作成したブランチを選択してください。\n\n作業を開始\n\n\n\n作業終了時\n先に作業終了時について説明します。ここで想定しているのは共同作業を行っている場合です。\n単独での業務の場合は、ブランチを作成する必要はないと思います。コミットとプッシュを繰り返す流れで十分です。\n\n作業内容をコミット\n\n画面左側の「ソース管理」をクリックします。\nファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします10。\n画面上部の「メッセージを入力」にコミットメッセージ11を入力し、「✓コミット」をクリックしてください。\n\nプッシュ\n\n「ソース管理」の右側にある「…」をクリックし、「プッシュ」を選択してください。\nこれで、作業内容が GitHub にアップロードされます。\nブランチを公開しますか？と聞かれたら「OK」を選択してください。\n\n\n\n\n\n\n\nところで、現在は作業中のブランチが先ほど作成したブランチになっていると思います。\nこれを main にマージするために、プルリクエストを作成します。要は、自分が作成したブランチをホスト側に main へ取り込んでもらうための手続きです。\nこのステップを挟む理由は、例えば正常に作動しないコードが main に勝手にマージされることを防ぐためです。\n\nプルリクエスト（GitHub）\n\nGitHub にアクセスし、作業中のリポジトリを開いてください。\n画面上部の「Pull requests」をクリックし、「New pull request」をクリックしてください。\n作業中のブランチと main を比較して、プルリクエストを作成します。\n作業内容を説明し、ホスト側にマージしてもらうようにリクエストします。\n承認されれば、無事 main にマージされます。\n\nプル（VSCode）\n\nホスト側で、プルリクエストが承認されたら、main にマージされた内容を取り込むためにプルします12。\n画面下部のブランチ名をクリックし、main を選択してください。これで再び main に切り替わります。\n再び画面左からの「ソース管理」から、「ソース管理」の右側にある「…」をクリックし、「プル」を選択してください。\nこれで、ローカルの main が最新の状態になります。\n\n\nこの流れを繰り返すことで作業のサイクルを回していきます。\n繰り返しになりますが、GitHub についてはこちらの記事も参考にしてください。\n\n\nR のパッケージ\n\n\n\n\n\n\nパッケージの記録\n\n\n\nここからの作業で重要なことですが、これから説明する renv 等で記録したら、コミット、プッシュ、プルを通じてファイルを共有することを忘れないでください。\n\n\n作業中新たにパッケージを使用した場合、それを renv.lock ファイルに記録することで、必要なパッケージを共同作業者と共有することができます。\nバージョンごと記録できるので、全く同じ環境を再現することが可能です。\n\nR のコンソールで以下を実行\n\n新しいパッケージをインストールし、コード内で使用したら、以下のコードを実行してください13。\nrenv がアクティベートされていない場合、アクティベートする必要がありますが、おそらく実行した際に「renv をアクティベートして lock ファイルに記録する」というような選択肢が提示されますので、それを選んでください。\n以下のコードでアクティベートすることも可能です。\n\n\n\n\nR\n\nrenv::snapshot()\n\n\n\nR\n\nrenv::activate()\n\n\n（共同作業者）パッケージをインストール\n\n使用したパッケージは renv.lock に記録されているため、そこから（バージョンもホスト側に揃えて）インストールが可能です。\n作業者は lock ファイルをアップデートしたら、コミットとプッシュを行ってください。\n共同作業者はその lock ファイルをプルしておいてください。\nバージョンの違いにより実行できないようなことを防げます。\n以下のコードを実行してください。\n\n\n\n\nR\n\nrenv::restore()\n\nこれで R の開発環境を揃えることができます。\nまた、新しいパッケージを使ったら、その作業が終わるごとに renv::snapshot() 記録し、共同作業者は renv::restore() でインストールしてください。\n\n\nPython のパッケージ\n設定では Python の設定も加えていますので、必要に応じて Python も使用できます。\nまた、そもそも DVC が Python のパッケージなので、それも renv と同様に記録して共有します。\n\nPython のパッケージを追加\n\n先ほどと同様に、新しいターミナルを開いて、以下のコードでパッケージをインストールします。\nDVC 以外特に使うものがなければ、ここはスキップしてください。\n\n\n\n\nTerminal\n\npip install [パッケージ名]\n\n\nパッケージを記録\n\nR と同様に、作業が終わったら以下のコードでパッケージを記録します。\n特に何もインストールしていなくても、DVC を使っていますので、これは実行してください。\n\n\n\n\nTerminal\n\npip freeze &gt; requirements.txt\n\n\n（共同作業者）パッケージをインストール\n\nここでも事前に .txt ファイルを共有しておいてください。\n共同作業者は、次のコードで Python パッケージをインストールします。\n\n\n\n\nTerminal\n\npip install -r requirements.txt\n\n\n\nデータの管理\n\n\n\n\n\n\nDVCの追加設定について\n\n\n\n冒頭にも書いたように、エラーの対処に関する記事を書きました。\n認証でブロックを食らった場合には、以下の記事を参照して下さい。\nDVCのためのGoogle Cloud Project\n\n\nデータは DVC で管理します。データは Google Drive 上で保管されます。\n\nワーキングディレクトリに、data というフォルダを作成\nデータが入ったら、以下のコードを実行\n\ndata フォルダごとドライブに追加します。\ndata フォルダは .gitignore に記載されているため、GitHub にはアップロードされません。\n\n\n\n\nTerminal\n\ndvc add data/\n\n\n\n\n\n\n\nデータの入れ方\n\n\n\n\n\nデータは、Windows のエクスプローラーや Mac の Finder から直接フォルダに入れて大丈夫です（通常の Windows や Mac での作業のように）。\nデータをプッシュした後に Google Drive を見てもらえれば分かりますが、よくわからない形で保存されています。DVC の仕組みがそうなっているからなので、決してファイルが破損しているわけではありません。\nちなみに Windows ユーザーの方で、一回ローカルに落としてから Linux にデータ等を入れたら Zone.Identifier というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。\n\n\n\n\nデータをアップロード\n\n以下のコードでデータをプッシュします。\n\n\n\n\nTerminal\n\ndvc push\n\n最初は add と push をする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください14。\n\n（共同作業者）データのダウンロード\n\n以下のコードでデータをダウンロードします。\n\n\n\n\nTerminal\n\ndvc pull\n\n\n\nJulia のパッケージ\nJulia はパッケージが自動で Project.toml に保存されるため、共同作業者がインストールするだけで大丈夫です。\n\n先ほどと同じ手順で環境をアクティベートする\n以下のコードでパッケージをインストール\n\n\n\nJulia\n\nPkg.instantiate()\n\n\n\nまとめ\nこれらの作業を通じて、共同作業者もホスト側と同じ環境を揃えることができます。\n環境を揃えるためには、コミット、プッシュ、プルを行い、記録したファイルを共有することが重要です。\n単独での場合は、ブランチを作成する必要はないですが、コミット、プッシュで管理を行いましょう。\n以上がワークフローです。お疲れ様でした！"
   },
   {
     "objectID": "tips/240504_container/index.html#環境構築まとめ",
