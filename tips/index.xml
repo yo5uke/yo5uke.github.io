@@ -10,7 +10,1746 @@
 <atom:link href="https://yo5uke.github.io/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.5.57</generator>
-<lastBuildDate>Fri, 30 Aug 2024 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 31 Aug 2024 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【王道】TeX Liveを使ってLaTeX環境を構築する</title>
+  <link>https://yo5uke.github.io/tips/240901_tex_live/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="これぞ王道" class="level2">
+<h2 class="anchored" data-anchor-id="これぞ王道">これぞ王道</h2>
+<p>LaTeX環境でまず思い浮かぶのがTeX Liveを用いたローカル環境です。</p>
+<p>本記事では設定方法を解説します。</p>
+<p>なかなかややこしいと思いますが、これできっとローカルでもTeXファイルをコンパイル（PDF化）できるはずです！</p>
+<p>現段階ではWindowsに対応した記事になっています。Mac版は今後更新します。</p>
+<p>基本的な内容は以下のページを参考にしています。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://qiita.com/passive-radio/items/623c9a35e86b6666b89e">【大学生向け】LaTeX完全導入ガイド Windows編 (2022年)</a></p>
+</div>
+</div>
+</div>
+<p>簡潔に、かつ自分が設定して困った点を追記しています。</p>
+<p>また、VSCodeはインストールしてある前提で進めます。</p>
+</section>
+<section id="インストーラーをダウンロード" class="level2">
+<h2 class="anchored" data-anchor-id="インストーラーをダウンロード">インストーラーをダウンロード</h2>
+<p>以下のリンクよりインストーラーをダウンロードします。</p>
+<p><strong>Windows</strong>：<a href="https://www.tug.org/texlive/acquire-netinstall.html" class="uri">https://www.tug.org/texlive/acquire-netinstall.html</a></p>
+<p>開いたら最初に出てくるリンクの<code>install-tl-windows.exe</code>をクリックしてダウンロードします。</p>
+<p>ダウンロードできたら開いてください。</p>
+</section>
+<section id="インストールする" class="level2">
+<h2 class="anchored" data-anchor-id="インストールする">インストールする</h2>
+<p>開くと以下のようなメッセージが出るかもしれません。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/texlive_protect.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<p>その場合、詳細情報＞実行で進むことができます。進めて問題ありません。</p>
+<ol type="1">
+<li>Installが選択された状態でNext&gt;</li>
+<li>Installを選択</li>
+</ol>
+<p>数秒待つと新たなウィンドウが登場し、さらに待機すると以下の画面が出てくると思います。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/texlive_installer.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<p>ここで、一番下の「TeXworksをインストール」はとりあえず要らないので、チェックを外してください。</p>
+<p>さらに、左下の「高度な設定」に進みます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/texlive_advanced_setting.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<p>ここでやることは2つです。</p>
+<ul>
+<li><p>「スキーム」を変更し、「basicスキーム（plainおよびlatex）」を選択します。</p></li>
+<li><p>その下の「追加コレクションの数」をカスタマイズし、言語で日本語と英語・米語を追加、さらに右列にある「LaTeX推奨パッケージ」を追加します。</p></li>
+</ul>
+<p>OKを押して戻るとスキームがまたカスタムスキームに戻っていますが、問題ありません。</p>
+<p>インストールを押してインストールしましょう。</p>
+<p>めちゃくちゃ時間がかかりますが、辛抱強く待ちましょう。不安になって中止とか押さないように！</p>
+<p>インストール画面の<code>Installing [001/399, ...]</code>を見てもらえればわかると思いますが、約400個のパッケージをインストールしています。時間がかかるわけですね…。</p>
+<p>以下の画面になれば終わりなので、閉じるを押してください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/texlive_install_finish.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+</section>
+<section id="tex-live-managerを開く" class="level2">
+<h2 class="anchored" data-anchor-id="tex-live-managerを開く">TeX Live Managerを開く</h2>
+<p>アプリ一覧からTeX Live Managerを開いてください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/texlive_manager.png" class="img-fluid figure-img" style="width:60.0%"></p>
+<figcaption>下から2番目のやつです。</figcaption>
+</figure>
+</div>
+<p>開いたら、「パッケージリスト」の状態から「未インストール」を選択します。選択すると別ウィンドウが出てきますので、読み込みが完了するまで待機し、完了したら閉じてください。</p>
+<p>検索窓で<code>latexmk</code>を入力します。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/texlive_latexmk.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<p>すると下に2つ候補が出てくるので、左側の丸をクリックして両方ともにチェックを入れます。</p>
+<p>真ん中右に「選択項目をインストール」があると思うので、チェックしたのちクリックしてください。</p>
+</section>
+<section id="sumatra-pdfのダウンロード任意" class="level2">
+<h2 class="anchored" data-anchor-id="sumatra-pdfのダウンロード任意">Sumatra PDFのダウンロード（任意）</h2>
+<p><strong>推奨する方</strong>：既定のPDFビュワーがAdobeの方</p>
+<p>TeXファイルを一度コンパイルするとPDFビュワーで開くことになるのですが、AdobeなどではPDFを開いたまま追加の更新をすることができません。一度コンパイルして修正したい場合、PDFファイルを一度閉じて再度コンパイルする必要があります。</p>
+<p>この面倒さを回避するためには、Sumatra PDFのようなPDFビュワーをしようするのがよいです。このビュワーではPDFファイルを開いたまま追加のコンパイルをすることができます。</p>
+<p>以下のリンクからダウンロードページに行ってください。</p>
+<p><a href="https://www.sumatrapdfreader.org/download-free-pdf-viewer" class="uri">https://www.sumatrapdfreader.org/download-free-pdf-viewer</a></p>
+<p>自分の環境にあった（おそらくほとんどの人にとって一番上の）<code>.exe</code>ファイルをダウンロードします。</p>
+<p>ダウンロードしたファイルを開くとカラフルなウィンドウが開きますので、インストールしてください。とりあえずこれでOKです。</p>
+<p>既定にするかどうかはお任せします（僕はしてないです笑）。</p>
+</section>
+<section id="諸々の設定" class="level2">
+<h2 class="anchored" data-anchor-id="諸々の設定">諸々の設定</h2>
+<section id="latexmkrc" class="level3">
+<h3 class="anchored" data-anchor-id="latexmkrc"><code>.latexmkrc</code></h3>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+拡張子の表示
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>エクスプローラーで拡張子（<code>.pdf</code>や<code>.docs</code>など）が非表示になっている場合、表示する設定にしてください。エクスプローラー上部にある「表示」からさらに1番下の「表示」に進むと、「ファイル名拡張子」という項目があります。この項目にチェックを入れてください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/file_extention.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:30.0%"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>次に、エクスプローラーを開いてください。</p>
+<p>開いたら左にあるバーの下部からPC&gt;Windows (C:)と進み、さらにユーザー&gt;[自分のユーザー名]と進みます<sup>1</sup>。</p>
+<p>左上の「新規作成」からテキストドキュメントを作成し、ファイル名は<code>.txt</code>もすべて消したうえで<code>.latexmkrc.</code>としてエンターを押します。最初と最後に<code>.</code>があるのを確認してください。</p>
+<p>作成の際には最初と最後にドットを入れますが、作成されたファイルでは最後のドットは消えています。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/latexmkrc.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<p>作成できたら開きます。何で開くか聞かれると思いますが、（何で開いてもいいのですが）VSCodeでよいと思います。</p>
+<p>開いたら以下の内容をコピペして保存し、閉じてください。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>.latexmkrc</strong></pre>
+</div>
+<div class="sourceCode" id="cb1" data-filename=".latexmkrc" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 通常の LaTeX ドキュメントのビルドコマンド</span></span>
+<span id="cb1-2"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$latex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'uplatex %O -kanji=utf8 -no-guess-input-enc -synctex=1 -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pdfLaTeX のビルドコマンド</span></span>
+<span id="cb1-4"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdflatex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'pdflatex %O -synctex=1 -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># LuaLaTeX のビルドコマンド</span></span>
+<span id="cb1-6"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$lualatex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'lualatex %O -synctex=1 -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># XeLaTeX のビルドコマンド</span></span>
+<span id="cb1-8"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$xelatex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'xelatex %O -no-pdf -synctex=1 -shell-escape -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Biber, BibTeX のビルドコマンド</span></span>
+<span id="cb1-10"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$biber</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'biber %O --bblencoding=utf8 -u -U --output_safechars %B'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-11"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$bibtex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'upbibtex %O %B'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># makeindex のビルドコマンド</span></span>
+<span id="cb1-13"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$makeindex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'upmendex %O -o %D %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-14"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># dvipdf のビルドコマンド</span></span>
+<span id="cb1-15"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$dvipdf</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dvipdfmx %O -o %D %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-16"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># dvipd のビルドコマンド</span></span>
+<span id="cb1-17"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$dvips</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dvips %O -z -f %S | convbkmk -u &gt; %D'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-18"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$ps2pdf</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ps2pdf.exe %O %S %D'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-19"></span>
+<span id="cb1-20"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PDF の作成方法を指定するオプション</span></span>
+<span id="cb1-21"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 0; PDF を作成しない。</span></span>
+<span id="cb1-22"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 1; $pdflatex を利用して PDF を作成。</span></span>
+<span id="cb1-23"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 2; $ps2pdf を利用して .ps ファイルから PDF を作成。</span></span>
+<span id="cb1-24"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## pdf_mode = 3; $dvipdf を利用して .dvi ファイルから PDF を作成。</span></span>
+<span id="cb1-25"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 4; $lualatex を利用して .dvi ファイルから PDF を作成。</span></span>
+<span id="cb1-26"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 5; xdvipdfmx を利用して .xdv ファイルから PDF を作成。</span></span>
+<span id="cb1-27"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdf_mode</span> = 4<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb1-28"></span>
+<span id="cb1-29"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PDF viewer の設定</span></span>
+<span id="cb1-30"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdf_previewer</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"start %S"</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span>  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># "start %S": .pdf に関連付けられた既存のソフトウェアで表示する。</span></span></code></pre></div>
+</div>
+<p>ここでは<code>$pdf_previewer = "start %S"</code>となっていますが、これは既定のPDFビュワーで開くという設定です。</p>
+<p>次に、先ほどインストールしたSumatra PDFで開く設定方法です。</p>
+</section>
+<section id="latexmkecsumatra-pdf-ver." class="level3">
+<h3 class="anchored" data-anchor-id="latexmkecsumatra-pdf-ver."><code>.latexmkec</code>（Sumatra PDF ver.）</h3>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+隠しファイルの表示
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>以下の設定をする場合は隠しファイルを表示する設定にする必要があります。上の拡張子を表示する設定の下に「隠しファイル」という項目がありますので、そこにチェックを入れてください。</p>
+</div>
+</div>
+<p>内容は上のとほとんど同じです。Sumatra PDFで開くために、次のことを確認してください。</p>
+<ol type="1">
+<li>エクスプローラーを開く</li>
+<li>先ほど<code>.latexmkrc</code>ファイルを作成したディレクトリの上の方に<code>AppData</code>があるのでダブルクリック</li>
+<li><code>Local</code>&gt;<code>SumatraPDF</code>と進む</li>
+<li><code>SumatraPDF.exe</code>を右クリックし、パスのコピーを選択</li>
+<li>一番最後のイコールの後にペースト</li>
+</ol>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 通常の LaTeX ドキュメントのビルドコマンド</span></span>
+<span id="cb2-2"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$latex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'uplatex %O -kanji=utf8 -no-guess-input-enc -synctex=1 -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pdfLaTeX のビルドコマンド</span></span>
+<span id="cb2-4"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdflatex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'pdflatex %O -synctex=1 -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># LuaLaTeX のビルドコマンド</span></span>
+<span id="cb2-6"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$lualatex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'lualatex %O -synctex=1 -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># XeLaTeX のビルドコマンド</span></span>
+<span id="cb2-8"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$xelatex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'xelatex %O -no-pdf -synctex=1 -shell-escape -interaction=nonstopmode %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Biber, BibTeX のビルドコマンド</span></span>
+<span id="cb2-10"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$biber</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'biber %O --bblencoding=utf8 -u -U --output_safechars %B'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-11"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$bibtex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'upbibtex %O %B'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># makeindex のビルドコマンド</span></span>
+<span id="cb2-13"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$makeindex</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'upmendex %O -o %D %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-14"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># dvipdf のビルドコマンド</span></span>
+<span id="cb2-15"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$dvipdf</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dvipdfmx %O -o %D %S'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-16"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># dvipd のビルドコマンド</span></span>
+<span id="cb2-17"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$dvips</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'dvips %O -z -f %S | convbkmk -u &gt; %D'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-18"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$ps2pdf</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ps2pdf.exe %O %S %D'</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-19"></span>
+<span id="cb2-20"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PDF の作成方法を指定するオプション</span></span>
+<span id="cb2-21"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 0; PDF を作成しない。</span></span>
+<span id="cb2-22"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 1; $pdflatex を利用して PDF を作成。</span></span>
+<span id="cb2-23"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 2; $ps2pdf を利用して .ps ファイルから PDF を作成。</span></span>
+<span id="cb2-24"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## pdf_mode = 3; $dvipdf を利用して .dvi ファイルから PDF を作成。</span></span>
+<span id="cb2-25"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 4; $lualatex を利用して .dvi ファイルから PDF を作成。</span></span>
+<span id="cb2-26"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">## $pdf_mode = 5; xdvipdfmx を利用して .xdv ファイルから PDF を作成。</span></span>
+<span id="cb2-27"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdf_mode</span> = 4<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span></span>
+<span id="cb2-28"></span>
+<span id="cb2-29"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PDF viewer の設定</span></span>
+<span id="cb2-30"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdf_previewer</span> = </span></code></pre></div>
+<p>次のようになるはずです。というか、以下をコピペしてユーザー名のところだけ自分のに変えるのでもいいです。</p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdf_previewer</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C:\Users\ユーザー名\AppData\Local\SumatraPDF\SumatraPDF.exe"</span></span></code></pre></div>
+<p>しかしこれで終わりではありません。最後に、パス内のバックスラッシュを二重にする必要があります！</p>
+<p>最終的には次のようになります。</p>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$pdf_previewer</span> = <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C:</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\\</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Users</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\\</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">ユーザー名</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\\</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">AppData</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\\</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Local</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\\</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">SumatraPDF</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\\</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">SumatraPDF.exe"</span></span></code></pre></div>
+<p>これでPDF出力の際にSumatra PDFで開かれるようになり、コンパイルのストレスが軽減されます。</p>
+</section>
+</section>
+<section id="vscodeでコンパイル" class="level2">
+<h2 class="anchored" data-anchor-id="vscodeでコンパイル">VSCodeでコンパイル</h2>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+はじめに
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>まず、VSCodeを既に開いている場合、一度閉じて再度開いてください。TeX Liveの設定を反映させるためです。</p>
+</div>
+</div>
+<section id="設定" class="level3">
+<h3 class="anchored" data-anchor-id="設定">設定</h3>
+<p>画面左の拡張機能アイコン<img src="https://yo5uke.github.io/tips/240901_tex_live/image/extention_icon.png" class="img-fluid">を開き、検索窓に<code>James-Yu.latex-workshop</code>を入力します。これがLaTeX用の拡張機能です。</p>
+<p>インストールしたら、VSCodeを再起動して設定を反映させます。</p>
+<p>ここからの設定は以下の手順です。</p>
+<ol type="1">
+<li>左下の「管理」（設定アイコン）から「設定」をクリック</li>
+<li>右上の「設定を開く」<img src="https://yo5uke.github.io/tips/240901_tex_live/image/json_icon.png" class="img-fluid">をクリック</li>
+<li><code>{ }</code> の中に以下の内容をペースト、保存<sup>2</sup></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>settings.json</strong></pre>
+</div>
+<div class="sourceCode" id="cb5" data-filename="settings.json" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb5-1"><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">日本語文書で単語移動を使うため、助詞や読点、括弧を区切り文字として指定する</span></span>
+<span id="cb5-2">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"editor.wordSeparators":</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"./\\()\"'-:,.;&lt;&gt;~!@#$%^&amp;*|+=</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{}</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">`~?　、。「」【】『』（）！？てにをはがのともへでや",</span></span>
+<span id="cb5-3"></span>
+<span id="cb5-4">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">設定:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Workshop</span></span>
+<span id="cb5-5"></span>
+<span id="cb5-6">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Workshop</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ではビルド設定を「Tool」と「Recipe」という2つで考える</span></span>
+<span id="cb5-7">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span>   <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Tool:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">実行される1つのコマンド。コマンド</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(command)</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">と引数</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(args)</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で構成される</span></span>
+<span id="cb5-8">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span>   <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Recipe:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Tool</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">の組み合わわせを定義する。Tool</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">の組み合わせ</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(tools)</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で構成される。</span></span>
+<span id="cb5-9">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span>           <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">tools</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">の中で利用される</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Tool</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">は</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.latex.tools"</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で定義されている必要がある。</span></span>
+<span id="cb5-10">    </span>
+<span id="cb5-11">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex-workshop.latex.tools:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Tool</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">の定義</span></span>
+<span id="cb5-12">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.latex.tools":</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-13">      </span>
+<span id="cb5-14">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latexmk</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">を利用した</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">lualatex</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">によるビルドコマンド</span></span>
+<span id="cb5-15">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-16">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (LuaLaTeX)"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-17">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"command"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"latexmk"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-18">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"args"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-19">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-f"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-gg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-pv"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-lualatex"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-synctex=1"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-interaction=nonstopmode"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-file-line-error"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%DOC%"</span></span>
+<span id="cb5-20">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-21">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-22">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latexmk</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">を利用した</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">xelatex</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">によるビルドコマンド</span></span>
+<span id="cb5-23">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-24">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (XeLaTeX)"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-25">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"command"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"latexmk"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-26">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"args"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-27">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-f"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-gg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-pv"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-xelatex"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-synctex=1"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-interaction=nonstopmode"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-file-line-error"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%DOC%"</span></span>
+<span id="cb5-28">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-29">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-30">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latexmk</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">を利用した</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">uplatex</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">によるビルドコマンド</span></span>
+<span id="cb5-31">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-32">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (upLaTeX)"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-33">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"command"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"latexmk"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-34">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"args"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-35">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-f"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-gg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-pv"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-synctex=1"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-interaction=nonstopmode"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-file-line-error"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%DOC%"</span></span>
+<span id="cb5-36">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-37">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-38">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latexmk</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">を利用した</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">platex</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">によるビルドコマンド</span></span>
+<span id="cb5-39">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">古い</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">のテンプレートを使いまわしている</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(ドキュメントクラスが</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">jreport</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">や</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">jsreport</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">)</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">場合のため</span></span>
+<span id="cb5-40">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-41">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (pLaTeX)"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-42">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"command"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"latexmk"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-43">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"args"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-44">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-f"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-gg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-pv"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-latex='platex'"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-latexoption='-kanji=utf8 -no-guess-input-env'"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-synctex=1"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-interaction=nonstopmode"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-file-line-error"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%DOC%"</span></span>
+<span id="cb5-45">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-46">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb5-47">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-48"></span>
+<span id="cb5-49">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex-workshop.latex.recipes:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Recipe</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">の定義</span></span>
+<span id="cb5-50">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.latex.recipes":</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-51">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LuaLaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で書かれた文書のビルドレシピ</span></span>
+<span id="cb5-52">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-53">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"LuaLaTeX"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-54">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"tools"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-55">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (LuaLaTeX)"</span></span>
+<span id="cb5-56">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-57">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-58">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">XeLaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で書かれた文書のビルドレシピ</span></span>
+<span id="cb5-59">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-60">          </span>
+<span id="cb5-61">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"XeLaTeX"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-62">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"tools"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-63">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (XeLaTeX)"</span></span>
+<span id="cb5-64">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-65">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-66">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX(upLaTeX)</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で書かれた文書のビルドレシピ</span></span>
+<span id="cb5-67">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-68">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"upLaTeX"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-69">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"tools"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-70">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (upLaTeX)"</span></span>
+<span id="cb5-71">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-72">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-73">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX(pLaTeX)</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で書かれた文書のビルドレシピ</span></span>
+<span id="cb5-74">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-75">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pLaTeX"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-76">          <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"tools"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-77">            <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Latexmk (pLaTeX)"</span></span>
+<span id="cb5-78">          <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb5-79">        <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-80">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-81"></span>
+<span id="cb5-82">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex-workshop.latex.magic.args:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">マジックコメント付きの</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ドキュメントをビルドする設定</span></span>
+<span id="cb5-83">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">'%!TEX'</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">で始まる行はマジックコメントと呼ばれ、LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">のビルド時にビルドプログラムに解釈され、</span></span>
+<span id="cb5-84">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">プログラムの挙動を制御する事ができる。</span></span>
+<span id="cb5-85">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">参考リンク:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">https://blog.miz-ar.info/2016/11/magic-comments-in-tex/</span></span>
+<span id="cb5-86">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.latex.magic.args":</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-87">      <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-f"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-gg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-pv"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-synctex=1"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-interaction=nonstopmode"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-file-line-error"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%DOC%"</span></span>
+<span id="cb5-88">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-89"></span>
+<span id="cb5-90">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex-workshop.latex.clean.fileTypes:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">クリーンアップ時に削除されるファイルの拡張子</span></span>
+<span id="cb5-91">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">文書はビルド時に一時ファイルとしていくつかのファイルを生成するが、最終的に必要となるのは</span></span>
+<span id="cb5-92">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">PDF</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ファイルのみである場合などが多い。また、LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">のビルド時に失敗した場合、失敗時に生成された</span></span>
+<span id="cb5-93">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">一時ファイルの影響で、修正後のビルドに失敗してしまう事がよくある。そのため、一時的なファイルを</span></span>
+<span id="cb5-94">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">削除する機能</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(クリーンアップ)</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">が</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Workshop</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">には備わっている。</span></span>
+<span id="cb5-95">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.latex.clean.fileTypes":</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb5-96">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.aux"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.bbl"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.blg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.idx"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.ind"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.lof"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.lot"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.out"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.toc"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.acn"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.acr"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.alg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.glg"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.glo"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.gls"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.ist"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.fls"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.log"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.fdb_latexmk"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.synctex.gz"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-97">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">for</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Beamer</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">files</span></span>
+<span id="cb5-98">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"_minted*"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.nav"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.snm"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.vrb"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-99">    <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-100"></span>
+<span id="cb5-101">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex-workshop.latex.autoClean.run:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ビルド失敗時に一時ファイルのクリーンアップを行うかどうか</span></span>
+<span id="cb5-102">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">上記説明にもあったように、ビルド失敗時に生成された一時ファイルが悪影響を及ぼす事があるため、自動で</span></span>
+<span id="cb5-103">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">クリーンアップがかかるようにしておく。</span></span>
+<span id="cb5-104"></span>
+<span id="cb5-105">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.latex.autoClean.run":</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"onBuilt",</span></span>
+<span id="cb5-106"></span>
+<span id="cb5-107">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex-workshop.view.pdf.viewer:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">PDF</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ビューアの開き方</span></span>
+<span id="cb5-108">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">VSCode</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">自体には</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">PDF</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ファイルを閲覧する機能が備わっていないが、</span></span>
+<span id="cb5-109">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Workshop</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">にはその機能が備わっている。</span></span>
+<span id="cb5-110">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"tab"</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">オプションを指定すると、今開いているエディタを左右に分割し、右側に生成されたPDFを表示するようにしてくれる</span></span>
+<span id="cb5-111">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">この</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">PDF</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ビュアーは</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">のビルドによって更新されると同期して内容を更新してくれる。</span></span>
+<span id="cb5-112">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.view.pdf.viewer":</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"tab",</span></span>
+<span id="cb5-113"></span>
+<span id="cb5-114">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex-workshop.latex.autoBuild.run:</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">.tex</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ファイルの保存時に自動的にビルドを行うかどうか</span></span>
+<span id="cb5-115">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ファイルは</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">.tex</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ファイルを変更後にビルドしないと、PDF</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ファイル上に変更結果が反映されないため、</span></span>
+<span id="cb5-116">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">.tex</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ファイルの保存と同時に自動的にビルドを実行する設定があるが、文書が大きくなるに連れてビルドにも</span></span>
+<span id="cb5-117">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">時間がかかってしまい、ビルドプログラムの負荷がエディタに影響するため、無効化しておく。</span></span>
+<span id="cb5-118">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.latex.autoBuild.run":</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"never",</span></span>
+<span id="cb5-119"></span>
+<span id="cb5-120">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">tex</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">":</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-121">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">スニペット補完中にも補完を使えるようにする</span></span>
+<span id="cb5-122">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"editor.suggest.snippetsPreventQuickSuggestions"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">false</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-123">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">インデント幅を2にする</span></span>
+<span id="cb5-124">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"editor.tabSize"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb5-125">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-126"></span>
+<span id="cb5-127">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">latex</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">":</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-128">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">スニペット補完中にも補完を使えるようにする</span></span>
+<span id="cb5-129">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"editor.suggest.snippetsPreventQuickSuggestions"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">false</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-130">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">インデント幅を2にする</span></span>
+<span id="cb5-131">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"editor.tabSize"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb5-132">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-133"></span>
+<span id="cb5-134">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">bibtex</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">":</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb5-135">        <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">インデント幅を2にする</span></span>
+<span id="cb5-136">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"editor.tabSize"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb5-137">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb5-138"></span>
+<span id="cb5-139"></span>
+<span id="cb5-140">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">----------</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">LaTeX</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Workshop</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">----------</span></span>
+<span id="cb5-141"></span>
+<span id="cb5-142">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">使用パッケージのコマンドや環境の補完を有効にする</span></span>
+<span id="cb5-143">    <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"latex-workshop.intellisense.package.enabled":</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">true,</span></span></code></pre></div>
+</div>
+</section>
+<section id="いよいよコンパイル" class="level3">
+<h3 class="anchored" data-anchor-id="いよいよコンパイル">いよいよコンパイル</h3>
+<p>エクスプローラー上で好きな場所にフォルダーを作っておきます。</p>
+<p>お試しなので<code>test</code>とかでよいと思います。</p>
+<p>VSCode上で左上の「ファイル」から「フォルダーを開く」をクリックし、今作成したフォルダをクリックし、「選択」をクリックします。</p>
+<p>左上の<code>TEST</code>の右にある「ファイルを作成」をクリックし、<code>test.tex</code>のような<code>.tex</code>ファイルを作成します。</p>
+<p>作成できたら、以下のようなサンプルコードを書いてみます。</p>
+<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode latex code-with-copy"><code class="sourceCode latex"><span id="cb6-1"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">\documentclass</span>{<span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">ltjsarticle</span>}</span>
+<span id="cb6-2"></span>
+<span id="cb6-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">\title</span>{日本語のLaTeX入門}</span>
+<span id="cb6-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">\author</span>{あなたの名前}</span>
+<span id="cb6-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">\date</span>{<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">\today</span>}</span>
+<span id="cb6-6"></span>
+<span id="cb6-7"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">\begin</span>{<span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">document</span>}</span>
+<span id="cb6-8"></span>
+<span id="cb6-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">\maketitle</span></span>
+<span id="cb6-10"></span>
+<span id="cb6-11"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">\section</span>{はじめに}</span>
+<span id="cb6-12">LaTeXは、高品質な文書を作成するための強力なツールです。日本語でも簡単に利用することができます。</span>
+<span id="cb6-13"></span>
+<span id="cb6-14"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">\section</span>{基本的な書き方}</span>
+<span id="cb6-15">LaTeXでは、文章をセクションやパラグラフに分けることができます。また、数式や図表の挿入も簡単に行えます。</span>
+<span id="cb6-16"></span>
+<span id="cb6-17"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">\section</span>{結論}</span>
+<span id="cb6-18">LaTeXを使えば、美しい日本語の文書を作成することができます。ぜひ活用してみてください。</span>
+<span id="cb6-19"></span>
+<span id="cb6-20"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">\end</span>{<span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">document</span>}</span></code></pre></div>
+<p>ファイルを<code>Ctrl</code> + <code>S</code>で保存したら、右上の緑の▷、ビルドボタンをクリックしてコンパイルしましょう！</p>
+<p>すると以下のようなSumatra PDFのウィンドウが出てくるのではないでしょうか。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/output_sumatrapdf.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:50.0%"></p>
+</figure>
+</div>
+<p>いい感じですね。そしたらSumatra PDFの魅力を感じるために、適当に内容を変え、再度コンパイルしてみてください。</p>
+<p>Sumatra PDFを一度閉じなくても、修正されたPDFが出てくるのではないでしょうか。Adobeではこれができません。</p>
+<p>先ほど別にいっかーと思ってインストールしてなかった方、してみてはいかがでしょうか笑</p>
+</section>
+</section>
+<section id="エラーパッケージ不足" class="level2">
+<h2 class="anchored" data-anchor-id="エラーパッケージ不足">エラー：パッケージ不足</h2>
+<p>いつかパッケージが足りなくてコンパイルできなくなることがあるかもしれません。</p>
+<p>次のようなエラーが出てきた場合、「Open compiler log」をクリックします。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/240901_tex_live/image/compile_error.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<p>ログを少し上に遡ると、例えば次のような文言が目に入ります。</p>
+<pre><code>! LaTeX Error: File `type1cm.sty' not found.</code></pre>
+<p>これは<code>type1cmパッケージ</code>が足りていないことを指しています。</p>
+<p>そしたら最初の方で開いたTeX Live Managerを開き、<code>latexmk</code>の時と同様に未インストールを選択したうえで検索窓に<code>type1cm</code>と入力します。</p>
+<p>出てきた項目にチェックを入れ、「選択項目をインストール」をクリックしてインストールしてください。</p>
+<p>これでパッケージを補い、コンパイルできるはずです。まだ足りなかったら、同様の方法でインストールすることで対処できます。</p>
+</section>
+<section id="最後に" class="level2">
+<h2 class="anchored" data-anchor-id="最後に">最後に</h2>
+<p>これで基本的なLaTeX環境の構築ができました。</p>
+<p>冒頭に紹介したサイトにかなり頼る形にはなりましたが、自分が詰まったところは改善して追記してあります。</p>
+<p>不明点があれば元サイトを参照していただくか、コメントをお願いします。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>ダウンロードフォルダやビデオフォルダがあれば、そこが正解です。↩︎</p></li>
+<li id="fn2"><p><code>{ }</code>は消さないでください。また、既に何か書き込まれている場合、前の内容の最後をカンマで区切り、改行したうえで貼り付けてください。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>LaTeX</category>
+  <category>VSCode</category>
+  <guid>https://yo5uke.github.io/tips/240901_tex_live/</guid>
+  <pubDate>Sat, 31 Aug 2024 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.github.io/tips/240901_tex_live/image/texlive_installer.png" medium="image" type="image/png" height="140" width="144"/>
+</item>
 <item>
   <title>DVCのためのGoogle Cloud Project</title>
   <link>https://yo5uke.github.io/tips/240831_google_cloud_project/</link>
@@ -9749,165 +11488,6 @@ font-style: inherit;">True</span>)</span>
   <category>R</category>
   <guid>https://yo5uke.github.io/tips/240508_jupyter/</guid>
   <pubDate>Tue, 07 May 2024 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【R パッケージ】インストールも読み込みも一撃で？【pacman】</title>
-  <link>https://yo5uke.github.io/tips/240507_pacman/</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>何か新しいプロジェクトを始める際に、新しいパッケージをいちいちインストールして読み込むのは面倒ですよね。</p>
-<p>そんな時に便利な <code>pacman</code> パッケージのご紹介です。</p>
-</section>
-<section id="pacman-とは" class="level2">
-<h2 class="anchored" data-anchor-id="pacman-とは">pacman とは</h2>
-<p>ざっくり言うと、パッケージのマネジメントツールです。このパッケージには <code>p_</code> で始まる様々な関数が含まれています。</p>
-<p>特に便利なのが <code>p_load()</code> で、パッケージのインストールと読み込みを両方してくれます。もちろんインストール済みのパッケージは、読み込むだけです。</p>
-<p>さらに便利なのは、複数のパッケージをまとめて書けるということです。<code>install.packages()</code> は一度に複数のパッケージをインストールできるものの、<code>library()</code> はパッケージごとにしなくてはなりません。その点 <code>pacman::p_load()</code> は、括弧内にパッケージを並べて書くことで、複数のパッケージを一度にインストール、読み込みまでしてくれます（しかもダブルクォーテーションで囲まなくてよい！）。</p>
-</section>
-<section id="使ってみる" class="level2">
-<h2 class="anchored" data-anchor-id="使ってみる">使ってみる</h2>
-<p>早速使ってみます。今回は、<code>tidyverse</code>, <code>sf</code>, <code>here</code> の3つを使いたいとして、まだインストールもしていないとします。</p>
-<section id="library" class="level3">
-<h3 class="anchored" data-anchor-id="library">library()</h3>
-<p>まず、インストールします。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"tidyverse"</span>)</span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"sf"</span>)</span>
-<span id="cb1-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"here"</span>)</span></code></pre></div>
-</div>
-<p>次に、読み込みます。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span></code></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-✔ dplyr     1.1.4     ✔ readr     2.1.5
-✔ forcats   1.0.0     ✔ stringr   1.5.1
-✔ ggplot2   3.5.1     ✔ tibble    3.2.1
-✔ lubridate 1.9.3     ✔ tidyr     1.3.1
-✔ purrr     1.0.2     
-── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-✖ dplyr::filter() masks stats::filter()
-✖ dplyr::lag()    masks stats::lag()
-ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(sf)</span></code></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>Linking to GEOS 3.10.2, GDAL 3.4.1, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
-</div>
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(here)</span></code></pre></div>
-<div class="cell-output cell-output-stderr">
-<pre><code>here() starts at /home/rstudio/work</code></pre>
-</div>
-</div>
-<p>これで使えるようになりました。</p>
-</section>
-<section id="p_load" class="level3">
-<h3 class="anchored" data-anchor-id="p_load">p_load()</h3>
-<p><code>pacman::p_load()</code> はこれで一発です。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">pacman<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">p_load</span>(tidyverse, sf, here)</span></code></pre></div>
-</div>
-<p>この場合、上に出てきたような読み込みに付随するメッセージは出てきません。</p>
-</section>
-</section>
-<section id="使うにあたって" class="level2">
-<h2 class="anchored" data-anchor-id="使うにあたって">使うにあたって</h2>
-<p><code>pacman</code> がパッケージである以上、はじめに <code>install.packages("pacman")</code> はしなければなりません。それ以降は <code>install.packages()</code> とはおさらばできます。</p>
-<p><code>packman::</code> の書き方を使って、<code>library(pacman)</code>も省略しましょう<sup>1</sup>。</p>
-<p>また、Docker を用いて環境構築する場合、Dockerfile にインストールすることを指示しておけば、それすら要らなくなります<sup>2</sup>。</p>
-<p>Dockerfile に以下を追加します。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Dockerfile</strong></pre>
-</div>
-<div class="sourceCode" id="cb9" data-filename="Dockerfile" style="background: #f1f3f5;"><pre class="sourceCode dockerfile code-with-copy"><code class="sourceCode dockerfile"><span id="cb9-1"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">RUN</span> <span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">R</span> <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">-e</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"install.packages('pacman')"</span></span></code></pre></div>
-</div>
-<p>これでビルドすれば、RStudio でインストールせずとも <code>pacman</code> が使えます。</p>
-</section>
-<section id="おまけ" class="level2">
-<h2 class="anchored" data-anchor-id="おまけ">おまけ</h2>
-<p>パッケージを全部アップデートしたい、なんてこともありますよね。RStudio から一括でやる方法もありますが、せっかくなので <code>pacman</code> を使ってやってみましょう。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1">pacman<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">p_update</span>()</span></code></pre></div>
-</div>
-<p>これでいけます。</p>
-</section>
-<section id="まとめ" class="level2">
-<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
-<p><code>pacman</code> パッケージをご紹介しました。</p>
-<p><code>library()</code> とどちらを使うかはお好み次第だと思います。</p>
-<p>魅力を感じた方はぜひ使ってみてください！</p>
-</section>
-<section id="参考" class="level2">
-<h2 class="anchored" data-anchor-id="参考">参考</h2>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://qiita.com/taiyodayo/items/e69d997754d55e3d7e4c">“install.packages()”するのはこれが最後！Rのパッケージ管理には「pacman」を使おう</a></p>
-</div>
-</div>
-</div>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>この書き方では、<code>library()</code> を使わずともパッケージ内の関数が使えます。一度だけ使いたい！というときに便利です。また、どのパッケージに属しているかが明確になるというメリットもあります。↩︎</p></li>
-<li id="fn2"><p><a href="../240504_container/index.html">こちら</a>を参照↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <guid>https://yo5uke.github.io/tips/240507_pacman/</guid>
-  <pubDate>Mon, 06 May 2024 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.github.io/tips/240507_pacman/image/Rlogo.png" medium="image" type="image/png" height="112" width="144"/>
 </item>
 </channel>
 </rss>
