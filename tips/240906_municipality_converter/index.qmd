@@ -1,0 +1,305 @@
+---
+title: "市町村合併を反映させる"
+description: |
+  古いデータに市町村合併を反映させる方法をご紹介します。
+date: 2024-09-06
+categories: 
+  - R
+  - データ処理
+editor: visual
+---
+
+## はじめに
+
+市町村合併（平成の大合併）前のデータを使わなければならない場合に、うまく市町村コードを新使いながらパネルデータを作成する方法についてご紹介します。
+
+この記事では[近藤恵介](https://keisukekondokk.github.io/)先生（RIETI、神戸大学）が作成された市町村コンバーターを使用します。
+
+以下のGitHubリポジトリよりダウンロードが可能です。
+
+<https://github.com/keisukekondokk/municipality-converter>
+
+## 方法
+
+### コンバーターファイルのダウンロードと読み込み
+
+[GitHubリポジトリ](https://github.com/keisukekondokk/municipality-converter)の`data_converter`内にある`municipality_converter_jp.csv`を開きます[^1]。次のリンクから直接飛ぶことも可能です。
+
+[^1]: 別に英語版でもよいです。
+
+<https://github.com/keisukekondokk/municipality-converter/blob/master/data_converter/municipality_converter_jp.csv>
+
+`municipality_converter_jp.csv`を開くと、コード右上にあるダウンロードアイコン[^2]より任意の場所にダウンロードが可能です。
+
+[^2]: カーソルを合わせると「Download raw file」と出てきます。
+
+ダウンロードできたら、Rで読み込みます。
+
+```{r}
+library(tidyverse)
+library(here)
+
+converter <- read_csv(here("data/240906_municipality_converter/municipality_converter_jp.csv"))
+```
+
+### パネル化したいデータの準備
+
+::: callout-note
+## 使用するデータ
+
+今回使用するデータは[こちら](https://drive.google.com/drive/folders/1UbZGB2yIjO9jpXuJIihU9-0INqGzLvQ5?usp=sharing)からダウンロードできます。
+:::
+
+例えば人口データをパネル化したいとします。今回は例として、2000年から2005年の人口データ[^3]を、2020年の市町村区分になるようにくっつけます。例なので、総人口のみを扱います。
+
+[^3]: 住民基本台帳より
+
+今回使用するデータは次のようなファイルになっています。
+
+![](image/population_data.png){fig-align="center" width="80%"}
+
+まずはこれらのファイル（自分がパネル化したいデータがあればそれらのファイル）をRで読み込んでください。`.xls`ファイルであれば`readxl`パッケージの`read_xls()`を僕は使っています。以下は5年分まとめて読み込むときの例です。
+
+``` r
+library(readxl)
+
+for (year in 2000:2005) {
+  obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), 
+                  skip = 4) |> 
+    select(1:3, 6)
+  
+  colnames(obj) <- c("code", "prefecture", "municipality", "population")
+  
+  obj <- obj |> 
+    mutate(code = as.numeric(code) %/% 10)
+  
+  assign(paste0("pop_", year), obj)
+}
+```
+
+```{r}
+#| echo: false
+
+library(readxl)
+
+for (year in 2000:2005) {
+  obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
+    select(1:3, 6)
+  
+  colnames(obj) <- c("code", "prefecture", "municipality", "population")
+  
+  obj <- obj |> 
+    mutate(
+      municipality = str_replace_all(municipality, "\\p{C}|\\s+", ""), 
+      municipality = na_if(municipality, ""), 
+      code = as.numeric(code) %/% 10
+    )
+  
+  assign(paste0("pop_", year), obj)
+}
+```
+
+forループや`assign()`についての説明は行いませんが、これで2000年から2005年までを一括で読み込むことができます。ポイントは、今回使用するコンバーターはキーとなるコードが整数かつ下1桁を落としているため、`mutate(code = as.numeric(code) %/% 10)`で処理しているところです。
+
+とりあえずここで重要なことは、`select()`で必要な列のみ取り出しているのですが、**団体コードと人口の列は必ず取り出すこと**です。市町村名も一応取り出していますが、別になくてもよいです。
+
+### 2020年の自治体コードを付与
+
+合併前のデータに、合併後の自治体コードを付与します。具体的には、人口データの`code`とコンバーターの`merge_id_muni`をキーにして`left_join()`し、`id_muni2020`を付与します。
+
+これもまとめて6年分やりたいので、先ほどのコードに追記します。
+
+``` r
+for (year in 2000:2005) {
+  obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
+    select(1:3, 6)
+  
+  colnames(obj) <- c("code", "prefecture", "municipality", "population")
+  
+  obj <- obj |> 
+    mutate(code = as.numeric(code) %/% 10) |> 
+    left_join(converter, by = c("code" = "merge_id_muni")) |> 
+    select(code, prefecture, municipality, population, id_muni2020)
+  
+  assign(paste0("pop_", year), obj)
+}
+```
+
+```{r}
+#| echo: false
+
+for (year in 2000:2005) {
+  obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
+    select(1:3, 6)
+  
+  colnames(obj) <- c("code", "prefecture", "municipality", "population")
+  
+  obj <- obj |> 
+    mutate(
+      municipality = str_replace_all(municipality, "\\p{C}|\\s+", ""), 
+      municipality = na_if(municipality, ""), 
+      code = as.numeric(code) %/% 10
+    ) |> 
+    left_join(converter, by = c("code" = "merge_id_muni")) |> 
+    select(code, prefecture, municipality, population, id_muni2020)
+  
+  assign(paste0("pop_", year), obj)
+}
+
+```
+
+試しに`pop_2020`の変数名を`colnames(pop_2020)`などで確認してみると、`r colnames(pop_2000)`となっていることがわかります。
+
+### `id_muni2020`を使ってサマライズ
+
+例えばB市とC市がA市に合併した場合、Aはもとから2020年基準の自治体コードを持っていますが、B市とC市は古い自治体コードを持っていて、新しく2020年の自治体コードを付与されています。
+
+すなわち、`id_muni2020`の列を見ると、A市と同じ自治体コードをB市とC市は持っていることになります。
+
+これを使うと、各自治体コードで人口を足し算すれば、現在の自治体区分における人口総数を算出することができます。これを実行するのが`summarise()`関数です。
+
+```{r}
+for (year in 2000:2005) {
+  df <- get(paste0("pop_", year))
+  
+  summarised_df <- df |> 
+    summarise(population = sum(population, na.rm = TRUE), 
+              .by = id_muni2020)
+  
+  assign(paste0("summarised_pop_", year), summarised_df)
+}
+```
+
+forループの中でデータフレーム名を取得するのは少々ややこしいですが、以上のような書き方で可能です。
+
+`summarise()`内では`.by`で指定した`id_muni2020`ごとに`population`を`sum()`するようになっています。`na.rm = TRUE`は、NAがあった場合に計算結果がNAにならないようにするために必要です。
+
+以上を実行すると、`summarised_pop_2000`～`summarised_pop_2005`までが出来上がります。
+
+ちなみにここで使っている変数が`id_muni2020`と`population`だけなので、出来上がったデータフレームもこの2つの変数しか入っていません。市町村名も残したい場合は、`.by`で`prefecture`と`municipality`も追加で指定すれば残すことができます。
+
+### `left_join()`でくっつける
+
+```{r}
+# ベースとなるデータフレームを作っておく
+final_df <- summarised_pop_2000 |> 
+  rename(population_2000 = population)
+
+for (year in 2001:2005) {
+  df_to_join <- get(paste0("summarised_pop_", year)) |> 
+    rename_with(~ paste0(., "_", year), population)
+  
+  
+  final_df <- left_join(final_df, df_to_join, 
+                        by = c("id_muni2020"))
+}
+```
+
+`population`の列が複数出てくるので、それらの後が`_20xx`となるように`rename_with()`で設定しています。
+
+以上の作業で合併前のデータを最新の市町村区分を基準として結合することができました。
+
+これを応用して変数を追加したりロング形式に変換することが可能です。
+
+## まとめ
+
+今回紹介したコードをまとめると以下の通りです。
+
+``` r
+for (year in 2000:2005) {
+  obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
+    select(1:3, 6)
+  
+  colnames(obj) <- c("code", "prefecture", "municipality", "population")
+  
+  obj <- obj |> 
+    mutate(code = as.numeric(code) %/% 10) |> 
+    left_join(converter, by = c("code" = "merge_id_muni")) |> 
+    select(code, prefecture, municipality, population, id_muni2020)
+  
+  assign(paste0("pop_", year), obj)
+}
+
+for (year in 2000:2005) {
+  df <- get(paste0("pop_", year))
+  
+  summarised_df <- df |> 
+    summarise(population = sum(population, na.rm = TRUE), 
+              .by = id_muni2020)
+  
+  assign(paste0("summarised_pop_", year), summarised_df)
+}
+
+final_df <- summarised_pop_2000 |> 
+  rename(population_2000 = population)
+
+for (year in 2001:2005) {
+  df_to_join <- get(paste0("summarised_pop_", year)) |> 
+    rename_with(~ paste0(., "_", year), population)
+  
+  
+  final_df <- left_join(final_df, df_to_join, 
+                        by = c("id_muni2020"))
+}
+```
+
+さらに1つのコードで完結させる場合は次のようになります。
+
+``` r
+for (year in 2000:2005) {
+  obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
+    select(1:3, 6)
+  
+  colnames(obj) <- c("code", "prefecture", "municipality", "population")
+  
+  summarised_df <- obj |> 
+    mutate(code = as.numeric(code) %/% 10) |> 
+    left_join(converter, by = c("code" = "merge_id_muni")) |> 
+    select(code, prefecture, municipality, population, id_muni2020) |> 
+    summarise(population = sum(population, na.rm = TRUE), .by = id_muni2020)
+  
+  if (year == 2000) {
+    final_df <- summarised_df |> 
+      rename(population_2000 = population)
+  } else {
+    summarised_df <- summarised_df |> 
+      rename_with(~ paste0("population_", year), population)
+    
+    final_df <- left_join(final_df, summarised_df, by = "id_muni2020")
+  }
+}
+```
+
+```{r}
+#| echo: false
+
+for (year in 2000:2005) {
+  obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
+    select(1:3, 6)
+  
+  colnames(obj) <- c("code", "prefecture", "municipality", "population")
+  
+  summarised_df <- obj |> 
+    mutate(
+      municipality = str_replace_all(municipality, "\\p{C}|\\s+", ""), 
+      municipality = na_if(municipality, ""), 
+      code = as.numeric(code) %/% 10
+    ) |> 
+    left_join(converter, by = c("code" = "merge_id_muni")) |> 
+    select(code, prefecture, municipality, population, id_muni2020) |> 
+    summarise(population = sum(population, na.rm = TRUE), .by = id_muni2020)
+  
+  if (year == 2000) {
+    final_df <- summarised_df |> 
+      rename(population_2000 = population)
+  } else {
+    summarised_df <- summarised_df |> 
+      rename_with(~ paste0("population_", year), population)
+    
+    final_df <- left_join(final_df, summarised_df, by = "id_muni2020")
+  }
+}
+
+```
+
+以上です。合併処理はめんどくさいので、少しでもお役に立てれば幸いです。
