@@ -180,8 +180,9 @@ forループの中でデータフレーム名を取得するのは少々やや�
 
 ### `left_join()`でくっつける
 
+2000年のデータフレームをベースとして2001～2005年を結合するので、最初に2000年のデータを`final_df`として格納しておきます。その際に変数名も2000年のものであることを明記します。
+
 ```{r}
-# ベースとなるデータフレームを作っておく
 final_df <- summarised_pop_2000 |> 
   rename(population_2000 = population)
 
@@ -197,6 +198,8 @@ for (year in 2001:2005) {
 
 `population`の列が複数出てくるので、それらの後が`_20xx`となるように`rename_with()`で設定しています。
 
+`final_df`が最終的なデータフレームです。確認してみてください。
+
 以上の作業で合併前のデータを最新の市町村区分を基準として結合することができました。
 
 これを応用して変数を追加したりロング形式に変換することが可能です。
@@ -206,6 +209,10 @@ for (year in 2001:2005) {
 今回紹介したコードをまとめると以下の通りです。
 
 ``` r
+library(tidyverse)
+library(here)
+library(readxl)
+
 for (year in 2000:2005) {
   obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
     select(1:3, 6)
@@ -246,6 +253,10 @@ for (year in 2001:2005) {
 さらに1つのコードで完結させる場合は次のようになります。
 
 ``` r
+library(tidyverse)
+library(here)
+library(readxl)
+
 for (year in 2000:2005) {
   obj <- read_xls(here(paste0("data/240906_municipality_converter/", year, "0331.xls")), skip = 4) |> 
     select(1:3, 6)
