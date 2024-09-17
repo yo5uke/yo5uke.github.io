@@ -1,0 +1,95 @@
+---
+title: "【データハンドリング】pivot_longer()を使ってロング形式のパネルデータを作る"
+description: |
+  ワイドからロングへ、データを変換します。
+date: 2024-09-17
+categories: 
+  - R
+  - データ処理
+image: image/computer_document_spreadsheet.png
+editor: visual
+---
+
+## はじめに
+
+今回は`tidyr`の`pivot_longer()`を使ってワイド形式のデータをロング形式にする方法をご紹介します。
+
+## 使用するパッケージ
+
+`tidyverse`を使用します。`tidyverse`には`dplyr`や`tidyr`をはじめとした諸パッケージが含まれているので、一括でやるのが便利で僕は好きです。
+
+```{r}
+library(tidyverse)
+```
+
+## データの準備
+
+今回は適当に作成していきます。
+
+```{r}
+df <- tibble(
+  Region_id = 1:2, 
+  Region = c("Region1", "Region2"),
+  Income_2000 = c(40000, 35000),
+  Income_2005 = c(42000, 37000),
+  Income_2010 = c(45000, 39000),
+  Population_2000 = c(500000, 450000),
+  Population_2005 = c(520000, 460000),
+  Population_2010 = c(540000, 470000)
+)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-wide
+#| tbl-cap: "ワイド形式のパネルデータ"
+
+tinytable::tt(df)
+
+```
+
+2つの地域について収入と人口のデータを作りました。
+
+ポイントは、主要なデータにおいて`変数名_年`となっていることです。
+
+## `pivot_longer()`を使う
+
+一番ベーシックなやり方は次の通りです。
+
+```{r}
+df_long <- df |> 
+  pivot_longer(
+    cols = starts_with(c("Income_", "Population_")), 
+    names_to = c(".value", "Year"), 
+    names_sep = "_"
+  )
+```
+
+`cols`ではロング形式に変換したい変数を指定しています。`dplyr`の`starts_with()`を使えば、複数年分の変数を一括で指定することができます。今回は`Income_`と`Population_`で始まる変数という意味です。
+
+`names_to`は新しい列名をどうするかを指定しています。`names_sep`で分割の区切りを指定しているのですが（この場合はアンダースコア）、その区切り前なら`.value`（すなわち、もとの名前のまま[^1]）、区切り後は`Year`という列に格納するという意味です。
+
+[^1]: この場合なら`Income`や`Population`
+
+できたデータフレームは次のようになります。
+
+```{r}
+#| echo: false
+#| label: tbl-long
+#| tbl-cap: "ロング形式のパネルデータ"
+
+tinytable::tt(df_long)
+
+```
+
+もし仮に、ロング形式に変換したい変数がすべてアンダースコアで区切られている場合[^2]、`cols = contain("_")`とすれば、変数が多くても一気に指定することができます。ただ今回の場合、`Region_id`がありますからうまくいきませんね。使える場面は限られそうです。
+
+[^2]: 逆に言うと、ほかの変数はアンダースコアが用いられていない場合
+
+## おわりに
+
+今回はワイド形式のデータフレームをロング形式に変換する方法をご紹介しました。
+
+僕自身`pivot_longer()`を使う時いつも何を指定すればいいんだっけ？となるので、備忘録的な意味合いが強いです😅
+
+ご参考まで。
