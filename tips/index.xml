@@ -10,7 +10,419 @@
 <atom:link href="https://yo5uke.github.io/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.5.57</generator>
-<lastBuildDate>Thu, 05 Sep 2024 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 16 Sep 2024 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【データハンドリング】pivot_longer()を使ってロング形式のパネルデータを作る</title>
+  <link>https://yo5uke.github.io/tips/240917_pivot/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>今回は<code>tidyr</code>の<code>pivot_longer()</code>を使ってワイド形式のデータをロング形式にする方法をご紹介します。</p>
+</section>
+<section id="使用するパッケージ" class="level2">
+<h2 class="anchored" data-anchor-id="使用するパッケージ">使用するパッケージ</h2>
+<p><code>tidyverse</code>を使用します。<code>tidyverse</code>には<code>dplyr</code>や<code>tidyr</code>をはじめとした諸パッケージが含まれているので、一括でやるのが便利で僕は好きです。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span></code></pre></div>
+</div>
+</section>
+<section id="データの準備" class="level2">
+<h2 class="anchored" data-anchor-id="データの準備">データの準備</h2>
+<p>今回は適当に作成していきます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb2-2">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Region_id =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, </span>
+<span id="cb2-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Region =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Region1"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Region2"</span>),</span>
+<span id="cb2-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Income_2000 =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">40000</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">35000</span>),</span>
+<span id="cb2-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Income_2005 =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42000</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">37000</span>),</span>
+<span id="cb2-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Income_2010 =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">45000</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">39000</span>),</span>
+<span id="cb2-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Population_2000 =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500000</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">450000</span>),</span>
+<span id="cb2-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Population_2005 =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">520000</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">460000</span>),</span>
+<span id="cb2-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">Population_2010 =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">540000</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">470000</span>)</span>
+<span id="cb2-10">)</span></code></pre></div>
+</div>
+<div class="cell">
+<div id="tbl-wide" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-wide-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: ワイド形式のパネルデータ
+</figcaption>
+<div aria-describedby="tbl-wide-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+      function styleCell_y71o8iojmdehx8l41z8s(i, j, css_id) {
+        var table = document.getElementById("tinytable_y71o8iojmdehx8l41z8s");
+        table.rows[i].cells[j].classList.add(css_id);
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_y71o8iojmdehx8l41z8s');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_y71o8iojmdehx8l41z8s(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_y71o8iojmdehx8l41z8s");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 0, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 1, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 2, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 3, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 4, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 5, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 6, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+window.addEventListener('load', function () { styleCell_y71o8iojmdehx8l41z8s(0, 7, 'tinytable_css_idybtucdycprxvn57r8p9m') })
+    </script>
+
+    <style>
+    .table td.tinytable_css_idybtucdycprxvn57r8p9m, .table th.tinytable_css_idybtucdycprxvn57r8p9m {  border-bottom: solid 0.1em #d3d8dc; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_y71o8iojmdehx8l41z8s" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">Region_id</th>
+                <th scope="col">Region</th>
+                <th scope="col">Income_2000</th>
+                <th scope="col">Income_2005</th>
+                <th scope="col">Income_2010</th>
+                <th scope="col">Population_2000</th>
+                <th scope="col">Population_2005</th>
+                <th scope="col">Population_2010</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Region1</td>
+                  <td>40000</td>
+                  <td>42000</td>
+                  <td>45000</td>
+                  <td>500000</td>
+                  <td>520000</td>
+                  <td>540000</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Region2</td>
+                  <td>35000</td>
+                  <td>37000</td>
+                  <td>39000</td>
+                  <td>450000</td>
+                  <td>460000</td>
+                  <td>470000</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>2つの地域について収入と人口のデータを作りました。</p>
+<p>ポイントは、主要なデータにおいて<code>変数名_年</code>となっていることです。</p>
+</section>
+<section id="pivot_longerを使う" class="level2">
+<h2 class="anchored" data-anchor-id="pivot_longerを使う"><code>pivot_longer()</code>を使う</h2>
+<p>一番ベーシックなやり方は次の通りです。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">df_long <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb3-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pivot_longer</span>(</span>
+<span id="cb3-3">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cols =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">starts_with</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Income_"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Population_"</span>)), </span>
+<span id="cb3-4">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">names_to =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">".value"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Year"</span>), </span>
+<span id="cb3-5">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">names_sep =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"_"</span></span>
+<span id="cb3-6">  )</span></code></pre></div>
+</div>
+<p><code>cols</code>ではロング形式に変換したい変数を指定しています。<code>dplyr</code>の<code>starts_with()</code>を使えば、複数年分の変数を一括で指定することができます。今回は<code>Income_</code>と<code>Population_</code>で始まる変数という意味です。</p>
+<p><code>names_to</code>は新しい列名をどうするかを指定しています。<code>names_sep</code>で分割の区切りを指定しているのですが（この場合はアンダースコア）、その区切り前なら<code>.value</code>（すなわち、もとの名前のまま<sup>1</sup>）、区切り後は<code>Year</code>という列に格納するという意味です。</p>
+<p>できたデータフレームは次のようになります。</p>
+<div class="cell">
+<div id="tbl-long" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-long-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;2: ロング形式のパネルデータ
+</figcaption>
+<div aria-describedby="tbl-long-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+      function styleCell_ffqycpk492q2hdug532r(i, j, css_id) {
+        var table = document.getElementById("tinytable_ffqycpk492q2hdug532r");
+        table.rows[i].cells[j].classList.add(css_id);
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_ffqycpk492q2hdug532r');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_ffqycpk492q2hdug532r(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_ffqycpk492q2hdug532r");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+window.addEventListener('load', function () { styleCell_ffqycpk492q2hdug532r(0, 0, 'tinytable_css_idlk12jo6jozigdn99r2p3') })
+window.addEventListener('load', function () { styleCell_ffqycpk492q2hdug532r(0, 1, 'tinytable_css_idlk12jo6jozigdn99r2p3') })
+window.addEventListener('load', function () { styleCell_ffqycpk492q2hdug532r(0, 2, 'tinytable_css_idlk12jo6jozigdn99r2p3') })
+window.addEventListener('load', function () { styleCell_ffqycpk492q2hdug532r(0, 3, 'tinytable_css_idlk12jo6jozigdn99r2p3') })
+window.addEventListener('load', function () { styleCell_ffqycpk492q2hdug532r(0, 4, 'tinytable_css_idlk12jo6jozigdn99r2p3') })
+    </script>
+
+    <style>
+    .table td.tinytable_css_idlk12jo6jozigdn99r2p3, .table th.tinytable_css_idlk12jo6jozigdn99r2p3 {  border-bottom: solid 0.1em #d3d8dc; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_ffqycpk492q2hdug532r" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">Region_id</th>
+                <th scope="col">Region</th>
+                <th scope="col">Year</th>
+                <th scope="col">Income</th>
+                <th scope="col">Population</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>Region1</td>
+                  <td>2000</td>
+                  <td>40000</td>
+                  <td>500000</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>Region1</td>
+                  <td>2005</td>
+                  <td>42000</td>
+                  <td>520000</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>Region1</td>
+                  <td>2010</td>
+                  <td>45000</td>
+                  <td>540000</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Region2</td>
+                  <td>2000</td>
+                  <td>35000</td>
+                  <td>450000</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Region2</td>
+                  <td>2005</td>
+                  <td>37000</td>
+                  <td>460000</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td>Region2</td>
+                  <td>2010</td>
+                  <td>39000</td>
+                  <td>470000</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>もし仮に、ロング形式に変換したい変数がすべてアンダースコアで区切られている場合<sup>2</sup>、<code>cols = contain("_")</code>とすれば、変数が多くても一気に指定することができます。ただ今回の場合、<code>Region_id</code>がありますからうまくいきませんね。使える場面は限られそうです。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はワイド形式のデータフレームをロング形式に変換する方法をご紹介しました。</p>
+<p>僕自身<code>pivot_longer()</code>を使う時いつも何を指定すればいいんだっけ？となるので、備忘録的な意味合いが強いです😅</p>
+<p>ご参考まで。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>この場合なら<code>Income</code>や<code>Population</code>↩︎</p></li>
+<li id="fn2"><p>逆に言うと、ほかの変数はアンダースコアが用いられていない場合↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.github.io/tips/240917_pivot/</guid>
+  <pubDate>Mon, 16 Sep 2024 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.github.io/tips/240917_pivot/image/computer_document_spreadsheet.png" medium="image" type="image/png" height="144" width="144"/>
+</item>
 <item>
   <title>市町村合併を反映させる</title>
   <link>https://yo5uke.github.io/tips/240906_municipality_converter/</link>
@@ -11432,475 +11844,6 @@ font-style: inherit;">---</span></span></code></pre></div>
   <guid>https://yo5uke.github.io/tips/240509_chunk_option/</guid>
   <pubDate>Wed, 08 May 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.github.io/tips/240509_chunk_option/thumbnail.png" medium="image" type="image/png" height="119" width="144"/>
-</item>
-<item>
-  <title>【R Markdown】相互参照を使いこなす【Quarto】</title>
-  <link>https://yo5uke.github.io/tips/240509_cross_reference/</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>R Markdown や Quarto で文書を書いているとき、相互参照をどうしようと思ったことはありませんか？僕はありました。</p>
-<p>手書きで「図1：Hogehoge」と書くとなんだかスマートさに欠けるし、前に図を挿入したくなった時に数字を書き換えなければならず不便ですよね。</p>
-<p>今回は R Markdown ＆ Quarto における相互参照の使い方をご紹介します。</p>
-<p>R Markdown と Quarto で設定が異なりますので、それぞれ見ていきましょう。</p>
-</section>
-<section id="r-markdown" class="level2">
-<h2 class="anchored" data-anchor-id="r-markdown">R Markdown</h2>
-<section id="yaml-ヘッダー" class="level3">
-<h3 class="anchored" data-anchor-id="yaml-ヘッダー">YAML ヘッダー</h3>
-<p>まず、新しいファイルを開くと出てくる <code>---</code> で囲まれた部分を、YAML ヘッダーと呼びます。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.github.io/tips/240509_cross_reference/image/yaml-header.png" class="img-fluid figure-img"></p>
-<figcaption>R Markdown ファイルを開くとこれが出てきますよね</figcaption>
-</figure>
-</div>
-<p>R Markdown はデフォルトでは相互参照が使えません（私調べ）（そんな馬鹿な）。そのため、パッケージを使って設定します。</p>
-<p>デフォルトの設定はこのような感じになっています。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>YAML ヘッダー</strong></pre>
-</div>
-<div class="sourceCode" id="cb1" data-filename="YAML ヘッダー" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Untitled"</span></span>
-<span id="cb1-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">author</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Yosuke Abe"</span></span>
-<span id="cb1-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">date</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"2024-08-03"</span></span>
-<span id="cb1-5"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">output</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> html_document</span></span>
-<span id="cb1-6"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p>これを <code>bookdown</code> パッケージを用いて変更します。</p>
-<p>まずはインストール。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb2" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"bookdown"</span>)</span></code></pre></div>
-</div>
-<p>次にヘッダーを次のように変更。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>YAML ヘッダー</strong></pre>
-</div>
-<div class="sourceCode" id="cb3" data-filename="YAML ヘッダー" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb3-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Untitled"</span></span>
-<span id="cb3-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">author</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Yosuke Abe"</span></span>
-<span id="cb3-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">date</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"2024-08-03"</span></span>
-<span id="cb3-5"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">output</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb3-6"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  bookdown:</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">:html_document2</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> default</span></span>
-<span id="cb3-7"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p>これで準備が整いました。</p>
-</section>
-<section id="相互参照" class="level3">
-<h3 class="anchored" data-anchor-id="相互参照">相互参照</h3>
-<p>では何かプロットして、それを参照してみましょう。例えば次の図をプロットしたいとします。</p>
-<div class="cell">
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.github.io/tips/240509_cross_reference/index_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>これを参照するために R Markdown 内で入力すると次のようになります。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R Markdown</strong></pre>
-</div>
-<div class="sourceCode" id="cb4" data-filename="R Markdown" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{r pressure, fig.cap="図のキャプションです。"}</span></span>
-<span id="cb4-2"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">plot(pressure)</span></span>
-<span id="cb4-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
-</div>
-<p>ここでのポイントは、<code>{r pressure}</code> の部分です。デフォルトでは <code>{r}</code> だけだと思いますが、スペースを空けることでチャンク<sup>1</sup>に名前を付けることができ、このチャンク名を使って参照します。また、カンマで区切った後の <code>fig.cap</code> は図のキャプションです。</p>
-<p>文中で参照したいときは、次のように書きます。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R Markdown</strong></pre>
-</div>
-<div class="sourceCode" id="cb5" data-filename="R Markdown" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1">表 \@ref(fig:pressure) を参照する。</span></code></pre></div>
-</div>
-<p>すると…</p>
-<p><img src="https://yo5uke.github.io/tips/240509_cross_reference/image/cross-reference.png" class="img-fluid"></p>
-<p>このように、文中での参照ができます。前に新たに図が入っても、自動で番号を振り直してくれます。</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-図以外の場合
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>もちろん、表や数式の場合にも使えます。</p>
-<ul>
-<li><p>表の場合</p>
-<ul>
-<li><p>様々な表の関数がありますが、R Markdown では基本的に関数内でキャプションを付けます。</p></li>
-<li><p>図の場合とは違い、参照の際には <code>tab:</code>を使います。</p></li>
-</ul></li>
-</ul>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb6" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{r mtcars}</span></span>
-<span id="cb6-2"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">knitr::kable(mtcars[1:5, 1:5], caption = "mtcars データ")</span></span>
-<span id="cb6-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span>
-<span id="cb6-4"></span>
-<span id="cb6-5">表 \@ref(tab:mtcars) を参照する。</span></code></pre></div>
-</div>
-<ul>
-<li><p>数式の場合</p>
-<ul>
-<li><p><img src="https://latex.codecogs.com/png.latex?%5CLaTeX"> 形式で書きます。HTML 出力でも、この書き方が可能です。</p></li>
-<li><p><code>$</code> で挟む方法もありますが、これだと参照ができません<sup>2</sup>。</p></li>
-<li><p>参照の際には、<code>eq:</code> を使います。</p></li>
-</ul></li>
-</ul>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb7" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1">\begin{equation}</span>
-<span id="cb7-2">\bar{X} = \frac{\sum_{i=1}^n X_i}{n} (<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\#</span>eq:mean)</span>
-<span id="cb7-3">\end{equation}</span>
-<span id="cb7-4"></span>
-<span id="cb7-5">式 \@ref(eq:mean) を参照する。</span></code></pre></div>
-</div>
-<p>以上のやり方で表や数式の参照にも対応しています。</p>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="quarto" class="level2">
-<h2 class="anchored" data-anchor-id="quarto">Quarto</h2>
-<p>Quarto もほとんど同じ方法で参照が可能ですが、書き方はもっとシンプルです。</p>
-<section id="yaml-ヘッダー-1" class="level3">
-<h3 class="anchored" data-anchor-id="yaml-ヘッダー-1">YAML ヘッダー</h3>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>YAML ヘッダー</strong></pre>
-</div>
-<div class="sourceCode" id="cb8" data-filename="YAML ヘッダー" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb8-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb8-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Untitled"</span></span>
-<span id="cb8-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> html</span></span>
-<span id="cb8-4"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p>デフォルトでは著者も日付もないのでめちゃくちゃシンプルですね<sup>3</sup>。</p>
-<p>Quarto では、相互参照のためにこれをいじる必要はありません（素晴らしい！）。</p>
-<p>その代わり、チャンクの方をいろいろいじっていきます。</p>
-</section>
-<section id="チャンクオプション" class="level3">
-<h3 class="anchored" data-anchor-id="チャンクオプション">チャンクオプション</h3>
-<p>改めてになりますが、<code>```</code> で囲まれたコード部分をチャンクと言います。</p>
-<p>R Markdown では、<code>{r}</code>の中にチャンク名を書きましたが、Quarto ではチャンクの中に書いていきます<sup>4</sup>。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R Markdown</strong></pre>
-</div>
-<div class="sourceCode" id="cb9" data-filename="R Markdown" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{r}</span></span>
-<span id="cb9-2"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#| label: fig-pressure</span></span>
-<span id="cb9-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#| fig-cap: "図のキャプションです。"</span></span>
-<span id="cb9-4"></span>
-<span id="cb9-5"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">plot(pressure)</span></span>
-<span id="cb9-6"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
-</div>
-<p>ポイントは以下の2つです。</p>
-<ol type="1">
-<li><p><code>#|</code> の後ろにオプションを指定して書くことができます。</p></li>
-<li><p><code>label</code> は <code>fig-</code> で始めないと参照できません。</p></li>
-</ol>
-</section>
-<section id="相互参照-1" class="level3">
-<h3 class="anchored" data-anchor-id="相互参照-1">相互参照</h3>
-<p>文中では以下のように書いていきます。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb10" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb10-1">@fig-pressure を参照する。</span></code></pre></div>
-</div>
-<p><code>@</code> だけだなんて、なんてシンプルなのでしょう。以下のように出力されます。</p>
-<p><img src="https://yo5uke.github.io/tips/240509_cross_reference/image/cross-reference-quarto.png" class="img-fluid"></p>
-<p>とても簡単に引用できました。よく見ると、<code>図 @fig-pressure</code> とは書かずとも <code>Figure 1</code> となっています。図～とは書かなくてよいということですね。英語になっているのが気になる方は、後のセクションで解説しているのでご覧ください。</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-図以外の場合
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>もちろん、表や数式の場合にも使えます。</p>
-<ul>
-<li><p>表の場合</p>
-<ul>
-<li><p>Quarto では、表もチャンクオプションを使ってキャプションがつけられます。</p></li>
-<li><p>R Markdown では、参照の際に <code>tab:</code> を使っていたのに対し、Quarto では <code>tbl-</code> となります。ややこしい！</p></li>
-</ul></li>
-</ul>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb11" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{r}</span></span>
-<span id="cb11-2"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#| label: tbl-mtcars</span></span>
-<span id="cb11-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#| tbl-cap: "mtcars データ"</span></span>
-<span id="cb11-4"></span>
-<span id="cb11-5"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">knitr::kable(mtcars[1:5, 1:5])</span></span>
-<span id="cb11-6"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span>
-<span id="cb11-7"></span>
-<span id="cb11-8">@tbl-mtcars を参照する。</span></code></pre></div>
-</div>
-<ul>
-<li><p>数式の場合</p>
-<ul>
-<li><p><img src="https://latex.codecogs.com/png.latex?%5CLaTeX"> 形式でも書けますが、<code>$$</code> で囲む方法が便利です。</p></li>
-<li><p>数式自体は <img src="https://latex.codecogs.com/png.latex?%5CLaTeX"> 表記です。</p></li>
-<li><p>自分で打ってみるとわかりますが、プレビューできるのもいい点です。</p></li>
-</ul></li>
-</ul>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb12" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1">$$</span>
-<span id="cb12-2">\bar{X} = \frac{\sum_{i=1}^n X_i}{n}</span>
-<span id="cb12-3">$$ {#eq-mean}</span>
-<span id="cb12-4"></span>
-<span id="cb12-5">@eq-mean を参照する。</span></code></pre></div>
-</div>
-<p>以上のやり方で表や数式も参照できます。</p>
-</div>
-</div>
-</div>
-</section>
-</section>
-<section id="sec-lang-setting" class="level2">
-<h2 class="anchored" data-anchor-id="sec-lang-setting">言語の設定について</h2>
-<p>特に Quarto で、<code>@fig-</code> で参照すると <code>Figure ~</code> となってしまう問題について、気になる方は次の設定で修正できます。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>YAML ヘッダー</strong></pre>
-</div>
-<div class="sourceCode" id="cb13" data-filename="YAML ヘッダー" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb13-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb13-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Untitled"</span></span>
-<span id="cb13-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> html</span></span>
-<span id="cb13-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">lang</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> ja</span></span>
-<span id="cb13-5"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p><code>lang: ja</code> を追加しました。これが日本語設定です。</p>
-<p>これを設定したうえで実行すると、</p>
-<p><img src="https://yo5uke.github.io/tips/240509_cross_reference/image/cross-reference-quarto-ja.png" class="img-fluid"></p>
-<p>無事日本語にできました。表や式もこれでいけます。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回は R Markdown と Quarto で相互参照を使う方法をご紹介しました。</p>
-<p>相互参照が簡単にできるだけで、かなり Markdown を使う魅力が増すと思います。修士学生の私としては、Quarto で修論を書き上げるのが目標です^^</p>
-<p>ご参考になれば幸いです。それでは。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p><code>```</code> で囲まれているコード部分↩︎</p></li>
-<li id="fn2"><p>する方法をご存じの方がいらっしゃいましたら、是非コメントください。↩︎</p></li>
-<li id="fn3"><p>もちろん <code>author: "著者"</code> や <code>date: 2024-05-09</code> などで入力できますよ。↩︎</p></li>
-<li id="fn4"><p>R Markdown と同様の書き方もできるのですが、私は今回紹介している方法の方がすっきりしていて好みです。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R Markdown</category>
-  <category>Quarto</category>
-  <category>R</category>
-  <guid>https://yo5uke.github.io/tips/240509_cross_reference/</guid>
-  <pubDate>Wed, 08 May 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
