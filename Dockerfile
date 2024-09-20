@@ -27,7 +27,7 @@ RUN R -e "install.packages(c('renv'))"
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.10
-ENV JULIA_PATCH_VERSION=4
+ENV JULIA_PATCH_VERSION=5
 
 RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}/julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
     tar xvf julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
