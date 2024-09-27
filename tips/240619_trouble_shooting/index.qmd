@@ -93,6 +93,10 @@ rm -rf ~/.vscode-server
 
 ## DVCでプッシュできない
 
+``` bash
+Part 1
+```
+
 -   **発生環境**：開発コンテナ内
 -   **発生タイミング**：`dvc push`を打ったとき
 -   **発生したエラー**：以下の通り
@@ -106,6 +110,25 @@ ERROR: unexpected error - Failed to authenticate GDrive: Access token refresh fa
 -   **対処法**：VSCode（開発コンテナ）のターミナルで次のコマンドを打って再度プッシュ
 
 ``` {.bash filename="Terminal"}
+dvc remote modify myremote --local \
+      gdrive_user_credentials_file ~/.cache/myremote-credentials.json
+```
+
+### Part 2
+
+-   **発生環境**：開発コンテナ内
+-   **発生タイミング**：`dvc push`を打ったとき
+-   **発生したエラー**：以下の通り
+    -   トークンが切れているらしいです。
+
+``` bash
+ERROR: unexpected error - Failed to authenticate GDrive: Access token refresh failed: invalid_grant: Token has been expired or revoked.
+```
+
+-   **対処法**：VSCode（開発コンテナ）のターミナルで次のコマンドを打って再度プッシュ
+
+``` bash
+rm /home/rstudio/.cache/myremote-credentials.json
 dvc remote modify myremote --local \
       gdrive_user_credentials_file ~/.cache/myremote-credentials.json
 ```
