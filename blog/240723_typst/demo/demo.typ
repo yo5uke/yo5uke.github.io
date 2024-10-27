@@ -23,10 +23,10 @@
 
 // Some quarto-specific definitions.
 
-#show raw.where(block: true): block.with(
-    fill: luma(230), 
-    width: 100%, 
-    inset: 8pt, 
+#show raw.where(block: true): set block(
+    fill: luma(230),
+    width: 100%,
+    inset: 8pt,
     radius: 2pt
   )
 
@@ -40,6 +40,10 @@
     fields.below = fields.below.amount
   }
   return block.with(..fields)(new_content)
+}
+
+#let unescape-eval(str) = {
+  return eval(str.replace("\\", ""))
 }
 
 #let empty(v) = {
@@ -142,7 +146,7 @@
       new_title))
 
   block_with_new_content(old_callout,
-    new_title_block +
+    block(below: 0pt, new_title_block) +
     old_callout.body.children.at(1))
 }
 
@@ -175,6 +179,7 @@
 
 #let article(
   title: none,
+  subtitle: none,
   authors: none,
   date: none,
   abstract: none,
@@ -184,8 +189,15 @@
   paper: "us-letter",
   lang: "en",
   region: "US",
-  font: (),
+  font: "linux libertine",
   fontsize: 11pt,
+  title-size: 1.5em,
+  subtitle-size: 1.25em,
+  heading-family: "linux libertine",
+  heading-weight: "bold",
+  heading-style: "normal",
+  heading-color: black,
+  heading-line-height: 0.65em,
   sectionnumbering: none,
   toc: false,
   toc_title: none,
@@ -204,10 +216,25 @@
            font: font,
            size: fontsize)
   set heading(numbering: sectionnumbering)
-
   if title != none {
     align(center)[#block(inset: 2em)[
-      #text(weight: "bold", size: 1.5em)[#title]
+      #set par(leading: heading-line-height)
+      #if (heading-family != none or heading-weight != "bold" or heading-style != "normal"
+           or heading-color != black or heading-decoration == "underline"
+           or heading-background-color != none) {
+        set text(font: heading-family, weight: heading-weight, style: heading-style, fill: heading-color)
+        text(size: title-size)[#title]
+        if subtitle != none {
+          parbreak()
+          text(size: subtitle-size)[#subtitle]
+        }
+      } else {
+        text(weight: "bold", size: title-size)[#title]
+        if subtitle != none {
+          parbreak()
+          text(weight: "bold", size: subtitle-size)[#subtitle]
+        }
+      }
     ]]
   }
 
@@ -265,6 +292,7 @@
   inset: 6pt,
   stroke: none
 )
+
 #show: doc => article(
   title: [Typst demo],
   authors: (
@@ -283,7 +311,6 @@
   cols: 1,
   doc,
 )
-
 
 #strong[Keywords:] Keyword 1, Keyword 2, Keyword 3…
 
