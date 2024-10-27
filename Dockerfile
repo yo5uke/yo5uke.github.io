@@ -37,8 +37,8 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
 # DVC Path
 ENV PATH $PATH:~/.cache/pip/bin
 
-ENV QUARTO_MINOR_VERSION=1.5
-ENV QUARTO_PATCH_VERSION=57
+ENV QUARTO_MINOR_VERSION=1.6
+ENV QUARTO_PATCH_VERSION=30
 
 RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
     dpkg -i quarto.deb && \
