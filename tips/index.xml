@@ -10,7 +10,110 @@
 <atom:link href="https://yo5uke.github.io/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.30</generator>
-<lastBuildDate>Mon, 16 Sep 2024 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 12 Nov 2024 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>RStudio (Server)でGitHub Copilotを使う</title>
+  <link>https://yo5uke.github.io/tips/241113_copilot_rstudio/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>皆さん、GitHub Copilot使ってますか？チャットでコーディングについて質問できたり、コードを補完してくれたりして便利ですよね。</p>
+<p>主にVSCodeで使うことが多い僕ですが、RStudioも最近は使うようになってきたので、その設定についてまとめたいと思います。</p>
+<p>GitHubは学生なら無料で使えますので、以下の記事など参考にしながら、ぜひ登録してみてください。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../blog/240918_github_copilot/index.html">【学生は申し込め】GitHub Copilotを申請しよう</a></p>
+</div>
+</div>
+</div>
+<p>前提として、<strong>GitHub Copilotに申請して、使えるようになっている</strong>ことを確認してください。</p>
+</section>
+<section id="ローカルのrstudio" class="level2">
+<h2 class="anchored" data-anchor-id="ローカルのrstudio">ローカルのRStudio</h2>
+<p>自分のPCにRStudioをインストールして使っている方が多いと思いますが、ローカルの場合は簡単に設定できます。</p>
+<p>まず、RStudioを開き、画面上部の<code>Tools</code>から、<code>Global Options...</code>へ入ります。すると1番下にGitHubのアイコンとともに<code>Copilot</code>があると思いますので、そこをクリックします。</p>
+<p>「Enable GitHub Copilot」が1番上に出ると思うので、チェックを入れます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/241113_copilot_rstudio/figure/local_rstudio_copilot_setting.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<p>「The GitHub Copilot agent is not currently installed. Would you like to install it?」みたいに出てきたら、それはインストールしてください。無事にインストールできたと出てきたら、OKで閉じます。</p>
+<p>すると、<code>Sign In</code>のボタンが現れると思いますので、そこを押し、表示された手順に従ってサインインします。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/241113_copilot_rstudio/figure/local_rstudio_copilot_sign_in.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>リンクに飛んで、Varification codeを入力します。</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/tips/241113_copilot_rstudio/figure/github_sign_in.png" class="img-fluid figure-img" style="width:60.0%"></p>
+<figcaption>Continueを押します。</figcaption>
+</figure>
+</div>
+<p>上のように出てくるので、リンクをクリックしてGitHubに飛び、Continueを押したらコードを入力します。これで無事サインインができ、RSturio上でGitHub Copilotが使えるようになります。</p>
+</section>
+<section id="開発コンテナrstudio-server" class="level2">
+<h2 class="anchored" data-anchor-id="開発コンテナrstudio-server">開発コンテナ×RStudio Server</h2>
+<p>以前紹介した<a href="../../tips/240504_container/index.html">記事</a>で紹介したような開発コンテナを使用しているような場合では、RStudio Server上でローカルと同じようにやろうとしても、権限がないとか何とかで使えないようになっています。</p>
+<p>もう少し設定が要るので、それをご紹介します。</p>
+<p>まずは、開発コンテナ内のワーキングディレクトリに、<code>etc</code>というフォルダを作り、その中に<code>rstudio</code>というフォルダをさらに作り、その中に<code>rsession.conf</code>というファイルを作成します<sup>1</sup>。そして、<code>rsession.conf</code>ファイルを開いて、以下の内容を書き込みます。</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode conf code-with-copy"><code class="sourceCode toml"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># R Session Configuration File</span></span>
+<span id="cb1-2"></span>
+<span id="cb1-3"><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">copilot-enabled</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span></code></pre></div>
+<p>そしたらコードを保存して閉じ、次にDockerfileを編集します。</p>
+<p>Dockerfileを開いたら、以下の内容を追記します。</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode dockerfile code-with-copy"><code class="sourceCode dockerfile"><span id="cb2-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">COPY</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">--chown=rstudio:rstudio</span> /etc/rstudio/rsession.conf /etc/rstudio/rsession.conf</span></code></pre></div>
+<p>要は今作ったファイルをコンテナ側にコピーするということです。これにより設定を反映させることができます。</p>
+<p>追記したら保存して、コンテナをリビルドしてください。</p>
+<p>すると、RStudio Serverでもローカルと同じような設定ができるようになり、GitHub Copilotを使えるようになります。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>開発コンテナを使用している場合は若干手間がかかりますが、ローカルと同じようにCipolotを使うことができます。</p>
+<p>コードを書いていて、Copilotが提案してくれたコードを確定するときはTabキーを使うのですが、これがRStudioのもともとの設定に干渉するので、使いようによっては使いにくいかもしれません。</p>
+<p>便利なことには違いはないので、ぜひ試してみてください。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>ぶっちゃけフォルダは作らずに<code>.conf</code>ファイルをそのまま作ってもよいのですが、雑然としてしまうかなと個人的には思うので、このようにしています。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>GitHub</category>
+  <category>RStudio</category>
+  <category>Docker</category>
+  <guid>https://yo5uke.github.io/tips/241113_copilot_rstudio/</guid>
+  <pubDate>Tue, 12 Nov 2024 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【データハンドリング】pivot_longer()を使ってロング形式のパネルデータを作る</title>
   <link>https://yo5uke.github.io/tips/240917_pivot/</link>
@@ -11655,317 +11758,6 @@ font-style: inherit;">```</span></span></code></pre></div>
   <guid>https://yo5uke.github.io/tips/240512_revealjs/</guid>
   <pubDate>Sat, 11 May 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.github.io/tips/240512_revealjs/thumbnail.png" medium="image" type="image/png" height="87" width="144"/>
-</item>
-<item>
-  <title>【Quarto】チャンクオプションまとめてみた【R Markdown】</title>
-  <link>https://yo5uke.github.io/tips/240509_chunk_option/</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>どうも Quarto ユーザーです。普段チャンクオプションをよく忘れるので、備忘録も兼ねてまとめます。おそらく R Markdown も同じです。</p>
-<p>直感的な分かりやすさ重視です。</p>
-<p>私が普段使うものに偏っているかもしれませんが、ご了承ください。</p>
-</section>
-<section id="前提" class="level2">
-<h2 class="anchored" data-anchor-id="前提">前提</h2>
-<p>Quarto でも R Markdown と同じようなチャンクオプションの書き方ができるのですが、ここでは Quarto 独自の書き方で進めます。</p>
-<p>理由は単純に私が好んで使っているからです。</p>
-<section id="r-markdown-の書き方" class="level3">
-<h3 class="anchored" data-anchor-id="r-markdown-の書き方">R Markdown の書き方</h3>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R Markdown</strong></pre>
-</div>
-<div class="sourceCode" id="cb1" data-filename="R Markdown" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{r cars, echo=TRUE}</span></span>
-<span id="cb1-2"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">plot(cars)</span></span>
-<span id="cb1-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
-</div>
-<p><code>cars</code> の部分がチャンクのラベル（名前）、<code>echo=TRUE</code> の部分がチャンクオプションです。</p>
-</section>
-<section id="quarto-の書き方" class="level3">
-<h3 class="anchored" data-anchor-id="quarto-の書き方">Quarto の書き方</h3>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb2" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{r}</span></span>
-<span id="cb2-2"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#| label: fig-cars</span></span>
-<span id="cb2-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#| echo: true</span></span>
-<span id="cb2-4"></span>
-<span id="cb2-5"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">plot(cars)</span></span>
-<span id="cb2-6"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
-</div>
-<p>チャンク内で <code>#|</code> の後に書きます。ちなみに、こちらは TRUE や FALSE が小文字で大丈夫です。</p>
-</section>
-</section>
-<section id="チャンクオプション" class="level2">
-<h2 class="anchored" data-anchor-id="チャンクオプション">チャンクオプション</h2>
-<section id="共通" class="level3">
-<h3 class="anchored" data-anchor-id="共通">共通</h3>
-<p>R Markdown と Quarto で共通のオプションをざっくり表にしました。 これを使えば普段は問題なさそうというものをピックアップしています。</p>
-<table class="caption-top table">
-<caption>チャンクオプションまとめ</caption>
-<thead>
-<tr class="header">
-<th style="text-align: left;">オプション</th>
-<th style="text-align: center;">デフォルト</th>
-<th style="text-align: left;">効果</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><code>echo</code></td>
-<td style="text-align: center;">TRUE</td>
-<td style="text-align: left;"><ul>
-<li>コードを出力に含めるか否か</li>
-<li>FALSE にすると、実行結果のみが表示される</li>
-</ul></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>include</code></td>
-<td style="text-align: center;">TRUE</td>
-<td style="text-align: left;"><ul>
-<li>コード、結果を出力に含めるか否か</li>
-<li>FALSE にすると、何も表示されない</li>
-<li>パッケージの読み込みなど重要じゃない箇所で重宝</li>
-</ul></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>warning</code></td>
-<td style="text-align: center;">TRUE</td>
-<td style="text-align: left;"><ul>
-<li>警告を出力に表示するか否か</li>
-<li>基本 FALSE が多い</li>
-<li>グローバルに指定することが多い（後述）</li>
-</ul></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>message</code></td>
-<td style="text-align: center;">TRUE</td>
-<td style="text-align: left;"><ul>
-<li>メッセージを出力に表示するか否か</li>
-<li>結果に付随してくる文を消すために FALSE が多い</li>
-<li>グローバルに指定することが多い（後述）</li>
-</ul></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>cache</code></td>
-<td style="text-align: center;">FALSE</td>
-<td style="text-align: left;"><ul>
-<li>実行結果をキャッシュするか否か</li>
-<li>TRUE にすると、結果が保存され2回目以降の出力が高速化</li>
-<li>重い作業でコンパイルに時間がかかるときに使っている</li>
-</ul></td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>eval</code></td>
-<td style="text-align: center;">TRUE</td>
-<td style="text-align: left;"><ul>
-<li>コードを実際に評価するか否か</li>
-<li>コードを見せたいだけのときに FALSE にすると便利</li>
-</ul></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="違うやつ" class="level3">
-<h3 class="anchored" data-anchor-id="違うやつ">違うやつ</h3>
-<p>よく使うものの中でもR Markdown と Quarto で異なるものをピックアップします。</p>
-<ol type="1">
-<li><p>fig 系</p>
-<ul>
-<li><p>R Markdown では <code>fig.cap</code></p></li>
-<li><p>Quarto では <code>fig-cap</code></p></li>
-<li><p>これ以外にも R Markdown はピリオドで、Quarto ではハイフンのものは多々あります。</p></li>
-</ul></li>
-<li><p>チャンクラベル<sup>1</sup></p>
-<ul>
-<li><p>R Markdown は <code>{r hogehoge}</code><sup>2</sup></p></li>
-<li><p>Quarto はコード内で <code>#| label: fig-hogehoge</code></p>
-<ul>
-<li>ご覧の通り、Quarto の方は <code>fig-</code> を前に付ける必要があります<sup>3</sup>。</li>
-</ul></li>
-</ul></li>
-</ol>
-</section>
-</section>
-<section id="sec-global" class="level2">
-<h2 class="anchored" data-anchor-id="sec-global">グローバルオプション</h2>
-<p>全部の警告やメッセージを消したい、なんてこともよくあると思います。</p>
-<p>R Markdown と Quarto でそれぞれやり方がありますのでご紹介します。</p>
-<section id="r-markdown" class="level3">
-<h3 class="anchored" data-anchor-id="r-markdown">R Markdown</h3>
-<p>RStudio であれば新しい R Markdown ファイルを開くと既に出ていますが、以下の関数を使用します。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb3" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">knitr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span>opts_chunk<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">set</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">echo =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>)</span></code></pre></div>
-</div>
-<p>括弧内に、カンマで区切りながらオプションを TRUE, FALSE などで指定していきます。<code>echo</code> はデフォルトで TRUE なので、これだけなら無くても大丈夫です。笑</p>
-<p>例えば、全てのコードについてコードは出力せず結果だけ出力し、警告やメッセージは非表示にするためには次のようにします。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb4" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">knitr<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span>opts_chunk<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">set</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">echo =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">FALSE</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">warning =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">FALSE</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">message =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">FALSE</span>)</span></code></pre></div>
-</div>
-</section>
-<section id="quarto" class="level3">
-<h3 class="anchored" data-anchor-id="quarto">Quarto</h3>
-<p>Quarto では YAML ヘッダーで設定が可能です。YAML ヘッダーは Markdown ファイルを開いたときの最上部に出てくる <code>---</code> で囲まれた部分です。</p>
-<p>次のように設定します。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>YAML ヘッダー</strong></pre>
-</div>
-<div class="sourceCode" id="cb5" data-filename="YAML ヘッダー" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb5-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Untitled"</span></span>
-<span id="cb5-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> html</span></span>
-<span id="cb5-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">execute</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb5-5"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">echo</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">false</span></span>
-<span id="cb5-6"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">warning</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">false</span></span>
-<span id="cb5-7"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">message</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">false</span></span>
-<span id="cb5-8"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p><code>execute:</code> で指定することができます。</p>
-</section>
-<section id="おわりに" class="level3">
-<h3 class="anchored" data-anchor-id="おわりに">おわりに</h3>
-<p>今回は私がよく使うチャンクオプションを中心にご紹介しました。</p>
-<p>今後いろいろ使いながらアップデートしていきたいと思います。</p>
-<p>ご参考になれば幸いです。</p>
-
-
-<!-- -->
-
-</section>
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>相互参照のために使うので、必ずつけなければならないものではありません。相互参照については<a href="../240509_cross_reference/index.html">こちら</a>↩︎</p></li>
-<li id="fn2"><p>スペースを空けてチャンクラベルを入力します。↩︎</p></li>
-<li id="fn3"><p>表なら <code>tbl-hogehoge</code> とします。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>Quarto</category>
-  <category>R Markdown</category>
-  <category>備忘録</category>
-  <guid>https://yo5uke.github.io/tips/240509_chunk_option/</guid>
-  <pubDate>Wed, 08 May 2024 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.github.io/tips/240509_chunk_option/thumbnail.png" medium="image" type="image/png" height="119" width="144"/>
 </item>
 </channel>
 </rss>
