@@ -1,0 +1,83 @@
+---
+title: "RStudio (Server)でGitHub Copilotを使う"
+description: |
+  ローカルとRStudio Serverに分けて説明します。
+date: 2024-11-13
+categories:
+  - GitHub
+  - RStudio
+  - Docker
+editor: visual
+---
+
+## はじめに
+
+皆さん、GitHub Copilot使ってますか？チャットでコーディングについて質問できたり、コードを補完してくれたりして便利ですよね。
+
+主にVSCodeで使うことが多い僕ですが、RStudioも最近は使うようになってきたので、その設定についてまとめたいと思います。
+
+GitHubは学生なら無料で使えますので、以下の記事など参考にしながら、ぜひ登録してみてください。
+
+::: {.callout-tip appearance="minimal" icon="false"}
+[【学生は申し込め】GitHub Copilotを申請しよう](../../blog/240918_github_copilot/index.html)
+:::
+
+前提として、**GitHub Copilotに申請して、使えるようになっている**ことを確認してください。
+
+## ローカルのRStudio
+
+自分のPCにRStudioをインストールして使っている方が多いと思いますが、ローカルの場合は簡単に設定できます。
+
+まず、RStudioを開き、画面上部の`Tools`から、`Global Options...`へ入ります。すると1番下にGitHubのアイコンとともに`Copilot`があると思いますので、そこをクリックします。
+
+「Enable GitHub Copilot」が1番上に出ると思うので、チェックを入れます。
+
+![](figure/local_rstudio_copilot_setting.png){fig-align="center" width="80%"}
+
+「The GitHub Copilot agent is not currently installed. Would you like to install it?」みたいに出てきたら、それはインストールしてください。無事にインストールできたと出てきたら、OKで閉じます。
+
+すると、`Sign In`のボタンが現れると思いますので、そこを押し、表示された手順に従ってサインインします。
+
+![リンクに飛んで、Varification codeを入力します。](figure/local_rstudio_copilot_sign_in.png){fig-align="center" width="80%"}
+
+![Continueを押します。](figure/github_sign_in.png){fig-align="center" width="60%"}
+
+上のように出てくるので、リンクをクリックしてGitHubに飛び、Continueを押したらコードを入力します。これで無事サインインができ、RSturio上でGitHub Copilotが使えるようになります。
+
+## 開発コンテナ×RStudio Server
+
+以前紹介した[記事](../../tips/240504_container/index.html)で紹介したような開発コンテナを使用しているような場合では、RStudio Server上でローカルと同じようにやろうとしても、権限がないとか何とかで使えないようになっています。
+
+もう少し設定が要るので、それをご紹介します。
+
+まずは、開発コンテナ内のワーキングディレクトリに、`etc`というフォルダを作り、その中に`rstudio`というフォルダをさらに作り、その中に`rsession.conf`というファイルを作成します[^1]。そして、`rsession.conf`ファイルを開いて、以下の内容を書き込みます。
+
+[^1]: ぶっちゃけフォルダは作らずに`.conf`ファイルをそのまま作ってもよいのですが、雑然としてしまうかなと個人的には思うので、このようにしています。
+
+``` conf
+# R Session Configuration File
+
+copilot-enabled=1
+```
+
+そしたらコードを保存して閉じ、次にDockerfileを編集します。
+
+Dockerfileを開いたら、以下の内容を追記します。
+
+``` dockerfile
+COPY --chown=rstudio:rstudio /etc/rstudio/rsession.conf /etc/rstudio/rsession.conf
+```
+
+要は今作ったファイルをコンテナ側にコピーするということです。これにより設定を反映させることができます。
+
+追記したら保存して、コンテナをリビルドしてください。
+
+すると、RStudio Serverでもローカルと同じような設定ができるようになり、GitHub Copilotを使えるようになります。
+
+## おわりに
+
+開発コンテナを使用している場合は若干手間がかかりますが、ローカルと同じようにCipolotを使うことができます。
+
+コードを書いていて、Copilotが提案してくれたコードを確定するときはTabキーを使うのですが、これがRStudioのもともとの設定に干渉するので、使いようによっては使いにくいかもしれません。
+
+便利なことには違いはないので、ぜひ試してみてください。
