@@ -1,0 +1,176 @@
+---
+title: "`ggplot2`ガイド"
+description: |
+  ggplotを使うのに役立つコマンドを紹介します。
+date: 2024-11-17
+categories:
+  - R
+editor: visual
+draft: true
+---
+
+## はじめに
+
+皆さん、ggplot、使ってますか？多分お使いですよね。
+
+僕は数か月前ggplotのガイドブックを買いまして、いろいろと勉強しているところでございます。
+
+こんなこともできるのか！という発見が多々あり、Rユーザーの皆様にはぜひ買っていただきたい代物なのですが、いかんせんお値段が張りますので、いくつかピックアップしてご紹介します。
+
+書籍のリンクは以下です。
+
+::: {.callout-tip appearance="minimal" icon="false"}
+[Rグラフィックスクックブック 第2版 ―ggplot2によるグラフ作成のレシピ集](https://www.amazon.co.jp/R%E3%82%B0%E3%83%A9%E3%83%95%E3%82%A3%E3%83%83%E3%82%AF%E3%82%B9%E3%82%AF%E3%83%83%E3%82%AF%E3%83%96%E3%83%83%E3%82%AF-%E7%AC%AC2%E7%89%88-%E2%80%95ggplot2%E3%81%AB%E3%82%88%E3%82%8B%E3%82%B0%E3%83%A9%E3%83%95%E4%BD%9C%E6%88%90%E3%81%AE%E3%83%AC%E3%82%B7%E3%83%94%E9%9B%86-Winston-Chang/dp/4873118921)
+:::
+
+## `ggplot2`の基本
+
+::: callout-note
+使ったことがある方はこの辺はスキップしてください。
+
+今回使うデータは、デフォルトで用意されている`iris`です。
+:::
+
+ひとまず主要なパッケージである`ggplot2`を読み込みます。
+
+```{r}
+# install.packages("ggplot2")
+library(ggplot2)
+```
+
+基本的な使い方としては、`ggplot()`と`aes()`、そして図に応じて`geom_line()`や`geom_point()`を使っていきます。
+
+今回は例として、アイリスのがく片の長さ、幅をそれぞれ軸としてプロットします。
+
+```{r}
+#| label: fig-iris
+#| fig-cap: "irisデータフレームを使った散布図"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point()
+
+```
+
+1.  `ggplot(data, aes())`という形で使用するデータを指定
+2.  `aes()`内ではX軸とY軸をそれぞれ指定する。
+    -   例：`aes(x = Sepal.Length, y = Sepal.Width)`
+3.  ggplotのコマンドは`+`で繋ぐ
+4.  散布図を作るには`geom_point()`を繋げる
+    -   その他、折れ線なら`geom_line()`、ヒストグラムなら`geom_histogram()`など
+
+これが土台です。`ggplot()`だけではプロットは表示されませんので、何かしら繋ぐ形にしてください。
+
+今回はggplotの基本というよりも、そこからの拡張を主に書きたいので、この散布図をベースに進めます。
+
+## 軸
+
+### 軸ラベル
+
+まずはX軸、Y軸のラベルを変更します。次のコマンドを追加することで変更できます。
+
+```{r}
+#| label: fig-axis-label
+#| fig-cap: "軸ラベルを変更"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  labs(x = "Length of Sepal", y = "Width of Sepal")
+
+```
+
+また、以下のコードは同じ結果を示します。
+
+``` r
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  xlab("Length of Sepal") + 
+  ylab("Width of Sepal")
+```
+
+すなわち、`labs()`はそれ一つでX軸もY軸もラベルを変更することができますが、`xlab()`、`ylab()`を使えば片方ずつ変更できるということです。
+
+次に、軸ラベルの体裁を変更したい場合、以下のようにします。
+
+```{r}
+#| label: fig-axis-font
+#| fig-cap: "文字の体裁が変わっています"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  labs(x = "Length of Sepal", y = "Width of Sepal") + 
+  theme(
+    axis.title = element_text(family = "times", face = "italic", 
+                              color = "red", size = 20)
+  )
+
+```
+
+1.  `theme()`内の`axis.title`で変更する
+    -   X軸Y軸のどちらかだけにしたければ、`axis.title.x`のようにする
+2.  `element_text()`内で具体的にフォントの体裁を指定
+    -   今回はわかりやすく派手にしましたが、これらの要素を変更すれば調整できます。
+
+    -   例えば、`face = "bold"`にすれば太字にできます。
+
+    -   他にもありますが、おおむね使うのはこのあたりでしょう。
+
+### 軸の目盛り
+
+```{r}
+#| label: fig-axis-scale
+#| fig-cap: "目盛りの間隔が変わっています"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  scale_x_continuous(breaks = seq(4.5, 8, .5)) + 
+  scale_y_continuous(breaks = seq(2, 4, 1))
+
+```
+
+目盛りがX軸は0.5刻み、Y軸は1刻みになるよう変更しました。このように、X（Y）連続値である場合、`scale_x_continuous()`（`scale_y_continuous()`）で変更できます。`seq()`は数列を作る関数で、`seq(from, to, by)`の順に指定します[^1]。
+
+[^1]: 離散値の場合は`scale_x_discrete()`などで変更できますが、今回その説明は省きます。
+
+目盛りも同様にフォントのスタイルを変更できます。
+
+```{r}
+#| label: fig-scale-font
+#| fig-cap: "数字のフォントが変わっています"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme(
+    axis.text = element_text(family = "times", face = "bold", 
+                             color = "red", size = 20)
+  )
+
+```
+
+もはや訳が分からない図ですが、このように体裁は変更可能です。要素は大体上と同じで、`axis.text.x`のようにどちらかだけ変更することも可能です。
+
+## 注釈
+
+### 文字
+
+表の中に文字を入れたいとき、どうすればよいか悩んだことが僕には何回もあります。
+
+R上ではできないものと思っていましたが、そんなことはありませんでした。
+
+```{r}
+#| label: fig-annotate
+#| fig-cap: "表内に文字を入れられました"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  annotate("text", label = "ggplot is\nwonderful!", x = 6.5, y = 4, 
+           family = "times", color = "#CC6666", size = 10)
+
+```
+
+1.  `annotate("text", label = "hogehoge")`で文字を入れることができる
+
+2.  xとyを指定しないと反映されない
+
+3.  改行したい場合、`\n`を入れる
+
+関数一つで意外と簡単にできます。
