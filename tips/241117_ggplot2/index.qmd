@@ -3,10 +3,11 @@ title: "`ggplot2`ガイド"
 description: |
   ggplotを使うのに役立つコマンドを紹介します。
 date: 2024-11-17
+date-modified: today
 categories:
   - R
+image: figure/thumbnail.png
 editor: visual
-draft: true
 ---
 
 ## はじめに
@@ -28,7 +29,7 @@ draft: true
 ::: callout-note
 使ったことがある方はこの辺はスキップしてください。
 
-今回使うデータは、デフォルトで用意されている`iris`です。
+今回使うデータは、デフォルトで用意されている`iris`と`Orange`です。
 :::
 
 ひとまず主要なパッケージである`ggplot2`を読み込みます。
@@ -106,7 +107,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ```
 
 1.  `theme()`内の`axis.title`で変更する
-    -   X軸Y軸のどちらかだけにしたければ、`axis.title.x`のようにする
+    -   X軸Y軸のどちらかだけにしたければ、`axis.title.x`のようにします。
 2.  `element_text()`内で具体的にフォントの体裁を指定
     -   今回はわかりやすく派手にしましたが、これらの要素を変更すれば調整できます。
 
@@ -127,7 +128,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ```
 
-目盛りがX軸は0.5刻み、Y軸は1刻みになるよう変更しました。このように、X（Y）連続値である場合、`scale_x_continuous()`（`scale_y_continuous()`）で変更できます。`seq()`は数列を作る関数で、`seq(from, to, by)`の順に指定します[^1]。
+目盛りがX軸は0.5刻み、Y軸は1刻みになるよう変更しました。このように、X（Y）が連続値である場合、`scale_x_continuous()`（`scale_y_continuous()`）で変更できます。`seq()`は数列を作る関数で、`seq(from, to, by)`の順に指定します[^1]。
 
 [^1]: 離散値の場合は`scale_x_discrete()`などで変更できますが、今回その説明は省きます。
 
@@ -169,8 +170,286 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 1.  `annotate("text", label = "hogehoge")`で文字を入れることができる
 
-2.  xとyを指定しないと反映されない
+2.  `x`と`y`を指定しないと反映されない
 
 3.  改行したい場合、`\n`を入れる
 
+4.  フォント、色、サイズも指定できる
+
 関数一つで意外と簡単にできます。
+
+さらに、棒線や矢印を付けることも可能です。
+
+```{r}
+#| label: fig-segment-1
+#| fig-cap: "斜めに棒線が入りました。"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  annotate("segment", x = 5, xend = 7, y = 4, yend = 2.5, 
+           linewidth = 2, color = "#CC6666")
+
+```
+
+```{r}
+#| label: fig-segment-2
+#| fig-cap: "矢印になりました。"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  annotate("segment", x = 5, xend = 7, y = 4, yend = 2.5, 
+           linewidth = 2, color = "#CC6666", 
+           arrow = arrow(length = unit(2, units = "cm")))
+
+```
+
+1.  `"segment"`で棒線ができる
+2.  `x`と`xend`、`y`と`yend`を指定する必要がある
+    -   $(x, y)$から$(xend, yend)$までの2点を結ぶようにできます。
+3.  `linewidth`で線の太さを指定可
+    -   他の要素も文字と同様に指定できますが、`size`が`linewidth`に置き換わっています。
+4.  `arrow = arrow(length = unit(x, units = "cm"))`で矢じりが付く
+    -   `x`で矢じりのサイズ、`units`は単位で、他にmmやinchesなどがあります。
+
+以上のように、文字だけでなく線や矢印を追加することができます。
+
+## 複数のプロットと凡例
+
+### 複数のカテゴリのプロット
+
+ここでは`Orange`データセットを使って複数のカテゴリのプロットと、凡例について説明します。
+
+複数のカテゴリのプロットとは、以下のデータを見ていただけると早いと思います。
+
+```{r}
+#| echo: false
+#| label: tbl-orange
+#| tbl-cap: "`Orange`の一部"
+
+Orange |> 
+  head(10) |> 
+  tinytable::tt(width = 8)
+
+```
+
+`Tree`は木の識別子で、1～5まであります。`age`は日齢、`circumference`は幹の周囲です。
+
+ここでやりたいことは、木の種類ごとに、日齢と幹の周囲を軸にとってプロットすることです。これをただプロットしてしまうと、
+
+```{r}
+#| label: fig-orange-pool
+#| fig-cap: "すべてのデータを放り込みました"
+
+ggplot(Orange, aes(x = age, y = circumference)) + 
+  geom_point()
+
+```
+
+これでは各点がどの木のものなのか判別できない状態です。これを識別するには次のようにします。
+
+```{r}
+#| label: fig-orange-color
+#| fig-cap: "色が分かれました"
+
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
+  geom_point()
+
+```
+
+これでとりあえずはどの点がどの木のものかわかるようになりました。`color = Tree`で、木の種類ごとに色を使うことを指定しています。
+
+今は散布図なので色を分けるだけで済みますが、折れ線グラフのような場合は、色だけでなく線の種類を変えたいかもしれません。そんな時は次のようにします。
+
+```{r}
+#| label: fig-orange-linetype
+#| fig-cap: "折れ線の種類も分かれました"
+
+ggplot(Orange, aes(x = age, y = circumference, color = Tree, linetype = Tree)) + 
+  geom_point() + 
+  geom_line()
+
+```
+
+`linetype = Tree`を追加することで線の種類も木の種類ごとに変更することができました。
+
+このように`aes()`内で要素を追加することで種類ごとに分けることができます。
+
+まだ色遣いなどは不格好ですが、いったんこのまま進めます。
+
+### 凡例の位置
+
+次にしたいのは、凡例の設定です。凡例は現在右側に表示されていますが、まずはこれを下に表示したいとします。これは、次のコードでできます。
+
+```{r}
+#| label: fig-orange-legend-position
+#| fig-cap: "凡例が下に来ました"
+
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
+  geom_point() + 
+  theme(legend.position = "bottom")
+
+```
+
+`theme(legend.position = "bottom")`を設定することで、凡例の位置が下になりました。もちろんbottom以外にもtop, left, right（デフォルト）などを指定することができます。
+
+さらに凡例を消したい場合は次のようにします。
+
+```{r}
+#| label: fig-orange-legend-delete
+#| fig-cap: "凡例を消しました"
+
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
+  geom_point() + 
+  theme(legend.position = "none")
+
+```
+
+`theme(legend.position = "none")`で凡例を消すことができました。
+
+### 凡例の調整
+
+例えば、凡例のタイトルは消したい場合が結構あると思います。@fig-orange-color の例でいえば、Treeという文字は消したいということです。
+
+そんな場合は、以下のようにします。
+
+```{r}
+#| label: fig-orange-legend-delte-title
+#| fig-cap: "凡例のタイトルを削除"
+
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
+  geom_point() + 
+  guides(color = guide_legend(title = NULL))
+
+```
+
+Treeというタイトルが消えました。
+
+ここでは`guides(color = guide_legend(title = NULL))`としていますが、`aes()`内で例えば`linetype`を使っている場合は、`guides()`内も`linetype =`にする必要があります。
+
+## テーマ
+
+ggplotではテーマを選ぶことができます。デフォルトではこれまでの図のように背景がグレーになっていますが、ほとんどの場合で背景は白にしたいですよね。
+
+背景だけでなく、罫線等もテーマで変更することができます。
+
+### プリセットのテーマ
+
+いくつかのテーマが準備されています。代表的なものをいくつかご紹介します。
+
+::: panel-tabset
+## minimal
+
+```{r}
+#| label: fig-theme-minimal
+#| fig-cap: "`theme_minimal()`"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_minimal()
+
+```
+
+## bw
+
+```{r}
+#| label: fig-theme-bw
+#| fig-cap: "`theme_bw()`"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_bw()
+
+```
+
+`theme_minimal()`と比べて外枠が付いています。
+
+## classic
+
+```{r}
+#| label: fig-theme-classic
+#| fig-cap: "`theme_classic()`"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_classic()
+
+```
+
+## linedraw
+
+```{r}
+#| label: fig-theme-linedraw
+#| fig-cap: "`theme_linedraw()`"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_linedraw()
+
+```
+
+## light
+
+```{r}
+#| label: fig-theme-light
+#| fig-cap: "`theme_light()`"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_light()
+
+```
+
+## void
+
+```{r}
+#| label: fig-theme-void
+#| fig-cap: "`theme_void()`"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_void()
+
+```
+
+さすがにやりすぎでは…と思うかもしれませんが、GISで地図を可視化するようなときに重宝します。
+:::
+
+### `theme()`関数
+
+ここまでご紹介したものの中で`theme()`を使ったものがいくつかありました。
+
+ここで`theme()`**は**`theme_xxx()`**の後に使う**ということに注意してください。
+
+これは、`theme_xxx()`が`theme()`を上書きしてしまうためです。
+
+```{r}
+#| label: fig-theme-miss
+#| fig-cap: "失敗例"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme(axis.title = element_text(color = "red")) + 
+  theme_minimal()
+```
+
+`theme(axis.title = element_text(color = "red"))`で軸ラベルを赤色に設定していますが、出力されたものは黒いラベルになっています。
+
+順番を逆にすれば、
+
+```{r}
+#| label: fig-theme-success
+#| fig-cap: "正しい例"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_minimal() + 
+  theme(axis.title = element_text(color = "red"))
+```
+
+このようにしっかり反映されます。
+
+## おわりに
+
+ひとまず僕がよく使うggplotの設定をまとめてみました。ggplotを駆使して、スタイリッシュなプロットを作成していきましょう！
+
+適宜追記する予定ですので、ご参考になれば幸いです。
