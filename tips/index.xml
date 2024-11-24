@@ -10,7 +10,1338 @@
 <atom:link href="https://yo5uke.github.io/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.30</generator>
-<lastBuildDate>Tue, 12 Nov 2024 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 16 Nov 2024 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>ggplot2ガイド</title>
+  <link>https://yo5uke.github.io/tips/241117_ggplot2/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>皆さん、ggplot、使ってますか？多分お使いですよね。</p>
+<p>僕は数か月前ggplotのガイドブックを買いまして、いろいろと勉強しているところでございます。</p>
+<p>こんなこともできるのか！という発見が多々あり、Rユーザーの皆様にはぜひ買っていただきたい代物なのですが、いかんせんお値段が張りますので、いくつかピックアップしてご紹介します。</p>
+<p>書籍のリンクは以下です。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://www.amazon.co.jp/R%E3%82%B0%E3%83%A9%E3%83%95%E3%82%A3%E3%83%83%E3%82%AF%E3%82%B9%E3%82%AF%E3%83%83%E3%82%AF%E3%83%96%E3%83%83%E3%82%AF-%E7%AC%AC2%E7%89%88-%E2%80%95ggplot2%E3%81%AB%E3%82%88%E3%82%8B%E3%82%B0%E3%83%A9%E3%83%95%E4%BD%9C%E6%88%90%E3%81%AE%E3%83%AC%E3%82%B7%E3%83%94%E9%9B%86-Winston-Chang/dp/4873118921">Rグラフィックスクックブック 第2版 ―ggplot2によるグラフ作成のレシピ集</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="ggplot2の基本" class="level2">
+<h2 class="anchored" data-anchor-id="ggplot2の基本"><code>ggplot2</code>の基本</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>使ったことがある方はこの辺はスキップしてください。</p>
+<p>今回使うデータは、デフォルトで用意されている<code>iris</code>と<code>Orange</code>です。</p>
+</div>
+</div>
+<p>ひとまず主要なパッケージである<code>ggplot2</code>を読み込みます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages("ggplot2")</span></span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(ggplot2)</span></code></pre></div>
+</div>
+<p>基本的な使い方としては、<code>ggplot()</code>と<code>aes()</code>、そして図に応じて<code>geom_line()</code>や<code>geom_point()</code>を使っていきます。</p>
+<p>今回は例として、アイリスのがく片の長さ、幅をそれぞれ軸としてプロットします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb2-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-iris" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-iris-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-iris-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iris-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;1: irisデータフレームを使った散布図
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><code>ggplot(data, aes())</code>という形で使用するデータを指定</li>
+<li><code>aes()</code>内ではX軸とY軸をそれぞれ指定する。
+<ul>
+<li>例：<code>aes(x = Sepal.Length, y = Sepal.Width)</code></li>
+</ul></li>
+<li>ggplotのコマンドは<code>+</code>で繋ぐ</li>
+<li>散布図を作るには<code>geom_point()</code>を繋げる
+<ul>
+<li>その他、折れ線なら<code>geom_line()</code>、ヒストグラムなら<code>geom_histogram()</code>など</li>
+</ul></li>
+</ol>
+<p>これが土台です。<code>ggplot()</code>だけではプロットは表示されませんので、何かしら繋ぐ形にしてください。</p>
+<p>今回はggplotの基本というよりも、そこからの拡張を主に書きたいので、この散布図をベースに進めます。</p>
+</section>
+<section id="軸" class="level2">
+<h2 class="anchored" data-anchor-id="軸">軸</h2>
+<section id="軸ラベル" class="level3">
+<h3 class="anchored" data-anchor-id="軸ラベル">軸ラベル</h3>
+<p>まずはX軸、Y軸のラベルを変更します。次のコマンドを追加することで変更できます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb3-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb3-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Length of Sepal"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Width of Sepal"</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-axis-label" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-axis-label-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-axis-label-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-axis-label-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;2: 軸ラベルを変更
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>また、以下のコードは同じ結果を示します。</p>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb4-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb4-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xlab</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Length of Sepal"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb4-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ylab</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Width of Sepal"</span>)</span></code></pre></div>
+<p>すなわち、<code>labs()</code>はそれ一つでX軸もY軸もラベルを変更することができますが、<code>xlab()</code>、<code>ylab()</code>を使えば片方ずつ変更できるということです。</p>
+<p>次に、軸ラベルの体裁を変更したい場合、以下のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb5-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb5-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Length of Sepal"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Width of Sepal"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb5-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(</span>
+<span id="cb5-5">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.title =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">family =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"times"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">face =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"italic"</span>, </span>
+<span id="cb5-6">                              <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"red"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>)</span>
+<span id="cb5-7">  )</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-axis-font" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-axis-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-axis-font-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-axis-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;3: 文字の体裁が変わっています
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><code>theme()</code>内の<code>axis.title</code>で変更する
+<ul>
+<li>X軸Y軸のどちらかだけにしたければ、<code>axis.title.x</code>のようにします。</li>
+</ul></li>
+<li><code>element_text()</code>内で具体的にフォントの体裁を指定
+<ul>
+<li><p>今回はわかりやすく派手にしましたが、これらの要素を変更すれば調整できます。</p></li>
+<li><p>例えば、<code>face = "bold"</code>にすれば太字にできます。</p></li>
+<li><p>他にもありますが、おおむね使うのはこのあたりでしょう。</p></li>
+</ul></li>
+</ol>
+</section>
+<section id="軸の目盛り" class="level3">
+<h3 class="anchored" data-anchor-id="軸の目盛り">軸の目盛り</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb6-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb6-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_x_continuous</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">breaks =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">seq</span>(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4.5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>, .<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb6-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_y_continuous</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">breaks =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">seq</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>))</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-axis-scale" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-axis-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-axis-scale-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-axis-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;4: 目盛りの間隔が変わっています
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>目盛りがX軸は0.5刻み、Y軸は1刻みになるよう変更しました。このように、X（Y）が連続値である場合、<code>scale_x_continuous()</code>（<code>scale_y_continuous()</code>）で変更できます。<code>seq()</code>は数列を作る関数で、<code>seq(from, to, by)</code>の順に指定します<sup>1</sup>。</p>
+<p>目盛りも同様にフォントのスタイルを変更できます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb7-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb7-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(</span>
+<span id="cb7-4">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.text =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">family =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"times"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">face =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bold"</span>, </span>
+<span id="cb7-5">                             <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"red"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>)</span>
+<span id="cb7-6">  )</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-scale-font" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-scale-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-scale-font-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scale-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;5: 数字のフォントが変わっています
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>もはや訳が分からない図ですが、このように体裁は変更可能です。要素は大体上と同じで、<code>axis.text.x</code>のようにどちらかだけ変更することも可能です。</p>
+</section>
+</section>
+<section id="注釈" class="level2">
+<h2 class="anchored" data-anchor-id="注釈">注釈</h2>
+<section id="文字" class="level3">
+<h3 class="anchored" data-anchor-id="文字">文字</h3>
+<p>表の中に文字を入れたいとき、どうすればよいか悩んだことが僕には何回もあります。</p>
+<p>R上ではできないものと思っていましたが、そんなことはありませんでした。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb8-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb8-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">annotate</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">label =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ggplot is</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">wonderful!"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6.5</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, </span>
+<span id="cb8-4">           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">family =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"times"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#CC6666"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">size =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-annotate" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-annotate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-annotate-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-annotate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;6: 表内に文字を入れられました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><p><code>annotate("text", label = "hogehoge")</code>で文字を入れることができる</p></li>
+<li><p><code>x</code>と<code>y</code>を指定しないと反映されない</p></li>
+<li><p>改行したい場合、<code>\n</code>を入れる</p></li>
+<li><p>フォント、色、サイズも指定できる</p></li>
+</ol>
+<p>関数一つで意外と簡単にできます。</p>
+<p>さらに、棒線や矢印を付けることも可能です。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb9-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb9-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">annotate</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"segment"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">xend =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">yend =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.5</span>, </span>
+<span id="cb9-4">           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">linewidth =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#CC6666"</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-segment-1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-segment-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-segment-1-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-segment-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;7: 斜めに棒線が入りました。
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb10-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb10-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">annotate</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"segment"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">xend =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">yend =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.5</span>, </span>
+<span id="cb10-4">           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">linewidth =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"#CC6666"</span>, </span>
+<span id="cb10-5">           <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">arrow =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">arrow</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">length =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unit</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">units =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cm"</span>)))</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-segment-2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-segment-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-segment-2-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-segment-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;8: 矢印になりました。
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><code>"segment"</code>で棒線ができる</li>
+<li><code>x</code>と<code>xend</code>、<code>y</code>と<code>yend</code>を指定する必要がある
+<ul>
+<li><img src="https://latex.codecogs.com/png.latex?(x,%20y)">から<img src="https://latex.codecogs.com/png.latex?(xend,%20yend)">までの2点を結ぶようにできます。</li>
+</ul></li>
+<li><code>linewidth</code>で線の太さを指定可
+<ul>
+<li>他の要素も文字と同様に指定できますが、<code>size</code>が<code>linewidth</code>に置き換わっています。</li>
+</ul></li>
+<li><code>arrow = arrow(length = unit(x, units = "cm"))</code>で矢じりが付く
+<ul>
+<li><code>x</code>で矢じりのサイズ、<code>units</code>は単位で、他にmmやinchesなどがあります。</li>
+</ul></li>
+</ol>
+<p>以上のように、文字だけでなく線や矢印を追加することができます。</p>
+</section>
+</section>
+<section id="複数のプロットと凡例" class="level2">
+<h2 class="anchored" data-anchor-id="複数のプロットと凡例">複数のプロットと凡例</h2>
+<section id="複数のカテゴリのプロット" class="level3">
+<h3 class="anchored" data-anchor-id="複数のカテゴリのプロット">複数のカテゴリのプロット</h3>
+<p>ここでは<code>Orange</code>データセットを使って複数のカテゴリのプロットと、凡例について説明します。</p>
+<p>複数のカテゴリのプロットとは、以下のデータを見ていただけると早いと思います。</p>
+<div class="cell">
+<div id="tbl-orange" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-orange-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: <code>Orange</code>の一部
+</figcaption>
+<div aria-describedby="tbl-orange-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+      function styleCell_hj1e53l2fvbl253399nm(i, j, css_id) {
+        var table = document.getElementById("tinytable_hj1e53l2fvbl253399nm");
+        table.rows[i].cells[j].classList.add(css_id);
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_hj1e53l2fvbl253399nm');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_hj1e53l2fvbl253399nm(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_hj1e53l2fvbl253399nm");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+window.addEventListener('load', function () { styleCell_hj1e53l2fvbl253399nm(0, 0, 'tinytable_css_idjxpljjlu1j5ovb17odmb') })
+window.addEventListener('load', function () { styleCell_hj1e53l2fvbl253399nm(0, 1, 'tinytable_css_idjxpljjlu1j5ovb17odmb') })
+window.addEventListener('load', function () { styleCell_hj1e53l2fvbl253399nm(0, 2, 'tinytable_css_idjxpljjlu1j5ovb17odmb') })
+    </script>
+
+    <style>
+    .table td.tinytable_css_idjxpljjlu1j5ovb17odmb, .table th.tinytable_css_idjxpljjlu1j5ovb17odmb {  border-bottom: solid 0.1em #d3d8dc; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_hj1e53l2fvbl253399nm" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">Tree</th>
+                <th scope="col">age</th>
+                <th scope="col">circumference</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>1</td>
+                  <td> 118</td>
+                  <td> 30</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td> 484</td>
+                  <td> 58</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td> 664</td>
+                  <td> 87</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1004</td>
+                  <td>115</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1231</td>
+                  <td>120</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1372</td>
+                  <td>142</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1582</td>
+                  <td>145</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td> 118</td>
+                  <td> 33</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td> 484</td>
+                  <td> 69</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td> 664</td>
+                  <td>111</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p><code>Tree</code>は木の識別子で、1～5まであります。<code>age</code>は日齢、<code>circumference</code>は幹の周囲です。</p>
+<p>ここでやりたいことは、木の種類ごとに、日齢と幹の周囲を軸にとってプロットすることです。これをただプロットしてしまうと、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(Orange, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> age, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> circumference)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb11-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-pool" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-pool-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-orange-pool-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-pool-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;9: すべてのデータを放り込みました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>これでは各点がどの木のものなのか判別できない状態です。これを識別するには次のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(Orange, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> age, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> circumference, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> Tree)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb12-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-color" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-color-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-orange-color-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-color-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;10: 色が分かれました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>これでとりあえずはどの点がどの木のものかわかるようになりました。<code>color = Tree</code>で、木の種類ごとに色を使うことを指定しています。</p>
+<p>今は散布図なので色を分けるだけで済みますが、折れ線グラフのような場合は、色だけでなく線の種類を変えたいかもしれません。そんな時は次のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(Orange, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> age, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> circumference, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> Tree, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">linetype =</span> Tree)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb13-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb13-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_line</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-linetype" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-linetype-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-orange-linetype-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-linetype-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;11: 折れ線の種類も分かれました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>linetype = Tree</code>を追加することで線の種類も木の種類ごとに変更することができました。</p>
+<p>このように<code>aes()</code>内で要素を追加することで種類ごとに分けることができます。</p>
+<p>まだ色遣いなどは不格好ですが、いったんこのまま進めます。</p>
+</section>
+<section id="凡例の位置" class="level3">
+<h3 class="anchored" data-anchor-id="凡例の位置">凡例の位置</h3>
+<p>次にしたいのは、凡例の設定です。凡例は現在右側に表示されていますが、まずはこれを下に表示したいとします。これは、次のコードでできます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(Orange, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> age, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> circumference, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> Tree)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb14-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb14-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">legend.position =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bottom"</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-legend-position" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-legend-position-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-orange-legend-position-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-legend-position-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;12: 凡例が下に来ました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme(legend.position = "bottom")</code>を設定することで、凡例の位置が下になりました。もちろんbottom以外にもtop, left, right（デフォルト）などを指定することができます。</p>
+<p>さらに凡例を消したい場合は次のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(Orange, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> age, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> circumference, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> Tree)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb15-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb15-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">legend.position =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"none"</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-legend-delete" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-legend-delete-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-orange-legend-delete-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-legend-delete-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;13: 凡例を消しました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme(legend.position = "none")</code>で凡例を消すことができました。</p>
+</section>
+<section id="凡例の調整" class="level3">
+<h3 class="anchored" data-anchor-id="凡例の調整">凡例の調整</h3>
+<p>例えば、凡例のタイトルは消したい場合が結構あると思います。図&nbsp;10 の例でいえば、Treeという文字は消したいということです。</p>
+<p>そんな場合は、以下のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(Orange, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> age, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> circumference, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> Tree)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb16-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb16-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">guides</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">guide_legend</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">title =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>))</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-legend-delte-title" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-legend-delte-title-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-orange-legend-delte-title-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-legend-delte-title-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;14: 凡例のタイトルを削除
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Treeというタイトルが消えました。</p>
+<p>ここでは<code>guides(color = guide_legend(title = NULL))</code>としていますが、<code>aes()</code>内で例えば<code>linetype</code>を使っている場合は、<code>guides()</code>内も<code>linetype =</code>にする必要があります。</p>
+</section>
+</section>
+<section id="テーマ" class="level2">
+<h2 class="anchored" data-anchor-id="テーマ">テーマ</h2>
+<p>ggplotではテーマを選ぶことができます。デフォルトではこれまでの図のように背景がグレーになっていますが、ほとんどの場合で背景は白にしたいですよね。</p>
+<p>背景だけでなく、罫線等もテーマで変更することができます。</p>
+<section id="プリセットのテーマ" class="level3">
+<h3 class="anchored" data-anchor-id="プリセットのテーマ">プリセットのテーマ</h3>
+<p>いくつかのテーマが準備されています。代表的なものをいくつかご紹介します。</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true">minimal</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false">bw</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" aria-controls="tabset-1-3" aria-selected="false">classic</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" aria-controls="tabset-1-4" aria-selected="false">linedraw</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-5" aria-controls="tabset-1-5" aria-selected="false">light</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-6" aria-controls="tabset-1-6" aria-selected="false">void</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb17-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb17-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_minimal</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-minimal" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-minimal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-minimal-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-minimal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;15: <code>theme_minimal()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb18-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb18-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_bw</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-bw" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-bw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-bw-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-bw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;16: <code>theme_bw()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme_minimal()</code>と比べて外枠が付いています。</p>
+</div>
+<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb19-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb19-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_classic</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-classic" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-classic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-classic-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-classic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;17: <code>theme_classic()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-4" class="tab-pane" aria-labelledby="tabset-1-4-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb20-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb20-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_linedraw</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-linedraw" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-linedraw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-linedraw-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-linedraw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;18: <code>theme_linedraw()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-5" class="tab-pane" aria-labelledby="tabset-1-5-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb21-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb21-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_light</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-light" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-light-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-light-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-light-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;19: <code>theme_light()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-6" class="tab-pane" aria-labelledby="tabset-1-6-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb22-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb22-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_void</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-void" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-void-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-void-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-void-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;20: <code>theme_void()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>さすがにやりすぎでは…と思うかもしれませんが、GISで地図を可視化するようなときに重宝します。</p>
+</div>
+</div>
+</div>
+</section>
+<section id="theme関数" class="level3">
+<h3 class="anchored" data-anchor-id="theme関数"><code>theme()</code>関数</h3>
+<p>ここまでご紹介したものの中で<code>theme()</code>を使ったものがいくつかありました。</p>
+<p>ここで<code>theme()</code><strong>は</strong><code>theme_xxx()</code><strong>の後に使う</strong>ということに注意してください。</p>
+<p>これは、<code>theme_xxx()</code>が<code>theme()</code>を上書きしてしまうためです。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb23-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb23-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.title =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"red"</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb23-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_minimal</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-miss" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-miss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-miss-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-miss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;21: 失敗例
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme(axis.title = element_text(color = "red"))</code>で軸ラベルを赤色に設定していますが、出力されたものは黒いラベルになっています。</p>
+<p>順番を逆にすれば、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(iris, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> Sepal.Length, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> Sepal.Width)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb24-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb24-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_minimal</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb24-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">axis.title =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">element_text</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"red"</span>))</span></code></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-success" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-success-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://yo5uke.github.io/tips/241117_ggplot2/index_files/figure-html/fig-theme-success-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-success-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;22: 正しい例
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>このようにしっかり反映されます。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>ひとまず僕がよく使うggplotの設定をまとめてみました。ggplotを駆使して、スタイリッシュなプロットを作成していきましょう！</p>
+<p>適宜追記する予定ですので、ご参考になれば幸いです。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>離散値の場合は<code>scale_x_discrete()</code>などで変更できますが、今回その説明は省きます。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <guid>https://yo5uke.github.io/tips/241117_ggplot2/</guid>
+  <pubDate>Sat, 16 Nov 2024 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.github.io/tips/241117_ggplot2/figure/thumbnail.png" medium="image" type="image/png" height="72" width="144"/>
+</item>
 <item>
   <title>RStudio (Server)でGitHub Copilotを使う</title>
   <link>https://yo5uke.github.io/tips/241113_copilot_rstudio/</link>
@@ -11117,647 +12448,6 @@ font-style: inherit;">---</span></span></code></pre></div>
   <guid>https://yo5uke.github.io/tips/240512_beamer/</guid>
   <pubDate>Sat, 11 May 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.github.io/tips/240512_beamer/image/revealjs.png" medium="image" type="image/png" height="83" width="144"/>
-</item>
-<item>
-  <title>【Quarto】使い方解説！Reveal.js でスライドを作ろう</title>
-  <link>https://yo5uke.github.io/tips/240512_revealjs/</link>
-  <description><![CDATA[ 
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>皆さん、スライドを作るときに何を使っていますか？PowerPoint ですか？<img src="https://latex.codecogs.com/png.latex?%5CLaTeX"> の Beamer ですか？</p>
-<p><a href="../240512_beamer/index.html">こちらの記事</a>で Reveal.js を使ったスライドをご紹介しましたが、今回はスライドを作る上での tips をご紹介します。</p>
-<p>今回は Quarto の使い方と併せて、スライドの作り方を書いていこうと思います。</p>
-</section>
-<section id="準備" class="level2">
-<h2 class="anchored" data-anchor-id="準備">準備</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>この記事は R ユーザーをターゲットに書いています。しかし、Quarto は多言語でも使えるのがメリットなので、もちろん Python などでも使うことができます。</p>
-<p>今回は RStudio で使うことを前提としますが、Python でも使いたいという方は<a href="../240508_jupyter/index.html">こちらの記事</a>を参考に VSCode で始めてみてください。コードの書き方はこの記事と同じです。</p>
-</div>
-</div>
-<p>細かいことは、Quarto の<a href="https://quarto.org/docs/guide/">公式ガイド</a>をお読みください。この記事では、とりあえずこれができればいいかな、というところをピックアップして解説します。</p>
-<section id="ドキュメントを開く" class="level3">
-<h3 class="anchored" data-anchor-id="ドキュメントを開く">ドキュメントを開く</h3>
-<p>RStudio を開き、任意のディレクトリをワーキングディレクトリとして設定します。</p>
-<p>RStudio 左上の <img src="https://yo5uke.github.io/tips/240512_revealjs/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAkCAYAAADl9UilAAACvElEQVR4Xu2XTWgTQRSA0/wo4k9VghH14MWzB+9S0YMHbxJBsZDdTdJS3aTBghQPKRRUrF6EWIpNtjSKGo0XTS96CA00CUVpmqot2tLGHvTSNDYFE0jGfUkj4bn52e0EL/vBO+3MvI+Zt29nNRoVlf/BQ36nTrB0tvmYYJvALGsEJg+h9TEp/SgT3DvMsedu2tvNZrMOT20dXvaiKLEqBqkXouQPo4e1dfb17Xa73Vq8DD0CZp1WsNzDAo3i/LM7a6Fw9FM4lpidnE4mlEQknryFdf4i7sAQTgqBwc8h7O8fk0zmFykUCnh4U4Ac9ilTPr5/EjYrBuGJT5CNjSwpFot4SkOkxQLmHZo6NYXBzytx6AlPFldWyO9cDk9piKSYzsdcxUmUiEHcDr8ka+m07COVFBNbwmucQKnYmVeDJPV9leRk7pq0mMCkakk0S2W+yc+TL/MLJJvdxEPqIimmKTdPKmL6MY7MJJJkPZPBQ+pSS2yTptiHjzOlOpODpJjYVJdoiZn81+mJ6b3sm8rCUoHBz6vj9IsBeke5Z4TrwgmUivWHBHrF3+Hu3Q8fZJxErphx/BoJT0XptQu4usAtASeSKzYQGieJ2Tl6DRaAq8u+YW4MJ2tW7FLwPonFp0u7Re2TBMB96rLTaWp/xD3FSRsFSEWiMfJtcYnyR3wLUU5vtTpNxx/Y+g2jbM2aq8QRv4O4xeODnQKp1lx7tgA5u/2G8YrDcerEkO3uAQ83ZfCyP8WXI2fwccWjfic5Gxgk7gk/mRR3KZGcKx0f7JRSKaChGADHCjVn5fljbBd/0trd22Hrdl4YEZ4vQ/OEAp9f+FoSgkKHmlJyfNU0JVYB3laXy7WL41wHLT09h9++i3xOp9dLzRP6VD6f39YuVSNLDAOT8YK0UMXkoorJZVti8FMKC7Qi6v7wqqi0iD86M3fnY/LjkAAAAABJRU5ErkJggg==" class="img-fluid"> より、「Quarto Document」を選択してください。</p>
-<p>さらに「Presentation」を選び、タイトル、著者名を必要に応じて付け、Reveal JS を選びます。エンジンは Knitr<sup>1</sup>、Use visual markdown editor はオフにしておいてください。</p>
-<p>最後に Create を押します。</p>
-<p>すると、次のようなヘッダーだけがある文書が出てくると思います。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb1" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"[任意のタイトル]"</span></span>
-<span id="cb1-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> revealjs</span></span>
-<span id="cb1-4"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p>これでドキュメントは無事開けました。そしたら <img src="https://yo5uke.github.io/tips/240512_revealjs/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAkCAYAAAD7PHgWAAABBklEQVR4Xu2XMQrCQBBFBQvR6wgJHsEDpHVjBDvvoBhbI3bWCkZbFUyhFrYiEat0WgmC6AVkdQqbIVmWZAOi82C64b+/bDWZDEEQP4phTLMaa9d003bTGMgu1psF7JVGNzuWPdzs18GDz443rgrIcndXbvW8g1axGfZKo7P2eBXc+WB74a3FGXtiA1kwzfnpqTF7hL3SwDfAaz+BqvjkwYADe6WhglQwJlQwKVQwKakVTGOoYNL5z4JxwBlUMEwqAu9SwTCpCLxLBcOkIvCusoKT9/WFQ6OkIvCukoJwt5rO0sehUVIReBem6ng+OLBXmnKjn4PbGM5PeKnqgXIlo5vHXoL4Nl4ZYqbbEGA7+wAAAABJRU5ErkJggg==" class="img-fluid"> を押して、任意のフォルダに保存してください。</p>
-</section>
-<section id="テーマ" class="level3">
-<h3 class="anchored" data-anchor-id="テーマ">テーマ</h3>
-<p>このままでもスライドは作れますが、味気ないスライドになってしまいますので、テーマを設定します。</p>
-<p>テーマは、先ほどのヘッダーを次のように書き加えることで使うことができます。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb2" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb2-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"[任意のタイトル]"</span></span>
-<span id="cb2-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb2-4"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">revealjs</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb2-5"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">theme</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> night</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  # この部分を変える</span></span>
-<span id="cb2-6"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p>もとのヘッダーと変えた時のヘッダーでそれぞれ <img src="https://yo5uke.github.io/tips/240512_revealjs/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABbElEQVRYhe3WP0scURSH4WdnNyGIlQS/gGyXMkG0Fi2SwmotExBBSLNFUoSgWNit2FvIFoKFRYoQC3HtQ/ALiFilFASLBBI2f4pZYRxmZyfO7izB/cHlztxz7jkvw5xzLyONdN9VentwnjfGKp5gHVdZNzVqVRDkzY4NvMZnTP3r5n4ATHbmagdipmiAUuT5MVpYKBIgrjF8RG1YAPAQ+1jJAlAVEl/jT2xIWIvbu6mMHbxJc6pgD9O9SO+oEhqYwHsJ0AGeDih5VO/QxIMkgHIBAPASnzAeByhS8zjCo2EBwCzqNy8VtxtJkvLaUxXoXWZ57N3GchSgaB0LK2IoAC0s4ncUoF1Q8g94ju/RxQCnBSRvCg+nn3FDgFc4wY8BJd8W/nS/kowVnGEuJUCeMlvDZppDJUfwNLWFd8XdXo6DAPiGJRxmce4HQDsS5xIv8CXr5n70ga+d+ULY5zMnpz9foI5n2BLeqv4v/QUmf1bR1/DM0QAAAABJRU5ErkJggg==" class="img-fluid"> Render してみてください。</p>
-<p>ちなみに、Quarto 公式では、以下のようなテーマが紹介されています。</p>
-<div class="columns">
-<div class="column" style="width:50%;">
-<ul>
-<li><p><code>beige</code></p></li>
-<li><p><code>blood</code></p></li>
-<li><p><code>dark</code></p></li>
-<li><p><code>default</code></p></li>
-<li><p><code>league</code></p></li>
-<li><p><code>moon</code></p></li>
-</ul>
-</div><div class="column" style="width:50%;">
-<ul>
-<li><p><code>night</code></p></li>
-<li><p><code>serif</code></p></li>
-<li><p><code>simple</code></p></li>
-<li><p><code>sky</code></p></li>
-<li><p><code>solarized</code></p></li>
-</ul>
-</div>
-</div>
-<p>それぞれ特徴があるので、いろいろ試してみてください。</p>
-<p>今回は、私が作成した Reveal.js のテンプレートを使っていきます。現状英語にしか対応していないのが難点ですが、いずれ日本語に対応したものも作る予定です。</p>
-<p><a href="https://github.com/yo5uke/modern-revealjs">GitHub リポジトリ</a>にアクセスし、クローンするか、<code>&lt;&gt; Code</code> より ZIP ファイルをダウンロードしてください<sup>2</sup>。使うのは <code>modern_theme.scss</code> です。このファイルを準備し、先ほどのドキュメントを保存したフォルダと同じフォルダに移しておいてください。</p>
-<p>そしたらヘッダーを次のように修正してください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb3" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode yml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb3-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"[任意のタイトル]"</span></span>
-<span id="cb3-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb3-4"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">revealjs</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb3-5"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">theme</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb3-6"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> default</span></span>
-<span id="cb3-7"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> modern_theme.scss</span></span>
-<span id="cb3-8"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">slide-number</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">true</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  # スライド番号を付ける</span></span>
-<span id="cb3-9"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">date-format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> long</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">   # 日付のフォーマットを整える</span></span>
-<span id="cb3-10"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-</div>
-<p>これでテーマの設定もできました。</p>
-</section>
-</section>
-<section id="quarto-での書き方" class="level2">
-<h2 class="anchored" data-anchor-id="quarto-での書き方">Quarto での書き方</h2>
-<section id="表紙" class="level3">
-<h3 class="anchored" data-anchor-id="表紙">表紙</h3>
-<p>表紙はヘッダーに書いた要素で構成されます。<code>title</code> の他には、<code>author</code>（著者）や <code>date</code>（日付）、 <code>institute</code>（所属組織） を追加することを想定しています<sup>3</sup>。</p>
-</section>
-<section id="本スライド" class="level3">
-<h3 class="anchored" data-anchor-id="本スライド">本スライド</h3>
-<p>スライドでは、<code>##</code> を使ってページを区切っていきます<sup>4</sup>。</p>
-<p>例えば次のように書きます。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb4" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb4-2"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">title:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> "Title"</span></span>
-<span id="cb4-3"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">subtitle:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb4-4"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">format:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb4-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  revealjs: </span></span>
-<span id="cb4-6"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    theme: </span></span>
-<span id="cb4-7"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">      - default</span></span>
-<span id="cb4-8"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">      - modern_theme.scss</span></span>
-<span id="cb4-9"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    slide-number: true  # スライド番号を付ける</span></span>
-<span id="cb4-10"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    date-format: long   # 日付のフォーマットを整える</span></span>
-<span id="cb4-11"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb4-12"></span>
-<span id="cb4-13"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">## First page</span></span>
-<span id="cb4-14"></span>
-<span id="cb4-15">"First page" is the headline text. Note that a half-width space is required before the heading.</span>
-<span id="cb4-16"></span>
-<span id="cb4-17"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">## Second page</span></span>
-<span id="cb4-18"></span>
-<span id="cb4-19">You can break a line by leaving one line blank.</span>
-<span id="cb4-20"></span>
-<span id="cb4-21">Like this.</span></code></pre></div>
-</div>
-<p><code>"First page" is ~</code> と <code>You can break ~</code> が本文です。</p>
-<p>通常の Markdown と基本的な使い方は一緒ですが、改行するには空行を入れる必要があります。1回改行しただけでは、スライド上では改行されません。見出し部分にも適用されますので、1行空けてから <code>## 見出し</code> と書くようにしてください。</p>
-<div>
-<iframe class="slide-deck" src="demo/demo1/demo.html"></iframe>
-</div>
-</section>
-<section id="色遣い" class="level3">
-<h3 class="anchored" data-anchor-id="色遣い">色遣い</h3>
-<p>このテーマは基本的に派手なデザインではありませんが、2色を文字に使えます。<span class="alert">alert</span> と、<span class="accent">accent</span> です。</p>
-<p>これらの色にしたい文字や文を <code>[]</code> で囲んだ後、<code>{.alert}</code> および <code>{.accent}</code> と入力します。<code>[alert]{.alert}</code> といった感じです。</p>
-<p>基本的には alert があれば概ね大丈夫な気がしますが、accent も入れておきました。</p>
-</section>
-<section id="callout" class="level3">
-<h3 class="anchored" data-anchor-id="callout">callout</h3>
-<p>callout ブロックを紹介します。</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Note
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>これは Note</p>
-</div>
-</div>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Tip
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>これは Tip</p>
-</div>
-</div>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Warning
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>これは Warning</p>
-</div>
-</div>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Important
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>これは Important</p>
-</div>
-</div>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Caution
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>これは Caution</p>
-</div>
-</div>
-<p>これらのことです。</p>
-<p>要点をまとめたいときや、断り事を書きたいときなどに重宝します。</p>
-<p>書き方は、</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb5" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1">::: {.callout-note}</span>
-<span id="cb5-2">これは Note</span>
-<span id="cb5-3">:::</span>
-<span id="cb5-4"></span>
-<span id="cb5-5">::: {.callout-tip}</span>
-<span id="cb5-6">これは Tip</span>
-<span id="cb5-7">:::</span>
-<span id="cb5-8"></span>
-<span id="cb5-9">::: {.callout-warning}</span>
-<span id="cb5-10">これは Warning</span>
-<span id="cb5-11">:::</span>
-<span id="cb5-12"></span>
-<span id="cb5-13">::: {.callout-important}</span>
-<span id="cb5-14">これは Important</span>
-<span id="cb5-15">:::</span>
-<span id="cb5-16"></span>
-<span id="cb5-17">::: {.callout-caution}</span>
-<span id="cb5-18">これは Caution</span>
-<span id="cb5-19">:::</span></code></pre></div>
-</div>
-<p>こうです。</p>
-<p>ちなみに、ブロックのタイトルを変えたいときや、長いので折りたたみたいときは、</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb6" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1">::: {.callout-note collapse=true}</span>
-<span id="cb6-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">## ここがタイトル</span></span>
-<span id="cb6-3"></span>
-<span id="cb6-4">collapse=true で折りたためる Note</span>
-<span id="cb6-5">:::</span></code></pre></div>
-</div>
-<p>と書くことで、</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-ここがタイトル
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-7" class="callout-7-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>collapse=true で折りたためる Note</p>
-</div>
-</div>
-</div>
-<p>とできます。</p>
-</section>
-<section id="リスト" class="level3">
-<h3 class="anchored" data-anchor-id="リスト">リスト</h3>
-<p>箇条書きなどのリスト形式が使えます。書き方はシンプルで、</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Markdon</strong></pre>
-</div>
-<div class="sourceCode" id="cb7" data-filename="Markdon" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1">箇条書きリスト</span>
-<span id="cb7-2"></span>
-<span id="cb7-3"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>Item 1</span>
-<span id="cb7-4"></span>
-<span id="cb7-5"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">    - </span>Item 1-1</span>
-<span id="cb7-6">    </span>
-<span id="cb7-7"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>Item2</span>
-<span id="cb7-8"></span>
-<span id="cb7-9">順序付きリスト</span>
-<span id="cb7-10"></span>
-<span id="cb7-11"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">1. </span>Item 1</span>
-<span id="cb7-12"></span>
-<span id="cb7-13"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">2. </span>Item 2</span></code></pre></div>
-</div>
-<p>箇条書きリストでは2段階を、順序付きリストでは1段階の利用を想定しています。</p>
-<p>アイテムの前には半角スペースを忘れないでください。また、2段階目を使うときには4つ分のスペースが必要です。</p>
-</section>
-<section id="列を分ける" class="level3">
-<h3 class="anchored" data-anchor-id="列を分ける">列を分ける</h3>
-<p>箇条書きを10個も書くと、2列にしたいことがありますよね。そんなときは次のようにしてください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb8" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1">:::: {.columns}</span>
-<span id="cb8-2">::: {.column width="50%"}</span>
-<span id="cb8-3"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>Item 1</span>
-<span id="cb8-4"></span>
-<span id="cb8-5"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>Item 2</span>
-<span id="cb8-6">:::</span>
-<span id="cb8-7"></span>
-<span id="cb8-8">:::{.column width="50%"}</span>
-<span id="cb8-9"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>Item 3</span>
-<span id="cb8-10"></span>
-<span id="cb8-11"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>Item 4</span>
-<span id="cb8-12">:::</span>
-<span id="cb8-13">::::</span></code></pre></div>
-</div>
-<p>このように書くと、</p>
-<div class="columns">
-<div class="column" style="width:50%;">
-<ul>
-<li><p>このように</p></li>
-<li><p>なります。</p></li>
-</ul>
-</div><div class="column" style="width:50%;">
-<ul>
-<li><p><code>width</code> を変えれば</p></li>
-<li><p>列の幅を調節できます。</p></li>
-</ul>
-</div>
-</div>
-</section>
-<section id="コード" class="level3">
-<h3 class="anchored" data-anchor-id="コード">コード</h3>
-<p>R や Python のコードも書けます。</p>
-<p>特筆すべきは、コードをハイライトできることです。</p>
-<p>例えば、次のコードをご覧ください。</p>
-<div>
-<iframe class="slide-deck" src="demo/demo2/demo.html"></iframe>
-</div>
-<p>上のコードでは <code>select()</code> と <code>filter()</code> の行がハイライトされています。</p>
-<p>また、スライド上で右に進んでみてください。順にハイライトされています。</p>
-<p>これらのコードは、次のように書いています。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Quarto</strong></pre>
-</div>
-<div class="sourceCode" id="cb9" data-filename="Quarto" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{.r code-line-numbers="5-6"}</span></span>
-<span id="cb9-2"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">library(tidyverse)</span></span>
-<span id="cb9-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">library(gt)</span></span>
-<span id="cb9-4"></span>
-<span id="cb9-5"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">df &lt;- mtcars |&gt; </span></span>
-<span id="cb9-6"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  select(1:5) |&gt; </span></span>
-<span id="cb9-7"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  filter(disp &gt;= 400)</span></span>
-<span id="cb9-8"></span>
-<span id="cb9-9"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">gt(df)</span></span>
-<span id="cb9-10"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span>
-<span id="cb9-11"></span>
-<span id="cb9-12"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```{.r code-line-numbers="|5|6"}</span></span>
-<span id="cb9-13"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">library(tidyverse)</span></span>
-<span id="cb9-14"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">library(gt)</span></span>
-<span id="cb9-15"></span>
-<span id="cb9-16"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">df &lt;- mtcars |&gt; </span></span>
-<span id="cb9-17"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  select(1:5) |&gt; </span></span>
-<span id="cb9-18"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  filter(disp &gt;= 400)</span></span>
-<span id="cb9-19"></span>
-<span id="cb9-20"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">gt(df)</span></span>
-<span id="cb9-21"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
-</div>
-<p>このように <code>code-line-numbers</code> で指定することができます。<code>|5|6</code> は5行目と6行目が順にハイライトされるということですね。</p>
-<p>他にも細やかな設定ができるので、Quarto の<a href="https://quarto.org/docs/presentations/revealjs/#code-blocks">公式ガイド</a>をご覧ください。</p>
-</section>
-<section id="図や表" class="level3">
-<h3 class="anchored" data-anchor-id="図や表">図や表</h3>
-<p>図や表がどのように表示されるのか見てみましょう。</p>
-<p>デフォルトでは図のキャプションが左寄りになっていますが、中央になるように修正しています。</p>
-<p>また、ここでは例としてコードを載せていますが、デフォルトではコード表示はオフです。表示したい場合はチャンク内で <code>echo: true</code> を設定してください<sup>5</sup>。</p>
-<div>
-<iframe class="slide-deck" src="demo/demo3/demo.html"></iframe>
-</div>
-</section>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>ここまで基本的な Quarto でのスライド作成についてご紹介しました。</p>
-<p>ここを押さえておけばスライドを作る分には困らないのではないかと…思います。</p>
-<p>他に使う要素があれば適宜追加していきます！</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>Python の場合は Jupyter↩︎</p></li>
-<li id="fn2"><p>クローンするほどでもないので、ダウンロードでいいと思います。リポジトリ整えてなくてすみません^^;↩︎</p></li>
-<li id="fn3"><p>私のテーマの場合↩︎</p></li>
-<li id="fn4"><p><code>#</code> も使えるのですが、今回のテーマでの使用は想定していません。↩︎</p></li>
-<li id="fn5"><p>チャンクオプションについて、詳しくは<a href="../240509_chunk_option/index.html">こちら</a>↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>Quarto</category>
-  <category>Reveal.js</category>
-  <category>R</category>
-  <guid>https://yo5uke.github.io/tips/240512_revealjs/</guid>
-  <pubDate>Sat, 11 May 2024 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.github.io/tips/240512_revealjs/thumbnail.png" medium="image" type="image/png" height="87" width="144"/>
 </item>
 </channel>
 </rss>
