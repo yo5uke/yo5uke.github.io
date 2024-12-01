@@ -31,6 +31,8 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
 <link href="./favicon.ico" rel="icon">
+<script src="site_libs/quarto-listing/list.min.js"></script>
+<script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -38,7 +40,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-af76ede5a83f96e7f7ddffb05ba6ea3a.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-4ab2479c1ec8ca528cc3e7be0c609a9b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dc9252716333816f13eaf908f0fb056f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <link href="site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
 <link href="site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
 <script id="quarto-search-options" type="application/json">{
@@ -68,6 +70,36 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "サーチ"
   }
 }</script>
+<script>
+
+  window.document.addEventListener("DOMContentLoaded", function (_event) {
+    const listingTargetEl = window.document.querySelector('#listing-list .list');
+    if (!listingTargetEl) {
+      // No listing discovered, do not attach.
+      return; 
+    }
+
+    const options = {
+      valueNames: ['listing-date','listing-title','listing-author','listing-image','listing-description',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
+      page: 25,
+    pagination: { item: "<li class='page-item'><a class='page page-link' href='#'></a></li>" },
+      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description"],
+    };
+
+    window['quarto-listings'] = window['quarto-listings'] || {};
+    window['quarto-listings']['listing-list'] = new List('listing-list', options);
+
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  });
+
+  window.addEventListener('hashchange',() => {
+    if (window['quarto-listing-loaded']) {
+      window['quarto-listing-loaded']();
+    }
+  })
+  </script>
 <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
 
 <script type="text/javascript">
@@ -78,18 +110,51 @@ gtag('js', new Date());
 gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <meta property="og:title" content="Yosuke Abe – Yosuke Abe">
-<meta property="og:image" content="https://yo5uke.github.io/figure/orange_bara.jpg">
+<meta property="og:image" content="https://yo5uke.github.io/tips/241117_ggplot2/figure/thumbnail.png">
 <meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="960">
+<meta property="og:image:width" content="1920">
 <meta name="twitter:title" content="Yosuke Abe – Yosuke Abe">
-<meta name="twitter:image" content="https://yo5uke.github.io/figure/orange_bara.jpg">
+<meta name="twitter:image" content="https://yo5uke.github.io/tips/241117_ggplot2/figure/thumbnail.png">
 <meta name="twitter:creator" content="@5uke_y">
 <meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="960">
+<meta name="twitter:image-width" content="1920">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body class="nav-fixed fullcontent">
+<body class="nav-fixed">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
@@ -124,45 +189,148 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
   </li>  
 </ul>
           </div> <!-- /navcollapse -->
-            <div class="quarto-navbar-tools tools-wide">
-    <a href="https://github.com/yo5uke" title="GitHub" class="quarto-navigation-tool px-1" aria-label="GitHub"><i class="bi bi-github"></i></a>
-    <a href="https://x.com/5uke_y" title="僕は今でもTwitterと呼んでいます" class="quarto-navigation-tool px-1" aria-label="僕は今でもTwitterと呼んでいます"><i class="bi bi-twitter-x"></i></a>
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            Source code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            Report an issue
+            </a>
+          </li>
+      </ul>
+    </div>
     <a href="./tips/index.xml" title="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます" class="quarto-navigation-tool px-1" aria-label="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます"><i class="bi bi-rss"></i></a>
 </div>
       </div> <!-- /container-fluid -->
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     
 <!-- main -->
-<main class="content" id="quarto-document-content">
+<main class="content column-page" id="quarto-document-content">
 
 
 
 
-<div class="quarto-about-jolla">
+<div class="quarto-about-jolla column-page">
   <img src="figure/orange_bara.jpg" class="about-image
   round " style="height: 15em; width: 15em;">
  <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title"><p><span class="libre-baskerville-regular">Yosuke Abe</span></p></h1>
 </div>
-<div class="quarto-title-meta">
+<div class="quarto-title-meta column-page">
   </div>
 </header><div id="profile">
 <div style="text-align: center">
 <p>こんにちは！<i class="fa-brands fa-r-project" aria-label="r-project"></i>が好きな大学院生です。</p>
 <p>テクニカルなことを備忘録的にまとめています。</p>
 </div>
-<hr>
 <div style="text-align: right">
 <p><a href="about.html">プロフィール</a>へ <i class="fa-solid fa-arrow-right" aria-label="arrow-right"></i></p>
-<p><a href="tips/index.html">Tips</a>へ <i class="fa-solid fa-arrow-right" aria-label="arrow-right"></i></p>
 </div>
 </div>  
+</div>
+
+<hr>
+<div class="grid">
+<section id="recently-posted" class="level2 g-col-8">
+<h2 data-anchor-id="recently-posted"><span class="libre-baskerville-regular">Recently Posted</span></h2>
+<div id="listing-list" class="quarto-listing quarto-listing-container-default">
+<div class="list quarto-listing-default">
+<div class="quarto-post image-right" data-index="0" data-categories="UXVhcnRvJTJDUiUyME1hcmtkb3duJTJDTGFUZVg=" data-listing-date-sort="1732460400000" data-listing-file-modified-sort="1732599865913" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="134">
+<div class="thumbnail">
+<p><a href="./blog/241125_cite_drive/index.html" class="no-external"></a></p><a href="./blog/241125_cite_drive/index.html" class="no-external">
+<p class="card-img-top"><img src="blog/241125_cite_drive/image/new_project.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./blog/241125_cite_drive/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./blog/241125_cite_drive/index.html" class="no-external">【CiteDrive】オンラインで手軽に文献管理（？）</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./blog/241125_cite_drive/index.html" class="no-external"></a>
+</div>
+<div class="listing-description">
+<a href="./blog/241125_cite_drive/index.html" class="no-external">結構いいと思ったけど、まだまだやな。 </a>
+</div>
+</div>
+<div class="metadata">
+<a href="./blog/241125_cite_drive/index.html" class="no-external">
+<div class="listing-date">
+2024/11/25
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="1" data-categories="Ug==" data-listing-date-sort="1731769200000" data-listing-file-modified-sort="1732434416748" data-listing-date-modified-sort="1732978800000" data-listing-reading-time-sort="5" data-listing-word-count-sort="866">
+<div class="thumbnail">
+<p><a href="./tips/241117_ggplot2/index.html" class="no-external"></a></p><a href="./tips/241117_ggplot2/index.html" class="no-external">
+<p><img loading="lazy" src="./tips/241117_ggplot2/figure/thumbnail.png" class="thumbnail-image"></p>
+</a><p><a href="./tips/241117_ggplot2/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./tips/241117_ggplot2/index.html" class="no-external"><code>ggplot2</code>ガイド</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./tips/241117_ggplot2/index.html" class="no-external"></a>
+</div>
+<div class="listing-description">
+<a href="./tips/241117_ggplot2/index.html" class="no-external">ggplotを使うのに役立つコマンドを紹介します。 </a>
+</div>
+</div>
+<div class="metadata">
+<a href="./tips/241117_ggplot2/index.html" class="no-external">
+<div class="listing-date">
+2024/11/17
+</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="2" data-categories="R2l0SHViJTJDUlN0dWRpbyUyQ0RvY2tlcg==" data-listing-date-sort="1731423600000" data-listing-file-modified-sort="1731480306297" data-listing-date-modified-sort="NaN" data-listing-reading-time-sort="1" data-listing-word-count-sort="46">
+<div class="thumbnail">
+<p><a href="./tips/241113_copilot_rstudio/index.html" class="no-external"></a></p><a href="./tips/241113_copilot_rstudio/index.html" class="no-external">
+<p class="card-img-top"><img src="tips/241113_copilot_rstudio/figure/local_rstudio_copilot_setting.png"  class="thumbnail-image card-img"/></p>
+</a><p><a href="./tips/241113_copilot_rstudio/index.html" class="no-external"></a></p>
+</div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./tips/241113_copilot_rstudio/index.html" class="no-external">RStudio (Server)でGitHub Copilotを使う</a>
+</h3>
+<div class="listing-subtitle">
+<a href="./tips/241113_copilot_rstudio/index.html" class="no-external"></a>
+</div>
+<div class="listing-description">
+<a href="./tips/241113_copilot_rstudio/index.html" class="no-external">ローカルとRStudio Serverに分けて説明します。 </a>
+</div>
+</div>
+<div class="metadata">
+<a href="./tips/241113_copilot_rstudio/index.html" class="no-external">
+<div class="listing-date">
+2024/11/13
+</div>
+</a>
+</div>
+</div>
+</div>
+<div class="listing-no-matching d-none">
+一致なし
+</div>
+</div>
+</section>
+<div class="g-col-4">
+<a class="twitter-timeline" href="https://twitter.com/5uke_y?ref_src=twsrc%5Etfw">Tweets by 5uke_y</a> <script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
+</div>
 </div>
 
 
