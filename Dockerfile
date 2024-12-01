@@ -20,6 +20,7 @@ RUN sed -i '$d' /etc/locale.gen \
 RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 COPY --chown=rstudio:rstudio /.rstudio/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
+COPY --chown=rstudio:rstudio /etc/rstudio/rsession.conf /etc/rstudio/rsession.conf
 COPY --chown=rstudio:rstudio /.vscode/_settings.json /home/rstudio/.vscode-server/data/Machine/settings.json
 
 # R Package
@@ -38,7 +39,7 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
 ENV PATH $PATH:~/.cache/pip/bin
 
 ENV QUARTO_MINOR_VERSION=1.6
-ENV QUARTO_PATCH_VERSION=38
+ENV QUARTO_PATCH_VERSION=39
 
 RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
     dpkg -i quarto.deb && \
