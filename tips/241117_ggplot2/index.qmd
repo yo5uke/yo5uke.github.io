@@ -6,7 +6,7 @@ date: 2024-11-17
 date-modified: today
 categories:
   - R
-image: figure/thumbnail.png
+image: figure/fig-ggrepel.png
 editor: visual
 ---
 
@@ -447,6 +447,172 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ```
 
 このようにしっかり反映されます。
+
+## 発展1：`ggrepel`
+
+ここからは、`ggrepel`というパッケージを用いて折れ線グラフを発展させた例をご紹介します。
+
+```{r}
+# インストール
+# pak::pak("ggrepel")
+library(ggrepel)
+```
+
+まず、以下のようなデータがあるとします。`firm_id`は30まであります。
+
+```{r}
+#| label: tbl-data-prep
+#| tbl-cap: "データの一部"
+#| echo: false
+
+library(tidyverse)
+set.seed(57)
+
+n_firms <- 30   # Reduce the number of firms
+n_states <- 50
+T <- 36
+
+firm_id <- 1:n_firms
+state_id <- sample(n_states, size = n_firms, replace = TRUE)
+year <- 1980:2015
+
+fe_firm <- rnorm(n_firms, mean = 0, sd = .5)
+fe_year <- rnorm(T, mean = 0, sd = .5)
+error <- rnorm(n_firms * T, mean = 0, sd = .5)
+
+treated_1998 <- sample(c(1, 0), size = n_firms, 
+                       replace = TRUE, prob = c(1/5, 4/5))
+
+treated_year <- sample(c(1989, 1998, 2007), size = n_firms, 
+                       replace = TRUE, prob = c(17/50, 17/50, 16/50))
+
+df <- tibble(
+  firm_id = rep(firm_id, each = T), 
+  state_id = rep(state_id, each = T), 
+  year = rep(year, times = n_firms), 
+  fe_firm = rep(fe_firm, each = T), 
+  fe_year = rep(fe_year, times = n_firms), 
+  error = error, 
+  treated_1998 = rep(treated_1998, each = T), 
+  is_treated = if_else(treated_1998 == 1 & year >= 1998, 1, 0), 
+  y = case_when(
+    is_treated == 1 ~ 
+      rnorm(n_firms * T, mean = 2, sd = .2) + fe_firm + fe_year + error, 
+    .default = fe_firm + fe_year + error
+  )
+)
+
+df |> 
+  select(firm_id:year, treated_1998:y) |> 
+  head() |> 
+  tinytable::tt()
+
+```
+
+これを使って横軸に`Year`、縦軸に`y`をとってグラフにします。
+
+詳細を書くと長くなるので、適宜メモを入れました。ご参考まで。
+
+```{r}
+#| label: fig-ggrepel
+#| fig-cap: "ggrepelを使ったプロット"
+#| fig-align: center
+
+df <- df |> 
+  mutate(
+    # ハイライトする群とそれ以外に分ける
+    group = if_else(treated_1998 == 1, as.factor(firm_id), "other"), 
+    # 最後の年にだけラベルを付ける
+    group_lab = if_else(treated_1998 == 1 & year == 2015, 
+                        paste0("Firm ", firm_id), NA_character_)
+  )
+
+ggplot(
+  # まずハイライトする群だけプロット
+  df |> filter(treated_1998 == 1), 
+  aes(x = year, y = y, group = firm_id)
+) + 
+  theme_minimal() + 
+  theme(
+    # 罫線を削除
+    panel.grid = element_blank(), 
+    # 凡例を削除
+    legend.position = "none", 
+    # 軸のタイトルと文字のフォントとサイズを調整
+    axis.title = element_text(family = "Times", size = 18), 
+    axis.text = element_text(family = "Times", size = 14)
+  ) + 
+  geom_vline(
+    # 垂直線を描写
+    xintercept = seq(1980, 2015, by = 5), 
+    color = "gray91", 
+    linewidth = .6
+  ) + 
+  geom_segment(
+    # 水平線を描写
+    # 描写のためにデータを準備
+    data = tibble(y = seq(-2.5, 5.0, by = 2.5), x1 = 1980, x2 = 2015), 
+    aes(x = x1, xend = x2, y = y, yend = y), 
+    inherit.aes = FALSE, 
+    color = "gray91", 
+    linewidth = .6
+  ) + 
+  geom_segment(
+    # 薄い水平線を描写
+    data = tibble(y = seq(-2.0, 4.5, by = .5), x1 = 1980, x2 = 2015), 
+    aes(x = x1, xend = x2, y = y, yend = y), 
+    inherit.aes = FALSE, 
+    color = "gray97", 
+    linewidth = .3
+  ) + 
+  geom_segment(
+    # 縦軸が0のところに水平線を描写
+    data = tibble(y = 0, x1 = 1980, x2 = 2015), 
+    aes(x = x1, xend = x2, y = y), 
+    inherit.aes = FALSE, 
+    linetype = "dashed", 
+    color = "gray40"
+  ) + 
+  geom_vline(
+    # 処置年に垂直線を描写
+    xintercept = 1998, 
+    linetype = "dashed", 
+    color = "gray40"
+  ) + 
+  geom_line(
+    # ハイライトしない群をプロット
+    data = df |> filter(group == "other"), 
+    color = "gray75", 
+    alpha = .5
+  ) + 
+  geom_line(
+    # ハイライトする群をプロット
+    aes(color = group)
+  ) + 
+  geom_text_repel(
+    # ハイライトした線にラベルを追加
+    aes(color = group, label = group_lab), 
+    family = "Times", 
+    hjust = 0, 
+    # 2017年の位置にラベルを書く
+    xlim = c(2017, NA), 
+    size = 4, 
+    segment.linetype = "dotted"
+  ) + 
+  xlab("Year") + 
+  ylab("Value") + 
+  scale_x_continuous(
+    expand = c(0, 0), 
+    # ラベルが見えるように図の端の2015年より広くとる
+    limits = c(1980, 2021), 
+    breaks = seq(1980, 2015, by = 5)
+  ) + 
+  scale_y_continuous(
+    expand = c(0, 0), 
+    limits = c(-2.5, 5.0), 
+    breaks = c(-2.5, 0, 2.5, 5.0)
+  )
+```
 
 ## おわりに
 
