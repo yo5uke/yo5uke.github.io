@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Quarto を使って論文を書く方法（マークダウン、表、図）をまとめました。">
+
+<title>【PDF】Quarto で論文を書く – Yosuke Abe</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../assets/icons/favicon.ico" rel="icon">
+<script src="../../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-432712aca8bd60f8db98808cc81d1ed1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-dc9252716333816f13eaf908f0fb056f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "一致なし",
+    "search-matching-documents-text": "一致した文書",
+    "search-copy-link-title": "検索へのリンクをコピー",
+    "search-hide-matches-text": "追加の検索結果を非表示",
+    "search-more-match-text": "追加の検索結果",
+    "search-more-matches-text": "追加の検索結果",
+    "search-clear-button-title": "消去",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "キャンセル",
+    "search-submit-button-title": "検索",
+    "search-label": "サーチ"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="【PDF】Quarto で論文を書く – Yosuke Abe">
+<meta property="og:description" content="Quarto を使って論文を書く方法（マークダウン、表、図）をまとめました。">
+<meta property="og:image" content="https://yo5uke.github.io/pages/tips/240629_write_thesis/image/create_document.png">
+<meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="1008">
+<meta property="og:image:width" content="1920">
+<meta name="twitter:title" content="【PDF】Quarto で論文を書く – Yosuke Abe">
+<meta name="twitter:description" content="Quarto を使って論文を書く方法（マークダウン、表、図）をまとめました。">
+<meta name="twitter:image" content="https://yo5uke.github.io/pages/tips/240629_write_thesis/image/create_document.png">
+<meta name="twitter:creator" content="@5uke_y">
+<meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="1008">
+<meta name="twitter:image-width" content="1920">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Yosuke Abe</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="サーチ"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="ナビゲーションを切り替える" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/tips/index.html"> 
+<span class="menu-text">Tips</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/gis_in_r/index.html"> 
+<span class="menu-text">GIS in <i class="fa-brands fa-r-project" aria-label="r-project"></i></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/app/index.html"> 
+<span class="menu-text">App</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            Source code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            Report an issue
+            </a>
+          </li>
+      </ul>
+    </div>
+    <a href="../../../tips/index.xml" title="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます" class="quarto-navigation-tool px-1" aria-label="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます"><i class="bi bi-rss"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">【PDF】Quarto で論文を書く</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i></button></div></div>
+                  <div>
+        <div class="description">
+          <p>Quarto を使って論文を書く方法（マークダウン、表、図）をまとめました。</p>
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">Quarto</div>
+                <div class="quarto-category">R</div>
+                <div class="quarto-category">LaTeX</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">公開</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2024年6月29日</p>
+      </div>
+    </div>
+    
+      <div>
+      <div class="quarto-title-meta-heading">最終更新</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">2024年12月13日</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目次</h2>
+   
+  <ul>
+  <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
+  <li><a href="#準備" id="toc-準備" class="nav-link" data-scroll-target="#準備">準備</a>
+  <ul>
+  <li><a href="#プロジェクトの作成" id="toc-プロジェクトの作成" class="nav-link" data-scroll-target="#プロジェクトの作成">プロジェクトの作成</a></li>
+  <li><a href="#ファイルの作成" id="toc-ファイルの作成" class="nav-link" data-scroll-target="#ファイルの作成">ファイルの作成</a></li>
+  <li><a href="#global-options-の設定" id="toc-global-options-の設定" class="nav-link" data-scroll-target="#global-options-の設定">Global Options の設定</a></li>
+  <li><a href="#ヘッダーの記述" id="toc-ヘッダーの記述" class="nav-link" data-scroll-target="#ヘッダーの記述">ヘッダーの記述</a></li>
+  </ul></li>
+  <li><a href="#本文の書き方マークダウン編" id="toc-本文の書き方マークダウン編" class="nav-link" data-scroll-target="#本文の書き方マークダウン編">本文の書き方（マークダウン編）</a></li>
+  <li><a href="#本文の書き方テーブル編" id="toc-本文の書き方テーブル編" class="nav-link" data-scroll-target="#本文の書き方テーブル編">本文の書き方（テーブル編）</a></li>
+  <li><a href="#本文の書き方フィギュア編" id="toc-本文の書き方フィギュア編" class="nav-link" data-scroll-target="#本文の書き方フィギュア編">本文の書き方（フィギュア編）</a></li>
+  <li><a href="#まとめ" id="toc-まとめ" class="nav-link" data-scroll-target="#まとめ">まとめ</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>これまでの記事で R Markdown や Quarto を使って <span class="math inline">\(\LaTeX\)</span> 経由で PDF 出力する方法や、それらで使えるチャンクオプションについてご紹介してきました。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../240329_rmarkdown_pdf/index.html">R MarkdownでPDF出力【LaTeX】</a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../240509_chunk_option/index.html">【Quarto】チャンクオプションまとめてみた【R Markdown】</a></p>
+</div>
+</div>
+</div>
+<p>今回は、Quarto を使って論文を書く方法について包括的にまとめてみました。</p>
+<p>ぜひ参考にしてみてください。</p>
+<p>また、環境として RStudio を使用していると仮定します。</p>
+</section>
+<section id="準備" class="level2">
+<h2 class="anchored" data-anchor-id="準備">準備</h2>
+<p>Quarto は R Markdown の亜種、と考えてもらえればと思います。マークダウン形式で記述することができ、<span class="math inline">\(\LaTeX\)</span> 記法を必ずしも用いる必要がないのが特徴です<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。<span class="math inline">\(\LaTeX\)</span> を深く学ばなくてもスタイリッシュな論文が書けるのではないでしょうか。</p>
+<p>ここからは、書くのに最低限必要な使い方を紹介します。</p>
+<section id="プロジェクトの作成" class="level3">
+<h3 class="anchored" data-anchor-id="プロジェクトの作成">プロジェクトの作成</h3>
+<p>必須ではありませんが推奨します。プロジェクトを作成することで、ファイルの管理がしやすくなります。</p>
+<p>プロジェクトの作成については以下の記事で紹介しています。<span class="math inline">\(\LaTeX\)</span> との差別化点として、分析結果をそのまま埋め込めることがあげられ、プロジェクトを作成することで、その恩恵を最大限受けられると考えています。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../240515_rproj/index.html">【R】プロジェクトを使う</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="ファイルの作成" class="level3">
+<h3 class="anchored" data-anchor-id="ファイルの作成">ファイルの作成</h3>
+<p>Quarto で論文を書くには、拡張子が <code>.qmd</code> のファイルを作成します。これは Quarto Markdown の略です。</p>
+<p>RStudio 画面左上の <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAkCAYAAADl9UilAAACvElEQVR4Xu2XTWgTQRSA0/wo4k9VghH14MWzB+9S0YMHbxJBsZDdTdJS3aTBghQPKRRUrF6EWIpNtjSKGo0XTS96CA00CUVpmqot2tLGHvTSNDYFE0jGfUkj4bn52e0EL/vBO+3MvI+Zt29nNRoVlf/BQ36nTrB0tvmYYJvALGsEJg+h9TEp/SgT3DvMsedu2tvNZrMOT20dXvaiKLEqBqkXouQPo4e1dfb17Xa73Vq8DD0CZp1WsNzDAo3i/LM7a6Fw9FM4lpidnE4mlEQknryFdf4i7sAQTgqBwc8h7O8fk0zmFykUCnh4U4Ac9ilTPr5/EjYrBuGJT5CNjSwpFot4SkOkxQLmHZo6NYXBzytx6AlPFldWyO9cDk9piKSYzsdcxUmUiEHcDr8ka+m07COVFBNbwmucQKnYmVeDJPV9leRk7pq0mMCkakk0S2W+yc+TL/MLJJvdxEPqIimmKTdPKmL6MY7MJJJkPZPBQ+pSS2yTptiHjzOlOpODpJjYVJdoiZn81+mJ6b3sm8rCUoHBz6vj9IsBeke5Z4TrwgmUivWHBHrF3+Hu3Q8fZJxErphx/BoJT0XptQu4usAtASeSKzYQGieJ2Tl6DRaAq8u+YW4MJ2tW7FLwPonFp0u7Re2TBMB96rLTaWp/xD3FSRsFSEWiMfJtcYnyR3wLUU5vtTpNxx/Y+g2jbM2aq8QRv4O4xeODnQKp1lx7tgA5u/2G8YrDcerEkO3uAQ83ZfCyP8WXI2fwccWjfic5Gxgk7gk/mRR3KZGcKx0f7JRSKaChGADHCjVn5fljbBd/0trd22Hrdl4YEZ4vQ/OEAp9f+FoSgkKHmlJyfNU0JVYB3laXy7WL41wHLT09h9++i3xOp9dLzRP6VD6f39YuVSNLDAOT8YK0UMXkoorJZVti8FMKC7Qi6v7wqqi0iD86M3fnY/LjkAAAAABJRU5ErkJggg==" class="img-fluid"> をクリックし、「Quarto Document…」を選択します。</p>
+<p>以下のようにタイトルと著者名、PDF を選択し、Create をクリックします。“Use visual markdown editor” はオフにしてください<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。</p>
+<p><img src="image/create_document.png" class="img-fluid"></p>
+<p>作成出来たら、<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAkCAYAAAD7PHgWAAABBklEQVR4Xu2XMQrCQBBFBQvR6wgJHsEDpHVjBDvvoBhbI3bWCkZbFUyhFrYiEat0WgmC6AVkdQqbIVmWZAOi82C64b+/bDWZDEEQP4phTLMaa9d003bTGMgu1psF7JVGNzuWPdzs18GDz443rgrIcndXbvW8g1axGfZKo7P2eBXc+WB74a3FGXtiA1kwzfnpqTF7hL3SwDfAaz+BqvjkwYADe6WhglQwJlQwKVQwKakVTGOoYNL5z4JxwBlUMEwqAu9SwTCpCLxLBcOkIvCusoKT9/WFQ6OkIvCukoJwt5rO0sehUVIReBem6ng+OLBXmnKjn4PbGM5PeKnqgXIlo5vHXoL4Nl4ZYqbbEGA7+wAAAABJRU5ErkJggg==" class="img-fluid"> でファイルを任意の場所に保存します<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>。</p>
+<p>もし Quarto や R Markdown を使うのが初めての場合、上部に “Package rmarkdown required but not installed. Install Don’t show again” というメッセージが表示されるかもしれません。その場合、“Install” をクリックしてインストールしてください。</p>
+</section>
+<section id="global-options-の設定" class="level3">
+<h3 class="anchored" data-anchor-id="global-options-の設定">Global Options の設定</h3>
+<p>RStudio 上部のメニューから “Tools” &gt; “Global Options…” を選択します。</p>
+<p>その中の “Sweave” を選択し、“Typeset LaTeX into PDF using:” で “XeLaTeX” を選択します。また、その下にある “Use tinytex when compiling .tex files” にチェックを入れます。</p>
+<p>最後に OK を押して閉じてください。</p>
+</section>
+<section id="ヘッダーの記述" class="level3">
+<h3 class="anchored" data-anchor-id="ヘッダーの記述">ヘッダーの記述</h3>
+<p>ファイルを作成すると、ドキュメントの上部に<code>---</code>で囲まれた部分があります。これを YAML ヘッダーと呼び、ここで文書の設定を行います。</p>
+<p>以下は、基本的なYAMLヘッダーの設定です。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"【PDF】Quarto で論文を書く"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">author</span><span class="kw">:</span><span class="at"> </span><span class="st">"阿部洋輔"</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">date</span><span class="kw">:</span><span class="at"> 2024-07-08</span><span class="co">  # todayで今日の日付にできます</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">date-format</span><span class="kw">:</span><span class="at"> </span><span class="st">"YYYY年M月D日"</span><span class="at"> </span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pdf</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">documentclass</span><span class="kw">:</span><span class="at"> article</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">number-sections</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">include-in-header</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="kw">      - </span><span class="fu">text</span><span class="kw">:</span><span class="at"> </span><span class="ch">|</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>          \usepackage{zxjatype}</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>          \usepackage[ipaex]{zxjafont} </span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>          # これらは日本語フォントの設定のために記述しています</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="fu">execute</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">echo</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span><span class="co">  # コードを表示しない</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">warning</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span><span class="co"> # 警告とメッセージを表示しない</span></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">language</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">crossref-fig-title</span><span class="kw">:</span><span class="at"> </span><span class="st">"図"</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">crossref-tbl-title</span><span class="kw">:</span><span class="at"> </span><span class="st">"表"</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">crossref-eq-prefix</span><span class="kw">:</span><span class="at"> </span><span class="st">"式"</span></span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>分析コードや実行の際に表示されるメッセージ・警告は出力しなくてよいので <code>false</code> にしてあります。</p>
+<p>また、デフォルトだと英語設定でキャプションが Table 1 や Figure 1 と表示されてしまうので、それを日本語に直すために <code>language</code> を追加しています。他にも自動で英語出力されてしまって困る際は<a href="https://github.com/quarto-dev/quarto-cli/blob/main/src/resources/language/_language-ja.yml">こちら</a>から該当するものを探し、下に追加していってください<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>。</p>
+<p>もちろん英語論文を執筆する際に日本語設定は不要です。</p>
+<p><code>date-format</code> については<a href="https://quarto.org/docs/reference/dates.html">こちら</a>を参考にしてください。</p>
+</section>
+</section>
+<section id="本文の書き方マークダウン編" class="level2">
+<h2 class="anchored" data-anchor-id="本文の書き方マークダウン編">本文の書き方（マークダウン編）</h2>
+<p>本文は Markdown で記述します。<span class="math inline">\(\LaTeX\)</span> 記法を使うこともできますが、必ずしも使う必要はありません。もちろん、数式などは <span class="math inline">\(\LaTeX\)</span> 記法を使うことができます。</p>
+<p>以下のコードは、基本的な書き方の例です。</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># 見出し1</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">## 見出し2</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">### 見出し3</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>本文です。セクションに応じて見出しをつけることができます。基本的には3段階までの見出しを使います。</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>箇条書き1</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>箇条書き2</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="ss">        - </span>箇条書き3</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>箇条書きを使うときは、ハイフンとスペースを入れてください。2段階目、3段階目を使用するときは、半角スペース4つを入れてください。</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>番号付きリスト1</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>箇条書き</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>番号付きリスト2</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>番号付きリストを使うときは、数字とピリオドとスペースを入れてください。</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>また、改行するときは空行を入れなければなりません。</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>文中で数式を使いたいときは、<span class="in">`$`</span> で囲んでください。例えば、$y = ax + b$ のように記述します。</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>数式を別行で書きたいときは、<span class="in">`$$`</span> で囲んでください。例えば、</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>y = ax + b</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>$$ {#eq-equation-name}</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>のように記述します。数式にラベルをつけることもできます。<span class="in">`#eq-`</span> の後にラベル名を記述します。</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>数式を引用するときは、<span class="in">`@eq-equation-name`</span> のように記述します。</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>以上が基本的な書き方です。</p>
+<p>コードチャンクを使うときは、上記のように記述します。コードは YAML ヘッダーで <code>echo: false</code> としているので、出力されません。結果は出力されます<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>。</p>
+<p>出力された PDF は<a href="demo/demo1.pdf">こちら</a>から確認してください。</p>
+</section>
+<section id="本文の書き方テーブル編" class="level2">
+<h2 class="anchored" data-anchor-id="本文の書き方テーブル編">本文の書き方（テーブル編）</h2>
+<p>Quarto で論文を書くことの醍醐味ともいえる、コードとその出力について説明します。</p>
+<p>ここではデフォルトで使用できる <code>iris</code> というデータセットを利用して分析、表の出力をしてみたいと思います。</p>
+<p>例えば以下のコードを実行すると <a href="#tbl-regression" class="quarto-xref">表&nbsp;1</a> のように出力されます。</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-regression</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "iris を使用した回帰分析"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tinytable)</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="co"># リスト形式で保存すると複数の分析結果を1つの表に表示可能</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>regression <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(1)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width, <span class="at">se =</span> <span class="st">"hetero"</span>), </span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(2)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length, <span class="at">se =</span> <span class="st">"hetero"</span>), </span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(3)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length <span class="sc">+</span> Petal.Width, <span class="at">se =</span> <span class="st">"hetero"</span>)</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="co"># ここで変数名の表記を変更</span></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Sepal.Width"</span> <span class="ot">=</span> <span class="st">"がく片の幅（cm）"</span>, </span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Petal.Length"</span> <span class="ot">=</span> <span class="st">"花弁の長さ（cm）"</span>, </span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Petal.Width"</span> <span class="ot">=</span>  <span class="st">"花弁の幅（cm）"</span>, </span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Species"</span> <span class="ot">=</span> <span class="st">"アイリスの種類"</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a><span class="co"># 表に加える統計量を整理</span></span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>gm <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="st">"raw"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"nobs"</span>, <span class="st">"r.squared"</span>), </span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>  <span class="st">"clean"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Observations"</span>, <span class="st">"R\u00B2"</span>), </span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>  <span class="st">"fmt"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>)</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a><span class="co"># フットノートを書く</span></span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="st">"注：標準誤差は括弧内に記載。+p &lt; 10%, *p &lt; 5%, **p &lt; 1%"</span></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a><span class="fu">msummary</span>(regression, <span class="at">estimate =</span> <span class="st">"{estimate}{stars}"</span>, </span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>         <span class="at">notes =</span> fn, <span class="at">coef_map =</span> cm, <span class="at">gof_map =</span> gm, </span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>         <span class="at">stars =</span> <span class="fu">c</span>(<span class="st">"+"</span> <span class="ot">=</span> .<span class="dv">1</span>, <span class="st">"*"</span> <span class="ot">=</span> .<span class="dv">05</span>, <span class="st">"**"</span> <span class="ot">=</span> .<span class="dv">01</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_tt</span>(<span class="at">j =</span> <span class="fu">list</span>(<span class="st">"がく片の長さ（cm）"</span> <span class="ot">=</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>))</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div id="tbl-regression" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-regression-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: iris を使用した回帰分析
+</figcaption>
+<div aria-describedby="tbl-regression-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_s456wu8khfhlu1pr9md4(i, j, css_id) {
+          var table = document.getElementById("tinytable_s456wu8khfhlu1pr9md4");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_s456wu8khfhlu1pr9md4');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_s456wu8khfhlu1pr9md4(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_s456wu8khfhlu1pr9md4");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 1, j: 0 },  ], css_id: 'tinytable_css_y0sjixmuytrgbw8vm6zb',}, 
+          { positions: [ { i: 1, j: 1 }, { i: 1, j: 2 }, { i: 1, j: 3 },  ], css_id: 'tinytable_css_xvpe9tvf1rgpiaet616j',}, 
+          { positions: [ { i: 0, j: 0 },  ], css_id: 'tinytable_css_x9mlz025v31thhjp92pt',}, 
+          { positions: [ { i: 7, j: 2 }, { i: 7, j: 3 }, { i: 7, j: 1 },  ], css_id: 'tinytable_css_wal1aagkxyts6h2wel9e',}, 
+          { positions: [ { i: 9, j: 3 }, { i: 9, j: 1 }, { i: 9, j: 2 },  ], css_id: 'tinytable_css_uevjxj7p11xw0ru0bgfj',}, 
+          { positions: [ { i: 4, j: 1 }, { i: 5, j: 1 }, { i: 2, j: 1 }, { i: 3, j: 1 }, { i: 8, j: 1 }, { i: 2, j: 3 }, { i: 6, j: 1 }, { i: 4, j: 3 }, { i: 2, j: 2 }, { i: 3, j: 2 }, { i: 4, j: 2 }, { i: 5, j: 2 }, { i: 6, j: 2 }, { i: 5, j: 3 }, { i: 8, j: 2 }, { i: 3, j: 3 }, { i: 8, j: 3 }, { i: 6, j: 3 },  ], css_id: 'tinytable_css_si3vmmq5h4xna0melx5s',}, 
+          { positions: [ { i: 0, j: 1 },  ], css_id: 'tinytable_css_oed5g07gsg6ph8x5mzcs',}, 
+          { positions: [ { i: 7, j: 0 },  ], css_id: 'tinytable_css_jhcyd3vub4ig8w486jsu',}, 
+          { positions: [ { i: 2, j: 0 }, { i: 3, j: 0 }, { i: 4, j: 0 }, { i: 5, j: 0 }, { i: 6, j: 0 }, { i: 8, j: 0 },  ], css_id: 'tinytable_css_f6yn9zp5j8u9s5qk7sdt',}, 
+          { positions: [ { i: 9, j: 0 },  ], css_id: 'tinytable_css_76ccew3q834g30l66s72',}, 
+          { positions: [ { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_4848osm1kn8g3978vcij',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_s456wu8khfhlu1pr9md4(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_y0sjixmuytrgbw8vm6zb, .table th.tinytable_css_y0sjixmuytrgbw8vm6zb { text-align: left; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_xvpe9tvf1rgpiaet616j, .table th.tinytable_css_xvpe9tvf1rgpiaet616j { text-align: center; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_x9mlz025v31thhjp92pt, .table th.tinytable_css_x9mlz025v31thhjp92pt { text-align: left; border-top: solid #d3d8dc 0.1em; text-align: center; }
+      .table td.tinytable_css_wal1aagkxyts6h2wel9e, .table th.tinytable_css_wal1aagkxyts6h2wel9e { text-align: center; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_uevjxj7p11xw0ru0bgfj, .table th.tinytable_css_uevjxj7p11xw0ru0bgfj { text-align: center; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_si3vmmq5h4xna0melx5s, .table th.tinytable_css_si3vmmq5h4xna0melx5s { text-align: center; }
+      .table td.tinytable_css_oed5g07gsg6ph8x5mzcs, .table th.tinytable_css_oed5g07gsg6ph8x5mzcs { text-align: center; border-top: solid #d3d8dc 0.1em; text-align: center; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_jhcyd3vub4ig8w486jsu, .table th.tinytable_css_jhcyd3vub4ig8w486jsu { text-align: left; border-bottom: solid black 0.05em; }
+      .table td.tinytable_css_f6yn9zp5j8u9s5qk7sdt, .table th.tinytable_css_f6yn9zp5j8u9s5qk7sdt { text-align: left; }
+      .table td.tinytable_css_76ccew3q834g30l66s72, .table th.tinytable_css_76ccew3q834g30l66s72 { text-align: left; border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_4848osm1kn8g3978vcij, .table th.tinytable_css_4848osm1kn8g3978vcij { text-align: center; border-top: solid #d3d8dc 0.1em; text-align: center; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_s456wu8khfhlu1pr9md4" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+<tr>
+<th scope="col" align="center" colspan="1"> </th>
+<th scope="col" align="center" colspan="3">がく片の長さ（cm）</th>
+</tr>
+        
+              <tr>
+                <th scope="col"> </th>
+                <th scope="col">(1)</th>
+                <th scope="col">(2)</th>
+                <th scope="col">(3)</th>
+              </tr>
+        </thead>
+        <tfoot><tr><td colspan="4">注：標準誤差は括弧内に記載。+p &lt; 10%, *p &lt; 5%, **p &lt; 1%</td></tr></tfoot>
+        <tbody>
+                <tr>
+                  <td>がく片の幅（cm）</td>
+                  <td>-0.223 </td>
+                  <td>0.596**</td>
+                  <td>0.651** </td>
+                </tr>
+                <tr>
+                  <td>                </td>
+                  <td>(0.141)</td>
+                  <td>(0.065)</td>
+                  <td>(0.060) </td>
+                </tr>
+                <tr>
+                  <td>花弁の長さ（cm）</td>
+                  <td>       </td>
+                  <td>0.472**</td>
+                  <td>0.709** </td>
+                </tr>
+                <tr>
+                  <td>                </td>
+                  <td>       </td>
+                  <td>(0.017)</td>
+                  <td>(0.062) </td>
+                </tr>
+                <tr>
+                  <td>花弁の幅（cm）  </td>
+                  <td>       </td>
+                  <td>       </td>
+                  <td>-0.556**</td>
+                </tr>
+                <tr>
+                  <td>                </td>
+                  <td>       </td>
+                  <td>       </td>
+                  <td>(0.144) </td>
+                </tr>
+                <tr>
+                  <td>観測数          </td>
+                  <td>150    </td>
+                  <td>150    </td>
+                  <td>150     </td>
+                </tr>
+                <tr>
+                  <td>R²              </td>
+                  <td>0.01   </td>
+                  <td>0.84   </td>
+                  <td>0.86    </td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>出力された PDF は<a href="demo/demo2.pdf">こちら</a>から確認してください。</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+キャッシュの設定
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>設定で<code>cache: true</code>に設定しておくと、レンダリングするときにエラーが出ることがあるので、表出力において<code>cache: true</code>を設定するのは避けた方が良いでしょう。</p>
+<p>以下のようなNoteが<code>tinytable</code>のドキュメントに記載してあります。</p>
+<blockquote class="blockquote">
+<p>Note: Your document will fail to compile to PDF in Quarto if you enable caching and you use tinytable due to missing LaTeX headers. To avoid this problem, set the option ⁠#| cache: false⁠ for the chunk(s) where you use tinytable.</p>
+</blockquote>
+</div>
+</div>
+<p>また、このサイトのフォント的に <code>&lt;-</code> や <code>|&gt;</code> と表示されていますが、それぞれ <code>&lt;</code> と <code>-</code>、<code>|</code> と <code>&gt;</code> になります。ご了承ください。</p>
+<p>ここからは、表作成におけるポイントを説明します。</p>
+<p><strong>テーブルにおけるポイント</strong></p>
+<ol type="1">
+<li><p>チャンクオプション</p>
+<ul>
+<li><p><code>#|</code> で始まっている部分です。</p></li>
+<li><p><code>label</code> は <code>tbl-</code> で始めることでテーブルにおけるラベルを付けられます。論文内で参照するときに必要です。<code>@tbl-regression</code> という書き方で論文内で参照できます。</p></li>
+<li><p><code>tbl-cap</code> で表のキャプションを付けられます。</p></li>
+</ul></li>
+<li><p>ライブラリ</p>
+<ul>
+<li><p><code>tidyverse</code>：データハンドリングのために使用します。</p></li>
+<li><p><code>fixest</code>：分析のために使用します。いろいろな分析用パッケージがありますが、とりあえずこれを使えば事足りることが多いと思います。あと速い。</p></li>
+<li><p><code>modelsummary</code>：分析結果を表示するために使用します。様々な分析用パッケージに対応しています。</p></li>
+<li><p><code>tinytable</code>：modelsummary で作成した表をより細かく設定するために使います。</p></li>
+</ul></li>
+<li><p>分析モデルを格納</p>
+<ul>
+<li>リスト形式で保存します。こうすることによって複数の分析結果を <code>modelsummary</code> で1つの表に起こせます。</li>
+</ul></li>
+<li><p><code>coef_map</code> と <code>gof_map</code> 用の <code>cm</code> &amp; <code>gm</code></p>
+<ul>
+<li><p><code>cm</code><a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a> は、分析で使用した変数名を書き換えて表に出すためのものです。<code>"Sepal.Width" = "がく片の幅（cm）"</code> は、 “Sepal.Width” という変数名を “がく片の幅（cm）” と表示することを意味します。</p></li>
+<li><p><code>gm</code> は少し複雑です。コンソールで <code>gof_map</code> と打ってみると、raw, clean, fmt, omit の4列が出てきます。raw が表示する統計量、clean がそれらを表示するテキスト、fmt は小数点以下の桁数で、これらを <code>gm</code> で編集するということです<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>。</p></li>
+<li><p>“R\u00B2” はユニコード文字で、2乗を <span class="math inline">\(\TeX\)</span> 上で表すために使用しています。</p></li>
+<li><p><code>fn</code> はフットノートを書くためのものです。ここでは標準誤差の説明をしています。</p></li>
+</ul></li>
+</ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/gof_map.png" class="img-fluid figure-img" style="width:70.0%"></p>
+<figcaption><code>gof_map</code> を実行するとこのように出てきます。</figcaption>
+</figure>
+</div>
+<ol start="5" type="1">
+<li><p><code>msummary</code></p>
+<ul>
+<li><p>分析結果を表示するための関数です。<code>msummary</code> は <code>modelsummary</code> の関数です<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>。ここでは、<code>regression</code> に格納した分析結果を表示しています。</p></li>
+<li><p><code>estimate</code> で “{estimate}{stars}” と指定しています。これは推定値とその有意性を表示するためのものです。入れたパターンと入れないパターンで試してもらいたいのですが、有意性について別に脚注が入ってしまい、上で書いた脚注と合わせて2行になってしまうので、わざわざこの設定をしています。下の表を確認してください。</p></li>
+<li><p><code>notes</code> , <code>coef_map</code> , <code>gof_map</code> は上で設定したものを反映させています。</p></li>
+<li><p><code>stars</code> は有意性の表示を設定しています。ここでは、+p &lt; 10%, *p &lt; 5%, **p &lt; 1% としています。</p></li>
+<li><p><code>group_tt</code> は表のグルーピングを行うためのものです。ここでは、被説明変数が全て “がく片の長さ（cm）” なので、それをグルーピングしています。1列目は変数名にあたるので、2:4 としています。</p></li>
+<li><p><code>group_tt</code> の引数 <code>j</code> は列のグルーピングで、<code>i</code> 引数は行のグルーピングに対応しています。</p></li>
+</ul></li>
+</ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/table_without_estimate_option.png" class="img-fluid figure-img"></p>
+<figcaption><code>estimate</code> を指定しないとこのように脚注が2行になります。</figcaption>
+</figure>
+</div>
+<p>以上がテーブル作成のポイントです。</p>
+</section>
+<section id="本文の書き方フィギュア編" class="level2">
+<h2 class="anchored" data-anchor-id="本文の書き方フィギュア編">本文の書き方（フィギュア編）</h2>
+<p>次に、フィギュアの出力について説明します。</p>
+<p>ここでも <code>iris</code> データセットを使用してプロットしてみます。</p>
+<p>次のコードを実行すると、<a href="#fig-iris" class="quarto-xref">図&nbsp;1</a> のような図が作成されます。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Petal.Length)) <span class="sc">+</span> </span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"がく片の長さ（cm）"</span>, </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"花弁の長さ（cm）"</span>) <span class="sc">+</span> </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"iris_plot.pdf"</span>, p, <span class="at">device =</span> cairo_pdf)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="al">![iris を使用したプロット](iris_plot.pdf)</span>{#fig-iris}</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="fig-iris" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-iris-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-iris-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iris-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;1: iris を使用したプロット
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>出力された PDF は<a href="demo/demo3.pdf">こちら</a>から確認してください。</p>
+<p>ここでもポイントを説明します。</p>
+<p><strong>フィギュアにおけるポイント</strong></p>
+<ol type="1">
+<li><p>パイプを使用してプロット</p>
+<ul>
+<li>データセットをパイプ（<code>|&gt;</code>）で <code>ggplot</code> に渡しています。これによって、変数が予測変換で出てくるので、作業がしやすくなります<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a>。</li>
+</ul></li>
+<li><p><code>ggplot</code></p>
+<ul>
+<li><p><code>ggplot</code> 内の <code>aes</code> で x 軸と y 軸を指定しています。</p></li>
+<li><p><code>ggplot</code> は <code>+</code> で繋げていくことでプロットを作成していきます。</p></li>
+<li><p>今回は散布図を作成したいので、<code>geom_point()</code> を繋げています。他にも折れ線の場合は <code>geom_line()</code> などを使います。</p></li>
+</ul></li>
+<li><p><code>labs</code></p>
+<ul>
+<li><code>labs</code> で x 軸と y 軸のラベルを設定しています。</li>
+</ul></li>
+<li><p><code>theme_minimal</code></p>
+<ul>
+<li><code>theme_minimal</code> は背景が白で、軸の線が薄いテーマです。他にも <code>theme_bw</code>, <code>theme_classic</code> などがあります。</li>
+</ul></li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+テーマについて
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><code>theme_minimal</code> でテーマを大方設定できますが、それに加えて細かい設定をしたいこともあると思います。その場合は、 <code>+</code> で <code>theme</code> を繋げていくことで設定できます。ここでは <code>theme</code> の詳細については説明しませんが、繋げる際は、<code>theme_minimal() + theme()</code> という順番で繋げていくことをおすすめします。</p>
+<p>順番は逆でも構いませんが、<code>theme()</code> で設定したものが <code>theme_minimal()</code> で上書きされることがあるので、想定していたものと違う結果になることがあります。</p>
+</div>
+</div>
+</div>
+<ol start="5" type="1">
+<li><p><code>ggsave</code></p>
+<ul>
+<li><p><code>ggsave</code> でプロットを保存しています。ここでは <code>iris_plot.pdf</code> という名前で保存しています。“iris_plot.pdf” の部分は任意の名前で構いません。また、パスを指定して保存することももちろんできます。<code>here</code> を使っている場合は、<code>here("output/iris_plot.pdf")</code> などとして保存することができます<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>。</p></li>
+<li><p><code>device</code> を <code>cairo_pdf</code> にしています。<code>.png</code> など他の形式でも出力できますが、環境によっては文字化けなどに大変苦しめられるので<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>、<code>cairo_pdf</code> がおすすめです。僕の環境では一番安定しました。</p></li>
+<li><p>ちなみに、画像の解像度が上がるので、とりあえず一度保存するのがいいと思います。</p></li>
+</ul></li>
+<li><p>マークダウン表記で図を出力</p>
+<ul>
+<li><code>![iris を使用したプロット](iris_plot.pdf){#fig-iris}</code> で図を出力しています。<code>iris_plot.pdf</code> の部分は保存したファイル名になります。<code>{#fig-iris}</code> はラベルを付けるためのものです。論文内で参照するときに必要です。<code>@fig-iris</code> という書き方で論文内で参照できます。</li>
+</ul></li>
+</ol>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+パスの指定
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>例えば画像を <code>output</code> というフォルダに保存しており、書いているコードは <code>code</code> フォルダにあるとします。すなわち以下のような形です。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>main_directory/</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>├── output/</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>│   └── iris_plot.pdf</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>└── code/</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    └── code.qmd</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>この場合、<code>![iris を使用したプロット](iris_plot.pdf){#fig-iris}</code> としても図が表示されません。その場合は、コードファイルからの相対パスを使用しなければなりません。すなわち <code>![iris を使用したプロット](../output/iris_plot.pdf){#fig-iris}</code> としてください。<code>../</code> は一つ上の階層を示しています。</p>
+</div>
+</div>
+</div>
+<p>もちろん、既に所有している画像もマークダウン記法で出力することができます。その場合は、<code>![画像の説明](画像のパス){#fig-label}</code> のように記述します。キャプションは抜かせるので、<code>![](画像のパス){#fig-label}</code> としても構いません。</p>
+<p>以上がフィギュア作成のポイントです。</p>
+</section>
+<section id="まとめ" class="level2">
+<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
+<p>Quarto を使って論文を書く方法について説明しました。</p>
+<p>長くなってしまいましたが、現在 M2 の私自身も Quarto を使用して修士論文を書こうと思っているので、その際に必要な情報をまとめてみました。</p>
+<p>ぜひ参考にしてみてください。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>直接 LaTeX コードを埋め込むこともできます。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>僕は使い方が分かりません。<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>僕は基本的に <code>code</code> フォルダを作ってそこに保存しています。<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>本当は <code>lang: ja</code> を設定するだけで万事解決のはずなのですが、パッケージのインストールでトラブるので、このような場当たり的な対処になっています。<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>結果も隠したいときは、代わりに <code>include: false</code> を指定します。チャンクオプションについては<a href="../240509_chunk_option/index.html">こちら</a><a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p><code>gm</code> もそうですが、名前は何でもよいです。<a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>“nobs”, “r.squared” の2つの項目を表示し、その表記を “観測数”, “<span class="math inline">\(R^2\)</span>” とし、小数点以下は観測数がなし、<span class="math inline">\(R^2\)</span> は第2位までにしています。<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p><code>msummary</code> でも <code>modelsummary</code> でも使用できます。<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><code>ggplot(iris, aes(~))</code> の形でも図は作れますが、変数名は予測変換で出てきません。<a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p><code>here</code> については<a href="../240515_rproj/index.html">こちら</a><a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p>僕の場合は Linux で苦労しました。<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "コピーしました");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "コピーしました");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/yo5uke\.github\.io");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="yo5uke/yo5uke.github.io" data-repo-id="R_kgDOLsORUQ" data-category="General" data-category-id="DIC_kwDOLsORUc4CfJ93" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light_high_contrast" data-lang="en" crossorigin="anonymous" async="">
+</script>
+<input type="hidden" id="giscus-base-theme" value="light_high_contrast">
+<input type="hidden" id="giscus-alt-theme" value="light_high_contrast"><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb7" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "【PDF】Quarto で論文を書く"</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">    Quarto を使って論文を書く方法（マークダウン、表、図）をまとめました。</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2024-06-29</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> last-modified</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - Quarto</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="co">  - LaTeX</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> image/create_document.png</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span><span class="co"> </span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co">  echo: false</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>これまでの記事で R Markdown や Quarto を使って $\LaTeX$  経由で PDF 出力する方法や、それらで使えるチャンクオプションについてご紹介してきました。</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">R MarkdownでPDF出力【LaTeX】</span><span class="co">](../240329_rmarkdown_pdf/index.html)</span></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">【Quarto】チャンクオプションまとめてみた【R Markdown】</span><span class="co">](../240509_chunk_option/index.html)</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>今回は、Quarto を使って論文を書く方法について包括的にまとめてみました。</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>ぜひ参考にしてみてください。</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>また、環境として RStudio を使用していると仮定します。</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## 準備</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>Quarto は R Markdown の亜種、と考えてもらえればと思います。マークダウン形式で記述することができ、$\LaTeX$ 記法を必ずしも用いる必要がないのが特徴です^<span class="co">[</span><span class="ot">直接 LaTeX コードを埋め込むこともできます。</span><span class="co">]</span>。$\LaTeX$ を深く学ばなくてもスタイリッシュな論文が書けるのではないでしょうか。</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>ここからは、書くのに最低限必要な使い方を紹介します。</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="fu">### プロジェクトの作成</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>必須ではありませんが推奨します。プロジェクトを作成することで、ファイルの管理がしやすくなります。</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>プロジェクトの作成については以下の記事で紹介しています。$\LaTeX$ との差別化点として、分析結果をそのまま埋め込めることがあげられ、プロジェクトを作成することで、その恩恵を最大限受けられると考えています。</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">【R】プロジェクトを使う</span><span class="co">](../240515_rproj/index.html)</span></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="fu">### ファイルの作成</span></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>Quarto で論文を書くには、拡張子が <span class="in">`.qmd`</span> のファイルを作成します。これは Quarto Markdown の略です。</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>RStudio 画面左上の <span class="al">![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACYAAAAkCAYAAADl9UilAAACvElEQVR4Xu2XTWgTQRSA0/wo4k9VghH14MWzB+9S0YMHbxJBsZDdTdJS3aTBghQPKRRUrF6EWIpNtjSKGo0XTS96CA00CUVpmqot2tLGHvTSNDYFE0jGfUkj4bn52e0EL/vBO+3MvI+Zt29nNRoVlf/BQ36nTrB0tvmYYJvALGsEJg+h9TEp/SgT3DvMsedu2tvNZrMOT20dXvaiKLEqBqkXouQPo4e1dfb17Xa73Vq8DD0CZp1WsNzDAo3i/LM7a6Fw9FM4lpidnE4mlEQknryFdf4i7sAQTgqBwc8h7O8fk0zmFykUCnh4U4Ac9ilTPr5/EjYrBuGJT5CNjSwpFot4SkOkxQLmHZo6NYXBzytx6AlPFldWyO9cDk9piKSYzsdcxUmUiEHcDr8ka+m07COVFBNbwmucQKnYmVeDJPV9leRk7pq0mMCkakk0S2W+yc+TL/MLJJvdxEPqIimmKTdPKmL6MY7MJJJkPZPBQ+pSS2yTptiHjzOlOpODpJjYVJdoiZn81+mJ6b3sm8rCUoHBz6vj9IsBeke5Z4TrwgmUivWHBHrF3+Hu3Q8fZJxErphx/BoJT0XptQu4usAtASeSKzYQGieJ2Tl6DRaAq8u+YW4MJ2tW7FLwPonFp0u7Re2TBMB96rLTaWp/xD3FSRsFSEWiMfJtcYnyR3wLUU5vtTpNxx/Y+g2jbM2aq8QRv4O4xeODnQKp1lx7tgA5u/2G8YrDcerEkO3uAQ83ZfCyP8WXI2fwccWjfic5Gxgk7gk/mRR3KZGcKx0f7JRSKaChGADHCjVn5fljbBd/0trd22Hrdl4YEZ4vQ/OEAp9f+FoSgkKHmlJyfNU0JVYB3laXy7WL41wHLT09h9++i3xOp9dLzRP6VD6f39YuVSNLDAOT8YK0UMXkoorJZVti8FMKC7Qi6v7wqqi0iD86M3fnY/LjkAAAAABJRU5ErkJggg==)</span> をクリックし、「Quarto Document...」を選択します。</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>以下のようにタイトルと著者名、PDF を選択し、Create をクリックします。"Use visual markdown editor" はオフにしてください^<span class="co">[</span><span class="ot">僕は使い方が分かりません。</span><span class="co">]</span>。</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/create_document.png)</span></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>作成出来たら、<span class="al">![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAkCAYAAAD7PHgWAAABBklEQVR4Xu2XMQrCQBBFBQvR6wgJHsEDpHVjBDvvoBhbI3bWCkZbFUyhFrYiEat0WgmC6AVkdQqbIVmWZAOi82C64b+/bDWZDEEQP4phTLMaa9d003bTGMgu1psF7JVGNzuWPdzs18GDz443rgrIcndXbvW8g1axGfZKo7P2eBXc+WB74a3FGXtiA1kwzfnpqTF7hL3SwDfAaz+BqvjkwYADe6WhglQwJlQwKVQwKakVTGOoYNL5z4JxwBlUMEwqAu9SwTCpCLxLBcOkIvCusoKT9/WFQ6OkIvCukoJwt5rO0sehUVIReBem6ng+OLBXmnKjn4PbGM5PeKnqgXIlo5vHXoL4Nl4ZYqbbEGA7+wAAAABJRU5ErkJggg==)</span> でファイルを任意の場所に保存します^<span class="co">[</span><span class="ot">僕は基本的に `code` フォルダを作ってそこに保存しています。</span><span class="co">]</span>。</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>もし Quarto や R Markdown を使うのが初めての場合、上部に "Package rmarkdown required but not installed. Install Don't show again" というメッセージが表示されるかもしれません。その場合、"Install" をクリックしてインストールしてください。</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="fu">### Global Options の設定</span></span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>RStudio 上部のメニューから "Tools" &gt; "Global Options..." を選択します。</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>その中の "Sweave" を選択し、"Typeset LaTeX into PDF using:" で "XeLaTeX" を選択します。また、その下にある "Use tinytex when compiling .tex files" にチェックを入れます。</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>最後に OK を押して閉じてください。</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="fu">### ヘッダーの記述</span></span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>ファイルを作成すると、ドキュメントの上部に<span class="in">`---`</span>で囲まれた部分があります。これを YAML ヘッダーと呼び、ここで文書の設定を行います。</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>以下は、基本的なYAMLヘッダーの設定です。</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a><span class="in">```yaml</span></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="fu">title</span><span class="kw">:</span><span class="at"> </span><span class="st">"【PDF】Quarto で論文を書く"</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="fu">author</span><span class="kw">:</span><span class="at"> </span><span class="st">"阿部洋輔"</span></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a><span class="fu">date</span><span class="kw">:</span><span class="at"> 2024-07-08</span><span class="co">  # todayで今日の日付にできます</span></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a><span class="fu">date-format</span><span class="kw">:</span><span class="at"> </span><span class="st">"YYYY年M月D日"</span><span class="at"> </span></span>
+<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a><span class="fu">format</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">pdf</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">documentclass</span><span class="kw">:</span><span class="at"> article</span></span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">number-sections</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">include-in-header</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="kw">      - </span><span class="fu">text</span><span class="kw">:</span><span class="at"> </span><span class="ch">|</span></span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a>          \usepackage{zxjatype}</span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>          \usepackage[ipaex]{zxjafont} </span>
+<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>          # これらは日本語フォントの設定のために記述しています</span>
+<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a><span class="fu">execute</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">echo</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span><span class="co">  # コードを表示しない</span></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">warning</span><span class="kw">:</span><span class="at"> </span><span class="ch">false</span><span class="co"> # 警告とメッセージを表示しない</span></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a><span class="fu">language</span><span class="kw">:</span><span class="at"> </span></span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">crossref-fig-title</span><span class="kw">:</span><span class="at"> </span><span class="st">"図"</span></span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">crossref-tbl-title</span><span class="kw">:</span><span class="at"> </span><span class="st">"表"</span></span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">crossref-eq-prefix</span><span class="kw">:</span><span class="at"> </span><span class="st">"式"</span></span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a><span class="pp">---</span></span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a>分析コードや実行の際に表示されるメッセージ・警告は出力しなくてよいので <span class="in">`false`</span> にしてあります。</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>また、デフォルトだと英語設定でキャプションが Table 1 や Figure 1 と表示されてしまうので、それを日本語に直すために <span class="in">`language`</span> を追加しています。他にも自動で英語出力されてしまって困る際は<span class="co">[</span><span class="ot">こちら</span><span class="co">](https://github.com/quarto-dev/quarto-cli/blob/main/src/resources/language/_language-ja.yml)</span>から該当するものを探し、下に追加していってください^<span class="co">[</span><span class="ot">本当は `lang: ja` を設定するだけで万事解決のはずなのですが、パッケージのインストールでトラブるので、このような場当たり的な対処になっています。</span><span class="co">]</span>。</span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a>もちろん英語論文を執筆する際に日本語設定は不要です。</span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a><span class="in">`date-format`</span> については<span class="co">[</span><span class="ot">こちら</span><span class="co">](https://quarto.org/docs/reference/dates.html)</span>を参考にしてください。</span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a><span class="fu">## 本文の書き方（マークダウン編）</span></span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>本文は Markdown で記述します。$\LaTeX$ 記法を使うこともできますが、必ずしも使う必要はありません。もちろん、数式などは $\LaTeX$ 記法を使うことができます。</span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a>以下のコードは、基本的な書き方の例です。</span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a><span class="in">```markdown</span></span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a><span class="fu"># 見出し1</span></span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a><span class="fu">## 見出し2</span></span>
+<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a><span class="fu">### 見出し3</span></span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a>本文です。セクションに応じて見出しをつけることができます。基本的には3段階までの見出しを使います。</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>箇条書き1</span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>箇条書き2</span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a><span class="ss">        - </span>箇条書き3</span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>箇条書きを使うときは、ハイフンとスペースを入れてください。2段階目、3段階目を使用するときは、半角スペース4つを入れてください。</span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>番号付きリスト1</span>
+<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>箇条書き</span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>番号付きリスト2</span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a>番号付きリストを使うときは、数字とピリオドとスペースを入れてください。</span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>また、改行するときは空行を入れなければなりません。</span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a>文中で数式を使いたいときは、<span class="in">`$`</span> で囲んでください。例えば、$y = ax + b$ のように記述します。</span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>数式を別行で書きたいときは、<span class="in">`$$`</span> で囲んでください。例えば、</span>
+<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a>$$</span>
+<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a>y = ax + b</span>
+<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>$$ {#eq-equation-name}</span>
+<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>のように記述します。数式にラベルをつけることもできます。<span class="in">`#eq-`</span> の後にラベル名を記述します。</span>
+<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a>数式を引用するときは、<span class="in">`@eq-equation-name`</span> のように記述します。</span>
+<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a>以上が基本的な書き方です。</span>
+<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a>コードチャンクを使うときは、上記のように記述します。コードは YAML ヘッダーで <span class="in">`echo: false`</span> としているので、出力されません。結果は出力されます^<span class="co">[</span><span class="ot">結果も隠したいときは、代わりに `include: false` を指定します。チャンクオプションについては[こちら](../240509_chunk_option/index.html)</span><span class="co">]</span>。</span>
+<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>出力された PDF は<span class="co">[</span><span class="ot">こちら</span><span class="co">](demo/demo1.pdf)</span>から確認してください。</span>
+<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a><span class="fu">## 本文の書き方（テーブル編）</span></span>
+<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a>Quarto で論文を書くことの醍醐味ともいえる、コードとその出力について説明します。</span>
+<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a>ここではデフォルトで使用できる <span class="in">`iris`</span> というデータセットを利用して分析、表の出力をしてみたいと思います。</span>
+<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a>例えば以下のコードを実行すると @tbl-regression のように出力されます。</span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-regression</span></span>
+<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "iris を使用した回帰分析"</span></span>
+<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tinytable)</span>
+<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a><span class="co"># リスト形式で保存すると複数の分析結果を1つの表に表示可能</span></span>
+<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a>regression <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(1)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width, <span class="at">se =</span> <span class="st">"hetero"</span>), </span>
+<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(2)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length, <span class="at">se =</span> <span class="st">"hetero"</span>), </span>
+<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(3)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-188"><a href="#cb7-188" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length <span class="sc">+</span> Petal.Width, <span class="at">se =</span> <span class="st">"hetero"</span>)</span>
+<span id="cb7-189"><a href="#cb7-189" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-190"><a href="#cb7-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-191"><a href="#cb7-191" aria-hidden="true" tabindex="-1"></a><span class="co"># ここで変数名の表記を変更</span></span>
+<span id="cb7-192"><a href="#cb7-192" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb7-193"><a href="#cb7-193" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Sepal.Width"</span> <span class="ot">=</span> <span class="st">"がく片の幅（cm）"</span>, </span>
+<span id="cb7-194"><a href="#cb7-194" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Petal.Length"</span> <span class="ot">=</span> <span class="st">"花弁の長さ（cm）"</span>, </span>
+<span id="cb7-195"><a href="#cb7-195" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Petal.Width"</span> <span class="ot">=</span>  <span class="st">"花弁の幅（cm）"</span>, </span>
+<span id="cb7-196"><a href="#cb7-196" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Species"</span> <span class="ot">=</span> <span class="st">"アイリスの種類"</span></span>
+<span id="cb7-197"><a href="#cb7-197" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-198"><a href="#cb7-198" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-199"><a href="#cb7-199" aria-hidden="true" tabindex="-1"></a><span class="co"># 表に加える統計量を整理</span></span>
+<span id="cb7-200"><a href="#cb7-200" aria-hidden="true" tabindex="-1"></a>gm <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-201"><a href="#cb7-201" aria-hidden="true" tabindex="-1"></a>  <span class="st">"raw"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"nobs"</span>, <span class="st">"r.squared"</span>), </span>
+<span id="cb7-202"><a href="#cb7-202" aria-hidden="true" tabindex="-1"></a>  <span class="st">"clean"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Observations"</span>, <span class="st">"R\u00B2"</span>), </span>
+<span id="cb7-203"><a href="#cb7-203" aria-hidden="true" tabindex="-1"></a>  <span class="st">"fmt"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>)</span>
+<span id="cb7-204"><a href="#cb7-204" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-205"><a href="#cb7-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-206"><a href="#cb7-206" aria-hidden="true" tabindex="-1"></a><span class="co"># フットノートを書く</span></span>
+<span id="cb7-207"><a href="#cb7-207" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="st">"注：標準誤差は括弧内に記載。+p &lt; 10%, *p &lt; 5%, **p &lt; 1%"</span></span>
+<span id="cb7-208"><a href="#cb7-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-209"><a href="#cb7-209" aria-hidden="true" tabindex="-1"></a><span class="fu">msummary</span>(regression, <span class="at">estimate =</span> <span class="st">"{estimate}{stars}"</span>, </span>
+<span id="cb7-210"><a href="#cb7-210" aria-hidden="true" tabindex="-1"></a>         <span class="at">notes =</span> fn, <span class="at">coef_map =</span> cm, <span class="at">gof_map =</span> gm, </span>
+<span id="cb7-211"><a href="#cb7-211" aria-hidden="true" tabindex="-1"></a>         <span class="at">stars =</span> <span class="fu">c</span>(<span class="st">"+"</span> <span class="ot">=</span> .<span class="dv">1</span>, <span class="st">"*"</span> <span class="ot">=</span> .<span class="dv">05</span>, <span class="st">"**"</span> <span class="ot">=</span> .<span class="dv">01</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb7-212"><a href="#cb7-212" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_tt</span>(<span class="at">j =</span> <span class="fu">list</span>(<span class="st">"がく片の長さ（cm）"</span> <span class="ot">=</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>))</span>
+<span id="cb7-213"><a href="#cb7-213" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-214"><a href="#cb7-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-217"><a href="#cb7-217" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-218"><a href="#cb7-218" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-regression</span></span>
+<span id="cb7-219"><a href="#cb7-219" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "iris を使用した回帰分析"</span></span>
+<span id="cb7-220"><a href="#cb7-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-221"><a href="#cb7-221" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-222"><a href="#cb7-222" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span>
+<span id="cb7-223"><a href="#cb7-223" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb7-224"><a href="#cb7-224" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tinytable)</span>
+<span id="cb7-225"><a href="#cb7-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-226"><a href="#cb7-226" aria-hidden="true" tabindex="-1"></a><span class="co"># リスト形式で保存すると複数の分析結果を1つの表に表示可能</span></span>
+<span id="cb7-227"><a href="#cb7-227" aria-hidden="true" tabindex="-1"></a>regression <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb7-228"><a href="#cb7-228" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(1)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-229"><a href="#cb7-229" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width, <span class="at">se =</span> <span class="st">"hetero"</span>), </span>
+<span id="cb7-230"><a href="#cb7-230" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(2)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-231"><a href="#cb7-231" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length, <span class="at">se =</span> <span class="st">"hetero"</span>), </span>
+<span id="cb7-232"><a href="#cb7-232" aria-hidden="true" tabindex="-1"></a>  <span class="st">"(3)"</span> <span class="ot">=</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-233"><a href="#cb7-233" aria-hidden="true" tabindex="-1"></a>    <span class="fu">feols</span>(Sepal.Length <span class="sc">~</span> Sepal.Width <span class="sc">+</span> Petal.Length <span class="sc">+</span> Petal.Width, <span class="at">se =</span> <span class="st">"hetero"</span>)</span>
+<span id="cb7-234"><a href="#cb7-234" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-235"><a href="#cb7-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-236"><a href="#cb7-236" aria-hidden="true" tabindex="-1"></a><span class="co"># ここで変数名の表記を変更</span></span>
+<span id="cb7-237"><a href="#cb7-237" aria-hidden="true" tabindex="-1"></a>cm <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb7-238"><a href="#cb7-238" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Sepal.Width"</span> <span class="ot">=</span> <span class="st">"がく片の幅（cm）"</span>, </span>
+<span id="cb7-239"><a href="#cb7-239" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Petal.Length"</span> <span class="ot">=</span> <span class="st">"花弁の長さ（cm）"</span>, </span>
+<span id="cb7-240"><a href="#cb7-240" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Petal.Width"</span> <span class="ot">=</span>  <span class="st">"花弁の幅（cm）"</span>, </span>
+<span id="cb7-241"><a href="#cb7-241" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Species"</span> <span class="ot">=</span> <span class="st">"アイリスの種類"</span></span>
+<span id="cb7-242"><a href="#cb7-242" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-243"><a href="#cb7-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-244"><a href="#cb7-244" aria-hidden="true" tabindex="-1"></a><span class="co"># 表に加える統計量を整理</span></span>
+<span id="cb7-245"><a href="#cb7-245" aria-hidden="true" tabindex="-1"></a>gm <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb7-246"><a href="#cb7-246" aria-hidden="true" tabindex="-1"></a>  <span class="st">"raw"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"nobs"</span>, <span class="st">"r.squared"</span>), </span>
+<span id="cb7-247"><a href="#cb7-247" aria-hidden="true" tabindex="-1"></a>  <span class="st">"clean"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"観測数"</span>, <span class="st">"R\u00B2"</span>), </span>
+<span id="cb7-248"><a href="#cb7-248" aria-hidden="true" tabindex="-1"></a>  <span class="st">"fmt"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">2</span>)</span>
+<span id="cb7-249"><a href="#cb7-249" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-250"><a href="#cb7-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-251"><a href="#cb7-251" aria-hidden="true" tabindex="-1"></a><span class="co"># フットノートを書く</span></span>
+<span id="cb7-252"><a href="#cb7-252" aria-hidden="true" tabindex="-1"></a>fn <span class="ot">&lt;-</span> <span class="st">"注：標準誤差は括弧内に記載。+p &lt; 10%, *p &lt; 5%, **p &lt; 1%"</span></span>
+<span id="cb7-253"><a href="#cb7-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-254"><a href="#cb7-254" aria-hidden="true" tabindex="-1"></a><span class="fu">msummary</span>(regression, <span class="at">estimate =</span> <span class="st">"{estimate}{stars}"</span>, </span>
+<span id="cb7-255"><a href="#cb7-255" aria-hidden="true" tabindex="-1"></a>         <span class="at">notes =</span> fn, <span class="at">coef_map =</span> cm, <span class="at">gof_map =</span> gm, </span>
+<span id="cb7-256"><a href="#cb7-256" aria-hidden="true" tabindex="-1"></a>         <span class="at">stars =</span> <span class="fu">c</span>(<span class="st">"+"</span> <span class="ot">=</span> .<span class="dv">1</span>, <span class="st">"*"</span> <span class="ot">=</span> .<span class="dv">05</span>, <span class="st">"**"</span> <span class="ot">=</span> .<span class="dv">01</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb7-257"><a href="#cb7-257" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_tt</span>(<span class="at">j =</span> <span class="fu">list</span>(<span class="st">"がく片の長さ（cm）"</span> <span class="ot">=</span> <span class="dv">2</span><span class="sc">:</span><span class="dv">4</span>))</span>
+<span id="cb7-258"><a href="#cb7-258" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-259"><a href="#cb7-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-260"><a href="#cb7-260" aria-hidden="true" tabindex="-1"></a>出力された PDF は<span class="co">[</span><span class="ot">こちら</span><span class="co">](demo/demo2.pdf)</span>から確認してください。</span>
+<span id="cb7-261"><a href="#cb7-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-262"><a href="#cb7-262" aria-hidden="true" tabindex="-1"></a>::: {.callout-warning}</span>
+<span id="cb7-263"><a href="#cb7-263" aria-hidden="true" tabindex="-1"></a><span class="fu">## キャッシュの設定</span></span>
+<span id="cb7-264"><a href="#cb7-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-265"><a href="#cb7-265" aria-hidden="true" tabindex="-1"></a>設定で<span class="in">`cache: true`</span>に設定しておくと、レンダリングするときにエラーが出ることがあるので、表出力において<span class="in">`cache: true`</span>を設定するのは避けた方が良いでしょう。</span>
+<span id="cb7-266"><a href="#cb7-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-267"><a href="#cb7-267" aria-hidden="true" tabindex="-1"></a>以下のようなNoteが<span class="in">`tinytable`</span>のドキュメントに記載してあります。</span>
+<span id="cb7-268"><a href="#cb7-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-269"><a href="#cb7-269" aria-hidden="true" tabindex="-1"></a><span class="at">&gt; Note: Your document will fail to compile to PDF in Quarto if you enable caching and you use tinytable due to missing LaTeX headers. To avoid this problem, set the option ⁠#| cache: false⁠ for the chunk(s) where you use tinytable. </span></span>
+<span id="cb7-270"><a href="#cb7-270" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-271"><a href="#cb7-271" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-272"><a href="#cb7-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-273"><a href="#cb7-273" aria-hidden="true" tabindex="-1"></a>また、このサイトのフォント的に <span class="in">`&lt;-`</span> や <span class="in">`|&gt;`</span> と表示されていますが、それぞれ <span class="in">`&lt;`</span> と <span class="in">`-`</span>、<span class="in">`|`</span> と <span class="in">`&gt;`</span> になります。ご了承ください。</span>
+<span id="cb7-274"><a href="#cb7-274" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-275"><a href="#cb7-275" aria-hidden="true" tabindex="-1"></a>ここからは、表作成におけるポイントを説明します。</span>
+<span id="cb7-276"><a href="#cb7-276" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-277"><a href="#cb7-277" aria-hidden="true" tabindex="-1"></a>**テーブルにおけるポイント**</span>
+<span id="cb7-278"><a href="#cb7-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-279"><a href="#cb7-279" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>チャンクオプション</span>
+<span id="cb7-280"><a href="#cb7-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-281"><a href="#cb7-281" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`#|`</span> で始まっている部分です。</span>
+<span id="cb7-282"><a href="#cb7-282" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-283"><a href="#cb7-283" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`label`</span> は <span class="in">`tbl-`</span> で始めることでテーブルにおけるラベルを付けられます。論文内で参照するときに必要です。<span class="in">`@tbl-regression`</span> という書き方で論文内で参照できます。</span>
+<span id="cb7-284"><a href="#cb7-284" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-285"><a href="#cb7-285" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`tbl-cap`</span> で表のキャプションを付けられます。</span>
+<span id="cb7-286"><a href="#cb7-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-287"><a href="#cb7-287" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>ライブラリ</span>
+<span id="cb7-288"><a href="#cb7-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-289"><a href="#cb7-289" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`tidyverse`</span>：データハンドリングのために使用します。</span>
+<span id="cb7-290"><a href="#cb7-290" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-291"><a href="#cb7-291" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`fixest`</span>：分析のために使用します。いろいろな分析用パッケージがありますが、とりあえずこれを使えば事足りることが多いと思います。あと速い。</span>
+<span id="cb7-292"><a href="#cb7-292" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-293"><a href="#cb7-293" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`modelsummary`</span>：分析結果を表示するために使用します。様々な分析用パッケージに対応しています。</span>
+<span id="cb7-294"><a href="#cb7-294" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-295"><a href="#cb7-295" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`tinytable`</span>：modelsummary で作成した表をより細かく設定するために使います。</span>
+<span id="cb7-296"><a href="#cb7-296" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-297"><a href="#cb7-297" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>分析モデルを格納</span>
+<span id="cb7-298"><a href="#cb7-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-299"><a href="#cb7-299" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>リスト形式で保存します。こうすることによって複数の分析結果を <span class="in">`modelsummary`</span> で1つの表に起こせます。</span>
+<span id="cb7-300"><a href="#cb7-300" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-301"><a href="#cb7-301" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span><span class="in">`coef_map`</span> と <span class="in">`gof_map`</span> 用の <span class="in">`cm`</span> &amp; <span class="in">`gm`</span></span>
+<span id="cb7-302"><a href="#cb7-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-303"><a href="#cb7-303" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`cm`</span>^<span class="co">[</span><span class="ot">`gm` もそうですが、名前は何でもよいです。</span><span class="co">]</span> は、分析で使用した変数名を書き換えて表に出すためのものです。<span class="in">`"Sepal.Width" = "がく片の幅（cm）"`</span> は、 "Sepal.Width" という変数名を "がく片の幅（cm）" と表示することを意味します。</span>
+<span id="cb7-304"><a href="#cb7-304" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-305"><a href="#cb7-305" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`gm`</span> は少し複雑です。コンソールで <span class="in">`gof_map`</span> と打ってみると、raw, clean, fmt, omit の4列が出てきます。raw が表示する統計量、clean がそれらを表示するテキスト、fmt は小数点以下の桁数で、これらを <span class="in">`gm`</span> で編集するということです^<span class="co">[</span><span class="ot">"nobs", "r.squared" の2つの項目を表示し、その表記を "観測数", "$R^2$" とし、小数点以下は観測数がなし、$R^2$ は第2位までにしています。</span><span class="co">]</span>。</span>
+<span id="cb7-306"><a href="#cb7-306" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-307"><a href="#cb7-307" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>"R<span class="sc">\\</span>u00B2" はユニコード文字で、2乗を $\TeX$ 上で表すために使用しています。</span>
+<span id="cb7-308"><a href="#cb7-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-309"><a href="#cb7-309" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`fn`</span> はフットノートを書くためのものです。ここでは標準誤差の説明をしています。</span>
+<span id="cb7-310"><a href="#cb7-310" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-311"><a href="#cb7-311" aria-hidden="true" tabindex="-1"></a><span class="al">![`gof_map` を実行するとこのように出てきます。](image/gof_map.png)</span>{width=70%}</span>
+<span id="cb7-312"><a href="#cb7-312" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-313"><a href="#cb7-313" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span><span class="in">`msummary`</span></span>
+<span id="cb7-314"><a href="#cb7-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-315"><a href="#cb7-315" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>分析結果を表示するための関数です。<span class="in">`msummary`</span> は <span class="in">`modelsummary`</span> の関数です^<span class="co">[</span><span class="ot">`msummary` でも `modelsummary` でも使用できます。</span><span class="co">]</span>。ここでは、<span class="in">`regression`</span> に格納した分析結果を表示しています。</span>
+<span id="cb7-316"><a href="#cb7-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-317"><a href="#cb7-317" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`estimate`</span> で "{estimate}{stars}" と指定しています。これは推定値とその有意性を表示するためのものです。入れたパターンと入れないパターンで試してもらいたいのですが、有意性について別に脚注が入ってしまい、上で書いた脚注と合わせて2行になってしまうので、わざわざこの設定をしています。下の表を確認してください。</span>
+<span id="cb7-318"><a href="#cb7-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-319"><a href="#cb7-319" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`notes`</span> , <span class="in">`coef_map`</span> , <span class="in">`gof_map`</span> は上で設定したものを反映させています。</span>
+<span id="cb7-320"><a href="#cb7-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-321"><a href="#cb7-321" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`stars`</span> は有意性の表示を設定しています。ここでは、+p &lt; 10%, *p &lt; 5%, **p &lt; 1% としています。</span>
+<span id="cb7-322"><a href="#cb7-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-323"><a href="#cb7-323" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`group_tt`</span> は表のグルーピングを行うためのものです。ここでは、被説明変数が全て "がく片の長さ（cm）" なので、それをグルーピングしています。1列目は変数名にあたるので、2:4 としています。</span>
+<span id="cb7-324"><a href="#cb7-324" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-325"><a href="#cb7-325" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`group_tt`</span> の引数 <span class="in">`j`</span> は列のグルーピングで、<span class="in">`i`</span> 引数は行のグルーピングに対応しています。</span>
+<span id="cb7-326"><a href="#cb7-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-327"><a href="#cb7-327" aria-hidden="true" tabindex="-1"></a><span class="al">![`estimate` を指定しないとこのように脚注が2行になります。](image/table_without_estimate_option.png)</span></span>
+<span id="cb7-328"><a href="#cb7-328" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-329"><a href="#cb7-329" aria-hidden="true" tabindex="-1"></a>以上がテーブル作成のポイントです。</span>
+<span id="cb7-330"><a href="#cb7-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-331"><a href="#cb7-331" aria-hidden="true" tabindex="-1"></a><span class="fu">## 本文の書き方（フィギュア編）</span></span>
+<span id="cb7-332"><a href="#cb7-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-333"><a href="#cb7-333" aria-hidden="true" tabindex="-1"></a>次に、フィギュアの出力について説明します。</span>
+<span id="cb7-334"><a href="#cb7-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-335"><a href="#cb7-335" aria-hidden="true" tabindex="-1"></a>ここでも <span class="in">`iris`</span> データセットを使用してプロットしてみます。</span>
+<span id="cb7-336"><a href="#cb7-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-337"><a href="#cb7-337" aria-hidden="true" tabindex="-1"></a>次のコードを実行すると、@fig-iris のような図が作成されます。</span>
+<span id="cb7-338"><a href="#cb7-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-339"><a href="#cb7-339" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb7-340"><a href="#cb7-340" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-341"><a href="#cb7-341" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-342"><a href="#cb7-342" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-343"><a href="#cb7-343" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Petal.Length)) <span class="sc">+</span> </span>
+<span id="cb7-344"><a href="#cb7-344" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb7-345"><a href="#cb7-345" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"がく片の長さ（cm）"</span>, </span>
+<span id="cb7-346"><a href="#cb7-346" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"花弁の長さ（cm）"</span>) <span class="sc">+</span> </span>
+<span id="cb7-347"><a href="#cb7-347" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb7-348"><a href="#cb7-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-349"><a href="#cb7-349" aria-hidden="true" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="st">"iris_plot.pdf"</span>, p, <span class="at">device =</span> cairo_pdf)</span>
+<span id="cb7-350"><a href="#cb7-350" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-351"><a href="#cb7-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-352"><a href="#cb7-352" aria-hidden="true" tabindex="-1"></a><span class="in">```markdown</span></span>
+<span id="cb7-353"><a href="#cb7-353" aria-hidden="true" tabindex="-1"></a><span class="al">![iris を使用したプロット](iris_plot.pdf)</span>{#fig-iris}</span>
+<span id="cb7-354"><a href="#cb7-354" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-355"><a href="#cb7-355" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-358"><a href="#cb7-358" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb7-359"><a href="#cb7-359" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-iris</span></span>
+<span id="cb7-360"><a href="#cb7-360" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "iris を使用したプロット"</span></span>
+<span id="cb7-361"><a href="#cb7-361" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-362"><a href="#cb7-362" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-363"><a href="#cb7-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-364"><a href="#cb7-364" aria-hidden="true" tabindex="-1"></a>iris <span class="sc">|&gt;</span> </span>
+<span id="cb7-365"><a href="#cb7-365" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Petal.Length)) <span class="sc">+</span> </span>
+<span id="cb7-366"><a href="#cb7-366" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb7-367"><a href="#cb7-367" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"がく片の長さ（cm）"</span>, </span>
+<span id="cb7-368"><a href="#cb7-368" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"花弁の長さ（cm）"</span>) <span class="sc">+</span> </span>
+<span id="cb7-369"><a href="#cb7-369" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb7-370"><a href="#cb7-370" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-371"><a href="#cb7-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-372"><a href="#cb7-372" aria-hidden="true" tabindex="-1"></a>出力された PDF は<span class="co">[</span><span class="ot">こちら</span><span class="co">](demo/demo3.pdf)</span>から確認してください。</span>
+<span id="cb7-373"><a href="#cb7-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-374"><a href="#cb7-374" aria-hidden="true" tabindex="-1"></a>ここでもポイントを説明します。</span>
+<span id="cb7-375"><a href="#cb7-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-376"><a href="#cb7-376" aria-hidden="true" tabindex="-1"></a>**フィギュアにおけるポイント**</span>
+<span id="cb7-377"><a href="#cb7-377" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-378"><a href="#cb7-378" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>パイプを使用してプロット</span>
+<span id="cb7-379"><a href="#cb7-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-380"><a href="#cb7-380" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>データセットをパイプ（<span class="in">`|&gt;`</span>）で <span class="in">`ggplot`</span> に渡しています。これによって、変数が予測変換で出てくるので、作業がしやすくなります^<span class="co">[</span><span class="ot">`ggplot(iris, aes(~))` の形でも図は作れますが、変数名は予測変換で出てきません。</span><span class="co">]</span>。</span>
+<span id="cb7-381"><a href="#cb7-381" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-382"><a href="#cb7-382" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span><span class="in">`ggplot`</span></span>
+<span id="cb7-383"><a href="#cb7-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-384"><a href="#cb7-384" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`ggplot`</span> 内の <span class="in">`aes`</span> で x 軸と y 軸を指定しています。</span>
+<span id="cb7-385"><a href="#cb7-385" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-386"><a href="#cb7-386" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`ggplot`</span> は <span class="in">`+`</span> で繋げていくことでプロットを作成していきます。</span>
+<span id="cb7-387"><a href="#cb7-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-388"><a href="#cb7-388" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>今回は散布図を作成したいので、<span class="in">`geom_point()`</span> を繋げています。他にも折れ線の場合は <span class="in">`geom_line()`</span> などを使います。</span>
+<span id="cb7-389"><a href="#cb7-389" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-390"><a href="#cb7-390" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span><span class="in">`labs`</span></span>
+<span id="cb7-391"><a href="#cb7-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-392"><a href="#cb7-392" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`labs`</span> で x 軸と y 軸のラベルを設定しています。</span>
+<span id="cb7-393"><a href="#cb7-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-394"><a href="#cb7-394" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span><span class="in">`theme_minimal`</span></span>
+<span id="cb7-395"><a href="#cb7-395" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-396"><a href="#cb7-396" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`theme_minimal`</span> は背景が白で、軸の線が薄いテーマです。他にも <span class="in">`theme_bw`</span>, <span class="in">`theme_classic`</span> などがあります。</span>
+<span id="cb7-397"><a href="#cb7-397" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-398"><a href="#cb7-398" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb7-399"><a href="#cb7-399" aria-hidden="true" tabindex="-1"></a><span class="fu">## テーマについて</span></span>
+<span id="cb7-400"><a href="#cb7-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-401"><a href="#cb7-401" aria-hidden="true" tabindex="-1"></a><span class="in">`theme_minimal`</span> でテーマを大方設定できますが、それに加えて細かい設定をしたいこともあると思います。その場合は、 <span class="in">`+`</span> で <span class="in">`theme`</span> を繋げていくことで設定できます。ここでは <span class="in">`theme`</span> の詳細については説明しませんが、繋げる際は、<span class="in">`theme_minimal() + theme()`</span> という順番で繋げていくことをおすすめします。</span>
+<span id="cb7-402"><a href="#cb7-402" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-403"><a href="#cb7-403" aria-hidden="true" tabindex="-1"></a>順番は逆でも構いませんが、<span class="in">`theme()`</span> で設定したものが <span class="in">`theme_minimal()`</span> で上書きされることがあるので、想定していたものと違う結果になることがあります。</span>
+<span id="cb7-404"><a href="#cb7-404" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-405"><a href="#cb7-405" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-406"><a href="#cb7-406" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span><span class="in">`ggsave`</span></span>
+<span id="cb7-407"><a href="#cb7-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-408"><a href="#cb7-408" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`ggsave`</span> でプロットを保存しています。ここでは <span class="in">`iris_plot.pdf`</span> という名前で保存しています。"iris_plot.pdf" の部分は任意の名前で構いません。また、パスを指定して保存することももちろんできます。<span class="in">`here`</span> を使っている場合は、<span class="in">`here("output/iris_plot.pdf")`</span> などとして保存することができます^<span class="co">[</span><span class="ot">`here` については[こちら](../240515_rproj/index.html)</span><span class="co">]</span>。</span>
+<span id="cb7-409"><a href="#cb7-409" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-410"><a href="#cb7-410" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`device`</span> を <span class="in">`cairo_pdf`</span> にしています。<span class="in">`.png`</span> など他の形式でも出力できますが、環境によっては文字化けなどに大変苦しめられるので^<span class="co">[</span><span class="ot">僕の場合は Linux で苦労しました。</span><span class="co">]</span>、<span class="in">`cairo_pdf`</span> がおすすめです。僕の環境では一番安定しました。</span>
+<span id="cb7-411"><a href="#cb7-411" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-412"><a href="#cb7-412" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span>ちなみに、画像の解像度が上がるので、とりあえず一度保存するのがいいと思います。</span>
+<span id="cb7-413"><a href="#cb7-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-414"><a href="#cb7-414" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>マークダウン表記で図を出力</span>
+<span id="cb7-415"><a href="#cb7-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-416"><a href="#cb7-416" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="in">`![iris を使用したプロット](iris_plot.pdf){#fig-iris}`</span> で図を出力しています。<span class="in">`iris_plot.pdf`</span> の部分は保存したファイル名になります。<span class="in">`{#fig-iris}`</span> はラベルを付けるためのものです。論文内で参照するときに必要です。<span class="in">`@fig-iris`</span> という書き方で論文内で参照できます。</span>
+<span id="cb7-417"><a href="#cb7-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-418"><a href="#cb7-418" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb7-419"><a href="#cb7-419" aria-hidden="true" tabindex="-1"></a><span class="fu">## パスの指定</span></span>
+<span id="cb7-420"><a href="#cb7-420" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-421"><a href="#cb7-421" aria-hidden="true" tabindex="-1"></a>例えば画像を <span class="in">`output`</span> というフォルダに保存しており、書いているコードは <span class="in">`code`</span> フォルダにあるとします。すなわち以下のような形です。</span>
+<span id="cb7-422"><a href="#cb7-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-423"><a href="#cb7-423" aria-hidden="true" tabindex="-1"></a><span class="in">```markdown</span></span>
+<span id="cb7-424"><a href="#cb7-424" aria-hidden="true" tabindex="-1"></a>main_directory/</span>
+<span id="cb7-425"><a href="#cb7-425" aria-hidden="true" tabindex="-1"></a>├── output/</span>
+<span id="cb7-426"><a href="#cb7-426" aria-hidden="true" tabindex="-1"></a>│   └── iris_plot.pdf</span>
+<span id="cb7-427"><a href="#cb7-427" aria-hidden="true" tabindex="-1"></a>└── code/</span>
+<span id="cb7-428"><a href="#cb7-428" aria-hidden="true" tabindex="-1"></a>    └── code.qmd</span>
+<span id="cb7-429"><a href="#cb7-429" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-430"><a href="#cb7-430" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-431"><a href="#cb7-431" aria-hidden="true" tabindex="-1"></a>この場合、<span class="in">`![iris を使用したプロット](iris_plot.pdf){#fig-iris}`</span> としても図が表示されません。その場合は、コードファイルからの相対パスを使用しなければなりません。すなわち <span class="in">`![iris を使用したプロット](../output/iris_plot.pdf){#fig-iris}`</span> としてください。<span class="in">`../`</span> は一つ上の階層を示しています。</span>
+<span id="cb7-432"><a href="#cb7-432" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb7-433"><a href="#cb7-433" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-434"><a href="#cb7-434" aria-hidden="true" tabindex="-1"></a>もちろん、既に所有している画像もマークダウン記法で出力することができます。その場合は、<span class="in">`![画像の説明](画像のパス){#fig-label}`</span> のように記述します。キャプションは抜かせるので、<span class="in">`![](画像のパス){#fig-label}`</span> としても構いません。</span>
+<span id="cb7-435"><a href="#cb7-435" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-436"><a href="#cb7-436" aria-hidden="true" tabindex="-1"></a>以上がフィギュア作成のポイントです。</span>
+<span id="cb7-437"><a href="#cb7-437" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-438"><a href="#cb7-438" aria-hidden="true" tabindex="-1"></a><span class="fu">## まとめ</span></span>
+<span id="cb7-439"><a href="#cb7-439" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-440"><a href="#cb7-440" aria-hidden="true" tabindex="-1"></a>Quarto を使って論文を書く方法について説明しました。</span>
+<span id="cb7-441"><a href="#cb7-441" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-442"><a href="#cb7-442" aria-hidden="true" tabindex="-1"></a>長くなってしまいましたが、現在 M2 の私自身も Quarto を使用して修士論文を書こうと思っているので、その際に必要な情報をまとめてみました。</span>
+<span id="cb7-443"><a href="#cb7-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-444"><a href="#cb7-444" aria-hidden="true" tabindex="-1"></a>ぜひ参考にしてみてください。</span>
+</code><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024 Yosuke Abe <br> Content on this site is licensed under a <br> <i class="fa-brands fa-creative-commons" aria-label="creative-commons"></i> <i class="fa-brands fa-creative-commons-by" aria-label="creative-commons-by"></i> <i class="fa-brands fa-creative-commons-sa" aria-label="creative-commons-sa"></i> <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons BY-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>This website is created with <i class="fa-brands fa-r-project" aria-label="r-project"></i> and <a href="https://quarto.org">Quarto</a> <br> <i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/yo5uke/yo5uke.github.io">Source Code</a> <br> <i class="fa-solid fa-location-dot" aria-label="location-dot"></i> <a href="https://maps.app.goo.gl/PWAV2oqnWEHaTh3k8">Toyonaka</a>, Osaka, Japan</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

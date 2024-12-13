@@ -1,0 +1,2431 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="ggplotを使うのに役立つコマンドを紹介します。">
+
+<title>ggplot2ガイド – Yosuke Abe</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../assets/icons/favicon.ico" rel="icon">
+<script src="../../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-432712aca8bd60f8db98808cc81d1ed1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-dc9252716333816f13eaf908f0fb056f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "一致なし",
+    "search-matching-documents-text": "一致した文書",
+    "search-copy-link-title": "検索へのリンクをコピー",
+    "search-hide-matches-text": "追加の検索結果を非表示",
+    "search-more-match-text": "追加の検索結果",
+    "search-more-matches-text": "追加の検索結果",
+    "search-clear-button-title": "消去",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "キャンセル",
+    "search-submit-button-title": "検索",
+    "search-label": "サーチ"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="ggplot2ガイド – Yosuke Abe">
+<meta property="og:description" content="ggplotを使うのに役立つコマンドを紹介します。">
+<meta property="og:image" content="https://yo5uke.github.io/pages/tips/241117_ggplot2/figure/fig-ggrepel.png">
+<meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="960">
+<meta property="og:image:width" content="1344">
+<meta name="twitter:title" content="ggplot2ガイド – Yosuke Abe">
+<meta name="twitter:description" content="ggplotを使うのに役立つコマンドを紹介します。">
+<meta name="twitter:image" content="https://yo5uke.github.io/pages/tips/241117_ggplot2/figure/fig-ggrepel.png">
+<meta name="twitter:creator" content="@5uke_y">
+<meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="960">
+<meta name="twitter:image-width" content="1344">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Yosuke Abe</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="サーチ"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="ナビゲーションを切り替える" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/tips/index.html"> 
+<span class="menu-text">Tips</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/gis_in_r/index.html"> 
+<span class="menu-text">GIS in <i class="fa-brands fa-r-project" aria-label="r-project"></i></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/app/index.html"> 
+<span class="menu-text">App</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            Source code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            Report an issue
+            </a>
+          </li>
+      </ul>
+    </div>
+    <a href="../../../tips/index.xml" title="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます" class="quarto-navigation-tool px-1" aria-label="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます"><i class="bi bi-rss"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title"><code>ggplot2</code>ガイド</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i></button></div></div>
+                  <div>
+        <div class="description">
+          <p>ggplotを使うのに役立つコマンドを紹介します。</p>
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">R</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">公開</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2024年11月17日</p>
+      </div>
+    </div>
+    
+      <div>
+      <div class="quarto-title-meta-heading">最終更新</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">2024年12月13日</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目次</h2>
+   
+  <ul>
+  <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
+  <li><a href="#ggplot2の基本" id="toc-ggplot2の基本" class="nav-link" data-scroll-target="#ggplot2の基本"><code>ggplot2</code>の基本</a></li>
+  <li><a href="#軸" id="toc-軸" class="nav-link" data-scroll-target="#軸">軸</a>
+  <ul>
+  <li><a href="#軸ラベル" id="toc-軸ラベル" class="nav-link" data-scroll-target="#軸ラベル">軸ラベル</a></li>
+  <li><a href="#軸の目盛り" id="toc-軸の目盛り" class="nav-link" data-scroll-target="#軸の目盛り">軸の目盛り</a></li>
+  </ul></li>
+  <li><a href="#注釈" id="toc-注釈" class="nav-link" data-scroll-target="#注釈">注釈</a>
+  <ul>
+  <li><a href="#文字" id="toc-文字" class="nav-link" data-scroll-target="#文字">文字</a></li>
+  </ul></li>
+  <li><a href="#複数のプロットと凡例" id="toc-複数のプロットと凡例" class="nav-link" data-scroll-target="#複数のプロットと凡例">複数のプロットと凡例</a>
+  <ul>
+  <li><a href="#複数のカテゴリのプロット" id="toc-複数のカテゴリのプロット" class="nav-link" data-scroll-target="#複数のカテゴリのプロット">複数のカテゴリのプロット</a></li>
+  <li><a href="#凡例の位置" id="toc-凡例の位置" class="nav-link" data-scroll-target="#凡例の位置">凡例の位置</a></li>
+  <li><a href="#凡例の調整" id="toc-凡例の調整" class="nav-link" data-scroll-target="#凡例の調整">凡例の調整</a></li>
+  </ul></li>
+  <li><a href="#テーマ" id="toc-テーマ" class="nav-link" data-scroll-target="#テーマ">テーマ</a>
+  <ul>
+  <li><a href="#プリセットのテーマ" id="toc-プリセットのテーマ" class="nav-link" data-scroll-target="#プリセットのテーマ">プリセットのテーマ</a></li>
+  <li><a href="#theme関数" id="toc-theme関数" class="nav-link" data-scroll-target="#theme関数"><code>theme()</code>関数</a></li>
+  </ul></li>
+  <li><a href="#発展1ggrepel" id="toc-発展1ggrepel" class="nav-link" data-scroll-target="#発展1ggrepel">発展1：<code>ggrepel</code></a></li>
+  <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>皆さん、ggplot、使ってますか？多分お使いですよね。</p>
+<p>僕は数か月前ggplotのガイドブックを買いまして、いろいろと勉強しているところでございます。</p>
+<p>こんなこともできるのか！という発見が多々あり、Rユーザーの皆様にはぜひ買っていただきたい代物なのですが、いかんせんお値段が張りますので、いくつかピックアップしてご紹介します。</p>
+<p>書籍のリンクは以下です。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://www.amazon.co.jp/R%E3%82%B0%E3%83%A9%E3%83%95%E3%82%A3%E3%83%83%E3%82%AF%E3%82%B9%E3%82%AF%E3%83%83%E3%82%AF%E3%83%96%E3%83%83%E3%82%AF-%E7%AC%AC2%E7%89%88-%E2%80%95ggplot2%E3%81%AB%E3%82%88%E3%82%8B%E3%82%B0%E3%83%A9%E3%83%95%E4%BD%9C%E6%88%90%E3%81%AE%E3%83%AC%E3%82%B7%E3%83%94%E9%9B%86-Winston-Chang/dp/4873118921">Rグラフィックスクックブック 第2版 ―ggplot2によるグラフ作成のレシピ集</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="ggplot2の基本" class="level2">
+<h2 class="anchored" data-anchor-id="ggplot2の基本"><code>ggplot2</code>の基本</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>使ったことがある方はこの辺はスキップしてください。</p>
+<p>今回使うデータは、デフォルトで用意されている<code>iris</code>と<code>Orange</code>です。</p>
+</div>
+</div>
+<p>ひとまず主要なパッケージである<code>ggplot2</code>を読み込みます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("ggplot2")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>基本的な使い方としては、<code>ggplot()</code>と<code>aes()</code>、そして図に応じて<code>geom_line()</code>や<code>geom_point()</code>を使っていきます。</p>
+<p>今回は例として、アイリスのがく片の長さ、幅をそれぞれ軸としてプロットします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-iris" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-iris-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-iris-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-iris-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;1: irisデータフレームを使った散布図
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><code>ggplot(data, aes())</code>という形で使用するデータを指定</li>
+<li><code>aes()</code>内ではX軸とY軸をそれぞれ指定する。
+<ul>
+<li>例：<code>aes(x = Sepal.Length, y = Sepal.Width)</code></li>
+</ul></li>
+<li>ggplotのコマンドは<code>+</code>で繋ぐ</li>
+<li>散布図を作るには<code>geom_point()</code>を繋げる
+<ul>
+<li>その他、折れ線なら<code>geom_line()</code>、ヒストグラムなら<code>geom_histogram()</code>など</li>
+</ul></li>
+</ol>
+<p>これが土台です。<code>ggplot()</code>だけではプロットは表示されませんので、何かしら繋ぐ形にしてください。</p>
+<p>今回はggplotの基本というよりも、そこからの拡張を主に書きたいので、この散布図をベースに進めます。</p>
+</section>
+<section id="軸" class="level2">
+<h2 class="anchored" data-anchor-id="軸">軸</h2>
+<section id="軸ラベル" class="level3">
+<h3 class="anchored" data-anchor-id="軸ラベル">軸ラベル</h3>
+<p>まずはX軸、Y軸のラベルを変更します。次のコマンドを追加することで変更できます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Length of Sepal"</span>, <span class="at">y =</span> <span class="st">"Width of Sepal"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-axis-label" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-axis-label-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-axis-label-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-axis-label-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;2: 軸ラベルを変更
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>また、以下のコードは同じ結果を示します。</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Length of Sepal"</span>) <span class="sc">+</span> </span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Width of Sepal"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>すなわち、<code>labs()</code>はそれ一つでX軸もY軸もラベルを変更することができますが、<code>xlab()</code>、<code>ylab()</code>を使えば片方ずつ変更できるということです。</p>
+<p>次に、軸ラベルの体裁を変更したい場合、以下のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Length of Sepal"</span>, <span class="at">y =</span> <span class="st">"Width of Sepal"</span>) <span class="sc">+</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"times"</span>, <span class="at">face =</span> <span class="st">"italic"</span>, </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                              <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-axis-font" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-axis-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-axis-font-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-axis-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;3: 文字の体裁が変わっています
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><code>theme()</code>内の<code>axis.title</code>で変更する
+<ul>
+<li>X軸Y軸のどちらかだけにしたければ、<code>axis.title.x</code>のようにします。</li>
+</ul></li>
+<li><code>element_text()</code>内で具体的にフォントの体裁を指定
+<ul>
+<li><p>今回はわかりやすく派手にしましたが、これらの要素を変更すれば調整できます。</p></li>
+<li><p>例えば、<code>face = "bold"</code>にすれば太字にできます。</p></li>
+<li><p>他にもありますが、おおむね使うのはこのあたりでしょう。</p></li>
+</ul></li>
+</ol>
+</section>
+<section id="軸の目盛り" class="level3">
+<h3 class="anchored" data-anchor-id="軸の目盛り">軸の目盛り</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="fl">4.5</span>, <span class="dv">8</span>, .<span class="dv">5</span>)) <span class="sc">+</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">1</span>))</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-axis-scale" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-axis-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-axis-scale-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-axis-scale-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;4: 目盛りの間隔が変わっています
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>目盛りがX軸は0.5刻み、Y軸は1刻みになるよう変更しました。このように、X（Y）が連続値である場合、<code>scale_x_continuous()</code>（<code>scale_y_continuous()</code>）で変更できます。<code>seq()</code>は数列を作る関数で、<code>seq(from, to, by)</code>の順に指定します<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
+<p>目盛りも同様にフォントのスタイルを変更できます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"times"</span>, <span class="at">face =</span> <span class="st">"bold"</span>, </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-scale-font" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-scale-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-scale-font-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-scale-font-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;5: 数字のフォントが変わっています
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>もはや訳が分からない図ですが、このように体裁は変更可能です。要素は大体上と同じで、<code>axis.text.x</code>のようにどちらかだけ変更することも可能です。</p>
+</section>
+</section>
+<section id="注釈" class="level2">
+<h2 class="anchored" data-anchor-id="注釈">注釈</h2>
+<section id="文字" class="level3">
+<h3 class="anchored" data-anchor-id="文字">文字</h3>
+<p>表の中に文字を入れたいとき、どうすればよいか悩んだことが僕には何回もあります。</p>
+<p>R上ではできないものと思っていましたが、そんなことはありませんでした。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">label =</span> <span class="st">"ggplot is</span><span class="sc">\n</span><span class="st">wonderful!"</span>, <span class="at">x =</span> <span class="fl">6.5</span>, <span class="at">y =</span> <span class="dv">4</span>, </span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"times"</span>, <span class="at">color =</span> <span class="st">"#CC6666"</span>, <span class="at">size =</span> <span class="dv">10</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-annotate" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-annotate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-annotate-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-annotate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;6: 表内に文字を入れられました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><p><code>annotate("text", label = "hogehoge")</code>で文字を入れることができる</p></li>
+<li><p><code>x</code>と<code>y</code>を指定しないと反映されない</p></li>
+<li><p>改行したい場合、<code>\n</code>を入れる</p></li>
+<li><p>フォント、色、サイズも指定できる</p></li>
+</ol>
+<p>関数一つで意外と簡単にできます。</p>
+<p>さらに、棒線や矢印を付けることも可能です。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"segment"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">xend =</span> <span class="dv">7</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">yend =</span> <span class="fl">2.5</span>, </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">linewidth =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"#CC6666"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-segment-1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-segment-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-segment-1-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-segment-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;7: 斜めに棒線が入りました。
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"segment"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">xend =</span> <span class="dv">7</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">yend =</span> <span class="fl">2.5</span>, </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">linewidth =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"#CC6666"</span>, </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="dv">2</span>, <span class="at">units =</span> <span class="st">"cm"</span>)))</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-segment-2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-segment-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-segment-2-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-segment-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;8: 矢印になりました。
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<ol type="1">
+<li><code>"segment"</code>で棒線ができる</li>
+<li><code>x</code>と<code>xend</code>、<code>y</code>と<code>yend</code>を指定する必要がある
+<ul>
+<li><span class="math inline">\((x, y)\)</span>から<span class="math inline">\((xend, yend)\)</span>までの2点を結ぶようにできます。</li>
+</ul></li>
+<li><code>linewidth</code>で線の太さを指定可
+<ul>
+<li>他の要素も文字と同様に指定できますが、<code>size</code>が<code>linewidth</code>に置き換わっています。</li>
+</ul></li>
+<li><code>arrow = arrow(length = unit(x, units = "cm"))</code>で矢じりが付く
+<ul>
+<li><code>x</code>で矢じりのサイズ、<code>units</code>は単位で、他にmmやinchesなどがあります。</li>
+</ul></li>
+</ol>
+<p>以上のように、文字だけでなく線や矢印を追加することができます。</p>
+</section>
+</section>
+<section id="複数のプロットと凡例" class="level2">
+<h2 class="anchored" data-anchor-id="複数のプロットと凡例">複数のプロットと凡例</h2>
+<section id="複数のカテゴリのプロット" class="level3">
+<h3 class="anchored" data-anchor-id="複数のカテゴリのプロット">複数のカテゴリのプロット</h3>
+<p>ここでは<code>Orange</code>データセットを使って複数のカテゴリのプロットと、凡例について説明します。</p>
+<p>複数のカテゴリのプロットとは、以下のデータを見ていただけると早いと思います。</p>
+<div class="cell">
+<div id="tbl-orange" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-orange-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: <code>Orange</code>の一部
+</figcaption>
+<div aria-describedby="tbl-orange-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_zppno468a61u09e0kxiw(i, j, css_id) {
+          var table = document.getElementById("tinytable_zppno468a61u09e0kxiw");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_zppno468a61u09e0kxiw');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_zppno468a61u09e0kxiw(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_zppno468a61u09e0kxiw");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 10, j: 0 }, { i: 10, j: 1 }, { i: 10, j: 2 },  ], css_id: 'tinytable_css_wm0pnguxzj2x4z738xjx',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_a6rnfyjirb30m500b5i1',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_zppno468a61u09e0kxiw(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_wm0pnguxzj2x4z738xjx, .table th.tinytable_css_wm0pnguxzj2x4z738xjx { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_a6rnfyjirb30m500b5i1, .table th.tinytable_css_a6rnfyjirb30m500b5i1 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_zppno468a61u09e0kxiw" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">Tree</th>
+                <th scope="col">age</th>
+                <th scope="col">circumference</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>1</td>
+                  <td> 118</td>
+                  <td> 30</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td> 484</td>
+                  <td> 58</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td> 664</td>
+                  <td> 87</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1004</td>
+                  <td>115</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1231</td>
+                  <td>120</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1372</td>
+                  <td>142</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>1582</td>
+                  <td>145</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td> 118</td>
+                  <td> 33</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td> 484</td>
+                  <td> 69</td>
+                </tr>
+                <tr>
+                  <td>2</td>
+                  <td> 664</td>
+                  <td>111</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p><code>Tree</code>は木の識別子で、1～5まであります。<code>age</code>は日齢、<code>circumference</code>は幹の周囲です。</p>
+<p>ここでやりたいことは、木の種類ごとに、日齢と幹の周囲を軸にとってプロットすることです。これをただプロットしてしまうと、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference)) <span class="sc">+</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-pool" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-pool-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-orange-pool-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-pool-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;9: すべてのデータを放り込みました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>これでは各点がどの木のものなのか判別できない状態です。これを識別するには次のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-color" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-color-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-orange-color-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-color-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;10: 色が分かれました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>これでとりあえずはどの点がどの木のものかわかるようになりました。<code>color = Tree</code>で、木の種類ごとに色を使うことを指定しています。</p>
+<p>今は散布図なので色を分けるだけで済みますが、折れ線グラフのような場合は、色だけでなく線の種類を変えたいかもしれません。そんな時は次のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree, <span class="at">linetype =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-linetype" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-linetype-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-orange-linetype-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-linetype-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;11: 折れ線の種類も分かれました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>linetype = Tree</code>を追加することで線の種類も木の種類ごとに変更することができました。</p>
+<p>このように<code>aes()</code>内で要素を追加することで種類ごとに分けることができます。</p>
+<p>まだ色遣いなどは不格好ですが、いったんこのまま進めます。</p>
+</section>
+<section id="凡例の位置" class="level3">
+<h3 class="anchored" data-anchor-id="凡例の位置">凡例の位置</h3>
+<p>次にしたいのは、凡例の設定です。凡例は現在右側に表示されていますが、まずはこれを下に表示したいとします。これは、次のコードでできます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-legend-position" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-legend-position-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-orange-legend-position-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-legend-position-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;12: 凡例が下に来ました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme(legend.position = "bottom")</code>を設定することで、凡例の位置が下になりました。もちろんbottom以外にもtop, left, right（デフォルト）などを指定することができます。</p>
+<p>さらに凡例を消したい場合は次のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-legend-delete" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-legend-delete-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-orange-legend-delete-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-legend-delete-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;13: 凡例を消しました
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme(legend.position = "none")</code>で凡例を消すことができました。</p>
+</section>
+<section id="凡例の調整" class="level3">
+<h3 class="anchored" data-anchor-id="凡例の調整">凡例の調整</h3>
+<p>例えば、凡例のタイトルは消したい場合が結構あると思います。<a href="#fig-orange-color" class="quarto-xref">図&nbsp;10</a> の例でいえば、Treeという文字は消したいということです。</p>
+<p>そんな場合は、以下のようにします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="cn">NULL</span>))</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-orange-legend-delte-title" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-orange-legend-delte-title-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-orange-legend-delte-title-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-orange-legend-delte-title-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;14: 凡例のタイトルを削除
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Treeというタイトルが消えました。</p>
+<p>ここでは<code>guides(color = guide_legend(title = NULL))</code>としていますが、<code>aes()</code>内で例えば<code>linetype</code>を使っている場合は、<code>guides()</code>内も<code>linetype =</code>にする必要があります。</p>
+</section>
+</section>
+<section id="テーマ" class="level2">
+<h2 class="anchored" data-anchor-id="テーマ">テーマ</h2>
+<p>ggplotではテーマを選ぶことができます。デフォルトではこれまでの図のように背景がグレーになっていますが、ほとんどの場合で背景は白にしたいですよね。</p>
+<p>背景だけでなく、罫線等もテーマで変更することができます。</p>
+<section id="プリセットのテーマ" class="level3">
+<h3 class="anchored" data-anchor-id="プリセットのテーマ">プリセットのテーマ</h3>
+<p>いくつかのテーマが準備されています。代表的なものをいくつかご紹介します。</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true">minimal</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false">bw</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false">classic</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-4" role="tab" aria-controls="tabset-1-4" aria-selected="false">linedraw</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-5-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-5" role="tab" aria-controls="tabset-1-5" aria-selected="false">light</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-6-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-6" role="tab" aria-controls="tabset-1-6" aria-selected="false">void</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-minimal" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-minimal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-minimal-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-minimal-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;15: <code>theme_minimal()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-bw" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-bw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-bw-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-bw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;16: <code>theme_bw()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme_minimal()</code>と比べて外枠が付いています。</p>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-classic" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-classic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-classic-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-classic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;17: <code>theme_classic()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-4-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_linedraw</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-linedraw" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-linedraw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-linedraw-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-linedraw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;18: <code>theme_linedraw()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-5" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-5-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_light</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-light" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-light-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-light-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-light-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;19: <code>theme_light()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-6" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-6-tab">
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-void" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-void-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-void-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-void-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;20: <code>theme_void()</code>
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>さすがにやりすぎでは…と思うかもしれませんが、GISで地図を可視化するようなときに重宝します。</p>
+</div>
+</div>
+</div>
+</section>
+<section id="theme関数" class="level3">
+<h3 class="anchored" data-anchor-id="theme関数"><code>theme()</code>関数</h3>
+<p>ここまでご紹介したものの中で<code>theme()</code>を使ったものがいくつかありました。</p>
+<p>ここで<code>theme()</code><strong>は</strong><code>theme_xxx()</code><strong>の後に使う</strong>ということに注意してください。</p>
+<p>これは、<code>theme_xxx()</code>が<code>theme()</code>を上書きしてしまうためです。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"red"</span>)) <span class="sc">+</span> </span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-miss" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-miss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-miss-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-miss-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;21: 失敗例
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><code>theme(axis.title = element_text(color = "red"))</code>で軸ラベルを赤色に設定していますが、出力されたものは黒いラベルになっています。</p>
+<p>順番を逆にすれば、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"red"</span>))</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-theme-success" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-theme-success-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-theme-success-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-theme-success-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;22: 正しい例
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>このようにしっかり反映されます。</p>
+</section>
+</section>
+<section id="発展1ggrepel" class="level2">
+<h2 class="anchored" data-anchor-id="発展1ggrepel">発展1：<code>ggrepel</code></h2>
+<p>ここからは、<code>ggrepel</code>というパッケージを用いて折れ線グラフを発展させた例をご紹介します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># インストール</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a><span class="co"># pak::pak("ggrepel")</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>まず、以下のようなデータがあるとします。<code>firm_id</code>は30まであります。</p>
+<div class="cell">
+<div id="tbl-data-prep" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-data-prep-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;2: データの一部
+</figcaption>
+<div aria-describedby="tbl-data-prep-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_er2p54f3anlfh2ugjmt1(i, j, css_id) {
+          var table = document.getElementById("tinytable_er2p54f3anlfh2ugjmt1");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_er2p54f3anlfh2ugjmt1');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_er2p54f3anlfh2ugjmt1(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_er2p54f3anlfh2ugjmt1");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 }, { i: 6, j: 5 },  ], css_id: 'tinytable_css_m80ohasp5y8faa7rn91t',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 }, { i: 0, j: 5 },  ], css_id: 'tinytable_css_lh87ju35914i9kw42kj6',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_er2p54f3anlfh2ugjmt1(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_m80ohasp5y8faa7rn91t, .table th.tinytable_css_m80ohasp5y8faa7rn91t { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_lh87ju35914i9kw42kj6, .table th.tinytable_css_lh87ju35914i9kw42kj6 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_er2p54f3anlfh2ugjmt1" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">firm_id</th>
+                <th scope="col">state_id</th>
+                <th scope="col">year</th>
+                <th scope="col">treated_1998</th>
+                <th scope="col">is_treated</th>
+                <th scope="col">y</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>1</td>
+                  <td>50</td>
+                  <td>1980</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>0.6546029</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>50</td>
+                  <td>1981</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>1.9160271</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>50</td>
+                  <td>1982</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>2.1400894</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>50</td>
+                  <td>1983</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>1.8364579</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>50</td>
+                  <td>1984</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>1.7661105</td>
+                </tr>
+                <tr>
+                  <td>1</td>
+                  <td>50</td>
+                  <td>1985</td>
+                  <td>0</td>
+                  <td>0</td>
+                  <td>1.2856041</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>これを使って横軸に<code>Year</code>、縦軸に<code>y</code>をとってグラフにします。</p>
+<p>詳細を書くと長くなるので、適宜メモを入れました。ご参考まで。</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトする群とそれ以外に分ける</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> <span class="fu">if_else</span>(treated_1998 <span class="sc">==</span> <span class="dv">1</span>, <span class="fu">as.factor</span>(firm_id), <span class="st">"other"</span>), </span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 最後の年にだけラベルを付ける</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">group_lab =</span> <span class="fu">if_else</span>(treated_1998 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> year <span class="sc">==</span> <span class="dv">2015</span>, </span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">paste0</span>(<span class="st">"Firm "</span>, firm_id), <span class="cn">NA_character_</span>)</span>
+<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>  <span class="co"># まずハイライトする群だけプロット</span></span>
+<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>  df <span class="sc">|&gt;</span> <span class="fu">filter</span>(treated_1998 <span class="sc">==</span> <span class="dv">1</span>), </span>
+<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> y, <span class="at">group =</span> firm_id)</span>
+<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span> </span>
+<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 罫線を削除</span></span>
+<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(), </span>
+<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 凡例を削除</span></span>
+<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>, </span>
+<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 軸のタイトルと文字のフォントとサイズを調整</span></span>
+<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">size =</span> <span class="dv">18</span>), </span>
+<span id="cb26-23"><a href="#cb26-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">size =</span> <span class="dv">14</span>)</span>
+<span id="cb26-24"><a href="#cb26-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-25"><a href="#cb26-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb26-26"><a href="#cb26-26" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 垂直線を描写</span></span>
+<span id="cb26-27"><a href="#cb26-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">xintercept =</span> <span class="fu">seq</span>(<span class="dv">1980</span>, <span class="dv">2015</span>, <span class="at">by =</span> <span class="dv">5</span>), </span>
+<span id="cb26-28"><a href="#cb26-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray91"</span>, </span>
+<span id="cb26-29"><a href="#cb26-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> .<span class="dv">6</span></span>
+<span id="cb26-30"><a href="#cb26-30" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-31"><a href="#cb26-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb26-32"><a href="#cb26-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 水平線を描写</span></span>
+<span id="cb26-33"><a href="#cb26-33" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 描写のためにデータを準備</span></span>
+<span id="cb26-34"><a href="#cb26-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="fl">5.0</span>, <span class="at">by =</span> <span class="fl">2.5</span>), <span class="at">x1 =</span> <span class="dv">1980</span>, <span class="at">x2 =</span> <span class="dv">2015</span>), </span>
+<span id="cb26-35"><a href="#cb26-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x1, <span class="at">xend =</span> x2, <span class="at">y =</span> y, <span class="at">yend =</span> y), </span>
+<span id="cb26-36"><a href="#cb26-36" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb26-37"><a href="#cb26-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray91"</span>, </span>
+<span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> .<span class="dv">6</span></span>
+<span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 薄い水平線を描写</span></span>
+<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">2.0</span>, <span class="fl">4.5</span>, <span class="at">by =</span> .<span class="dv">5</span>), <span class="at">x1 =</span> <span class="dv">1980</span>, <span class="at">x2 =</span> <span class="dv">2015</span>), </span>
+<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x1, <span class="at">xend =</span> x2, <span class="at">y =</span> y, <span class="at">yend =</span> y), </span>
+<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray97"</span>, </span>
+<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> .<span class="dv">3</span></span>
+<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb26-49"><a href="#cb26-49" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 縦軸が0のところに水平線を描写</span></span>
+<span id="cb26-50"><a href="#cb26-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="dv">0</span>, <span class="at">x1 =</span> <span class="dv">1980</span>, <span class="at">x2 =</span> <span class="dv">2015</span>), </span>
+<span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x1, <span class="at">xend =</span> x2, <span class="at">y =</span> y), </span>
+<span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb26-53"><a href="#cb26-53" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>, </span>
+<span id="cb26-54"><a href="#cb26-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray40"</span></span>
+<span id="cb26-55"><a href="#cb26-55" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-56"><a href="#cb26-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb26-57"><a href="#cb26-57" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 処置年に垂直線を描写</span></span>
+<span id="cb26-58"><a href="#cb26-58" aria-hidden="true" tabindex="-1"></a>    <span class="at">xintercept =</span> <span class="dv">1998</span>, </span>
+<span id="cb26-59"><a href="#cb26-59" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>, </span>
+<span id="cb26-60"><a href="#cb26-60" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray40"</span></span>
+<span id="cb26-61"><a href="#cb26-61" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-62"><a href="#cb26-62" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
+<span id="cb26-63"><a href="#cb26-63" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトしない群をプロット</span></span>
+<span id="cb26-64"><a href="#cb26-64" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> df <span class="sc">|&gt;</span> <span class="fu">filter</span>(group <span class="sc">==</span> <span class="st">"other"</span>), </span>
+<span id="cb26-65"><a href="#cb26-65" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray75"</span>, </span>
+<span id="cb26-66"><a href="#cb26-66" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> .<span class="dv">5</span></span>
+<span id="cb26-67"><a href="#cb26-67" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-68"><a href="#cb26-68" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
+<span id="cb26-69"><a href="#cb26-69" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトする群をプロット</span></span>
+<span id="cb26-70"><a href="#cb26-70" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> group)</span>
+<span id="cb26-71"><a href="#cb26-71" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-72"><a href="#cb26-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb26-73"><a href="#cb26-73" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトした線にラベルを追加</span></span>
+<span id="cb26-74"><a href="#cb26-74" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> group, <span class="at">label =</span> group_lab), </span>
+<span id="cb26-75"><a href="#cb26-75" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="st">"Times"</span>, </span>
+<span id="cb26-76"><a href="#cb26-76" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">0</span>, </span>
+<span id="cb26-77"><a href="#cb26-77" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2017年の位置にラベルを書く</span></span>
+<span id="cb26-78"><a href="#cb26-78" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">2017</span>, <span class="cn">NA</span>), </span>
+<span id="cb26-79"><a href="#cb26-79" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">4</span>, </span>
+<span id="cb26-80"><a href="#cb26-80" aria-hidden="true" tabindex="-1"></a>    <span class="at">segment.linetype =</span> <span class="st">"dotted"</span></span>
+<span id="cb26-81"><a href="#cb26-81" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-82"><a href="#cb26-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Year"</span>) <span class="sc">+</span> </span>
+<span id="cb26-83"><a href="#cb26-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Value"</span>) <span class="sc">+</span> </span>
+<span id="cb26-84"><a href="#cb26-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb26-85"><a href="#cb26-85" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
+<span id="cb26-86"><a href="#cb26-86" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ラベルが見えるように図の端の2015年より広くとる</span></span>
+<span id="cb26-87"><a href="#cb26-87" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">1980</span>, <span class="dv">2021</span>), </span>
+<span id="cb26-88"><a href="#cb26-88" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">1980</span>, <span class="dv">2015</span>, <span class="at">by =</span> <span class="dv">5</span>)</span>
+<span id="cb26-89"><a href="#cb26-89" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb26-90"><a href="#cb26-90" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb26-91"><a href="#cb26-91" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
+<span id="cb26-92"><a href="#cb26-92" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="fl">5.0</span>), </span>
+<span id="cb26-93"><a href="#cb26-93" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="dv">0</span>, <span class="fl">2.5</span>, <span class="fl">5.0</span>)</span>
+<span id="cb26-94"><a href="#cb26-94" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div id="fig-ggrepel" class="quarto-float quarto-figure quarto-figure-center anchored" data-fig-align="center">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ggrepel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-ggrepel-1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ggrepel-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;23: ggrepelを使ったプロット
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>ひとまず僕がよく使うggplotの設定をまとめてみました。ggplotを駆使して、スタイリッシュなプロットを作成していきましょう！</p>
+<p>適宜追記する予定ですので、ご参考になれば幸いです。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>離散値の場合は<code>scale_x_discrete()</code>などで変更できますが、今回その説明は省きます。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "コピーしました");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "コピーしました");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/yo5uke\.github\.io");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="yo5uke/yo5uke.github.io" data-repo-id="R_kgDOLsORUQ" data-category="General" data-category-id="DIC_kwDOLsORUc4CfJ93" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light_high_contrast" data-lang="en" crossorigin="anonymous" async="">
+</script>
+<input type="hidden" id="giscus-base-theme" value="light_high_contrast">
+<input type="hidden" id="giscus-alt-theme" value="light_high_contrast"><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb27" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "`ggplot2`ガイド"</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co">  ggplotを使うのに役立つコマンドを紹介します。</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2024-11-17</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> today</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> figure/fig-ggrepel.png</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>皆さん、ggplot、使ってますか？多分お使いですよね。</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>僕は数か月前ggplotのガイドブックを買いまして、いろいろと勉強しているところでございます。</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>こんなこともできるのか！という発見が多々あり、Rユーザーの皆様にはぜひ買っていただきたい代物なのですが、いかんせんお値段が張りますので、いくつかピックアップしてご紹介します。</span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>書籍のリンクは以下です。</span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal" icon="false"}</span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">Rグラフィックスクックブック 第2版 ―ggplot2によるグラフ作成のレシピ集</span><span class="co">](https://www.amazon.co.jp/R%E3%82%B0%E3%83%A9%E3%83%95%E3%82%A3%E3%83%83%E3%82%AF%E3%82%B9%E3%82%AF%E3%83%83%E3%82%AF%E3%83%96%E3%83%83%E3%82%AF-%E7%AC%AC2%E7%89%88-%E2%80%95ggplot2%E3%81%AB%E3%82%88%E3%82%8B%E3%82%B0%E3%83%A9%E3%83%95%E4%BD%9C%E6%88%90%E3%81%AE%E3%83%AC%E3%82%B7%E3%83%94%E9%9B%86-Winston-Chang/dp/4873118921)</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a><span class="fu">## `ggplot2`の基本</span></span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>使ったことがある方はこの辺はスキップしてください。</span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>今回使うデータは、デフォルトで用意されている<span class="in">`iris`</span>と<span class="in">`Orange`</span>です。</span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>ひとまず主要なパッケージである<span class="in">`ggplot2`</span>を読み込みます。</span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("ggplot2")</span></span>
+<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-43"><a href="#cb27-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-44"><a href="#cb27-44" aria-hidden="true" tabindex="-1"></a>基本的な使い方としては、<span class="in">`ggplot()`</span>と<span class="in">`aes()`</span>、そして図に応じて<span class="in">`geom_line()`</span>や<span class="in">`geom_point()`</span>を使っていきます。</span>
+<span id="cb27-45"><a href="#cb27-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-46"><a href="#cb27-46" aria-hidden="true" tabindex="-1"></a>今回は例として、アイリスのがく片の長さ、幅をそれぞれ軸としてプロットします。</span>
+<span id="cb27-47"><a href="#cb27-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-50"><a href="#cb27-50" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-51"><a href="#cb27-51" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-iris</span></span>
+<span id="cb27-52"><a href="#cb27-52" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "irisデータフレームを使った散布図"</span></span>
+<span id="cb27-53"><a href="#cb27-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-54"><a href="#cb27-54" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-55"><a href="#cb27-55" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span>
+<span id="cb27-56"><a href="#cb27-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-57"><a href="#cb27-57" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-58"><a href="#cb27-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-59"><a href="#cb27-59" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="in">`ggplot(data, aes())`</span>という形で使用するデータを指定</span>
+<span id="cb27-60"><a href="#cb27-60" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span><span class="in">`aes()`</span>内ではX軸とY軸をそれぞれ指定する。</span>
+<span id="cb27-61"><a href="#cb27-61" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>例：<span class="in">`aes(x = Sepal.Length, y = Sepal.Width)`</span></span>
+<span id="cb27-62"><a href="#cb27-62" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>ggplotのコマンドは<span class="in">`+`</span>で繋ぐ</span>
+<span id="cb27-63"><a href="#cb27-63" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>散布図を作るには<span class="in">`geom_point()`</span>を繋げる</span>
+<span id="cb27-64"><a href="#cb27-64" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>その他、折れ線なら<span class="in">`geom_line()`</span>、ヒストグラムなら<span class="in">`geom_histogram()`</span>など</span>
+<span id="cb27-65"><a href="#cb27-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-66"><a href="#cb27-66" aria-hidden="true" tabindex="-1"></a>これが土台です。<span class="in">`ggplot()`</span>だけではプロットは表示されませんので、何かしら繋ぐ形にしてください。</span>
+<span id="cb27-67"><a href="#cb27-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-68"><a href="#cb27-68" aria-hidden="true" tabindex="-1"></a>今回はggplotの基本というよりも、そこからの拡張を主に書きたいので、この散布図をベースに進めます。</span>
+<span id="cb27-69"><a href="#cb27-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-70"><a href="#cb27-70" aria-hidden="true" tabindex="-1"></a><span class="fu">## 軸</span></span>
+<span id="cb27-71"><a href="#cb27-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-72"><a href="#cb27-72" aria-hidden="true" tabindex="-1"></a><span class="fu">### 軸ラベル</span></span>
+<span id="cb27-73"><a href="#cb27-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-74"><a href="#cb27-74" aria-hidden="true" tabindex="-1"></a>まずはX軸、Y軸のラベルを変更します。次のコマンドを追加することで変更できます。</span>
+<span id="cb27-75"><a href="#cb27-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-78"><a href="#cb27-78" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-79"><a href="#cb27-79" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-axis-label</span></span>
+<span id="cb27-80"><a href="#cb27-80" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "軸ラベルを変更"</span></span>
+<span id="cb27-81"><a href="#cb27-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-82"><a href="#cb27-82" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-83"><a href="#cb27-83" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-84"><a href="#cb27-84" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Length of Sepal"</span>, <span class="at">y =</span> <span class="st">"Width of Sepal"</span>)</span>
+<span id="cb27-85"><a href="#cb27-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-86"><a href="#cb27-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-87"><a href="#cb27-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-88"><a href="#cb27-88" aria-hidden="true" tabindex="-1"></a>また、以下のコードは同じ結果を示します。</span>
+<span id="cb27-89"><a href="#cb27-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-90"><a href="#cb27-90" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb27-91"><a href="#cb27-91" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-92"><a href="#cb27-92" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-93"><a href="#cb27-93" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Length of Sepal"</span>) <span class="sc">+</span> </span>
+<span id="cb27-94"><a href="#cb27-94" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Width of Sepal"</span>)</span>
+<span id="cb27-95"><a href="#cb27-95" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-96"><a href="#cb27-96" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-97"><a href="#cb27-97" aria-hidden="true" tabindex="-1"></a>すなわち、<span class="in">`labs()`</span>はそれ一つでX軸もY軸もラベルを変更することができますが、<span class="in">`xlab()`</span>、<span class="in">`ylab()`</span>を使えば片方ずつ変更できるということです。</span>
+<span id="cb27-98"><a href="#cb27-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-99"><a href="#cb27-99" aria-hidden="true" tabindex="-1"></a>次に、軸ラベルの体裁を変更したい場合、以下のようにします。</span>
+<span id="cb27-100"><a href="#cb27-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-103"><a href="#cb27-103" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-104"><a href="#cb27-104" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-axis-font</span></span>
+<span id="cb27-105"><a href="#cb27-105" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "文字の体裁が変わっています"</span></span>
+<span id="cb27-106"><a href="#cb27-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-107"><a href="#cb27-107" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-108"><a href="#cb27-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-109"><a href="#cb27-109" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Length of Sepal"</span>, <span class="at">y =</span> <span class="st">"Width of Sepal"</span>) <span class="sc">+</span> </span>
+<span id="cb27-110"><a href="#cb27-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb27-111"><a href="#cb27-111" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"times"</span>, <span class="at">face =</span> <span class="st">"italic"</span>, </span>
+<span id="cb27-112"><a href="#cb27-112" aria-hidden="true" tabindex="-1"></a>                              <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb27-113"><a href="#cb27-113" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb27-114"><a href="#cb27-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-115"><a href="#cb27-115" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-116"><a href="#cb27-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-117"><a href="#cb27-117" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="in">`theme()`</span>内の<span class="in">`axis.title`</span>で変更する</span>
+<span id="cb27-118"><a href="#cb27-118" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>X軸Y軸のどちらかだけにしたければ、<span class="in">`axis.title.x`</span>のようにします。</span>
+<span id="cb27-119"><a href="#cb27-119" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span><span class="in">`element_text()`</span>内で具体的にフォントの体裁を指定</span>
+<span id="cb27-120"><a href="#cb27-120" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>今回はわかりやすく派手にしましたが、これらの要素を変更すれば調整できます。</span>
+<span id="cb27-121"><a href="#cb27-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-122"><a href="#cb27-122" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>例えば、<span class="in">`face = "bold"`</span>にすれば太字にできます。</span>
+<span id="cb27-123"><a href="#cb27-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-124"><a href="#cb27-124" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>他にもありますが、おおむね使うのはこのあたりでしょう。</span>
+<span id="cb27-125"><a href="#cb27-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-126"><a href="#cb27-126" aria-hidden="true" tabindex="-1"></a><span class="fu">### 軸の目盛り</span></span>
+<span id="cb27-127"><a href="#cb27-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-130"><a href="#cb27-130" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-131"><a href="#cb27-131" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-axis-scale</span></span>
+<span id="cb27-132"><a href="#cb27-132" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "目盛りの間隔が変わっています"</span></span>
+<span id="cb27-133"><a href="#cb27-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-134"><a href="#cb27-134" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-135"><a href="#cb27-135" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-136"><a href="#cb27-136" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="fl">4.5</span>, <span class="dv">8</span>, .<span class="dv">5</span>)) <span class="sc">+</span> </span>
+<span id="cb27-137"><a href="#cb27-137" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">2</span>, <span class="dv">4</span>, <span class="dv">1</span>))</span>
+<span id="cb27-138"><a href="#cb27-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-139"><a href="#cb27-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-140"><a href="#cb27-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-141"><a href="#cb27-141" aria-hidden="true" tabindex="-1"></a>目盛りがX軸は0.5刻み、Y軸は1刻みになるよう変更しました。このように、X（Y）が連続値である場合、<span class="in">`scale_x_continuous()`</span>（<span class="in">`scale_y_continuous()`</span>）で変更できます。<span class="in">`seq()`</span>は数列を作る関数で、<span class="in">`seq(from, to, by)`</span>の順に指定します<span class="ot">[^1]</span>。</span>
+<span id="cb27-142"><a href="#cb27-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-143"><a href="#cb27-143" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>離散値の場合は<span class="in">`scale_x_discrete()`</span>などで変更できますが、今回その説明は省きます。</span>
+<span id="cb27-144"><a href="#cb27-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-145"><a href="#cb27-145" aria-hidden="true" tabindex="-1"></a>目盛りも同様にフォントのスタイルを変更できます。</span>
+<span id="cb27-146"><a href="#cb27-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-149"><a href="#cb27-149" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-150"><a href="#cb27-150" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-scale-font</span></span>
+<span id="cb27-151"><a href="#cb27-151" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "数字のフォントが変わっています"</span></span>
+<span id="cb27-152"><a href="#cb27-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-153"><a href="#cb27-153" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-154"><a href="#cb27-154" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-155"><a href="#cb27-155" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb27-156"><a href="#cb27-156" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"times"</span>, <span class="at">face =</span> <span class="st">"bold"</span>, </span>
+<span id="cb27-157"><a href="#cb27-157" aria-hidden="true" tabindex="-1"></a>                             <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">size =</span> <span class="dv">20</span>)</span>
+<span id="cb27-158"><a href="#cb27-158" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb27-159"><a href="#cb27-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-160"><a href="#cb27-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-161"><a href="#cb27-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-162"><a href="#cb27-162" aria-hidden="true" tabindex="-1"></a>もはや訳が分からない図ですが、このように体裁は変更可能です。要素は大体上と同じで、<span class="in">`axis.text.x`</span>のようにどちらかだけ変更することも可能です。</span>
+<span id="cb27-163"><a href="#cb27-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-164"><a href="#cb27-164" aria-hidden="true" tabindex="-1"></a><span class="fu">## 注釈</span></span>
+<span id="cb27-165"><a href="#cb27-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-166"><a href="#cb27-166" aria-hidden="true" tabindex="-1"></a><span class="fu">### 文字</span></span>
+<span id="cb27-167"><a href="#cb27-167" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-168"><a href="#cb27-168" aria-hidden="true" tabindex="-1"></a>表の中に文字を入れたいとき、どうすればよいか悩んだことが僕には何回もあります。</span>
+<span id="cb27-169"><a href="#cb27-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-170"><a href="#cb27-170" aria-hidden="true" tabindex="-1"></a>R上ではできないものと思っていましたが、そんなことはありませんでした。</span>
+<span id="cb27-171"><a href="#cb27-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-174"><a href="#cb27-174" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-175"><a href="#cb27-175" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-annotate</span></span>
+<span id="cb27-176"><a href="#cb27-176" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "表内に文字を入れられました"</span></span>
+<span id="cb27-177"><a href="#cb27-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-178"><a href="#cb27-178" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-179"><a href="#cb27-179" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-180"><a href="#cb27-180" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">label =</span> <span class="st">"ggplot is</span><span class="sc">\n</span><span class="st">wonderful!"</span>, <span class="at">x =</span> <span class="fl">6.5</span>, <span class="at">y =</span> <span class="dv">4</span>, </span>
+<span id="cb27-181"><a href="#cb27-181" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="st">"times"</span>, <span class="at">color =</span> <span class="st">"#CC6666"</span>, <span class="at">size =</span> <span class="dv">10</span>)</span>
+<span id="cb27-182"><a href="#cb27-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-183"><a href="#cb27-183" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-184"><a href="#cb27-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-185"><a href="#cb27-185" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="in">`annotate("text", label = "hogehoge")`</span>で文字を入れることができる</span>
+<span id="cb27-186"><a href="#cb27-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-187"><a href="#cb27-187" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span><span class="in">`x`</span>と<span class="in">`y`</span>を指定しないと反映されない</span>
+<span id="cb27-188"><a href="#cb27-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-189"><a href="#cb27-189" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>改行したい場合、<span class="in">`\n`</span>を入れる</span>
+<span id="cb27-190"><a href="#cb27-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-191"><a href="#cb27-191" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>フォント、色、サイズも指定できる</span>
+<span id="cb27-192"><a href="#cb27-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-193"><a href="#cb27-193" aria-hidden="true" tabindex="-1"></a>関数一つで意外と簡単にできます。</span>
+<span id="cb27-194"><a href="#cb27-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-195"><a href="#cb27-195" aria-hidden="true" tabindex="-1"></a>さらに、棒線や矢印を付けることも可能です。</span>
+<span id="cb27-196"><a href="#cb27-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-199"><a href="#cb27-199" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-200"><a href="#cb27-200" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-segment-1</span></span>
+<span id="cb27-201"><a href="#cb27-201" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "斜めに棒線が入りました。"</span></span>
+<span id="cb27-202"><a href="#cb27-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-203"><a href="#cb27-203" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-204"><a href="#cb27-204" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-205"><a href="#cb27-205" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"segment"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">xend =</span> <span class="dv">7</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">yend =</span> <span class="fl">2.5</span>, </span>
+<span id="cb27-206"><a href="#cb27-206" aria-hidden="true" tabindex="-1"></a>           <span class="at">linewidth =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"#CC6666"</span>)</span>
+<span id="cb27-207"><a href="#cb27-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-208"><a href="#cb27-208" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-209"><a href="#cb27-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-212"><a href="#cb27-212" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-213"><a href="#cb27-213" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-segment-2</span></span>
+<span id="cb27-214"><a href="#cb27-214" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "矢印になりました。"</span></span>
+<span id="cb27-215"><a href="#cb27-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-216"><a href="#cb27-216" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-217"><a href="#cb27-217" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-218"><a href="#cb27-218" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"segment"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">xend =</span> <span class="dv">7</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">yend =</span> <span class="fl">2.5</span>, </span>
+<span id="cb27-219"><a href="#cb27-219" aria-hidden="true" tabindex="-1"></a>           <span class="at">linewidth =</span> <span class="dv">2</span>, <span class="at">color =</span> <span class="st">"#CC6666"</span>, </span>
+<span id="cb27-220"><a href="#cb27-220" aria-hidden="true" tabindex="-1"></a>           <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="dv">2</span>, <span class="at">units =</span> <span class="st">"cm"</span>)))</span>
+<span id="cb27-221"><a href="#cb27-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-222"><a href="#cb27-222" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-223"><a href="#cb27-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-224"><a href="#cb27-224" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="in">`"segment"`</span>で棒線ができる</span>
+<span id="cb27-225"><a href="#cb27-225" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span><span class="in">`x`</span>と<span class="in">`xend`</span>、<span class="in">`y`</span>と<span class="in">`yend`</span>を指定する必要がある</span>
+<span id="cb27-226"><a href="#cb27-226" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>$(x, y)$から$(xend, yend)$までの2点を結ぶようにできます。</span>
+<span id="cb27-227"><a href="#cb27-227" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span><span class="in">`linewidth`</span>で線の太さを指定可</span>
+<span id="cb27-228"><a href="#cb27-228" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>他の要素も文字と同様に指定できますが、<span class="in">`size`</span>が<span class="in">`linewidth`</span>に置き換わっています。</span>
+<span id="cb27-229"><a href="#cb27-229" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span><span class="in">`arrow = arrow(length = unit(x, units = "cm"))`</span>で矢じりが付く</span>
+<span id="cb27-230"><a href="#cb27-230" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`x`</span>で矢じりのサイズ、<span class="in">`units`</span>は単位で、他にmmやinchesなどがあります。</span>
+<span id="cb27-231"><a href="#cb27-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-232"><a href="#cb27-232" aria-hidden="true" tabindex="-1"></a>以上のように、文字だけでなく線や矢印を追加することができます。</span>
+<span id="cb27-233"><a href="#cb27-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-234"><a href="#cb27-234" aria-hidden="true" tabindex="-1"></a><span class="fu">## 複数のプロットと凡例</span></span>
+<span id="cb27-235"><a href="#cb27-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-236"><a href="#cb27-236" aria-hidden="true" tabindex="-1"></a><span class="fu">### 複数のカテゴリのプロット</span></span>
+<span id="cb27-237"><a href="#cb27-237" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-238"><a href="#cb27-238" aria-hidden="true" tabindex="-1"></a>ここでは<span class="in">`Orange`</span>データセットを使って複数のカテゴリのプロットと、凡例について説明します。</span>
+<span id="cb27-239"><a href="#cb27-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-240"><a href="#cb27-240" aria-hidden="true" tabindex="-1"></a>複数のカテゴリのプロットとは、以下のデータを見ていただけると早いと思います。</span>
+<span id="cb27-241"><a href="#cb27-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-244"><a href="#cb27-244" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-245"><a href="#cb27-245" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb27-246"><a href="#cb27-246" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-orange</span></span>
+<span id="cb27-247"><a href="#cb27-247" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "`Orange`の一部"</span></span>
+<span id="cb27-248"><a href="#cb27-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-249"><a href="#cb27-249" aria-hidden="true" tabindex="-1"></a>Orange <span class="sc">|&gt;</span> </span>
+<span id="cb27-250"><a href="#cb27-250" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">10</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb27-251"><a href="#cb27-251" aria-hidden="true" tabindex="-1"></a>  tinytable<span class="sc">::</span><span class="fu">tt</span>(<span class="at">width =</span> <span class="dv">8</span>)</span>
+<span id="cb27-252"><a href="#cb27-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-253"><a href="#cb27-253" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-254"><a href="#cb27-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-255"><a href="#cb27-255" aria-hidden="true" tabindex="-1"></a><span class="in">`Tree`</span>は木の識別子で、1～5まであります。<span class="in">`age`</span>は日齢、<span class="in">`circumference`</span>は幹の周囲です。</span>
+<span id="cb27-256"><a href="#cb27-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-257"><a href="#cb27-257" aria-hidden="true" tabindex="-1"></a>ここでやりたいことは、木の種類ごとに、日齢と幹の周囲を軸にとってプロットすることです。これをただプロットしてしまうと、</span>
+<span id="cb27-258"><a href="#cb27-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-261"><a href="#cb27-261" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-262"><a href="#cb27-262" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-orange-pool</span></span>
+<span id="cb27-263"><a href="#cb27-263" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "すべてのデータを放り込みました"</span></span>
+<span id="cb27-264"><a href="#cb27-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-265"><a href="#cb27-265" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference)) <span class="sc">+</span> </span>
+<span id="cb27-266"><a href="#cb27-266" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span>
+<span id="cb27-267"><a href="#cb27-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-268"><a href="#cb27-268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-269"><a href="#cb27-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-270"><a href="#cb27-270" aria-hidden="true" tabindex="-1"></a>これでは各点がどの木のものなのか判別できない状態です。これを識別するには次のようにします。</span>
+<span id="cb27-271"><a href="#cb27-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-274"><a href="#cb27-274" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-275"><a href="#cb27-275" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-orange-color</span></span>
+<span id="cb27-276"><a href="#cb27-276" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "色が分かれました"</span></span>
+<span id="cb27-277"><a href="#cb27-277" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-278"><a href="#cb27-278" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb27-279"><a href="#cb27-279" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>()</span>
+<span id="cb27-280"><a href="#cb27-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-281"><a href="#cb27-281" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-282"><a href="#cb27-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-283"><a href="#cb27-283" aria-hidden="true" tabindex="-1"></a>これでとりあえずはどの点がどの木のものかわかるようになりました。<span class="in">`color = Tree`</span>で、木の種類ごとに色を使うことを指定しています。</span>
+<span id="cb27-284"><a href="#cb27-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-285"><a href="#cb27-285" aria-hidden="true" tabindex="-1"></a>今は散布図なので色を分けるだけで済みますが、折れ線グラフのような場合は、色だけでなく線の種類を変えたいかもしれません。そんな時は次のようにします。</span>
+<span id="cb27-286"><a href="#cb27-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-289"><a href="#cb27-289" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-290"><a href="#cb27-290" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-orange-linetype</span></span>
+<span id="cb27-291"><a href="#cb27-291" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "折れ線の種類も分かれました"</span></span>
+<span id="cb27-292"><a href="#cb27-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-293"><a href="#cb27-293" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree, <span class="at">linetype =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb27-294"><a href="#cb27-294" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-295"><a href="#cb27-295" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()</span>
+<span id="cb27-296"><a href="#cb27-296" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-297"><a href="#cb27-297" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-298"><a href="#cb27-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-299"><a href="#cb27-299" aria-hidden="true" tabindex="-1"></a><span class="in">`linetype = Tree`</span>を追加することで線の種類も木の種類ごとに変更することができました。</span>
+<span id="cb27-300"><a href="#cb27-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-301"><a href="#cb27-301" aria-hidden="true" tabindex="-1"></a>このように<span class="in">`aes()`</span>内で要素を追加することで種類ごとに分けることができます。</span>
+<span id="cb27-302"><a href="#cb27-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-303"><a href="#cb27-303" aria-hidden="true" tabindex="-1"></a>まだ色遣いなどは不格好ですが、いったんこのまま進めます。</span>
+<span id="cb27-304"><a href="#cb27-304" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-305"><a href="#cb27-305" aria-hidden="true" tabindex="-1"></a><span class="fu">### 凡例の位置</span></span>
+<span id="cb27-306"><a href="#cb27-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-307"><a href="#cb27-307" aria-hidden="true" tabindex="-1"></a>次にしたいのは、凡例の設定です。凡例は現在右側に表示されていますが、まずはこれを下に表示したいとします。これは、次のコードでできます。</span>
+<span id="cb27-308"><a href="#cb27-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-311"><a href="#cb27-311" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-312"><a href="#cb27-312" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-orange-legend-position</span></span>
+<span id="cb27-313"><a href="#cb27-313" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "凡例が下に来ました"</span></span>
+<span id="cb27-314"><a href="#cb27-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-315"><a href="#cb27-315" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb27-316"><a href="#cb27-316" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-317"><a href="#cb27-317" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
+<span id="cb27-318"><a href="#cb27-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-319"><a href="#cb27-319" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-320"><a href="#cb27-320" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-321"><a href="#cb27-321" aria-hidden="true" tabindex="-1"></a><span class="in">`theme(legend.position = "bottom")`</span>を設定することで、凡例の位置が下になりました。もちろんbottom以外にもtop, left, right（デフォルト）などを指定することができます。</span>
+<span id="cb27-322"><a href="#cb27-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-323"><a href="#cb27-323" aria-hidden="true" tabindex="-1"></a>さらに凡例を消したい場合は次のようにします。</span>
+<span id="cb27-324"><a href="#cb27-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-327"><a href="#cb27-327" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-328"><a href="#cb27-328" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-orange-legend-delete</span></span>
+<span id="cb27-329"><a href="#cb27-329" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "凡例を消しました"</span></span>
+<span id="cb27-330"><a href="#cb27-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-331"><a href="#cb27-331" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb27-332"><a href="#cb27-332" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-333"><a href="#cb27-333" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb27-334"><a href="#cb27-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-335"><a href="#cb27-335" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-336"><a href="#cb27-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-337"><a href="#cb27-337" aria-hidden="true" tabindex="-1"></a><span class="in">`theme(legend.position = "none")`</span>で凡例を消すことができました。</span>
+<span id="cb27-338"><a href="#cb27-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-339"><a href="#cb27-339" aria-hidden="true" tabindex="-1"></a><span class="fu">### 凡例の調整</span></span>
+<span id="cb27-340"><a href="#cb27-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-341"><a href="#cb27-341" aria-hidden="true" tabindex="-1"></a>例えば、凡例のタイトルは消したい場合が結構あると思います。@fig-orange-color の例でいえば、Treeという文字は消したいということです。</span>
+<span id="cb27-342"><a href="#cb27-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-343"><a href="#cb27-343" aria-hidden="true" tabindex="-1"></a>そんな場合は、以下のようにします。</span>
+<span id="cb27-344"><a href="#cb27-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-347"><a href="#cb27-347" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-348"><a href="#cb27-348" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-orange-legend-delte-title</span></span>
+<span id="cb27-349"><a href="#cb27-349" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "凡例のタイトルを削除"</span></span>
+<span id="cb27-350"><a href="#cb27-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-351"><a href="#cb27-351" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Orange, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> circumference, <span class="at">color =</span> Tree)) <span class="sc">+</span> </span>
+<span id="cb27-352"><a href="#cb27-352" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-353"><a href="#cb27-353" aria-hidden="true" tabindex="-1"></a>  <span class="fu">guides</span>(<span class="at">color =</span> <span class="fu">guide_legend</span>(<span class="at">title =</span> <span class="cn">NULL</span>))</span>
+<span id="cb27-354"><a href="#cb27-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-355"><a href="#cb27-355" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-356"><a href="#cb27-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-357"><a href="#cb27-357" aria-hidden="true" tabindex="-1"></a>Treeというタイトルが消えました。</span>
+<span id="cb27-358"><a href="#cb27-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-359"><a href="#cb27-359" aria-hidden="true" tabindex="-1"></a>ここでは<span class="in">`guides(color = guide_legend(title = NULL))`</span>としていますが、<span class="in">`aes()`</span>内で例えば<span class="in">`linetype`</span>を使っている場合は、<span class="in">`guides()`</span>内も<span class="in">`linetype =`</span>にする必要があります。</span>
+<span id="cb27-360"><a href="#cb27-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-361"><a href="#cb27-361" aria-hidden="true" tabindex="-1"></a><span class="fu">## テーマ</span></span>
+<span id="cb27-362"><a href="#cb27-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-363"><a href="#cb27-363" aria-hidden="true" tabindex="-1"></a>ggplotではテーマを選ぶことができます。デフォルトではこれまでの図のように背景がグレーになっていますが、ほとんどの場合で背景は白にしたいですよね。</span>
+<span id="cb27-364"><a href="#cb27-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-365"><a href="#cb27-365" aria-hidden="true" tabindex="-1"></a>背景だけでなく、罫線等もテーマで変更することができます。</span>
+<span id="cb27-366"><a href="#cb27-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-367"><a href="#cb27-367" aria-hidden="true" tabindex="-1"></a><span class="fu">### プリセットのテーマ</span></span>
+<span id="cb27-368"><a href="#cb27-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-369"><a href="#cb27-369" aria-hidden="true" tabindex="-1"></a>いくつかのテーマが準備されています。代表的なものをいくつかご紹介します。</span>
+<span id="cb27-370"><a href="#cb27-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-371"><a href="#cb27-371" aria-hidden="true" tabindex="-1"></a>::: panel-tabset</span>
+<span id="cb27-372"><a href="#cb27-372" aria-hidden="true" tabindex="-1"></a><span class="fu">## minimal</span></span>
+<span id="cb27-373"><a href="#cb27-373" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-376"><a href="#cb27-376" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-377"><a href="#cb27-377" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-minimal</span></span>
+<span id="cb27-378"><a href="#cb27-378" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "`theme_minimal()`"</span></span>
+<span id="cb27-379"><a href="#cb27-379" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-380"><a href="#cb27-380" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-381"><a href="#cb27-381" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-382"><a href="#cb27-382" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb27-383"><a href="#cb27-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-384"><a href="#cb27-384" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-385"><a href="#cb27-385" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-386"><a href="#cb27-386" aria-hidden="true" tabindex="-1"></a><span class="fu">## bw</span></span>
+<span id="cb27-387"><a href="#cb27-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-390"><a href="#cb27-390" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-391"><a href="#cb27-391" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-bw</span></span>
+<span id="cb27-392"><a href="#cb27-392" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "`theme_bw()`"</span></span>
+<span id="cb27-393"><a href="#cb27-393" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-394"><a href="#cb27-394" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-395"><a href="#cb27-395" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-396"><a href="#cb27-396" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>()</span>
+<span id="cb27-397"><a href="#cb27-397" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-398"><a href="#cb27-398" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-399"><a href="#cb27-399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-400"><a href="#cb27-400" aria-hidden="true" tabindex="-1"></a><span class="in">`theme_minimal()`</span>と比べて外枠が付いています。</span>
+<span id="cb27-401"><a href="#cb27-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-402"><a href="#cb27-402" aria-hidden="true" tabindex="-1"></a><span class="fu">## classic</span></span>
+<span id="cb27-403"><a href="#cb27-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-406"><a href="#cb27-406" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-407"><a href="#cb27-407" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-classic</span></span>
+<span id="cb27-408"><a href="#cb27-408" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "`theme_classic()`"</span></span>
+<span id="cb27-409"><a href="#cb27-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-410"><a href="#cb27-410" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-411"><a href="#cb27-411" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-412"><a href="#cb27-412" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_classic</span>()</span>
+<span id="cb27-413"><a href="#cb27-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-414"><a href="#cb27-414" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-415"><a href="#cb27-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-416"><a href="#cb27-416" aria-hidden="true" tabindex="-1"></a><span class="fu">## linedraw</span></span>
+<span id="cb27-417"><a href="#cb27-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-420"><a href="#cb27-420" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-421"><a href="#cb27-421" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-linedraw</span></span>
+<span id="cb27-422"><a href="#cb27-422" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "`theme_linedraw()`"</span></span>
+<span id="cb27-423"><a href="#cb27-423" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-424"><a href="#cb27-424" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-425"><a href="#cb27-425" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-426"><a href="#cb27-426" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_linedraw</span>()</span>
+<span id="cb27-427"><a href="#cb27-427" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-428"><a href="#cb27-428" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-429"><a href="#cb27-429" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-430"><a href="#cb27-430" aria-hidden="true" tabindex="-1"></a><span class="fu">## light</span></span>
+<span id="cb27-431"><a href="#cb27-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-434"><a href="#cb27-434" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-435"><a href="#cb27-435" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-light</span></span>
+<span id="cb27-436"><a href="#cb27-436" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "`theme_light()`"</span></span>
+<span id="cb27-437"><a href="#cb27-437" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-438"><a href="#cb27-438" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-439"><a href="#cb27-439" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-440"><a href="#cb27-440" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_light</span>()</span>
+<span id="cb27-441"><a href="#cb27-441" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-442"><a href="#cb27-442" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-443"><a href="#cb27-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-444"><a href="#cb27-444" aria-hidden="true" tabindex="-1"></a><span class="fu">## void</span></span>
+<span id="cb27-445"><a href="#cb27-445" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-448"><a href="#cb27-448" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-449"><a href="#cb27-449" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-void</span></span>
+<span id="cb27-450"><a href="#cb27-450" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "`theme_void()`"</span></span>
+<span id="cb27-451"><a href="#cb27-451" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-452"><a href="#cb27-452" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-453"><a href="#cb27-453" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-454"><a href="#cb27-454" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb27-455"><a href="#cb27-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-456"><a href="#cb27-456" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-457"><a href="#cb27-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-458"><a href="#cb27-458" aria-hidden="true" tabindex="-1"></a>さすがにやりすぎでは…と思うかもしれませんが、GISで地図を可視化するようなときに重宝します。</span>
+<span id="cb27-459"><a href="#cb27-459" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb27-460"><a href="#cb27-460" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-461"><a href="#cb27-461" aria-hidden="true" tabindex="-1"></a><span class="fu">### `theme()`関数</span></span>
+<span id="cb27-462"><a href="#cb27-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-463"><a href="#cb27-463" aria-hidden="true" tabindex="-1"></a>ここまでご紹介したものの中で<span class="in">`theme()`</span>を使ったものがいくつかありました。</span>
+<span id="cb27-464"><a href="#cb27-464" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-465"><a href="#cb27-465" aria-hidden="true" tabindex="-1"></a>ここで<span class="in">`theme()`</span>**は**`theme_xxx()`**の後に使う**ということに注意してください。</span>
+<span id="cb27-466"><a href="#cb27-466" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-467"><a href="#cb27-467" aria-hidden="true" tabindex="-1"></a>これは、<span class="in">`theme_xxx()`</span>が<span class="in">`theme()`</span>を上書きしてしまうためです。</span>
+<span id="cb27-468"><a href="#cb27-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-471"><a href="#cb27-471" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-472"><a href="#cb27-472" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-miss</span></span>
+<span id="cb27-473"><a href="#cb27-473" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "失敗例"</span></span>
+<span id="cb27-474"><a href="#cb27-474" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-475"><a href="#cb27-475" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-476"><a href="#cb27-476" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-477"><a href="#cb27-477" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"red"</span>)) <span class="sc">+</span> </span>
+<span id="cb27-478"><a href="#cb27-478" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb27-479"><a href="#cb27-479" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-480"><a href="#cb27-480" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-481"><a href="#cb27-481" aria-hidden="true" tabindex="-1"></a><span class="in">`theme(axis.title = element_text(color = "red"))`</span>で軸ラベルを赤色に設定していますが、出力されたものは黒いラベルになっています。</span>
+<span id="cb27-482"><a href="#cb27-482" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-483"><a href="#cb27-483" aria-hidden="true" tabindex="-1"></a>順番を逆にすれば、</span>
+<span id="cb27-484"><a href="#cb27-484" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-487"><a href="#cb27-487" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-488"><a href="#cb27-488" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-theme-success</span></span>
+<span id="cb27-489"><a href="#cb27-489" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "正しい例"</span></span>
+<span id="cb27-490"><a href="#cb27-490" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-491"><a href="#cb27-491" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(iris, <span class="fu">aes</span>(<span class="at">x =</span> Sepal.Length, <span class="at">y =</span> Sepal.Width)) <span class="sc">+</span> </span>
+<span id="cb27-492"><a href="#cb27-492" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span> </span>
+<span id="cb27-493"><a href="#cb27-493" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb27-494"><a href="#cb27-494" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">color =</span> <span class="st">"red"</span>))</span>
+<span id="cb27-495"><a href="#cb27-495" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-496"><a href="#cb27-496" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-497"><a href="#cb27-497" aria-hidden="true" tabindex="-1"></a>このようにしっかり反映されます。</span>
+<span id="cb27-498"><a href="#cb27-498" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-499"><a href="#cb27-499" aria-hidden="true" tabindex="-1"></a><span class="fu">## 発展1：`ggrepel`</span></span>
+<span id="cb27-500"><a href="#cb27-500" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-501"><a href="#cb27-501" aria-hidden="true" tabindex="-1"></a>ここからは、<span class="in">`ggrepel`</span>というパッケージを用いて折れ線グラフを発展させた例をご紹介します。</span>
+<span id="cb27-502"><a href="#cb27-502" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-505"><a href="#cb27-505" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-506"><a href="#cb27-506" aria-hidden="true" tabindex="-1"></a><span class="co"># インストール</span></span>
+<span id="cb27-507"><a href="#cb27-507" aria-hidden="true" tabindex="-1"></a><span class="co"># pak::pak("ggrepel")</span></span>
+<span id="cb27-508"><a href="#cb27-508" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
+<span id="cb27-509"><a href="#cb27-509" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-510"><a href="#cb27-510" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-511"><a href="#cb27-511" aria-hidden="true" tabindex="-1"></a>まず、以下のようなデータがあるとします。<span class="in">`firm_id`</span>は30まであります。</span>
+<span id="cb27-512"><a href="#cb27-512" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-515"><a href="#cb27-515" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-516"><a href="#cb27-516" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-data-prep</span></span>
+<span id="cb27-517"><a href="#cb27-517" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "データの一部"</span></span>
+<span id="cb27-518"><a href="#cb27-518" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb27-519"><a href="#cb27-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-520"><a href="#cb27-520" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb27-521"><a href="#cb27-521" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">57</span>)</span>
+<span id="cb27-522"><a href="#cb27-522" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-523"><a href="#cb27-523" aria-hidden="true" tabindex="-1"></a>n_firms <span class="ot">&lt;-</span> <span class="dv">30</span>   <span class="co"># Reduce the number of firms</span></span>
+<span id="cb27-524"><a href="#cb27-524" aria-hidden="true" tabindex="-1"></a>n_states <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb27-525"><a href="#cb27-525" aria-hidden="true" tabindex="-1"></a>T <span class="ot">&lt;-</span> <span class="dv">36</span></span>
+<span id="cb27-526"><a href="#cb27-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-527"><a href="#cb27-527" aria-hidden="true" tabindex="-1"></a>firm_id <span class="ot">&lt;-</span> <span class="dv">1</span><span class="sc">:</span>n_firms</span>
+<span id="cb27-528"><a href="#cb27-528" aria-hidden="true" tabindex="-1"></a>state_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(n_states, <span class="at">size =</span> n_firms, <span class="at">replace =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb27-529"><a href="#cb27-529" aria-hidden="true" tabindex="-1"></a>year <span class="ot">&lt;-</span> <span class="dv">1980</span><span class="sc">:</span><span class="dv">2015</span></span>
+<span id="cb27-530"><a href="#cb27-530" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-531"><a href="#cb27-531" aria-hidden="true" tabindex="-1"></a>fe_firm <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n_firms, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> .<span class="dv">5</span>)</span>
+<span id="cb27-532"><a href="#cb27-532" aria-hidden="true" tabindex="-1"></a>fe_year <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(T, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> .<span class="dv">5</span>)</span>
+<span id="cb27-533"><a href="#cb27-533" aria-hidden="true" tabindex="-1"></a>error <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n_firms <span class="sc">*</span> T, <span class="at">mean =</span> <span class="dv">0</span>, <span class="at">sd =</span> .<span class="dv">5</span>)</span>
+<span id="cb27-534"><a href="#cb27-534" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-535"><a href="#cb27-535" aria-hidden="true" tabindex="-1"></a>treated_1998 <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">0</span>), <span class="at">size =</span> n_firms, </span>
+<span id="cb27-536"><a href="#cb27-536" aria-hidden="true" tabindex="-1"></a>                       <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob =</span> <span class="fu">c</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">5</span>, <span class="dv">4</span><span class="sc">/</span><span class="dv">5</span>))</span>
+<span id="cb27-537"><a href="#cb27-537" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-538"><a href="#cb27-538" aria-hidden="true" tabindex="-1"></a>treated_year <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="fu">c</span>(<span class="dv">1989</span>, <span class="dv">1998</span>, <span class="dv">2007</span>), <span class="at">size =</span> n_firms, </span>
+<span id="cb27-539"><a href="#cb27-539" aria-hidden="true" tabindex="-1"></a>                       <span class="at">replace =</span> <span class="cn">TRUE</span>, <span class="at">prob =</span> <span class="fu">c</span>(<span class="dv">17</span><span class="sc">/</span><span class="dv">50</span>, <span class="dv">17</span><span class="sc">/</span><span class="dv">50</span>, <span class="dv">16</span><span class="sc">/</span><span class="dv">50</span>))</span>
+<span id="cb27-540"><a href="#cb27-540" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-541"><a href="#cb27-541" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb27-542"><a href="#cb27-542" aria-hidden="true" tabindex="-1"></a>  <span class="at">firm_id =</span> <span class="fu">rep</span>(firm_id, <span class="at">each =</span> T), </span>
+<span id="cb27-543"><a href="#cb27-543" aria-hidden="true" tabindex="-1"></a>  <span class="at">state_id =</span> <span class="fu">rep</span>(state_id, <span class="at">each =</span> T), </span>
+<span id="cb27-544"><a href="#cb27-544" aria-hidden="true" tabindex="-1"></a>  <span class="at">year =</span> <span class="fu">rep</span>(year, <span class="at">times =</span> n_firms), </span>
+<span id="cb27-545"><a href="#cb27-545" aria-hidden="true" tabindex="-1"></a>  <span class="at">fe_firm =</span> <span class="fu">rep</span>(fe_firm, <span class="at">each =</span> T), </span>
+<span id="cb27-546"><a href="#cb27-546" aria-hidden="true" tabindex="-1"></a>  <span class="at">fe_year =</span> <span class="fu">rep</span>(fe_year, <span class="at">times =</span> n_firms), </span>
+<span id="cb27-547"><a href="#cb27-547" aria-hidden="true" tabindex="-1"></a>  <span class="at">error =</span> error, </span>
+<span id="cb27-548"><a href="#cb27-548" aria-hidden="true" tabindex="-1"></a>  <span class="at">treated_1998 =</span> <span class="fu">rep</span>(treated_1998, <span class="at">each =</span> T), </span>
+<span id="cb27-549"><a href="#cb27-549" aria-hidden="true" tabindex="-1"></a>  <span class="at">is_treated =</span> <span class="fu">if_else</span>(treated_1998 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> year <span class="sc">&gt;=</span> <span class="dv">1998</span>, <span class="dv">1</span>, <span class="dv">0</span>), </span>
+<span id="cb27-550"><a href="#cb27-550" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="fu">case_when</span>(</span>
+<span id="cb27-551"><a href="#cb27-551" aria-hidden="true" tabindex="-1"></a>    is_treated <span class="sc">==</span> <span class="dv">1</span> <span class="sc">~</span> </span>
+<span id="cb27-552"><a href="#cb27-552" aria-hidden="true" tabindex="-1"></a>      <span class="fu">rnorm</span>(n_firms <span class="sc">*</span> T, <span class="at">mean =</span> <span class="dv">2</span>, <span class="at">sd =</span> .<span class="dv">2</span>) <span class="sc">+</span> fe_firm <span class="sc">+</span> fe_year <span class="sc">+</span> error, </span>
+<span id="cb27-553"><a href="#cb27-553" aria-hidden="true" tabindex="-1"></a>    <span class="at">.default =</span> fe_firm <span class="sc">+</span> fe_year <span class="sc">+</span> error</span>
+<span id="cb27-554"><a href="#cb27-554" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb27-555"><a href="#cb27-555" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb27-556"><a href="#cb27-556" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-557"><a href="#cb27-557" aria-hidden="true" tabindex="-1"></a>df <span class="sc">|&gt;</span> </span>
+<span id="cb27-558"><a href="#cb27-558" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(firm_id<span class="sc">:</span>year, treated_1998<span class="sc">:</span>y) <span class="sc">|&gt;</span> </span>
+<span id="cb27-559"><a href="#cb27-559" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb27-560"><a href="#cb27-560" aria-hidden="true" tabindex="-1"></a>  tinytable<span class="sc">::</span><span class="fu">tt</span>()</span>
+<span id="cb27-561"><a href="#cb27-561" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-562"><a href="#cb27-562" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-563"><a href="#cb27-563" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-564"><a href="#cb27-564" aria-hidden="true" tabindex="-1"></a>これを使って横軸に<span class="in">`Year`</span>、縦軸に<span class="in">`y`</span>をとってグラフにします。</span>
+<span id="cb27-565"><a href="#cb27-565" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-566"><a href="#cb27-566" aria-hidden="true" tabindex="-1"></a>詳細を書くと長くなるので、適宜メモを入れました。ご参考まで。</span>
+<span id="cb27-567"><a href="#cb27-567" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-570"><a href="#cb27-570" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb27-571"><a href="#cb27-571" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ggrepel</span></span>
+<span id="cb27-572"><a href="#cb27-572" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "ggrepelを使ったプロット"</span></span>
+<span id="cb27-573"><a href="#cb27-573" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-align: center</span></span>
+<span id="cb27-574"><a href="#cb27-574" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-575"><a href="#cb27-575" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">|&gt;</span> </span>
+<span id="cb27-576"><a href="#cb27-576" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb27-577"><a href="#cb27-577" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトする群とそれ以外に分ける</span></span>
+<span id="cb27-578"><a href="#cb27-578" aria-hidden="true" tabindex="-1"></a>    <span class="at">group =</span> <span class="fu">if_else</span>(treated_1998 <span class="sc">==</span> <span class="dv">1</span>, <span class="fu">as.factor</span>(firm_id), <span class="st">"other"</span>), </span>
+<span id="cb27-579"><a href="#cb27-579" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 最後の年にだけラベルを付ける</span></span>
+<span id="cb27-580"><a href="#cb27-580" aria-hidden="true" tabindex="-1"></a>    <span class="at">group_lab =</span> <span class="fu">if_else</span>(treated_1998 <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> year <span class="sc">==</span> <span class="dv">2015</span>, </span>
+<span id="cb27-581"><a href="#cb27-581" aria-hidden="true" tabindex="-1"></a>                        <span class="fu">paste0</span>(<span class="st">"Firm "</span>, firm_id), <span class="cn">NA_character_</span>)</span>
+<span id="cb27-582"><a href="#cb27-582" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb27-583"><a href="#cb27-583" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-584"><a href="#cb27-584" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(</span>
+<span id="cb27-585"><a href="#cb27-585" aria-hidden="true" tabindex="-1"></a>  <span class="co"># まずハイライトする群だけプロット</span></span>
+<span id="cb27-586"><a href="#cb27-586" aria-hidden="true" tabindex="-1"></a>  df <span class="sc">|&gt;</span> <span class="fu">filter</span>(treated_1998 <span class="sc">==</span> <span class="dv">1</span>), </span>
+<span id="cb27-587"><a href="#cb27-587" aria-hidden="true" tabindex="-1"></a>  <span class="fu">aes</span>(<span class="at">x =</span> year, <span class="at">y =</span> y, <span class="at">group =</span> firm_id)</span>
+<span id="cb27-588"><a href="#cb27-588" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span> </span>
+<span id="cb27-589"><a href="#cb27-589" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb27-590"><a href="#cb27-590" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb27-591"><a href="#cb27-591" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 罫線を削除</span></span>
+<span id="cb27-592"><a href="#cb27-592" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid =</span> <span class="fu">element_blank</span>(), </span>
+<span id="cb27-593"><a href="#cb27-593" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 凡例を削除</span></span>
+<span id="cb27-594"><a href="#cb27-594" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span>, </span>
+<span id="cb27-595"><a href="#cb27-595" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 軸のタイトルと文字のフォントとサイズを調整</span></span>
+<span id="cb27-596"><a href="#cb27-596" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">size =</span> <span class="dv">18</span>), </span>
+<span id="cb27-597"><a href="#cb27-597" aria-hidden="true" tabindex="-1"></a>    <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">family =</span> <span class="st">"Times"</span>, <span class="at">size =</span> <span class="dv">14</span>)</span>
+<span id="cb27-598"><a href="#cb27-598" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-599"><a href="#cb27-599" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb27-600"><a href="#cb27-600" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 垂直線を描写</span></span>
+<span id="cb27-601"><a href="#cb27-601" aria-hidden="true" tabindex="-1"></a>    <span class="at">xintercept =</span> <span class="fu">seq</span>(<span class="dv">1980</span>, <span class="dv">2015</span>, <span class="at">by =</span> <span class="dv">5</span>), </span>
+<span id="cb27-602"><a href="#cb27-602" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray91"</span>, </span>
+<span id="cb27-603"><a href="#cb27-603" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> .<span class="dv">6</span></span>
+<span id="cb27-604"><a href="#cb27-604" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-605"><a href="#cb27-605" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb27-606"><a href="#cb27-606" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 水平線を描写</span></span>
+<span id="cb27-607"><a href="#cb27-607" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 描写のためにデータを準備</span></span>
+<span id="cb27-608"><a href="#cb27-608" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="fl">5.0</span>, <span class="at">by =</span> <span class="fl">2.5</span>), <span class="at">x1 =</span> <span class="dv">1980</span>, <span class="at">x2 =</span> <span class="dv">2015</span>), </span>
+<span id="cb27-609"><a href="#cb27-609" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x1, <span class="at">xend =</span> x2, <span class="at">y =</span> y, <span class="at">yend =</span> y), </span>
+<span id="cb27-610"><a href="#cb27-610" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb27-611"><a href="#cb27-611" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray91"</span>, </span>
+<span id="cb27-612"><a href="#cb27-612" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> .<span class="dv">6</span></span>
+<span id="cb27-613"><a href="#cb27-613" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-614"><a href="#cb27-614" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb27-615"><a href="#cb27-615" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 薄い水平線を描写</span></span>
+<span id="cb27-616"><a href="#cb27-616" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">2.0</span>, <span class="fl">4.5</span>, <span class="at">by =</span> .<span class="dv">5</span>), <span class="at">x1 =</span> <span class="dv">1980</span>, <span class="at">x2 =</span> <span class="dv">2015</span>), </span>
+<span id="cb27-617"><a href="#cb27-617" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x1, <span class="at">xend =</span> x2, <span class="at">y =</span> y, <span class="at">yend =</span> y), </span>
+<span id="cb27-618"><a href="#cb27-618" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb27-619"><a href="#cb27-619" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray97"</span>, </span>
+<span id="cb27-620"><a href="#cb27-620" aria-hidden="true" tabindex="-1"></a>    <span class="at">linewidth =</span> .<span class="dv">3</span></span>
+<span id="cb27-621"><a href="#cb27-621" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-622"><a href="#cb27-622" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb27-623"><a href="#cb27-623" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 縦軸が0のところに水平線を描写</span></span>
+<span id="cb27-624"><a href="#cb27-624" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">tibble</span>(<span class="at">y =</span> <span class="dv">0</span>, <span class="at">x1 =</span> <span class="dv">1980</span>, <span class="at">x2 =</span> <span class="dv">2015</span>), </span>
+<span id="cb27-625"><a href="#cb27-625" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> x1, <span class="at">xend =</span> x2, <span class="at">y =</span> y), </span>
+<span id="cb27-626"><a href="#cb27-626" aria-hidden="true" tabindex="-1"></a>    <span class="at">inherit.aes =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb27-627"><a href="#cb27-627" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>, </span>
+<span id="cb27-628"><a href="#cb27-628" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray40"</span></span>
+<span id="cb27-629"><a href="#cb27-629" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-630"><a href="#cb27-630" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(</span>
+<span id="cb27-631"><a href="#cb27-631" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 処置年に垂直線を描写</span></span>
+<span id="cb27-632"><a href="#cb27-632" aria-hidden="true" tabindex="-1"></a>    <span class="at">xintercept =</span> <span class="dv">1998</span>, </span>
+<span id="cb27-633"><a href="#cb27-633" aria-hidden="true" tabindex="-1"></a>    <span class="at">linetype =</span> <span class="st">"dashed"</span>, </span>
+<span id="cb27-634"><a href="#cb27-634" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray40"</span></span>
+<span id="cb27-635"><a href="#cb27-635" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-636"><a href="#cb27-636" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
+<span id="cb27-637"><a href="#cb27-637" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトしない群をプロット</span></span>
+<span id="cb27-638"><a href="#cb27-638" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> df <span class="sc">|&gt;</span> <span class="fu">filter</span>(group <span class="sc">==</span> <span class="st">"other"</span>), </span>
+<span id="cb27-639"><a href="#cb27-639" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray75"</span>, </span>
+<span id="cb27-640"><a href="#cb27-640" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> .<span class="dv">5</span></span>
+<span id="cb27-641"><a href="#cb27-641" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-642"><a href="#cb27-642" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(</span>
+<span id="cb27-643"><a href="#cb27-643" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトする群をプロット</span></span>
+<span id="cb27-644"><a href="#cb27-644" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> group)</span>
+<span id="cb27-645"><a href="#cb27-645" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-646"><a href="#cb27-646" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(</span>
+<span id="cb27-647"><a href="#cb27-647" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ハイライトした線にラベルを追加</span></span>
+<span id="cb27-648"><a href="#cb27-648" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">color =</span> group, <span class="at">label =</span> group_lab), </span>
+<span id="cb27-649"><a href="#cb27-649" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="st">"Times"</span>, </span>
+<span id="cb27-650"><a href="#cb27-650" aria-hidden="true" tabindex="-1"></a>    <span class="at">hjust =</span> <span class="dv">0</span>, </span>
+<span id="cb27-651"><a href="#cb27-651" aria-hidden="true" tabindex="-1"></a>    <span class="co"># 2017年の位置にラベルを書く</span></span>
+<span id="cb27-652"><a href="#cb27-652" aria-hidden="true" tabindex="-1"></a>    <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">2017</span>, <span class="cn">NA</span>), </span>
+<span id="cb27-653"><a href="#cb27-653" aria-hidden="true" tabindex="-1"></a>    <span class="at">size =</span> <span class="dv">4</span>, </span>
+<span id="cb27-654"><a href="#cb27-654" aria-hidden="true" tabindex="-1"></a>    <span class="at">segment.linetype =</span> <span class="st">"dotted"</span></span>
+<span id="cb27-655"><a href="#cb27-655" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-656"><a href="#cb27-656" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Year"</span>) <span class="sc">+</span> </span>
+<span id="cb27-657"><a href="#cb27-657" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Value"</span>) <span class="sc">+</span> </span>
+<span id="cb27-658"><a href="#cb27-658" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb27-659"><a href="#cb27-659" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
+<span id="cb27-660"><a href="#cb27-660" aria-hidden="true" tabindex="-1"></a>    <span class="co"># ラベルが見えるように図の端の2015年より広くとる</span></span>
+<span id="cb27-661"><a href="#cb27-661" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">1980</span>, <span class="dv">2021</span>), </span>
+<span id="cb27-662"><a href="#cb27-662" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">1980</span>, <span class="dv">2015</span>, <span class="at">by =</span> <span class="dv">5</span>)</span>
+<span id="cb27-663"><a href="#cb27-663" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span> </span>
+<span id="cb27-664"><a href="#cb27-664" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(</span>
+<span id="cb27-665"><a href="#cb27-665" aria-hidden="true" tabindex="-1"></a>    <span class="at">expand =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>), </span>
+<span id="cb27-666"><a href="#cb27-666" aria-hidden="true" tabindex="-1"></a>    <span class="at">limits =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="fl">5.0</span>), </span>
+<span id="cb27-667"><a href="#cb27-667" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">2.5</span>, <span class="dv">0</span>, <span class="fl">2.5</span>, <span class="fl">5.0</span>)</span>
+<span id="cb27-668"><a href="#cb27-668" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb27-669"><a href="#cb27-669" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb27-670"><a href="#cb27-670" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-671"><a href="#cb27-671" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb27-672"><a href="#cb27-672" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-673"><a href="#cb27-673" aria-hidden="true" tabindex="-1"></a>ひとまず僕がよく使うggplotの設定をまとめてみました。ggplotを駆使して、スタイリッシュなプロットを作成していきましょう！</span>
+<span id="cb27-674"><a href="#cb27-674" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-675"><a href="#cb27-675" aria-hidden="true" tabindex="-1"></a>適宜追記する予定ですので、ご参考になれば幸いです。</span>
+</code><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024 Yosuke Abe <br> Content on this site is licensed under a <br> <i class="fa-brands fa-creative-commons" aria-label="creative-commons"></i> <i class="fa-brands fa-creative-commons-by" aria-label="creative-commons-by"></i> <i class="fa-brands fa-creative-commons-sa" aria-label="creative-commons-sa"></i> <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons BY-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>This website is created with <i class="fa-brands fa-r-project" aria-label="r-project"></i> and <a href="https://quarto.org">Quarto</a> <br> <i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/yo5uke/yo5uke.github.io">Source Code</a> <br> <i class="fa-solid fa-location-dot" aria-label="location-dot"></i> <a href="https://maps.app.goo.gl/PWAV2oqnWEHaTh3k8">Toyonaka</a>, Osaka, Japan</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

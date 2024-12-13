@@ -1,0 +1,2419 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.39">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="ローカル環境から卒業！">
+
+<title>開発コンテナを使って R 環境を構築！ – Yosuke Abe</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../">
+<link href="../../../assets/icons/favicon.ico" rel="icon">
+<script src="../../../site_libs/quarto-html/quarto.js"></script>
+<script src="../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-html/quarto-syntax-highlighting-432712aca8bd60f8db98808cc81d1ed1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../site_libs/bootstrap/bootstrap-dc9252716333816f13eaf908f0fb056f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/all.css" rel="stylesheet">
+<link href="../../../site_libs/quarto-contrib/fontawesome6-0.1.0/latex-fontsize.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "一致なし",
+    "search-matching-documents-text": "一致した文書",
+    "search-copy-link-title": "検索へのリンクをコピー",
+    "search-hide-matches-text": "追加の検索結果を非表示",
+    "search-more-match-text": "追加の検索結果",
+    "search-more-matches-text": "追加の検索結果",
+    "search-clear-button-title": "消去",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "キャンセル",
+    "search-submit-button-title": "検索",
+    "search-label": "サーチ"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="開発コンテナを使って R 環境を構築！ – Yosuke Abe">
+<meta property="og:description" content="ローカル環境から卒業！">
+<meta property="og:image" content="https://yo5uke.github.io/pages/tips/240504_container/image/Rlogo.png">
+<meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="561">
+<meta property="og:image:width" content="724">
+<meta name="twitter:title" content="開発コンテナを使って R 環境を構築！ – Yosuke Abe">
+<meta name="twitter:description" content="ローカル環境から卒業！">
+<meta name="twitter:image" content="https://yo5uke.github.io/pages/tips/240504_container/image/Rlogo.png">
+<meta name="twitter:creator" content="@5uke_y">
+<meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="561">
+<meta name="twitter:image-width" content="724">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../index.html">
+    <span class="navbar-title">Yosuke Abe</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="サーチ"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="ナビゲーションを切り替える" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/tips/index.html"> 
+<span class="menu-text">Tips</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/gis_in_r/index.html"> 
+<span class="menu-text">GIS in <i class="fa-brands fa-r-project" aria-label="r-project"></i></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../pages/app/index.html"> 
+<span class="menu-text">App</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            Source code
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            Report an issue
+            </a>
+          </li>
+      </ul>
+    </div>
+    <a href="../../../tips/index.xml" title="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます" class="quarto-navigation-tool px-1" aria-label="RSS Feed Readerなどのブラウザ拡張機能を入れるとこいつが意味を持ちます"><i class="bi bi-rss"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">開発コンテナを使って R 環境を構築！</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i></button></div></div>
+                  <div>
+        <div class="description">
+          <p>ローカル環境から卒業！</p>
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">R</div>
+                <div class="quarto-category">Docker</div>
+                <div class="quarto-category">Windows</div>
+                <div class="quarto-category">Mac</div>
+                <div class="quarto-category">Ubuntu</div>
+                <div class="quarto-category">VSCode</div>
+                <div class="quarto-category">GitHub</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">公開</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2024年5月4日</p>
+      </div>
+    </div>
+    
+      <div>
+      <div class="quarto-title-meta-heading">最終更新</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date-modified">2024年11月12日</p>
+      </div>
+    </div>
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目次</h2>
+   
+  <ul>
+  <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
+  <li><a href="#事前準備" id="toc-事前準備" class="nav-link" data-scroll-target="#事前準備">事前準備</a>
+  <ul>
+  <li><a href="#sec-wsl2-setting" id="toc-sec-wsl2-setting" class="nav-link" data-scroll-target="#sec-wsl2-setting">WSL2（Windowsユーザーのみ）</a></li>
+  <li><a href="#homebrewmacユーザーのみ" id="toc-homebrewmacユーザーのみ" class="nav-link" data-scroll-target="#homebrewmacユーザーのみ">Homebrew（Macユーザーのみ）</a></li>
+  <li><a href="#sec-vscode-setting" id="toc-sec-vscode-setting" class="nav-link" data-scroll-target="#sec-vscode-setting">VSCode</a></li>
+  <li><a href="#docker" id="toc-docker" class="nav-link" data-scroll-target="#docker">Docker</a></li>
+  <li><a href="#git" id="toc-git" class="nav-link" data-scroll-target="#git">Git</a>
+  <ul class="collapse">
+  <li><a href="#windows" id="toc-windows" class="nav-link" data-scroll-target="#windows">Windows</a></li>
+  <li><a href="#mac" id="toc-mac" class="nav-link" data-scroll-target="#mac">Mac</a></li>
+  </ul></li>
+  <li><a href="#githubアカウントの作成" id="toc-githubアカウントの作成" class="nav-link" data-scroll-target="#githubアカウントの作成">GitHubアカウントの作成</a>
+  <ul class="collapse">
+  <li><a href="#ポイント" id="toc-ポイント" class="nav-link" data-scroll-target="#ポイント">ポイント</a></li>
+  </ul></li>
+  </ul></li>
+  <li><a href="#開発環境の構築" id="toc-開発環境の構築" class="nav-link" data-scroll-target="#開発環境の構築">開発環境の構築</a>
+  <ul>
+  <li><a href="#基本設定" id="toc-基本設定" class="nav-link" data-scroll-target="#基本設定">基本設定</a>
+  <ul class="collapse">
+  <li><a href="#githubリポジトリを作成" id="toc-githubリポジトリを作成" class="nav-link" data-scroll-target="#githubリポジトリを作成">GitHubリポジトリを作成</a></li>
+  <li><a href="#sec-host-vscode" id="toc-sec-host-vscode" class="nav-link" data-scroll-target="#sec-host-vscode">リポジトリをクローン</a></li>
+  <li><a href="#rstudioで開く" id="toc-rstudioで開く" class="nav-link" data-scroll-target="#rstudioで開く">RStudioで開く</a></li>
+  <li><a href="#pythonの設定任意" id="toc-pythonの設定任意" class="nav-link" data-scroll-target="#pythonの設定任意">Pythonの設定（任意）</a></li>
+  <li><a href="#sec-dvc-setting" id="toc-sec-dvc-setting" class="nav-link" data-scroll-target="#sec-dvc-setting">DVCの設定</a></li>
+  <li><a href="#latexの設定" id="toc-latexの設定" class="nav-link" data-scroll-target="#latexの設定">LaTeXの設定</a></li>
+  <li><a href="#sec-julia-setting" id="toc-sec-julia-setting" class="nav-link" data-scroll-target="#sec-julia-setting">Juliaの設定（任意）</a></li>
+  <li><a href="#共同プロジェクトの場合" id="toc-共同プロジェクトの場合" class="nav-link" data-scroll-target="#共同プロジェクトの場合">共同プロジェクトの場合</a></li>
+  </ul></li>
+  <li><a href="#共同作業者の設定" id="toc-共同作業者の設定" class="nav-link" data-scroll-target="#共同作業者の設定">共同作業者の設定</a></li>
+  </ul></li>
+  <li><a href="#作業" id="toc-作業" class="nav-link" data-scroll-target="#作業">作業</a>
+  <ul>
+  <li><a href="#rのパッケージ" id="toc-rのパッケージ" class="nav-link" data-scroll-target="#rのパッケージ">Rのパッケージ</a></li>
+  <li><a href="#python-のパッケージ" id="toc-python-のパッケージ" class="nav-link" data-scroll-target="#python-のパッケージ">Python のパッケージ</a></li>
+  <li><a href="#データの管理" id="toc-データの管理" class="nav-link" data-scroll-target="#データの管理">データの管理</a></li>
+  <li><a href="#juliaのパッケージ" id="toc-juliaのパッケージ" class="nav-link" data-scroll-target="#juliaのパッケージ">Juliaのパッケージ</a></li>
+  <li><a href="#まとめ" id="toc-まとめ" class="nav-link" data-scroll-target="#まとめ">まとめ</a></li>
+  </ul></li>
+  <li><a href="#環境構築まとめ" id="toc-環境構築まとめ" class="nav-link" data-scroll-target="#環境構築まとめ">環境構築まとめ</a>
+  <ul>
+  <li><a href="#ホスト" id="toc-ホスト" class="nav-link" data-scroll-target="#ホスト">ホスト</a></li>
+  <li><a href="#共同作業者" id="toc-共同作業者" class="nav-link" data-scroll-target="#共同作業者">共同作業者</a></li>
+  <li><a href="#作業中" id="toc-作業中" class="nav-link" data-scroll-target="#作業中">作業中</a></li>
+  </ul></li>
+  <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
+  <li><a href="#参考文献" id="toc-参考文献" class="nav-link" data-scroll-target="#参考文献">参考文献</a></li>
+  <li><a href="#追記" id="toc-追記" class="nav-link" data-scroll-target="#追記">追記</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+DVCについて
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>2024年8月29日：DVCの認証プロセスでエラーが出るようになっています。そのうち改善されるかもしれませんが、エラーが出る場合はデータもGitHubで管理するようにするのが良いかもしれません。データサイズの制限はあるのですが、そこまで大きなデータを使わなければ問題ないと思います。</p>
+<p>2024年8月31日：Google Cloud Projectを用いた解決策について別記事でまとめましたので、その案内を追加しました。</p>
+</div>
+</div>
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>DockerとVSCodeを使ってRの環境を構築する方法を説明します。</p>
+<p>基本的な内容は次のページを参考にしており、個人的に使いやすいように修正を加えています。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">VSCode + Dockerでよりミニマルでポータブルな研究環境を</a></p>
+</div>
+</div>
+</div>
+<p>開発コンテナを使うメリットは、環境を簡単に共有でき、他の環境に影響を受けずに作業ができることです。</p>
+<p>また、最初は設定の際に結構待ち時間が生じますので、ご了承ください。</p>
+</section>
+<section id="事前準備" class="level2">
+<h2 class="anchored" data-anchor-id="事前準備">事前準備</h2>
+<p>まず、WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, そしてGitHubの準備をします。WindowsとMacでの設定が異なるため、それぞれについて説明します。</p>
+<p>ホスト側、共同作業者ともに事前準備が必要です。</p>
+<section id="sec-wsl2-setting" class="level3">
+<h3 class="anchored" data-anchor-id="sec-wsl2-setting">WSL2（Windowsユーザーのみ）</h3>
+<ol type="1">
+<li>PowerShellまたはWindowsコマンドプロンプトを管理者権限で開く
+<ul>
+<li>右クリックで管理者権限を使えます。</li>
+</ul></li>
+</ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/powershell.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
+</figure>
+</div>
+<ol start="2" type="1">
+<li>以下のコマンドを入力して実行
+<ul>
+<li>これでインストールはできるはずですが、詳しくは<a href="https://learn.microsoft.com/ja-jp/windows/wsl/install">こちらのサイト</a>を参照してください。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>PowerShell</strong></pre>
+</div>
+<div class="sourceCode" id="cb1" data-filename="PowerShell"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">wsl</span> <span class="at">--install</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="3" type="1">
+<li>ユーザー名とパスワードを設定
+<ul>
+<li>インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</li>
+<li>ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。</li>
+<li>パスワードは画面上には表示されませんが、ちゃんと入力されています。慌てて何回も入力しないようにしてください。</li>
+</ul></li>
+</ol>
+<p>エクスプローラーからLinuxに入り、<code>\Ubuntu\home\ユーザー名</code>がメインとなるディレクトリです。</p>
+</section>
+<section id="homebrewmacユーザーのみ" class="level3">
+<h3 class="anchored" data-anchor-id="homebrewmacユーザーのみ">Homebrew（Macユーザーのみ）</h3>
+<p>MacユーザーはHomebrewを使って諸々インストールしていくので、まだの方はここでインストールしてください。</p>
+<ol type="1">
+<li>ターミナルを開く
+<ul>
+<li>アプリ一覧から「ターミナル」を探してください。</li>
+</ul></li>
+<li>以下のコマンドを入力して実行
+<ul>
+<li>パスワードを求められるので、入力してください。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb2" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">/bin/bash</span> <span class="at">-c</span> <span class="st">"</span><span class="va">$(</span><span class="ex">curl</span> <span class="at">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va">)</span><span class="st">"</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="sec-vscode-setting" class="level3">
+<h3 class="anchored" data-anchor-id="sec-vscode-setting">VSCode</h3>
+<ol type="1">
+<li>VSCodeの<a href="https://code.visualstudio.com/">ダウンロードサイト</a>からダウンロード、インストール
+<ul>
+<li>Download for Windows<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>をクリックしてダウンロードできます。</li>
+<li>インストールができたら、VSCodeを開いてください。</li>
+</ul></li>
+<li>（任意）日本語の拡張機能をインストール
+<ul>
+<li>画面左側に拡張機能のアイコン <img src="image/extention.png" class="img-fluid"> があります。ここの検索ボックスに<code>MS-CEINTL.vscode-language-pack-ja</code>と入力し、1番上に出てきたものをインストールします<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>。</li>
+<li>インストール後、VSCodeを再起動すれば日本語が反映されていると思います。</li>
+</ul></li>
+</ol>
+<p><img src="image/vscode-ja.png" class="img-fluid"></p>
+<ol start="3" type="1">
+<li>拡張機能のインストール
+<ul>
+<li>拡張機能の検索ボックスで、次のIDを入力し、インストールします。</li>
+<li><code>ms-vscode-remote.remote-containers</code> (Dev Containers)</li>
+<li><code>ms-vscode-remote.remote-wsl</code> (WSL, Windowsユーザーのみ)<br>
+</li>
+</ul></li>
+<li>WSLに接続（Windowsユーザーのみ）
+<ul>
+<li>VSCodeから先ほどインストールしたWSLに接続します。</li>
+<li>画面左下の<code>&gt;&lt;</code>アイコンをクリックして、「WSLへの接続」をクリックします。</li>
+</ul></li>
+</ol>
+<p><img src="image/vscode-wsl.png" class="img-fluid"></p>
+</section>
+<section id="docker" class="level3">
+<h3 class="anchored" data-anchor-id="docker">Docker</h3>
+<p>Dockerをインストールします。</p>
+<ol type="1">
+<li>Windowsの方は<a href="https://docs.docker.com/desktop/install/windows-install/">ここ</a>からDocker Desktop for Windowsを、Macの方は<a href="https://docs.docker.com/desktop/install/mac-install/">こちら</a>からダウンロード＆インストール</li>
+<li>設定の確認（Windowsのみ）
+<ul>
+<li>インストール出来たら、画面上部の設定ボタンからResources、WSL integrationと進み、チェックボックスにチェック、Ubuntuがオンになっていることを確認してください。</li>
+<li>たまに、何もしていないのにここがオフになっていて、トラブることがあります。</li>
+<li>詳しくは<a href="https://docs.docker.jp/docker-for-windows/install.html">こちら</a>をご覧ください。日本語で書いてあります。</li>
+</ul></li>
+</ol>
+<p><img src="image/docker-desktop.png" class="img-fluid"></p>
+<ol start="3" type="1">
+<li>画面左側のVolumesに進み、Createからボリュームを作成
+<ul>
+<li>次の3つを作成します（大文字小文字に注意！）。</li>
+<li><code>fonts</code>, <code>cache</code>, <code>TinyTeX</code></li>
+</ul></li>
+</ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/create_volume_mac.png" class="img-fluid figure-img"></p>
+<figcaption>Macでの画面</figcaption>
+</figure>
+</div>
+</section>
+<section id="git" class="level3">
+<h3 class="anchored" data-anchor-id="git">Git</h3>
+<section id="windows" class="level4">
+<h4 class="anchored" data-anchor-id="windows">Windows</h4>
+<ol type="1">
+<li>UbuntuでGitをインストール
+<ul>
+<li>Windowsのアプリ一覧からUbuntuを探し、開いてください。開いたら、以下のコマンドを入力して実行します。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Ubuntu</strong></pre>
+</div>
+<div class="sourceCode" id="cb3" data-filename="Ubuntu"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sudo</span> apt-get install git</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/ubuntu-git.png" class="img-fluid figure-img" style="width:70.0%"></p>
+<figcaption>Ubuntu</figcaption>
+</figure>
+</div>
+<ol start="2" type="1">
+<li>設定
+<ul>
+<li>以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。</li>
+<li>ここに限らずですが、<code>[]</code>ごと置き換えてくださいね。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Ubuntu</strong></pre>
+</div>
+<div class="sourceCode" id="cb4" data-filename="Ubuntu"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.name <span class="pp">[</span><span class="ss">任意のユーザ名</span><span class="pp">]</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.email <span class="pp">[</span><span class="ss">任意のメールアドレス</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="mac" class="level4">
+<h4 class="anchored" data-anchor-id="mac">Mac</h4>
+<ol type="1">
+<li>HomebrewでGitをインストール
+<ul>
+<li>ターミナルを開いて、以下のコマンドを入力して実行します。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb5" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">brew</span> install git</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/homebrew.png" class="img-fluid figure-img" style="width:70.0%"></p>
+<figcaption>このMacでは2回目なのでgit is already installedと表示されてます…。</figcaption>
+</figure>
+</div>
+<ol start="2" type="1">
+<li>設定
+<ul>
+<li>以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb6" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.name <span class="pp">[</span><span class="ss">任意のユーザ名</span><span class="pp">]</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.email <span class="pp">[</span><span class="ss">任意のメールアドレス</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="githubアカウントの作成" class="level3">
+<h3 class="anchored" data-anchor-id="githubアカウントの作成">GitHubアカウントの作成</h3>
+<p>ファイルは基本的にGitHubで管理するので、<a href="https://github.com/">ここ</a>からアカウントを作成してください。</p>
+<section id="ポイント" class="level4">
+<h4 class="anchored" data-anchor-id="ポイント">ポイント</h4>
+<p>GitHubアカウントを作成したら、VSCodeにログインしておきましょう。</p>
+<ol type="1">
+<li>VSCodeを開く</li>
+<li>画面左下のアイコンをクリック
+<ul>
+<li>GitHubでサインインを行う</li>
+</ul></li>
+</ol>
+<p>GitHubにログインすることで、その後の作業がスムーズに進みます。</p>
+<p>事前準備は以上です！</p>
+</section>
+</section>
+</section>
+<section id="開発環境の構築" class="level2">
+<h2 class="anchored" data-anchor-id="開発環境の構築">開発環境の構築</h2>
+<p>Dockerを用いて環境を構築するにあたり、<a href="https://kazuyanagimoto.com/">柳本和春さん</a>のテンプレートをベースに作成しています。詳しくは柳本さんの<a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">記事</a>をご覧ください。</p>
+<p>主な変更点は以下の通りです。</p>
+<ul>
+<li>RStudioの設定を追加（パネルの配置など）</li>
+<li>それに伴うDockerfileの加筆修正と、更なる設定の追加
+<ul>
+<li>Quartoのインストールを追加</li>
+<li>個人的にエラーが生じた部分を修正</li>
+<li>日本語のロケール設定を追加</li>
+</ul></li>
+</ul>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+RStudioで出てくる警告について
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>RStudioでこの後作業することになりますが、コマンドを打つと以下の警告が出てくるかもしれません。</p>
+<p><code>警告メッセージ: Character set is not UTF-8; please change your locale</code></p>
+<p>しかし、警告は出るものの、実際の作業には特に問題ありません。これに対処しようと試みましたが、できませんでした…。</p>
+<p>もし詳しくて対処できた方は、コメントから教えていただけると幸いです。</p>
+</div>
+</div>
+<p>まずは基本設定<a href="#fn4" class="footnote-ref" id="fnref4" role="doc-noteref"><sup>4</sup></a>から説明します。</p>
+<section id="基本設定" class="level3">
+<h3 class="anchored" data-anchor-id="基本設定">基本設定</h3>
+<section id="githubリポジトリを作成" class="level4">
+<h4 class="anchored" data-anchor-id="githubリポジトリを作成">GitHubリポジトリを作成</h4>
+<ol type="1">
+<li>テンプレートの<a href="https://github.com/yo5uke/template-R">GitHub リポジトリ</a>にアクセス</li>
+<li>画面右の「Use this template」から「Create a new repository」を選択</li>
+<li>Repository nameを記入</li>
+<li>Privateを選択
+<ul>
+<li>通常のプロジェクトならPrivateでOK</li>
+</ul></li>
+<li>「Create repository」をクリック</li>
+</ol>
+</section>
+<section id="sec-host-vscode" class="level4">
+<h4 class="anchored" data-anchor-id="sec-host-vscode">リポジトリをクローン</h4>
+<ol type="1">
+<li>VSCodeを開く</li>
+<li>画面左側のアイコンから「ソース管理」<a href="#fn5" class="footnote-ref" id="fnref5" role="doc-noteref"><sup>5</sup></a>を開く</li>
+<li>「リポジトリの複製」を選択し、さらに「GitHubから複製」を選ぶ</li>
+<li>リポジトリを選択し、クローン
+<ul>
+<li>リポジトリは、「ユーザー名/リポジトリ名」の形式で表示されます。</li>
+<li>基本的に表示されると思いますが、表示されない場合は手入力してください。</li>
+<li>クローンしたリポジトリを開くか問われるので、開いてください。</li>
+</ul></li>
+<li>画面右下に「コンテナーで再度開く」と出たらクリック
+<ul>
+<li>出ない場合、画面左下「WSL: Ubuntu」<a href="#fn6" class="footnote-ref" id="fnref6" role="doc-noteref"><sup>6</sup></a>をクリックし、「コンテナーで再度開く」を選択してください。</li>
+<li>初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。</li>
+</ul></li>
+</ol>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/reopen.png" class="img-fluid figure-img"></p>
+<figcaption>「コンテナーで再度開く」をクリック</figcaption>
+</figure>
+</div>
+<p>エクスプローラーを開き、<code>\\wsl.localhost\Ubuntu\home\ユーザー名</code>を確認してみてください。リポジトリ名と同じフォルダができていると思います。</p>
+<p>Macの場合は、ユーザー名の下にできているはずです。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-3-contents" aria-controls="callout-3" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Macでファイルが見当たらない？
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-3" class="callout-3-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>クローンしたフォルダを見てみると、リポジトリにはあるはずのファイルやフォルダが見当たらないかもしれません。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/finder_mac_after_clone.png" class="img-fluid figure-img" style="width:70.0%"></p>
+<figcaption>ファイルが見当たらない…？</figcaption>
+</figure>
+</div>
+<p>このようなときは、Finderの隠しファイルを表示する設定を変更する必要があります。</p>
+<p>以下をターミナルで実行してください。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb7" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">defaults</span> write com.apple.finder AppleShowAllFiles TRUE</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">killall</span> Finder</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>これで、隠しファイルも表示されるようになります。</p>
+<p>正直なところ、この設定は隠しファイルが邪魔であればしなくてもよいと思います<a href="#fn7" class="footnote-ref" id="fnref7" role="doc-noteref"><sup>7</sup></a>。VSCode上ではきちんと表示されますので。</p>
+</div>
+</div>
+</div>
+</section>
+<section id="rstudioで開く" class="level4">
+<h4 class="anchored" data-anchor-id="rstudioで開く">RStudioで開く</h4>
+<p>ここで、ブラウザを用いてRStudioを開きます。毎度この手順を踏む前に、VSCode上で開発コンテナに接続していることを確認してください。開いていないと、次のリンクは無効なものになってしまいます。</p>
+<ol type="1">
+<li>任意のブラウザで、アドレスバーに<code>localhost:8787</code>と入力して開く</li>
+<li>右上の <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAIsUlEQVR4Xu3XeWyT5x0HcLbuaCemtaq0Tlo1oQ5UrWJtpW4tZe1GIYybkBLYAi2EK5yDhbZchUCBEcIRDAmE3LcJTuLEcew4jhM7cZzEfm2/l4/X5+szvp3Yjh2HBLz3jZMAGbBA9+ce6atXsiL/Pv49v8d5PGvW/9cLLJoi9pO15bx3F+WxUpcXcTfsbUbeolljr8RisR9M/9v/zaLRXvqIUvfuZ7cZaYkVrXdWljQbttZ2mdfWdQweYEv16yo52MoSFjehkHVmVVnbqm9Yil9JY7EfT3+bGa+5N9g//eNN2vsLb9G3rShhlawp46jSGD3qsyIMv4U6dDRTSFFvGUY380HnHVMYrbVEkEK1V53Za9TtZ0oV66u4ijWlnLplRZwjSRXti0/z8Vef2Z1FN/mzFxU2LVhcwNy1rJiVt66yDTjABoCLYr2iVOvVNtqiaJNjBGbYR2A6UbjeHEapxkF0U4fMRTUGUZppCKaZIvAdIlTjEFxNJF/pUZ8TGdG9zRJpcjUPTKxoK19X1f6PFJrg4/Qe6ytTxTfQ+LP/XsPnp3PlvMtyUzcVDyjYnvswx3cfYnmIuEbhJucI3GCNIHWWMELDQ0SCSKVhENnIlbjKdH6k2hBEqvRBhCw+Cag0RqDJlOuH4FzIozgl1PbtYUp6Nt0ViNPypfEtSm3gv3q8HfFlAXh/scZnaHSOoBzfA5AAgCz3fZDpHIXo9gi8p0ji+dtVYeDLnG5/8uXOwF9OtEbmHKCPfXKsJZJCEfovdpj05dogXGkYgioNETIgmbKJFGCDyBWZzXBKoHGkc6HABzT/L6a6kC7Qhmr0A5pc0GLL6FQGL/TqvTmo3VJlDGAN/SNQnTUCfZEj8i84zI5+mM6OLj/DC+2rABx/utUW3F0h7V/4DTvy/kFm9Hy7UVeiGYDKtCGwlMhtpU+ZJbXjGUKd+0SHMpAlsVnylAH1QYE+OKs09vIU4IAAC3f7HgBC3xjQSaTZFkYrNB79DbnJcbFXN5gtx53ZErMls1Nv+MMhVnRXkdiZr3Ijq9k9zjyFG7kFOdGPDrMiK861B65DLuySxGI7L9L7M8W4mwK58WJtGK02PQCqzTGASmRLCxp7JkBAhO8dk/Dc9yRsR0RG1fuwQsRmoUhw785K8dghOhi4Dtu0q5kiVw7qUFLk/cYDtfLwvhrp/WtSi/Mm7DIUa4fgCsMYUGkaA6rH82A8zwfw3JO0OocBln0IYJiDQJ3BK/nwUGM0nQr4c4munOxWjmSLTaEcudWWWtg38MFBZrhQFZCVYEOyMv2w9EkAsgtPBXT/B2BsHMC2hSUMSxCoxwck83fcHd6W02kvUlilf2XwHJcBE5wlNKPzdtCj6y93uUlAmSYsjQPuPS8g3gUSICAB3knA8GOAdec4niM1gOHtgtpg0rUO53t7G8Pv7WWEr/bYkUIs9BTABGImgPEuEMXJLnBJQH8cQJ8A/G57zfDb2+4Mv3a6YnTuLlp0+Vme95LQguajflkxCdBNAEzxLXisCy8CaJkG2JYjsJcpbJJPa1tc8/fTwyQgD/bKZgQg8kSAaBqgczrAPLEFO+MAcgYSGFz7rirANHdHffRQDYSTAHIGSqdtwQwBsXHA5CA+BIwAbHt4/BSMd4AAbCeGsERlBxKa2uyXAQu8/Gybl5yDKyIrEj8FZBeGnzAHMwJMdIEEeB4CmiYAvycBuV32EswJJDAJgNRKngKE7MKKczxvAToQ34ZnDOILAa62aTTHamQ4CVj6LXNgQ77A/dvC2sgWNth/ttei2l0uNc8jEJtzeh37K2FzHhKQP20bngvQRgDIGUjJavfP23F39M2t1NHXN1eNvbGlavTNK3dG0tpVpo1MmWdZbW9o/uGm8JzU2hHyO4ECeBES8KQvpCcCegjA5CCOzwEBYDui8hvKfu1hocqxhSsbIJ62TJkVK9b4oVtqD/wZs8N1QepSZMN+5LzMrdrH11mSmZAvuRn2ftVjMuaqgvCMOxAHxACi5eBtlUt7vFfn3MNH/BkSkzVX7cFqLBGoxjwEVptC8nJjQJ6vG4AWszucmXKPIhsZRB7NGalbvVtgsCY1I/4vuWrXCbFTV6SLyh8CkMcBXwv1gwVqt+6UWO86KFT7/0X8WyaKaJiuUYjhHAXp/SNgnS0qv2uNgFRrRF5hisgLDAPQEjbfeQFyoxQ0CI9HRT5D8DUi40/VEJwB+LA0Pm5LYikGt/P1ju/kHs1JidM2BVhIb/3l3g7Uewm2Wal4SMsjbkGtRDjkbSh+IQEb+kfBcrUXpfQZsBOMPvwUW6Y/36XGPq3neC5AxOtE4fO9/ar9dRL8CEejO8bVaSlEcYoqMpVrqgjyrdSr3c7HHYksReAtmiF+IfmkWvja6gZRTwZgEjLsUZjne/AYoJkANBKps4/IyWR1YRhFZlEV4QFwCbvTmQl6FBkCo+ZrFqq/JCMxZOFHM4mIwqeIbhBbgi6li5BZp2M/nNqCFB76xqoGUdqSOoFkZwfcfRvzEMVHkTjg/mOAXKI4RWpSXYds6J8Zbe6vOEpdBt+IXYF9CEUVmlZ8CM5WhJGjYodmAxtUJjJ7apObJZ/nS2M/myr+6Dodi/0omQksWtkgoiQ19cpOSgyyanNYQQLqHXFACeZFyGtXCdGBBKIDF2Afmo34kYvEaSAzWTgTCigOCnF9YpMY+7yp71oqG14w498K5B1+T7vm14mNPbuX0TvBXR0QRFE61TXmCFiNh0ByCB8FkANIIq4Sx/E7GXkCMMPaRpFmI1t85FgvPocWi700vcaMVykee/mLFnBREqMnd31zr+p4n0GdrxtEpgDEEJJH76TYpk3lQXhKC9CR0iLdmqsOvk58kIf7/H0X+SmOCu2/IfZw30ZWX2dqm1z7cRPX90+hzpTCBkxbuVLqzlZ0KQOL/fyZv4K+7yLfnOaOzd7EkSe8Q226u6ZRdPR4l/kdZv9TBuu/rH8DYKkbNvCO3j8AAAAASUVORK5CYII=" class="img-fluid"> をクリックし、「New Project…」を選択</li>
+<li>「Existing Directory」を選択</li>
+<li>「Browse…」より「work」を選択して「Choose」をクリック
+<ul>
+<li>「Create project」をクリックするとプロジェクトが作成されます。</li>
+</ul></li>
+<li>コンソールに以下を入力して実行
+<ul>
+<li><code>renv</code>はパッケージを管理するためのパッケージです。</li>
+<li>Dockerfileでインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です<a href="#fn8" class="footnote-ref" id="fnref8" role="doc-noteref"><sup>8</sup></a>。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>R</strong></pre>
+</div>
+<div class="sourceCode" id="cb8" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">init</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="pythonの設定任意" class="level4">
+<h4 class="anchored" data-anchor-id="pythonの設定任意">Pythonの設定（任意）</h4>
+<p>Pythonを使う場合、以下のパッケージをインストールしておきます。</p>
+<p>使わない場合はスキップしてください。</p>
+<p>使い方としては、Quarto上でPythonのコードを書くことを想定しています。そのために必要なパッケージですが、その他のパッケージを使用する場合も同様の方法でインストールしてください。</p>
+<ol type="1">
+<li>VSCodeに戻る</li>
+<li>画面上部「ターミナル」より「新しいターミナル」を選択</li>
+<li>以下のコマンドを入力して実行</li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb9" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install ipykernel jupyter</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>パッケージはcacheにキャッシュがあるので、1回インストールすれば、2回目以降の環境構築では不要です。</p>
+</section>
+<section id="sec-dvc-setting" class="level4">
+<h4 class="anchored" data-anchor-id="sec-dvc-setting">DVCの設定</h4>
+<p>DVCはデータを管理するためのツールです。</p>
+<p>事前準備として、自分のGoogleドライブの任意の場所で、データを入れる用のフォルダを作成しておいてください。</p>
+<p>また、共同プロジェクトの場合は、フォルダの共有も設定してください。</p>
+<ol type="1">
+<li>VSCodeに戻る</li>
+<li>画面上部「ターミナル」より「新しいターミナル」を選択
+<ul>
+<li>既に画面下部にターミナルが表示されている場合はスキップして大丈夫です。</li>
+</ul></li>
+<li>以下のコマンドを入力して実行
+<ul>
+<li>初めて環境構築するときに1回実行しておけば、2回目以降の環境構築では不要です。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb10" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install dvc dvc-gdrive</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="4" type="1">
+<li>Googleドライブで作成したフォルダのIDをコピー
+<ul>
+<li>IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（~/folders/）より右側の部分です。</li>
+</ul></li>
+<li>次のコマンドを入力して実行
+<ul>
+<li>最後の部分（四角括弧ごと）をコピーしたIDに変更してください。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb11" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> init <span class="kw">&amp;&amp;</span> <span class="ex">dvc</span> remote add <span class="at">-d</span> myremote gdrive://[Google DriveのフォルダID]</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="latexの設定" class="level4">
+<h4 class="anchored" data-anchor-id="latexの設定">LaTeXの設定</h4>
+<p>R Markdownなどで<span class="math inline">\(\LaTeX\)</span>を使用するために、TinyTeXをインストールします。</p>
+<p>RStudioのコンソールに以下のコマンドを入力して実行してください。</p>
+<p>また、TinyTeXもキャッシュされるので、1回インストールすれば、2回目以降の環境構築では実行不要です。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>R</strong></pre>
+</div>
+<div class="sourceCode" id="cb12" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"tinytex"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>tinytex<span class="sc">::</span><span class="fu">install_tinytex</span>(<span class="at">dir =</span> <span class="st">"/home/rstudio/.TinyTeX"</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>TinyTeXは、<span class="math inline">\(\LaTeX\)</span>コードをコンパイルする際に必要なパッケージを自動でダウンロードしてくれるので、ローカルに面倒な設定をしなくて良いのが魅力です。</p>
+<p>R MarkdownやQuartoでのPDF出力の仕方については、<a href="https://yo5uke.github.io/tips/240329_rmarkdown_pdf/">こちらの記事</a>もご覧ください。</p>
+</section>
+<section id="sec-julia-setting" class="level4">
+<h4 class="anchored" data-anchor-id="sec-julia-setting">Juliaの設定（任意）</h4>
+<p><a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">参考記事</a>の設定に基づき、Juliaが使えるようになっているため、その始め方についても書いておきます。特に使う予定がなければ、スキップしてください。</p>
+<ol type="1">
+<li>VSCodeに戻り、ワーキングディレクトリに<code>Project.toml</code>というファイルを作成</li>
+</ol>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+VSCode上でのファイル等の作成
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>VSCode上でファイルやフォルダを作成するためには、左側のアイコン一番上の「エクスプローラー」をクリックし、その中の上部にあるアイコンの「新しいファイル…」や「新しいファイル…」を選択することでできます。</p>
+<p>ここで注意点ですが、状況によっては意図せずフォルダの中に作ってしまうことがあります。</p>
+<p>ワーキングディレクトリにファイルを作成したい場合は、まずエクスプローラーの空き部分をクリックします。すると、枠全体が青い線で囲まれると思います。</p>
+<p>この状態であれば、親フォルダにファイルやフォルダが新規作成されます。下の画像の左側に注目してください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/vscode-explorer1.png" class="img-fluid figure-img"></p>
+<figcaption>エクスプローラーの空いている部分をクリックすると、全体が青枠で囲まれます。</figcaption>
+</figure>
+</div>
+<p>一方、特定のフォルダの中に作成したい場合は、そのフォルダをクリックしてから新規作成を行ってください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/vscode-explorer2.png" class="img-fluid figure-img"></p>
+<figcaption>特定のフォルダをクリックすると、そのフォルダが青枠で囲まれます。</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<ol start="2" type="1">
+<li>キーボードで<code>Ctrl</code> + <code>Shift</code> + <code>P</code>を入力<a href="#fn9" class="footnote-ref" id="fnref9" role="doc-noteref"><sup>9</sup></a></li>
+<li>「Julia: Start REPL」を選択
+<ul>
+<li>少し下の方にあると思います。検索をかけると楽かもしれません。1度使ったものは上に表示される仕組みなので、2回目以降は探しやすいと思います。</li>
+<li>少し時間がかかります。</li>
+</ul></li>
+<li>ターミナルで、以下のコマンドを入力して実行</li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Julia</strong></pre>
+</div>
+<div class="sourceCode" id="cb13" data-filename="Julia"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">Pkg</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">activate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>以上でJuliaの事前準備ができました。</p>
+</section>
+<section id="共同プロジェクトの場合" class="level4">
+<h4 class="anchored" data-anchor-id="共同プロジェクトの場合">共同プロジェクトの場合</h4>
+<p>共同プロジェクトの場合は、GitHubで共有するため、以下の手順を踏んでおいてください。</p>
+<ul>
+<li>GitHubリポジトリでコラボレーターを追加
+<ul>
+<li>リポジトリのSettingsからCollaboratorsに進み、コラボレーターを追加してください。</li>
+<li>Add peopleから招待できます。</li>
+</ul></li>
+</ul>
+<p>ホスト側の環境構築もここで一区切りです！</p>
+</section>
+</section>
+<section id="共同作業者の設定" class="level3">
+<h3 class="anchored" data-anchor-id="共同作業者の設定">共同作業者の設定</h3>
+<p>共同作業者も事前準備は終わらせておいてください。</p>
+<ol type="1">
+<li>GitHubで招待を受ける
+<ul>
+<li>メールが届いているはずですので、そこからGitHubにログインしてください。</li>
+<li>リポジトリにアクセスできるようになります。</li>
+</ul></li>
+<li>リポジトリをクローン
+<ul>
+<li>ホスト側が作成したリポジトリをクローンします。</li>
+<li>ホスト側の設定と同様にしてクローンし、開いてください。</li>
+</ul></li>
+</ol>
+<p>一旦ここまでで、共同作業者の設定は終わりです。</p>
+</section>
+</section>
+<section id="作業" class="level2">
+<h2 class="anchored" data-anchor-id="作業">作業</h2>
+<p>ワークフローについて説明します。</p>
+<p>GitHub関連<a href="#fn10" class="footnote-ref" id="fnref10" role="doc-noteref"><sup>10</sup></a>については<a href="https://yo5uke.github.io/tips/240525_vscode_github/">こちらの記事</a>で詳しめに解説しましたので、そちらも参考にしてください。</p>
+<!--
+
+::: {.callout-tip collapse="true"}
+## 単独プロジェクトの場合
+
+単独研究の場合でも、GitHubでブランチを作成することは非常に有用です。以下の理由から、ブランチの作成を推奨します。
+
+1.  機能の分離
+    -   新しい機能や実験的な変更を行う際に、メインの作業を妨げることなく独立して作業ができます。
+    -   例えば、新しい分析手法を試す場合、その作業を独立したブランチで行うことで、問題があってもメインのコードに影響を与えません。
+2.  バージョン管理
+    -   ブランチを使うことで、異なるバージョンの作業を分離して管理できます。以前の状態に簡単に戻すことができます。
+3.  安全な実験環境
+    -   実験的な変更や新しいアイデアの試行錯誤を安全に行える環境が確保できます。メインのコードベースが壊れる心配がありません。
+4.  バックアップとリカバリ
+    -   作業が進行中の状態をこまめにコミットし、ブランチを使って管理することで、失敗した場合でも簡単に元の状態に戻れます。
+
+以上、ChatGPT さんの解説でした。
+:::
+
+### 作業開始時
+
+作業を開始する際は、以下の手順で作業を開始してください。
+
+1.  VSCode で開く
+    -   ホスト側、共同作業者ともに、VSCode の開発コンテナで開いてください。
+2.  作業ブランチを作成
+    -   画面左下、`main` と書かれているところをクリックし、「＋新しいブランチの作成…」を選択してください。
+    -   ブランチ名は、作業内容がわかるようにしてください。
+    -   例えば、`feature/作業内容` など。
+3.  作業ブランチに切り替え
+    -   再び `main` と書かれているところをクリックし、作成したブランチを選択してください。
+4.  作業を開始
+
+### 作業終了時
+
+先に作業終了時について説明します。ここで想定しているのは共同作業を行っている場合です。
+
+単独での業務の場合は、ブランチを作成する必要はないと思います。コミットとプッシュを繰り返す流れで十分です。
+
+1.  作業内容をコミット
+    -   画面左側の「ソース管理」をクリックします。
+    -   ファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします[^10]。
+    -   画面上部の「メッセージを入力」にコミットメッセージ[^11]を入力し、「✓コミット」をクリックしてください。
+2.  プッシュ
+    -   「ソース管理」の右側にある「...」をクリックし、「プッシュ」を選択してください。
+    -   これで、作業内容が GitHub にアップロードされます。
+    -   ブランチを公開しますか？と聞かれたら「OK」を選択してください。
+
+[^10]: ステージしていないとコミットできません。
+
+[^11]: どのような作業をしたのか
+
+![](image/no-branch-message.png){width="70%" fig-align="center"}
+
+ところで、現在は作業中のブランチが先ほど作成したブランチになっていると思います。
+
+これを `main` にマージするために、プルリクエストを作成します。要は、自分が作成したブランチをホスト側に `main` へ取り込んでもらうための手続きです。
+
+このステップを挟む理由は、例えば正常に作動しないコードが `main` に勝手にマージされることを防ぐためです。
+
+3.  プルリクエスト（GitHub）
+    -   GitHub にアクセスし、作業中のリポジトリを開いてください。
+    -   画面上部の「Pull requests」をクリックし、「New pull request」をクリックしてください。
+    -   作業中のブランチと `main` を比較して、プルリクエストを作成します。
+    -   作業内容を説明し、ホスト側にマージしてもらうようにリクエストします。
+    -   承認されれば、無事 `main` にマージされます。
+4.  プル（VSCode）
+    -   ホスト側で、プルリクエストが承認されたら、`main` にマージされた内容を取り込むためにプルします[^12]。
+    -   画面下部のブランチ名をクリックし、`main` を選択してください。これで再び `main` に切り替わります。
+    -   再び画面左からの「ソース管理」から、「ソース管理」の右側にある「...」をクリックし、「プル」を選択してください。
+    -   これで、ローカルの `main` が最新の状態になります。
+
+[^12]: 現段階ではまだローカルには `main` が反映されていません。
+
+この流れを繰り返すことで作業のサイクルを回していきます。
+
+繰り返しになりますが、GitHub については[こちらの記事](https://yo5uke.github.io/tips/240525_vscode_github/)も参考にしてください。
+
+-->
+<section id="rのパッケージ" class="level3">
+<h3 class="anchored" data-anchor-id="rのパッケージ">Rのパッケージ</h3>
+<p>作業中新たにパッケージを使用した場合、それを<code>renv.lock</code>ファイルに記録することで、必要なパッケージを記録することができます。記録することで環境を移したときに必要なパッケージをすぐインストールできたり、共同研究者と必要なパッケージを共有することができます。</p>
+<p>バージョンごと記録できるので、全く同じ環境を再現することが可能です。</p>
+<p>新しいパッケージをインストールし、コード内で使用したら、以下のコードを実行し、lockファイルに記録してください<a href="#fn11" class="footnote-ref" id="fnref11" role="doc-noteref"><sup>11</sup></a>。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>R</strong></pre>
+</div>
+<div class="sourceCode" id="cb14" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">snapshot</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>異なる環境に移行した場合、以下のコードで記録したパッケージを一括インストールできます。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>R</strong></pre>
+</div>
+<div class="sourceCode" id="cb15" data-filename="R"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>renv<span class="sc">::</span><span class="fu">restore</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>これでRの開発環境を揃えることができます。</p>
+<p>また、新しいパッケージを使ったら、その作業が終わるごとに<code>renv::snapshot()</code>で記録しましょう。</p>
+</section>
+<section id="python-のパッケージ" class="level3">
+<h3 class="anchored" data-anchor-id="python-のパッケージ">Python のパッケージ</h3>
+<p>設定ではPythonの設定も加えていますので、必要に応じてPythonも使用できます。</p>
+<p>また、そもそもDVCがPythonのパッケージなので、それも<code>renv</code>と同様に記録できます。</p>
+<ol type="1">
+<li>Pythonのパッケージを追加
+<ul>
+<li><a href="#sec-dvc-setting">先ほど</a>と同様に、新しいターミナルを開いて、以下のコードでパッケージをインストールします。</li>
+<li>DVC以外特に使うものがなければ、ここはスキップしてください。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb16" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="pp">[</span><span class="ss">パッケージ名</span><span class="pp">]</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="2" type="1">
+<li>パッケージを記録
+<ul>
+<li>Rと同様に、作業が終わったら以下のコードでパッケージを記録します。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb17" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> freeze <span class="op">&gt;</span> requirements.txt</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<ol start="3" type="1">
+<li>パッケージをインストール（異なる環境に移行した場合）
+<ul>
+<li>次のコードで、<code>requirements.txt</code>に記録したパッケージをインストールできます。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb18" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="ex">pip</span> install <span class="at">-r</span> requirements.txt</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="データの管理" class="level3">
+<h3 class="anchored" data-anchor-id="データの管理">データの管理</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+DVCの追加設定について
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>冒頭にも書いたように、エラーの対処に関する記事を書きました。</p>
+<p>認証でブロックを食らった場合には、以下の記事を参照して下さい。</p>
+<p><a href="../240831_google_cloud_project/index.html">DVCのためのGoogle Cloud Project</a></p>
+<p>また、その他エラーいくつかエラーにも遭遇しましたので、以下の記事も参考にしてください。</p>
+<p><a href="../240619_trouble_shooting/index.html">環境構築におけるトラブルシューティング</a></p>
+</div>
+</div>
+<p>データはDVCで管理します。データはGoogle Drive上で保管されます。</p>
+<ol type="1">
+<li>ワーキングディレクトリに、<code>data</code>というフォルダを作成</li>
+<li>データが入ったら、以下のコードを実行
+<ul>
+<li><code>data</code>フォルダごとドライブに追加します。</li>
+<li><code>data</code>フォルダは<code>.gitignore</code>に記載されているため、GitHubにはアップロードされません。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb19" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> add data/</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+データの入れ方
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>データは、WindowsのエクスプローラーやMacのFinderから直接フォルダに入れて大丈夫です（通常のWindowsやMacでの作業のように）。</p>
+<p>データをプッシュした後にGoogle Driveを見てもらえれば分かりますが、よくわからない形で保存されています。DVCの仕組みがそうなっているからなので、決してファイルが破損しているわけではありません。</p>
+<p>ちなみにWindowsユーザーの方で、一回ローカルに落としてからLinuxにデータ等を入れたら<code>Zone.Identifier</code>というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。</p>
+</div>
+</div>
+</div>
+<ol start="3" type="1">
+<li>データをアップロード
+<ul>
+<li>以下のコードでデータをプッシュします。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb20" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> push</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>最初はaddとpushをする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください<a href="#fn12" class="footnote-ref" id="fnref12" role="doc-noteref"><sup>12</sup></a>。</p>
+<ol start="4" type="1">
+<li>（共同作業者）データのダウンロード
+<ul>
+<li>以下のコードでデータをダウンロードします。</li>
+</ul></li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="sourceCode" id="cb21" data-filename="Terminal"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="ex">dvc</span> pull</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="juliaのパッケージ" class="level3">
+<h3 class="anchored" data-anchor-id="juliaのパッケージ">Juliaのパッケージ</h3>
+<p>Julia はパッケージが自動で<code>Project.toml</code>に保存されるため、共同作業者がインストールするだけで大丈夫です。</p>
+<ol type="1">
+<li><a href="#sec-julia-setting">先ほど</a>と同じ手順で環境をアクティベートする</li>
+<li>以下のコードでパッケージをインストール</li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Julia</strong></pre>
+</div>
+<div class="sourceCode" id="cb22" data-filename="Julia"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="bu">Pkg</span>.<span class="fu">instantiate</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="まとめ" class="level3">
+<h3 class="anchored" data-anchor-id="まとめ">まとめ</h3>
+<p>これらの作業を通じて、共同作業者もホスト側と同じ環境を揃えることができます。</p>
+<p>環境を揃えるためには、コミット、プッシュ、プルを行い、記録したファイルを共有することが重要です。</p>
+<p>単独での場合は、ブランチを作成する必要はないですが、コミット、プッシュで管理を行いましょう。</p>
+<p>以上がワークフローです。お疲れ様でした！</p>
+</section>
+</section>
+<section id="環境構築まとめ" class="level2">
+<h2 class="anchored" data-anchor-id="環境構築まとめ">環境構築まとめ</h2>
+<p>作業フローは、<del>超適当にまとめると</del>次のようになります。</p>
+<section id="ホスト" class="level3">
+<h3 class="anchored" data-anchor-id="ホスト">ホスト</h3>
+<ol start="0" type="1">
+<li>必要なソフト等をインストールし、事前準備を行う。
+<ul>
+<li>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</li>
+</ul></li>
+<li>GitHubでリポジトリをインポート、クローン</li>
+<li>RStudio Serverでプロジェクトを作成
+<ul>
+<li><code>renv::init()</code> でrenvを開始</li>
+<li><code>renv::snapshot()</code>で適宜パッケージを記録</li>
+</ul></li>
+<li><code>data</code>フォルダを作成し、DVCで管理
+<ul>
+<li>データは<code>data</code>内に追加</li>
+<li><code>dvc add data/</code>と<code>dvc push</code>を使用</li>
+</ul></li>
+<li>VSCode上でコミット、プッシュ</li>
+</ol>
+</section>
+<section id="共同作業者" class="level3">
+<h3 class="anchored" data-anchor-id="共同作業者">共同作業者</h3>
+<ol start="0" type="1">
+<li>必要なソフト等をインストールし、事前準備を行う。
+<ul>
+<li>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</li>
+</ul></li>
+<li>GitHubでリポジトリをクローン</li>
+<li>RStudio Serverでプロジェクトを開く
+<ul>
+<li><code>renv::restore()</code> でパッケージをインストール</li>
+</ul></li>
+<li>VSCode上で<code>pip install -r requirements.txt</code>を実行
+<ul>
+<li>Pythonパッケージをインストール</li>
+</ul></li>
+<li><code>dvc pull</code>でデータをダウンロード</li>
+<li>VSCode上でコミット、プッシュ</li>
+</ol>
+</section>
+<section id="作業中" class="level3">
+<h3 class="anchored" data-anchor-id="作業中">作業中</h3>
+<ul>
+<li>GitHubにコミット、プッシュ、プルを繰り返す。</li>
+<li>データも新たに追加した場合、DVCでadd, push, pullを行う。</li>
+</ul>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はDocker &amp; VSCodeを用いた開発環境を説明しました。</p>
+<p>個人的な経験として、環境構築はエラーとの戦いです。できるだけエラーに遭遇しないよう丁寧に書いたつもりですが、まだまだ把握していないエラーがたくさんあると思います。</p>
+<p>何かエラー等ありましたら、コメントしていただけると幸いです。</p>
+</section>
+<section id="参考文献" class="level2">
+<h2 class="anchored" data-anchor-id="参考文献">参考文献</h2>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">VSCode + Dockerでよりミニマルでポータブルな研究環境を</a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://qiita.com/tommy_g/items/771ac45b89b02e8a5d64">UbuntuにGitをインストールする</a></p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://qiita.com/future_kame/items/9fa256aea09faa28b357">githubを使った共同作業の手順</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="追記" class="level2">
+<h2 class="anchored" data-anchor-id="追記">追記</h2>
+<p>2024/5/11：リポジトリ作成の手順を変更</p>
+<p>2024/5/22：Mac への対応と、内容の刷新</p>
+<p>2024/5/25：リポジトリのクローン方法を変更</p>
+<p>2024/6/10：テンプレートのキャッシュに関する設定を変更</p>
+<p>2024/9/18：GitHubの説明を簡略化</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>求められない場合は、続けて<code>wsl</code>とだけ入力してください。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>もしくは Mac<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn3"><p>単にJapaneseでも出てきます。笑<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn4"><p>単独研究ならここのみでOK、共同研究ならホストが行う設定。<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn5"><p>上から3番目<a href="#fnref5" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn6"><p>Mac なら<code>&gt;&lt;</code><a href="#fnref6" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn7"><p>TRUE のところを FALSE にして再度実行すれば消せます。<a href="#fnref7" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn8"><p>余談ですが、<code>renv::init()</code>のように<code>パッケージ名::関数</code>のような書き方をすれば、<code>library(パッケージ名)</code>をせずとも関数を使えます。1度だけ使いたいようなときに便利です。<a href="#fnref8" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn9"><p><code>Ctrl</code> は Mac だと <code>command</code><a href="#fnref9" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn10"><p>コミット、プッシュやブランチなど<a href="#fnref10" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn11"><p>インストールしただけでコード内で使用していない場合は記録できません。<a href="#fnref11" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn12"><p>私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。<a href="#fnref12" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "コピーしました");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "コピーしました");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/yo5uke\.github\.io");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+          // target, if specified
+          link.setAttribute("target", "_blank");
+          if (link.getAttribute("rel") === null) {
+            link.setAttribute("rel", "noopener");
+          }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<script src="https://giscus.app/client.js" data-repo="yo5uke/yo5uke.github.io" data-repo-id="R_kgDOLsORUQ" data-category="General" data-category-id="DIC_kwDOLsORUc4CfJ93" data-mapping="title" data-reactions-enabled="1" data-emit-metadata="0" data-input-position="top" data-theme="light_high_contrast" data-lang="en" crossorigin="anonymous" async="">
+</script>
+<input type="hidden" id="giscus-base-theme" value="light_high_contrast">
+<input type="hidden" id="giscus-alt-theme" value="light_high_contrast"><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb23" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "開発コンテナを使って R 環境を構築！"</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="co">    ローカル環境から卒業！</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2024-05-04</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> last-modified</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span><span class="co"> </span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a><span class="co">  - Docker</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a><span class="co">  - Windows</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a><span class="co">  - Mac</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="co">  - Ubuntu</span></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="co">  - VSCode</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a><span class="co">  - GitHub</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> image/Rlogo.png</span></span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a><span class="fu">## DVCについて</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>2024年8月29日：DVCの認証プロセスでエラーが出るようになっています。そのうち改善されるかもしれませんが、エラーが出る場合はデータもGitHubで管理するようにするのが良いかもしれません。データサイズの制限はあるのですが、そこまで大きなデータを使わなければ問題ないと思います。</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>2024年8月31日：Google Cloud Projectを用いた解決策について別記事でまとめましたので、その案内を追加しました。</span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>DockerとVSCodeを使ってRの環境を構築する方法を説明します。</span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>基本的な内容は次のページを参考にしており、個人的に使いやすいように修正を加えています。</span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">VSCode + Dockerでよりミニマルでポータブルな研究環境を</span><span class="co">](https://zenn.dev/nicetak/articles/vscode-docker-2023)</span></span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>開発コンテナを使うメリットは、環境を簡単に共有でき、他の環境に影響を受けずに作業ができることです。</span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>また、最初は設定の際に結構待ち時間が生じますので、ご了承ください。</span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-41"><a href="#cb23-41" aria-hidden="true" tabindex="-1"></a><span class="fu">## 事前準備</span></span>
+<span id="cb23-42"><a href="#cb23-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-43"><a href="#cb23-43" aria-hidden="true" tabindex="-1"></a>まず、WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, そしてGitHubの準備をします。WindowsとMacでの設定が異なるため、それぞれについて説明します。</span>
+<span id="cb23-44"><a href="#cb23-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-45"><a href="#cb23-45" aria-hidden="true" tabindex="-1"></a>ホスト側、共同作業者ともに事前準備が必要です。</span>
+<span id="cb23-46"><a href="#cb23-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-47"><a href="#cb23-47" aria-hidden="true" tabindex="-1"></a><span class="fu">### WSL2（Windowsユーザーのみ） {#sec-wsl2-setting}</span></span>
+<span id="cb23-48"><a href="#cb23-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-49"><a href="#cb23-49" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>PowerShellまたはWindowsコマンドプロンプトを管理者権限で開く</span>
+<span id="cb23-50"><a href="#cb23-50" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>右クリックで管理者権限を使えます。</span>
+<span id="cb23-51"><a href="#cb23-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-52"><a href="#cb23-52" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/powershell.png)</span>{width="70%" fig-align="center"}</span>
+<span id="cb23-53"><a href="#cb23-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-54"><a href="#cb23-54" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>以下のコマンドを入力して実行</span>
+<span id="cb23-55"><a href="#cb23-55" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>これでインストールはできるはずですが、詳しくは<span class="co">[</span><span class="ot">こちらのサイト</span><span class="co">](https://learn.microsoft.com/ja-jp/windows/wsl/install)</span>を参照してください。</span>
+<span id="cb23-56"><a href="#cb23-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-57"><a href="#cb23-57" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="PowerShell"}</span></span>
+<span id="cb23-58"><a href="#cb23-58" aria-hidden="true" tabindex="-1"></a><span class="in">wsl --install</span></span>
+<span id="cb23-59"><a href="#cb23-59" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-60"><a href="#cb23-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-61"><a href="#cb23-61" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>ユーザー名とパスワードを設定</span>
+<span id="cb23-62"><a href="#cb23-62" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます<span class="ot">[^1]</span>。</span>
+<span id="cb23-63"><a href="#cb23-63" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。</span>
+<span id="cb23-64"><a href="#cb23-64" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>パスワードは画面上には表示されませんが、ちゃんと入力されています。慌てて何回も入力しないようにしてください。</span>
+<span id="cb23-65"><a href="#cb23-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-66"><a href="#cb23-66" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>求められない場合は、続けて<span class="in">`wsl`</span>とだけ入力してください。</span>
+<span id="cb23-67"><a href="#cb23-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-68"><a href="#cb23-68" aria-hidden="true" tabindex="-1"></a>エクスプローラーからLinuxに入り、<span class="in">`\Ubuntu\home\ユーザー名`</span>がメインとなるディレクトリです。</span>
+<span id="cb23-69"><a href="#cb23-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-70"><a href="#cb23-70" aria-hidden="true" tabindex="-1"></a><span class="fu">### Homebrew（Macユーザーのみ）</span></span>
+<span id="cb23-71"><a href="#cb23-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-72"><a href="#cb23-72" aria-hidden="true" tabindex="-1"></a>MacユーザーはHomebrewを使って諸々インストールしていくので、まだの方はここでインストールしてください。</span>
+<span id="cb23-73"><a href="#cb23-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-74"><a href="#cb23-74" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>ターミナルを開く</span>
+<span id="cb23-75"><a href="#cb23-75" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>アプリ一覧から「ターミナル」を探してください。</span>
+<span id="cb23-76"><a href="#cb23-76" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>以下のコマンドを入力して実行</span>
+<span id="cb23-77"><a href="#cb23-77" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>パスワードを求められるので、入力してください。</span>
+<span id="cb23-78"><a href="#cb23-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-79"><a href="#cb23-79" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-80"><a href="#cb23-80" aria-hidden="true" tabindex="-1"></a><span class="in">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"</span></span>
+<span id="cb23-81"><a href="#cb23-81" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-82"><a href="#cb23-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-83"><a href="#cb23-83" aria-hidden="true" tabindex="-1"></a><span class="fu">### VSCode {#sec-vscode-setting}</span></span>
+<span id="cb23-84"><a href="#cb23-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-85"><a href="#cb23-85" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>VSCodeの<span class="co">[</span><span class="ot">ダウンロードサイト</span><span class="co">](https://code.visualstudio.com/)</span>からダウンロード、インストール</span>
+<span id="cb23-86"><a href="#cb23-86" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Download for Windows<span class="ot">[^2]</span>をクリックしてダウンロードできます。</span>
+<span id="cb23-87"><a href="#cb23-87" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>インストールができたら、VSCodeを開いてください。</span>
+<span id="cb23-88"><a href="#cb23-88" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>（任意）日本語の拡張機能をインストール</span>
+<span id="cb23-89"><a href="#cb23-89" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>画面左側に拡張機能のアイコン <span class="al">![](image/extention.png)</span> があります。ここの検索ボックスに<span class="in">`MS-CEINTL.vscode-language-pack-ja`</span>と入力し、1番上に出てきたものをインストールします<span class="ot">[^3]</span>。</span>
+<span id="cb23-90"><a href="#cb23-90" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>インストール後、VSCodeを再起動すれば日本語が反映されていると思います。</span>
+<span id="cb23-91"><a href="#cb23-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-92"><a href="#cb23-92" aria-hidden="true" tabindex="-1"></a><span class="ot">[^2]: </span>もしくは Mac</span>
+<span id="cb23-93"><a href="#cb23-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-94"><a href="#cb23-94" aria-hidden="true" tabindex="-1"></a><span class="ot">[^3]: </span>単にJapaneseでも出てきます。笑</span>
+<span id="cb23-95"><a href="#cb23-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-96"><a href="#cb23-96" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/vscode-ja.png)</span></span>
+<span id="cb23-97"><a href="#cb23-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-98"><a href="#cb23-98" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>拡張機能のインストール</span>
+<span id="cb23-99"><a href="#cb23-99" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>拡張機能の検索ボックスで、次のIDを入力し、インストールします。</span>
+<span id="cb23-100"><a href="#cb23-100" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`ms-vscode-remote.remote-containers`</span> (Dev Containers)</span>
+<span id="cb23-101"><a href="#cb23-101" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`ms-vscode-remote.remote-wsl`</span> (WSL, Windowsユーザーのみ)\</span>
+<span id="cb23-102"><a href="#cb23-102" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>WSLに接続（Windowsユーザーのみ）</span>
+<span id="cb23-103"><a href="#cb23-103" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>VSCodeから先ほどインストールしたWSLに接続します。</span>
+<span id="cb23-104"><a href="#cb23-104" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>画面左下の<span class="in">`&gt;&lt;`</span>アイコンをクリックして、「WSLへの接続」をクリックします。</span>
+<span id="cb23-105"><a href="#cb23-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-106"><a href="#cb23-106" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/vscode-wsl.png)</span></span>
+<span id="cb23-107"><a href="#cb23-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-108"><a href="#cb23-108" aria-hidden="true" tabindex="-1"></a><span class="fu">### Docker</span></span>
+<span id="cb23-109"><a href="#cb23-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-110"><a href="#cb23-110" aria-hidden="true" tabindex="-1"></a>Dockerをインストールします。</span>
+<span id="cb23-111"><a href="#cb23-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-112"><a href="#cb23-112" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Windowsの方は<span class="co">[</span><span class="ot">ここ</span><span class="co">](https://docs.docker.com/desktop/install/windows-install/)</span>からDocker Desktop for Windowsを、Macの方は<span class="co">[</span><span class="ot">こちら</span><span class="co">](https://docs.docker.com/desktop/install/mac-install/)</span>からダウンロード＆インストール</span>
+<span id="cb23-113"><a href="#cb23-113" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>設定の確認（Windowsのみ）</span>
+<span id="cb23-114"><a href="#cb23-114" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>インストール出来たら、画面上部の設定ボタンからResources、WSL integrationと進み、チェックボックスにチェック、Ubuntuがオンになっていることを確認してください。</span>
+<span id="cb23-115"><a href="#cb23-115" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>たまに、何もしていないのにここがオフになっていて、トラブることがあります。</span>
+<span id="cb23-116"><a href="#cb23-116" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>詳しくは<span class="co">[</span><span class="ot">こちら</span><span class="co">](https://docs.docker.jp/docker-for-windows/install.html)</span>をご覧ください。日本語で書いてあります。</span>
+<span id="cb23-117"><a href="#cb23-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-118"><a href="#cb23-118" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/docker-desktop.png)</span></span>
+<span id="cb23-119"><a href="#cb23-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-120"><a href="#cb23-120" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>画面左側のVolumesに進み、Createからボリュームを作成</span>
+<span id="cb23-121"><a href="#cb23-121" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>次の3つを作成します（大文字小文字に注意！）。</span>
+<span id="cb23-122"><a href="#cb23-122" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`fonts`</span>, <span class="in">`cache`</span>, <span class="in">`TinyTeX`</span></span>
+<span id="cb23-123"><a href="#cb23-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-124"><a href="#cb23-124" aria-hidden="true" tabindex="-1"></a><span class="al">![Macでの画面](image/create_volume_mac.png)</span></span>
+<span id="cb23-125"><a href="#cb23-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-126"><a href="#cb23-126" aria-hidden="true" tabindex="-1"></a><span class="fu">### Git</span></span>
+<span id="cb23-127"><a href="#cb23-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-128"><a href="#cb23-128" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Windows</span></span>
+<span id="cb23-129"><a href="#cb23-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-130"><a href="#cb23-130" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>UbuntuでGitをインストール</span>
+<span id="cb23-131"><a href="#cb23-131" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Windowsのアプリ一覧からUbuntuを探し、開いてください。開いたら、以下のコマンドを入力して実行します。</span>
+<span id="cb23-132"><a href="#cb23-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-133"><a href="#cb23-133" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Ubuntu"}</span></span>
+<span id="cb23-134"><a href="#cb23-134" aria-hidden="true" tabindex="-1"></a><span class="in">sudo apt-get install git</span></span>
+<span id="cb23-135"><a href="#cb23-135" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-136"><a href="#cb23-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-137"><a href="#cb23-137" aria-hidden="true" tabindex="-1"></a><span class="al">![Ubuntu](image/ubuntu-git.png)</span>{width="70%"}</span>
+<span id="cb23-138"><a href="#cb23-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-139"><a href="#cb23-139" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>設定</span>
+<span id="cb23-140"><a href="#cb23-140" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。</span>
+<span id="cb23-141"><a href="#cb23-141" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ここに限らずですが、<span class="in">`[]`</span>ごと置き換えてくださいね。</span>
+<span id="cb23-142"><a href="#cb23-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-143"><a href="#cb23-143" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Ubuntu"}</span></span>
+<span id="cb23-144"><a href="#cb23-144" aria-hidden="true" tabindex="-1"></a><span class="in">git config --global user.name [任意のユーザ名]</span></span>
+<span id="cb23-145"><a href="#cb23-145" aria-hidden="true" tabindex="-1"></a><span class="in">git config --global user.email [任意のメールアドレス]</span></span>
+<span id="cb23-146"><a href="#cb23-146" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-147"><a href="#cb23-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-148"><a href="#cb23-148" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Mac</span></span>
+<span id="cb23-149"><a href="#cb23-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-150"><a href="#cb23-150" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>HomebrewでGitをインストール</span>
+<span id="cb23-151"><a href="#cb23-151" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ターミナルを開いて、以下のコマンドを入力して実行します。</span>
+<span id="cb23-152"><a href="#cb23-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-153"><a href="#cb23-153" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-154"><a href="#cb23-154" aria-hidden="true" tabindex="-1"></a><span class="in">brew install git</span></span>
+<span id="cb23-155"><a href="#cb23-155" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-156"><a href="#cb23-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-157"><a href="#cb23-157" aria-hidden="true" tabindex="-1"></a><span class="al">![このMacでは2回目なのでgit is already installedと表示されてます…。](image/homebrew.png)</span>{width="70%"}</span>
+<span id="cb23-158"><a href="#cb23-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-159"><a href="#cb23-159" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>設定</span>
+<span id="cb23-160"><a href="#cb23-160" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。</span>
+<span id="cb23-161"><a href="#cb23-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-162"><a href="#cb23-162" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-163"><a href="#cb23-163" aria-hidden="true" tabindex="-1"></a><span class="in">git config --global user.name [任意のユーザ名]</span></span>
+<span id="cb23-164"><a href="#cb23-164" aria-hidden="true" tabindex="-1"></a><span class="in">git config --global user.email [任意のメールアドレス]</span></span>
+<span id="cb23-165"><a href="#cb23-165" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-166"><a href="#cb23-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-167"><a href="#cb23-167" aria-hidden="true" tabindex="-1"></a><span class="fu">### GitHubアカウントの作成</span></span>
+<span id="cb23-168"><a href="#cb23-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-169"><a href="#cb23-169" aria-hidden="true" tabindex="-1"></a>ファイルは基本的にGitHubで管理するので、<span class="co">[</span><span class="ot">ここ</span><span class="co">](https://github.com/)</span>からアカウントを作成してください。</span>
+<span id="cb23-170"><a href="#cb23-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-171"><a href="#cb23-171" aria-hidden="true" tabindex="-1"></a><span class="fu">#### ポイント</span></span>
+<span id="cb23-172"><a href="#cb23-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-173"><a href="#cb23-173" aria-hidden="true" tabindex="-1"></a>GitHubアカウントを作成したら、VSCodeにログインしておきましょう。</span>
+<span id="cb23-174"><a href="#cb23-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-175"><a href="#cb23-175" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>VSCodeを開く</span>
+<span id="cb23-176"><a href="#cb23-176" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>画面左下のアイコンをクリック</span>
+<span id="cb23-177"><a href="#cb23-177" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>GitHubでサインインを行う</span>
+<span id="cb23-178"><a href="#cb23-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-179"><a href="#cb23-179" aria-hidden="true" tabindex="-1"></a>GitHubにログインすることで、その後の作業がスムーズに進みます。</span>
+<span id="cb23-180"><a href="#cb23-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-181"><a href="#cb23-181" aria-hidden="true" tabindex="-1"></a>事前準備は以上です！</span>
+<span id="cb23-182"><a href="#cb23-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-183"><a href="#cb23-183" aria-hidden="true" tabindex="-1"></a><span class="fu">## 開発環境の構築</span></span>
+<span id="cb23-184"><a href="#cb23-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-185"><a href="#cb23-185" aria-hidden="true" tabindex="-1"></a>Dockerを用いて環境を構築するにあたり、<span class="co">[</span><span class="ot">柳本和春さん</span><span class="co">](https://kazuyanagimoto.com/)</span>のテンプレートをベースに作成しています。詳しくは柳本さんの<span class="co">[</span><span class="ot">記事</span><span class="co">](https://zenn.dev/nicetak/articles/vscode-docker-2023)</span>をご覧ください。</span>
+<span id="cb23-186"><a href="#cb23-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-187"><a href="#cb23-187" aria-hidden="true" tabindex="-1"></a>主な変更点は以下の通りです。</span>
+<span id="cb23-188"><a href="#cb23-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-189"><a href="#cb23-189" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>RStudioの設定を追加（パネルの配置など）</span>
+<span id="cb23-190"><a href="#cb23-190" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>それに伴うDockerfileの加筆修正と、更なる設定の追加</span>
+<span id="cb23-191"><a href="#cb23-191" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Quartoのインストールを追加</span>
+<span id="cb23-192"><a href="#cb23-192" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>個人的にエラーが生じた部分を修正</span>
+<span id="cb23-193"><a href="#cb23-193" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>日本語のロケール設定を追加</span>
+<span id="cb23-194"><a href="#cb23-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-195"><a href="#cb23-195" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb23-196"><a href="#cb23-196" aria-hidden="true" tabindex="-1"></a><span class="fu">## RStudioで出てくる警告について</span></span>
+<span id="cb23-197"><a href="#cb23-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-198"><a href="#cb23-198" aria-hidden="true" tabindex="-1"></a>RStudioでこの後作業することになりますが、コマンドを打つと以下の警告が出てくるかもしれません。</span>
+<span id="cb23-199"><a href="#cb23-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-200"><a href="#cb23-200" aria-hidden="true" tabindex="-1"></a><span class="in">`警告メッセージ: Character set is not UTF-8; please change your locale`</span></span>
+<span id="cb23-201"><a href="#cb23-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-202"><a href="#cb23-202" aria-hidden="true" tabindex="-1"></a>しかし、警告は出るものの、実際の作業には特に問題ありません。これに対処しようと試みましたが、できませんでした…。</span>
+<span id="cb23-203"><a href="#cb23-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-204"><a href="#cb23-204" aria-hidden="true" tabindex="-1"></a>もし詳しくて対処できた方は、コメントから教えていただけると幸いです。</span>
+<span id="cb23-205"><a href="#cb23-205" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-206"><a href="#cb23-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-207"><a href="#cb23-207" aria-hidden="true" tabindex="-1"></a>まずは基本設定<span class="ot">[^4]</span>から説明します。</span>
+<span id="cb23-208"><a href="#cb23-208" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-209"><a href="#cb23-209" aria-hidden="true" tabindex="-1"></a><span class="ot">[^4]: </span>単独研究ならここのみでOK、共同研究ならホストが行う設定。</span>
+<span id="cb23-210"><a href="#cb23-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-211"><a href="#cb23-211" aria-hidden="true" tabindex="-1"></a><span class="fu">### 基本設定</span></span>
+<span id="cb23-212"><a href="#cb23-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-213"><a href="#cb23-213" aria-hidden="true" tabindex="-1"></a><span class="fu">#### GitHubリポジトリを作成</span></span>
+<span id="cb23-214"><a href="#cb23-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-215"><a href="#cb23-215" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>テンプレートの<span class="co">[</span><span class="ot">GitHub リポジトリ</span><span class="co">](https://github.com/yo5uke/template-R)</span>にアクセス</span>
+<span id="cb23-216"><a href="#cb23-216" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>画面右の「Use this template」から「Create a new repository」を選択</span>
+<span id="cb23-217"><a href="#cb23-217" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Repository nameを記入</span>
+<span id="cb23-218"><a href="#cb23-218" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Privateを選択</span>
+<span id="cb23-219"><a href="#cb23-219" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>通常のプロジェクトならPrivateでOK</span>
+<span id="cb23-220"><a href="#cb23-220" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>「Create repository」をクリック</span>
+<span id="cb23-221"><a href="#cb23-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-222"><a href="#cb23-222" aria-hidden="true" tabindex="-1"></a><span class="fu">#### リポジトリをクローン {#sec-host-vscode}</span></span>
+<span id="cb23-223"><a href="#cb23-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-224"><a href="#cb23-224" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>VSCodeを開く</span>
+<span id="cb23-225"><a href="#cb23-225" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>画面左側のアイコンから「ソース管理」<span class="ot">[^5]</span>を開く</span>
+<span id="cb23-226"><a href="#cb23-226" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>「リポジトリの複製」を選択し、さらに「GitHubから複製」を選ぶ</span>
+<span id="cb23-227"><a href="#cb23-227" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>リポジトリを選択し、クローン</span>
+<span id="cb23-228"><a href="#cb23-228" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>リポジトリは、「ユーザー名/リポジトリ名」の形式で表示されます。</span>
+<span id="cb23-229"><a href="#cb23-229" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>基本的に表示されると思いますが、表示されない場合は手入力してください。</span>
+<span id="cb23-230"><a href="#cb23-230" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>クローンしたリポジトリを開くか問われるので、開いてください。</span>
+<span id="cb23-231"><a href="#cb23-231" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>画面右下に「コンテナーで再度開く」と出たらクリック</span>
+<span id="cb23-232"><a href="#cb23-232" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>出ない場合、画面左下「WSL: Ubuntu」<span class="ot">[^6]</span>をクリックし、「コンテナーで再度開く」を選択してください。</span>
+<span id="cb23-233"><a href="#cb23-233" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。</span>
+<span id="cb23-234"><a href="#cb23-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-235"><a href="#cb23-235" aria-hidden="true" tabindex="-1"></a><span class="ot">[^5]: </span>上から3番目</span>
+<span id="cb23-236"><a href="#cb23-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-237"><a href="#cb23-237" aria-hidden="true" tabindex="-1"></a><span class="ot">[^6]: </span>Mac なら<span class="in">`&gt;&lt;`</span></span>
+<span id="cb23-238"><a href="#cb23-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-239"><a href="#cb23-239" aria-hidden="true" tabindex="-1"></a><span class="al">![「コンテナーで再度開く」をクリック](image/reopen.png)</span></span>
+<span id="cb23-240"><a href="#cb23-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-241"><a href="#cb23-241" aria-hidden="true" tabindex="-1"></a>エクスプローラーを開き、<span class="in">`\\wsl.localhost\Ubuntu\home\ユーザー名`</span>を確認してみてください。リポジトリ名と同じフォルダができていると思います。</span>
+<span id="cb23-242"><a href="#cb23-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-243"><a href="#cb23-243" aria-hidden="true" tabindex="-1"></a>Macの場合は、ユーザー名の下にできているはずです。</span>
+<span id="cb23-244"><a href="#cb23-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-245"><a href="#cb23-245" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb23-246"><a href="#cb23-246" aria-hidden="true" tabindex="-1"></a><span class="fu">## Macでファイルが見当たらない？</span></span>
+<span id="cb23-247"><a href="#cb23-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-248"><a href="#cb23-248" aria-hidden="true" tabindex="-1"></a>クローンしたフォルダを見てみると、リポジトリにはあるはずのファイルやフォルダが見当たらないかもしれません。</span>
+<span id="cb23-249"><a href="#cb23-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-250"><a href="#cb23-250" aria-hidden="true" tabindex="-1"></a><span class="al">![ファイルが見当たらない…？](image/finder_mac_after_clone.png)</span>{width="70%"}</span>
+<span id="cb23-251"><a href="#cb23-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-252"><a href="#cb23-252" aria-hidden="true" tabindex="-1"></a>このようなときは、Finderの隠しファイルを表示する設定を変更する必要があります。</span>
+<span id="cb23-253"><a href="#cb23-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-254"><a href="#cb23-254" aria-hidden="true" tabindex="-1"></a>以下をターミナルで実行してください。</span>
+<span id="cb23-255"><a href="#cb23-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-256"><a href="#cb23-256" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-257"><a href="#cb23-257" aria-hidden="true" tabindex="-1"></a><span class="in">defaults write com.apple.finder AppleShowAllFiles TRUE</span></span>
+<span id="cb23-258"><a href="#cb23-258" aria-hidden="true" tabindex="-1"></a><span class="in">killall Finder</span></span>
+<span id="cb23-259"><a href="#cb23-259" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-260"><a href="#cb23-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-261"><a href="#cb23-261" aria-hidden="true" tabindex="-1"></a>これで、隠しファイルも表示されるようになります。</span>
+<span id="cb23-262"><a href="#cb23-262" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-263"><a href="#cb23-263" aria-hidden="true" tabindex="-1"></a>正直なところ、この設定は隠しファイルが邪魔であればしなくてもよいと思います<span class="ot">[^7]</span>。VSCode上ではきちんと表示されますので。</span>
+<span id="cb23-264"><a href="#cb23-264" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-265"><a href="#cb23-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-266"><a href="#cb23-266" aria-hidden="true" tabindex="-1"></a><span class="ot">[^7]: </span>TRUE のところを FALSE にして再度実行すれば消せます。</span>
+<span id="cb23-267"><a href="#cb23-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-268"><a href="#cb23-268" aria-hidden="true" tabindex="-1"></a><span class="fu">#### RStudioで開く</span></span>
+<span id="cb23-269"><a href="#cb23-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-270"><a href="#cb23-270" aria-hidden="true" tabindex="-1"></a>ここで、ブラウザを用いてRStudioを開きます。毎度この手順を踏む前に、VSCode上で開発コンテナに接続していることを確認してください。開いていないと、次のリンクは無効なものになってしまいます。</span>
+<span id="cb23-271"><a href="#cb23-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-272"><a href="#cb23-272" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>任意のブラウザで、アドレスバーに<span class="in">`localhost:8787`</span>と入力して開く</span>
+<span id="cb23-273"><a href="#cb23-273" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>右上の <span class="al">![](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAIsUlEQVR4Xu3XeWyT5x0HcLbuaCemtaq0Tlo1oQ5UrWJtpW4tZe1GIYybkBLYAi2EK5yDhbZchUCBEcIRDAmE3LcJTuLEcew4jhM7cZzEfm2/l4/X5+szvp3Yjh2HBLz3jZMAGbBA9+ce6atXsiL/Pv49v8d5PGvW/9cLLJoi9pO15bx3F+WxUpcXcTfsbUbeolljr8RisR9M/9v/zaLRXvqIUvfuZ7cZaYkVrXdWljQbttZ2mdfWdQweYEv16yo52MoSFjehkHVmVVnbqm9Yil9JY7EfT3+bGa+5N9g//eNN2vsLb9G3rShhlawp46jSGD3qsyIMv4U6dDRTSFFvGUY380HnHVMYrbVEkEK1V53Za9TtZ0oV66u4ijWlnLplRZwjSRXti0/z8Vef2Z1FN/mzFxU2LVhcwNy1rJiVt66yDTjABoCLYr2iVOvVNtqiaJNjBGbYR2A6UbjeHEapxkF0U4fMRTUGUZppCKaZIvAdIlTjEFxNJF/pUZ8TGdG9zRJpcjUPTKxoK19X1f6PFJrg4/Qe6ytTxTfQ+LP/XsPnp3PlvMtyUzcVDyjYnvswx3cfYnmIuEbhJucI3GCNIHWWMELDQ0SCSKVhENnIlbjKdH6k2hBEqvRBhCw+Cag0RqDJlOuH4FzIozgl1PbtYUp6Nt0ViNPypfEtSm3gv3q8HfFlAXh/scZnaHSOoBzfA5AAgCz3fZDpHIXo9gi8p0ji+dtVYeDLnG5/8uXOwF9OtEbmHKCPfXKsJZJCEfovdpj05dogXGkYgioNETIgmbKJFGCDyBWZzXBKoHGkc6HABzT/L6a6kC7Qhmr0A5pc0GLL6FQGL/TqvTmo3VJlDGAN/SNQnTUCfZEj8i84zI5+mM6OLj/DC+2rABx/utUW3F0h7V/4DTvy/kFm9Hy7UVeiGYDKtCGwlMhtpU+ZJbXjGUKd+0SHMpAlsVnylAH1QYE+OKs09vIU4IAAC3f7HgBC3xjQSaTZFkYrNB79DbnJcbFXN5gtx53ZErMls1Nv+MMhVnRXkdiZr3Ijq9k9zjyFG7kFOdGPDrMiK861B65DLuySxGI7L9L7M8W4mwK58WJtGK02PQCqzTGASmRLCxp7JkBAhO8dk/Dc9yRsR0RG1fuwQsRmoUhw785K8dghOhi4Dtu0q5kiVw7qUFLk/cYDtfLwvhrp/WtSi/Mm7DIUa4fgCsMYUGkaA6rH82A8zwfw3JO0OocBln0IYJiDQJ3BK/nwUGM0nQr4c4munOxWjmSLTaEcudWWWtg38MFBZrhQFZCVYEOyMv2w9EkAsgtPBXT/B2BsHMC2hSUMSxCoxwck83fcHd6W02kvUlilf2XwHJcBE5wlNKPzdtCj6y93uUlAmSYsjQPuPS8g3gUSICAB3knA8GOAdec4niM1gOHtgtpg0rUO53t7G8Pv7WWEr/bYkUIs9BTABGImgPEuEMXJLnBJQH8cQJ8A/G57zfDb2+4Mv3a6YnTuLlp0+Vme95LQguajflkxCdBNAEzxLXisCy8CaJkG2JYjsJcpbJJPa1tc8/fTwyQgD/bKZgQg8kSAaBqgczrAPLEFO+MAcgYSGFz7rirANHdHffRQDYSTAHIGSqdtwQwBsXHA5CA+BIwAbHt4/BSMd4AAbCeGsERlBxKa2uyXAQu8/Gybl5yDKyIrEj8FZBeGnzAHMwJMdIEEeB4CmiYAvycBuV32EswJJDAJgNRKngKE7MKKczxvAToQ34ZnDOILAa62aTTHamQ4CVj6LXNgQ77A/dvC2sgWNth/ttei2l0uNc8jEJtzeh37K2FzHhKQP20bngvQRgDIGUjJavfP23F39M2t1NHXN1eNvbGlavTNK3dG0tpVpo1MmWdZbW9o/uGm8JzU2hHyO4ECeBES8KQvpCcCegjA5CCOzwEBYDui8hvKfu1hocqxhSsbIJ62TJkVK9b4oVtqD/wZs8N1QepSZMN+5LzMrdrH11mSmZAvuRn2ftVjMuaqgvCMOxAHxACi5eBtlUt7vFfn3MNH/BkSkzVX7cFqLBGoxjwEVptC8nJjQJ6vG4AWszucmXKPIhsZRB7NGalbvVtgsCY1I/4vuWrXCbFTV6SLyh8CkMcBXwv1gwVqt+6UWO86KFT7/0X8WyaKaJiuUYjhHAXp/SNgnS0qv2uNgFRrRF5hisgLDAPQEjbfeQFyoxQ0CI9HRT5D8DUi40/VEJwB+LA0Pm5LYikGt/P1ju/kHs1JidM2BVhIb/3l3g7Uewm2Wal4SMsjbkGtRDjkbSh+IQEb+kfBcrUXpfQZsBOMPvwUW6Y/36XGPq3neC5AxOtE4fO9/ar9dRL8CEejO8bVaSlEcYoqMpVrqgjyrdSr3c7HHYksReAtmiF+IfmkWvja6gZRTwZgEjLsUZjne/AYoJkANBKps4/IyWR1YRhFZlEV4QFwCbvTmQl6FBkCo+ZrFqq/JCMxZOFHM4mIwqeIbhBbgi6li5BZp2M/nNqCFB76xqoGUdqSOoFkZwfcfRvzEMVHkTjg/mOAXKI4RWpSXYds6J8Zbe6vOEpdBt+IXYF9CEUVmlZ8CM5WhJGjYodmAxtUJjJ7apObJZ/nS2M/myr+6Dodi/0omQksWtkgoiQ19cpOSgyyanNYQQLqHXFACeZFyGtXCdGBBKIDF2Afmo34kYvEaSAzWTgTCigOCnF9YpMY+7yp71oqG14w498K5B1+T7vm14mNPbuX0TvBXR0QRFE61TXmCFiNh0ByCB8FkANIIq4Sx/E7GXkCMMPaRpFmI1t85FgvPocWi700vcaMVykee/mLFnBREqMnd31zr+p4n0GdrxtEpgDEEJJH76TYpk3lQXhKC9CR0iLdmqsOvk58kIf7/H0X+SmOCu2/IfZw30ZWX2dqm1z7cRPX90+hzpTCBkxbuVLqzlZ0KQOL/fyZv4K+7yLfnOaOzd7EkSe8Q226u6ZRdPR4l/kdZv9TBuu/rH8DYKkbNvCO3j8AAAAASUVORK5CYII=)</span> をクリックし、「New Project...」を選択</span>
+<span id="cb23-274"><a href="#cb23-274" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>「Existing Directory」を選択</span>
+<span id="cb23-275"><a href="#cb23-275" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>「Browse...」より「work」を選択して「Choose」をクリック</span>
+<span id="cb23-276"><a href="#cb23-276" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>「Create project」をクリックするとプロジェクトが作成されます。</span>
+<span id="cb23-277"><a href="#cb23-277" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>コンソールに以下を入力して実行</span>
+<span id="cb23-278"><a href="#cb23-278" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`renv`</span>はパッケージを管理するためのパッケージです。</span>
+<span id="cb23-279"><a href="#cb23-279" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Dockerfileでインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です<span class="ot">[^8]</span>。</span>
+<span id="cb23-280"><a href="#cb23-280" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-281"><a href="#cb23-281" aria-hidden="true" tabindex="-1"></a><span class="ot">[^8]: </span>余談ですが、<span class="in">`renv::init()`</span>のように<span class="in">`パッケージ名::関数`</span>のような書き方をすれば、<span class="in">`library(パッケージ名)`</span>をせずとも関数を使えます。1度だけ使いたいようなときに便利です。</span>
+<span id="cb23-282"><a href="#cb23-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-283"><a href="#cb23-283" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.r filename="R"}</span></span>
+<span id="cb23-284"><a href="#cb23-284" aria-hidden="true" tabindex="-1"></a><span class="in">renv::init()</span></span>
+<span id="cb23-285"><a href="#cb23-285" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-286"><a href="#cb23-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-287"><a href="#cb23-287" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Pythonの設定（任意）</span></span>
+<span id="cb23-288"><a href="#cb23-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-289"><a href="#cb23-289" aria-hidden="true" tabindex="-1"></a>Pythonを使う場合、以下のパッケージをインストールしておきます。</span>
+<span id="cb23-290"><a href="#cb23-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-291"><a href="#cb23-291" aria-hidden="true" tabindex="-1"></a>使わない場合はスキップしてください。</span>
+<span id="cb23-292"><a href="#cb23-292" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-293"><a href="#cb23-293" aria-hidden="true" tabindex="-1"></a>使い方としては、Quarto上でPythonのコードを書くことを想定しています。そのために必要なパッケージですが、その他のパッケージを使用する場合も同様の方法でインストールしてください。</span>
+<span id="cb23-294"><a href="#cb23-294" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-295"><a href="#cb23-295" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>VSCodeに戻る</span>
+<span id="cb23-296"><a href="#cb23-296" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>画面上部「ターミナル」より「新しいターミナル」を選択</span>
+<span id="cb23-297"><a href="#cb23-297" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>以下のコマンドを入力して実行</span>
+<span id="cb23-298"><a href="#cb23-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-299"><a href="#cb23-299" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-300"><a href="#cb23-300" aria-hidden="true" tabindex="-1"></a><span class="in">pip install ipykernel jupyter</span></span>
+<span id="cb23-301"><a href="#cb23-301" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-302"><a href="#cb23-302" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-303"><a href="#cb23-303" aria-hidden="true" tabindex="-1"></a>パッケージはcacheにキャッシュがあるので、1回インストールすれば、2回目以降の環境構築では不要です。</span>
+<span id="cb23-304"><a href="#cb23-304" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-305"><a href="#cb23-305" aria-hidden="true" tabindex="-1"></a><span class="fu">#### DVCの設定 {#sec-dvc-setting}</span></span>
+<span id="cb23-306"><a href="#cb23-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-307"><a href="#cb23-307" aria-hidden="true" tabindex="-1"></a>DVCはデータを管理するためのツールです。</span>
+<span id="cb23-308"><a href="#cb23-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-309"><a href="#cb23-309" aria-hidden="true" tabindex="-1"></a>事前準備として、自分のGoogleドライブの任意の場所で、データを入れる用のフォルダを作成しておいてください。</span>
+<span id="cb23-310"><a href="#cb23-310" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-311"><a href="#cb23-311" aria-hidden="true" tabindex="-1"></a>また、共同プロジェクトの場合は、フォルダの共有も設定してください。</span>
+<span id="cb23-312"><a href="#cb23-312" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-313"><a href="#cb23-313" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>VSCodeに戻る</span>
+<span id="cb23-314"><a href="#cb23-314" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>画面上部「ターミナル」より「新しいターミナル」を選択</span>
+<span id="cb23-315"><a href="#cb23-315" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>既に画面下部にターミナルが表示されている場合はスキップして大丈夫です。</span>
+<span id="cb23-316"><a href="#cb23-316" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>以下のコマンドを入力して実行</span>
+<span id="cb23-317"><a href="#cb23-317" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>初めて環境構築するときに1回実行しておけば、2回目以降の環境構築では不要です。</span>
+<span id="cb23-318"><a href="#cb23-318" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-319"><a href="#cb23-319" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-320"><a href="#cb23-320" aria-hidden="true" tabindex="-1"></a><span class="in">pip install dvc dvc-gdrive</span></span>
+<span id="cb23-321"><a href="#cb23-321" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-322"><a href="#cb23-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-323"><a href="#cb23-323" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Googleドライブで作成したフォルダのIDをコピー</span>
+<span id="cb23-324"><a href="#cb23-324" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（\~/folders/）より右側の部分です。</span>
+<span id="cb23-325"><a href="#cb23-325" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>次のコマンドを入力して実行</span>
+<span id="cb23-326"><a href="#cb23-326" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>最後の部分（四角括弧ごと）をコピーしたIDに変更してください。</span>
+<span id="cb23-327"><a href="#cb23-327" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-328"><a href="#cb23-328" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-329"><a href="#cb23-329" aria-hidden="true" tabindex="-1"></a><span class="in">dvc init &amp;&amp; dvc remote add -d myremote gdrive://[Google DriveのフォルダID]</span></span>
+<span id="cb23-330"><a href="#cb23-330" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-331"><a href="#cb23-331" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-332"><a href="#cb23-332" aria-hidden="true" tabindex="-1"></a><span class="fu">#### LaTeXの設定</span></span>
+<span id="cb23-333"><a href="#cb23-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-334"><a href="#cb23-334" aria-hidden="true" tabindex="-1"></a>R Markdownなどで$\LaTeX$を使用するために、TinyTeXをインストールします。</span>
+<span id="cb23-335"><a href="#cb23-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-336"><a href="#cb23-336" aria-hidden="true" tabindex="-1"></a>RStudioのコンソールに以下のコマンドを入力して実行してください。</span>
+<span id="cb23-337"><a href="#cb23-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-338"><a href="#cb23-338" aria-hidden="true" tabindex="-1"></a>また、TinyTeXもキャッシュされるので、1回インストールすれば、2回目以降の環境構築では実行不要です。</span>
+<span id="cb23-339"><a href="#cb23-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-340"><a href="#cb23-340" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.r filename="R"}</span></span>
+<span id="cb23-341"><a href="#cb23-341" aria-hidden="true" tabindex="-1"></a><span class="in">install.packages("tinytex")</span></span>
+<span id="cb23-342"><a href="#cb23-342" aria-hidden="true" tabindex="-1"></a><span class="in">tinytex::install_tinytex(dir = "/home/rstudio/.TinyTeX", force = TRUE)</span></span>
+<span id="cb23-343"><a href="#cb23-343" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-344"><a href="#cb23-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-345"><a href="#cb23-345" aria-hidden="true" tabindex="-1"></a>TinyTeXは、$\LaTeX$コードをコンパイルする際に必要なパッケージを自動でダウンロードしてくれるので、ローカルに面倒な設定をしなくて良いのが魅力です。</span>
+<span id="cb23-346"><a href="#cb23-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-347"><a href="#cb23-347" aria-hidden="true" tabindex="-1"></a>R MarkdownやQuartoでのPDF出力の仕方については、<span class="co">[</span><span class="ot">こちらの記事</span><span class="co">](https://yo5uke.github.io/tips/240329_rmarkdown_pdf/)</span>もご覧ください。</span>
+<span id="cb23-348"><a href="#cb23-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-349"><a href="#cb23-349" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Juliaの設定（任意） {#sec-julia-setting}</span></span>
+<span id="cb23-350"><a href="#cb23-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-351"><a href="#cb23-351" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">参考記事</span><span class="co">](https://zenn.dev/nicetak/articles/vscode-docker-2023)</span>の設定に基づき、Juliaが使えるようになっているため、その始め方についても書いておきます。特に使う予定がなければ、スキップしてください。</span>
+<span id="cb23-352"><a href="#cb23-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-353"><a href="#cb23-353" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>VSCodeに戻り、ワーキングディレクトリに<span class="in">`Project.toml`</span>というファイルを作成</span>
+<span id="cb23-354"><a href="#cb23-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-355"><a href="#cb23-355" aria-hidden="true" tabindex="-1"></a>::: {.callout-warning collapse="true"}</span>
+<span id="cb23-356"><a href="#cb23-356" aria-hidden="true" tabindex="-1"></a><span class="fu">## VSCode上でのファイル等の作成</span></span>
+<span id="cb23-357"><a href="#cb23-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-358"><a href="#cb23-358" aria-hidden="true" tabindex="-1"></a>VSCode上でファイルやフォルダを作成するためには、左側のアイコン一番上の「エクスプローラー」をクリックし、その中の上部にあるアイコンの「新しいファイル…」や「新しいファイル…」を選択することでできます。</span>
+<span id="cb23-359"><a href="#cb23-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-360"><a href="#cb23-360" aria-hidden="true" tabindex="-1"></a>ここで注意点ですが、状況によっては意図せずフォルダの中に作ってしまうことがあります。</span>
+<span id="cb23-361"><a href="#cb23-361" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-362"><a href="#cb23-362" aria-hidden="true" tabindex="-1"></a>ワーキングディレクトリにファイルを作成したい場合は、まずエクスプローラーの空き部分をクリックします。すると、枠全体が青い線で囲まれると思います。</span>
+<span id="cb23-363"><a href="#cb23-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-364"><a href="#cb23-364" aria-hidden="true" tabindex="-1"></a>この状態であれば、親フォルダにファイルやフォルダが新規作成されます。下の画像の左側に注目してください。</span>
+<span id="cb23-365"><a href="#cb23-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-366"><a href="#cb23-366" aria-hidden="true" tabindex="-1"></a><span class="al">![エクスプローラーの空いている部分をクリックすると、全体が青枠で囲まれます。](image/vscode-explorer1.png)</span></span>
+<span id="cb23-367"><a href="#cb23-367" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-368"><a href="#cb23-368" aria-hidden="true" tabindex="-1"></a>一方、特定のフォルダの中に作成したい場合は、そのフォルダをクリックしてから新規作成を行ってください。</span>
+<span id="cb23-369"><a href="#cb23-369" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-370"><a href="#cb23-370" aria-hidden="true" tabindex="-1"></a><span class="al">![特定のフォルダをクリックすると、そのフォルダが青枠で囲まれます。](image/vscode-explorer2.png)</span></span>
+<span id="cb23-371"><a href="#cb23-371" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-372"><a href="#cb23-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-373"><a href="#cb23-373" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>キーボードで<span class="in">`Ctrl`</span> + <span class="in">`Shift`</span> + <span class="in">`P`</span>を入力<span class="ot">[^9]</span></span>
+<span id="cb23-374"><a href="#cb23-374" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>「Julia: Start REPL」を選択</span>
+<span id="cb23-375"><a href="#cb23-375" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>少し下の方にあると思います。検索をかけると楽かもしれません。1度使ったものは上に表示される仕組みなので、2回目以降は探しやすいと思います。</span>
+<span id="cb23-376"><a href="#cb23-376" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>少し時間がかかります。</span>
+<span id="cb23-377"><a href="#cb23-377" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>ターミナルで、以下のコマンドを入力して実行</span>
+<span id="cb23-378"><a href="#cb23-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-379"><a href="#cb23-379" aria-hidden="true" tabindex="-1"></a><span class="ot">[^9]: </span><span class="in">`Ctrl`</span> は Mac だと <span class="in">`command`</span></span>
+<span id="cb23-380"><a href="#cb23-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-381"><a href="#cb23-381" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.julia filename="Julia"}</span></span>
+<span id="cb23-382"><a href="#cb23-382" aria-hidden="true" tabindex="-1"></a><span class="in">using Pkg</span></span>
+<span id="cb23-383"><a href="#cb23-383" aria-hidden="true" tabindex="-1"></a><span class="in">Pkg.activate()</span></span>
+<span id="cb23-384"><a href="#cb23-384" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-385"><a href="#cb23-385" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-386"><a href="#cb23-386" aria-hidden="true" tabindex="-1"></a>以上でJuliaの事前準備ができました。</span>
+<span id="cb23-387"><a href="#cb23-387" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-388"><a href="#cb23-388" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 共同プロジェクトの場合</span></span>
+<span id="cb23-389"><a href="#cb23-389" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-390"><a href="#cb23-390" aria-hidden="true" tabindex="-1"></a>共同プロジェクトの場合は、GitHubで共有するため、以下の手順を踏んでおいてください。</span>
+<span id="cb23-391"><a href="#cb23-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-392"><a href="#cb23-392" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>GitHubリポジトリでコラボレーターを追加</span>
+<span id="cb23-393"><a href="#cb23-393" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>リポジトリのSettingsからCollaboratorsに進み、コラボレーターを追加してください。</span>
+<span id="cb23-394"><a href="#cb23-394" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Add peopleから招待できます。</span>
+<span id="cb23-395"><a href="#cb23-395" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-396"><a href="#cb23-396" aria-hidden="true" tabindex="-1"></a>ホスト側の環境構築もここで一区切りです！</span>
+<span id="cb23-397"><a href="#cb23-397" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-398"><a href="#cb23-398" aria-hidden="true" tabindex="-1"></a><span class="fu">### 共同作業者の設定</span></span>
+<span id="cb23-399"><a href="#cb23-399" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-400"><a href="#cb23-400" aria-hidden="true" tabindex="-1"></a>共同作業者も事前準備は終わらせておいてください。</span>
+<span id="cb23-401"><a href="#cb23-401" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-402"><a href="#cb23-402" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>GitHubで招待を受ける</span>
+<span id="cb23-403"><a href="#cb23-403" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>メールが届いているはずですので、そこからGitHubにログインしてください。</span>
+<span id="cb23-404"><a href="#cb23-404" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>リポジトリにアクセスできるようになります。</span>
+<span id="cb23-405"><a href="#cb23-405" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>リポジトリをクローン</span>
+<span id="cb23-406"><a href="#cb23-406" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ホスト側が作成したリポジトリをクローンします。</span>
+<span id="cb23-407"><a href="#cb23-407" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ホスト側の設定と同様にしてクローンし、開いてください。</span>
+<span id="cb23-408"><a href="#cb23-408" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-409"><a href="#cb23-409" aria-hidden="true" tabindex="-1"></a>一旦ここまでで、共同作業者の設定は終わりです。</span>
+<span id="cb23-410"><a href="#cb23-410" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-411"><a href="#cb23-411" aria-hidden="true" tabindex="-1"></a><span class="fu">## 作業</span></span>
+<span id="cb23-412"><a href="#cb23-412" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-413"><a href="#cb23-413" aria-hidden="true" tabindex="-1"></a>ワークフローについて説明します。</span>
+<span id="cb23-414"><a href="#cb23-414" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-415"><a href="#cb23-415" aria-hidden="true" tabindex="-1"></a>GitHub関連<span class="ot">[^10]</span>については<span class="co">[</span><span class="ot">こちらの記事</span><span class="co">](https://yo5uke.github.io/tips/240525_vscode_github/)</span>で詳しめに解説しましたので、そちらも参考にしてください。</span>
+<span id="cb23-416"><a href="#cb23-416" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-417"><a href="#cb23-417" aria-hidden="true" tabindex="-1"></a><span class="ot">[^10]: </span>コミット、プッシュやブランチなど</span>
+<span id="cb23-418"><a href="#cb23-418" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-419"><a href="#cb23-419" aria-hidden="true" tabindex="-1"></a><span class="in">```{=html}</span></span>
+<span id="cb23-420"><a href="#cb23-420" aria-hidden="true" tabindex="-1"></a><span class="in">&lt;!--</span></span>
+<span id="cb23-421"><a href="#cb23-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-422"><a href="#cb23-422" aria-hidden="true" tabindex="-1"></a><span class="in">::: {.callout-tip collapse="true"}</span></span>
+<span id="cb23-423"><a href="#cb23-423" aria-hidden="true" tabindex="-1"></a><span class="in">## 単独プロジェクトの場合</span></span>
+<span id="cb23-424"><a href="#cb23-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-425"><a href="#cb23-425" aria-hidden="true" tabindex="-1"></a><span class="in">単独研究の場合でも、GitHubでブランチを作成することは非常に有用です。以下の理由から、ブランチの作成を推奨します。</span></span>
+<span id="cb23-426"><a href="#cb23-426" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-427"><a href="#cb23-427" aria-hidden="true" tabindex="-1"></a><span class="in">1.  機能の分離</span></span>
+<span id="cb23-428"><a href="#cb23-428" aria-hidden="true" tabindex="-1"></a><span class="in">    -   新しい機能や実験的な変更を行う際に、メインの作業を妨げることなく独立して作業ができます。</span></span>
+<span id="cb23-429"><a href="#cb23-429" aria-hidden="true" tabindex="-1"></a><span class="in">    -   例えば、新しい分析手法を試す場合、その作業を独立したブランチで行うことで、問題があってもメインのコードに影響を与えません。</span></span>
+<span id="cb23-430"><a href="#cb23-430" aria-hidden="true" tabindex="-1"></a><span class="in">2.  バージョン管理</span></span>
+<span id="cb23-431"><a href="#cb23-431" aria-hidden="true" tabindex="-1"></a><span class="in">    -   ブランチを使うことで、異なるバージョンの作業を分離して管理できます。以前の状態に簡単に戻すことができます。</span></span>
+<span id="cb23-432"><a href="#cb23-432" aria-hidden="true" tabindex="-1"></a><span class="in">3.  安全な実験環境</span></span>
+<span id="cb23-433"><a href="#cb23-433" aria-hidden="true" tabindex="-1"></a><span class="in">    -   実験的な変更や新しいアイデアの試行錯誤を安全に行える環境が確保できます。メインのコードベースが壊れる心配がありません。</span></span>
+<span id="cb23-434"><a href="#cb23-434" aria-hidden="true" tabindex="-1"></a><span class="in">4.  バックアップとリカバリ</span></span>
+<span id="cb23-435"><a href="#cb23-435" aria-hidden="true" tabindex="-1"></a><span class="in">    -   作業が進行中の状態をこまめにコミットし、ブランチを使って管理することで、失敗した場合でも簡単に元の状態に戻れます。</span></span>
+<span id="cb23-436"><a href="#cb23-436" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-437"><a href="#cb23-437" aria-hidden="true" tabindex="-1"></a><span class="in">以上、ChatGPT さんの解説でした。</span></span>
+<span id="cb23-438"><a href="#cb23-438" aria-hidden="true" tabindex="-1"></a><span class="in">:::</span></span>
+<span id="cb23-439"><a href="#cb23-439" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-440"><a href="#cb23-440" aria-hidden="true" tabindex="-1"></a><span class="in">### 作業開始時</span></span>
+<span id="cb23-441"><a href="#cb23-441" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-442"><a href="#cb23-442" aria-hidden="true" tabindex="-1"></a><span class="in">作業を開始する際は、以下の手順で作業を開始してください。</span></span>
+<span id="cb23-443"><a href="#cb23-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-444"><a href="#cb23-444" aria-hidden="true" tabindex="-1"></a><span class="in">1.  VSCode で開く</span></span>
+<span id="cb23-445"><a href="#cb23-445" aria-hidden="true" tabindex="-1"></a><span class="in">    -   ホスト側、共同作業者ともに、VSCode の開発コンテナで開いてください。</span></span>
+<span id="cb23-446"><a href="#cb23-446" aria-hidden="true" tabindex="-1"></a><span class="in">2.  作業ブランチを作成</span></span>
+<span id="cb23-447"><a href="#cb23-447" aria-hidden="true" tabindex="-1"></a><span class="in">    -   画面左下、`main` と書かれているところをクリックし、「＋新しいブランチの作成…」を選択してください。</span></span>
+<span id="cb23-448"><a href="#cb23-448" aria-hidden="true" tabindex="-1"></a><span class="in">    -   ブランチ名は、作業内容がわかるようにしてください。</span></span>
+<span id="cb23-449"><a href="#cb23-449" aria-hidden="true" tabindex="-1"></a><span class="in">    -   例えば、`feature/作業内容` など。</span></span>
+<span id="cb23-450"><a href="#cb23-450" aria-hidden="true" tabindex="-1"></a><span class="in">3.  作業ブランチに切り替え</span></span>
+<span id="cb23-451"><a href="#cb23-451" aria-hidden="true" tabindex="-1"></a><span class="in">    -   再び `main` と書かれているところをクリックし、作成したブランチを選択してください。</span></span>
+<span id="cb23-452"><a href="#cb23-452" aria-hidden="true" tabindex="-1"></a><span class="in">4.  作業を開始</span></span>
+<span id="cb23-453"><a href="#cb23-453" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-454"><a href="#cb23-454" aria-hidden="true" tabindex="-1"></a><span class="in">### 作業終了時</span></span>
+<span id="cb23-455"><a href="#cb23-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-456"><a href="#cb23-456" aria-hidden="true" tabindex="-1"></a><span class="in">先に作業終了時について説明します。ここで想定しているのは共同作業を行っている場合です。</span></span>
+<span id="cb23-457"><a href="#cb23-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-458"><a href="#cb23-458" aria-hidden="true" tabindex="-1"></a><span class="in">単独での業務の場合は、ブランチを作成する必要はないと思います。コミットとプッシュを繰り返す流れで十分です。</span></span>
+<span id="cb23-459"><a href="#cb23-459" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-460"><a href="#cb23-460" aria-hidden="true" tabindex="-1"></a><span class="in">1.  作業内容をコミット</span></span>
+<span id="cb23-461"><a href="#cb23-461" aria-hidden="true" tabindex="-1"></a><span class="in">    -   画面左側の「ソース管理」をクリックします。</span></span>
+<span id="cb23-462"><a href="#cb23-462" aria-hidden="true" tabindex="-1"></a><span class="in">    -   ファイルにカーソルを当てると、右側に「+」が表示されます。これをクリックしてステージングします[^10]。</span></span>
+<span id="cb23-463"><a href="#cb23-463" aria-hidden="true" tabindex="-1"></a><span class="in">    -   画面上部の「メッセージを入力」にコミットメッセージ[^11]を入力し、「✓コミット」をクリックしてください。</span></span>
+<span id="cb23-464"><a href="#cb23-464" aria-hidden="true" tabindex="-1"></a><span class="in">2.  プッシュ</span></span>
+<span id="cb23-465"><a href="#cb23-465" aria-hidden="true" tabindex="-1"></a><span class="in">    -   「ソース管理」の右側にある「...」をクリックし、「プッシュ」を選択してください。</span></span>
+<span id="cb23-466"><a href="#cb23-466" aria-hidden="true" tabindex="-1"></a><span class="in">    -   これで、作業内容が GitHub にアップロードされます。</span></span>
+<span id="cb23-467"><a href="#cb23-467" aria-hidden="true" tabindex="-1"></a><span class="in">    -   ブランチを公開しますか？と聞かれたら「OK」を選択してください。</span></span>
+<span id="cb23-468"><a href="#cb23-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-469"><a href="#cb23-469" aria-hidden="true" tabindex="-1"></a><span class="in">[^10]: ステージしていないとコミットできません。</span></span>
+<span id="cb23-470"><a href="#cb23-470" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-471"><a href="#cb23-471" aria-hidden="true" tabindex="-1"></a><span class="in">[^11]: どのような作業をしたのか</span></span>
+<span id="cb23-472"><a href="#cb23-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-473"><a href="#cb23-473" aria-hidden="true" tabindex="-1"></a><span class="in">![](image/no-branch-message.png){width="70%" fig-align="center"}</span></span>
+<span id="cb23-474"><a href="#cb23-474" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-475"><a href="#cb23-475" aria-hidden="true" tabindex="-1"></a><span class="in">ところで、現在は作業中のブランチが先ほど作成したブランチになっていると思います。</span></span>
+<span id="cb23-476"><a href="#cb23-476" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-477"><a href="#cb23-477" aria-hidden="true" tabindex="-1"></a><span class="in">これを `main` にマージするために、プルリクエストを作成します。要は、自分が作成したブランチをホスト側に `main` へ取り込んでもらうための手続きです。</span></span>
+<span id="cb23-478"><a href="#cb23-478" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-479"><a href="#cb23-479" aria-hidden="true" tabindex="-1"></a><span class="in">このステップを挟む理由は、例えば正常に作動しないコードが `main` に勝手にマージされることを防ぐためです。</span></span>
+<span id="cb23-480"><a href="#cb23-480" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-481"><a href="#cb23-481" aria-hidden="true" tabindex="-1"></a><span class="in">3.  プルリクエスト（GitHub）</span></span>
+<span id="cb23-482"><a href="#cb23-482" aria-hidden="true" tabindex="-1"></a><span class="in">    -   GitHub にアクセスし、作業中のリポジトリを開いてください。</span></span>
+<span id="cb23-483"><a href="#cb23-483" aria-hidden="true" tabindex="-1"></a><span class="in">    -   画面上部の「Pull requests」をクリックし、「New pull request」をクリックしてください。</span></span>
+<span id="cb23-484"><a href="#cb23-484" aria-hidden="true" tabindex="-1"></a><span class="in">    -   作業中のブランチと `main` を比較して、プルリクエストを作成します。</span></span>
+<span id="cb23-485"><a href="#cb23-485" aria-hidden="true" tabindex="-1"></a><span class="in">    -   作業内容を説明し、ホスト側にマージしてもらうようにリクエストします。</span></span>
+<span id="cb23-486"><a href="#cb23-486" aria-hidden="true" tabindex="-1"></a><span class="in">    -   承認されれば、無事 `main` にマージされます。</span></span>
+<span id="cb23-487"><a href="#cb23-487" aria-hidden="true" tabindex="-1"></a><span class="in">4.  プル（VSCode）</span></span>
+<span id="cb23-488"><a href="#cb23-488" aria-hidden="true" tabindex="-1"></a><span class="in">    -   ホスト側で、プルリクエストが承認されたら、`main` にマージされた内容を取り込むためにプルします[^12]。</span></span>
+<span id="cb23-489"><a href="#cb23-489" aria-hidden="true" tabindex="-1"></a><span class="in">    -   画面下部のブランチ名をクリックし、`main` を選択してください。これで再び `main` に切り替わります。</span></span>
+<span id="cb23-490"><a href="#cb23-490" aria-hidden="true" tabindex="-1"></a><span class="in">    -   再び画面左からの「ソース管理」から、「ソース管理」の右側にある「...」をクリックし、「プル」を選択してください。</span></span>
+<span id="cb23-491"><a href="#cb23-491" aria-hidden="true" tabindex="-1"></a><span class="in">    -   これで、ローカルの `main` が最新の状態になります。</span></span>
+<span id="cb23-492"><a href="#cb23-492" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-493"><a href="#cb23-493" aria-hidden="true" tabindex="-1"></a><span class="in">[^12]: 現段階ではまだローカルには `main` が反映されていません。</span></span>
+<span id="cb23-494"><a href="#cb23-494" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-495"><a href="#cb23-495" aria-hidden="true" tabindex="-1"></a><span class="in">この流れを繰り返すことで作業のサイクルを回していきます。</span></span>
+<span id="cb23-496"><a href="#cb23-496" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-497"><a href="#cb23-497" aria-hidden="true" tabindex="-1"></a><span class="in">繰り返しになりますが、GitHub については[こちらの記事](https://yo5uke.github.io/tips/240525_vscode_github/)も参考にしてください。</span></span>
+<span id="cb23-498"><a href="#cb23-498" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-499"><a href="#cb23-499" aria-hidden="true" tabindex="-1"></a><span class="in">--&gt;</span></span>
+<span id="cb23-500"><a href="#cb23-500" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-501"><a href="#cb23-501" aria-hidden="true" tabindex="-1"></a><span class="fu">### Rのパッケージ</span></span>
+<span id="cb23-502"><a href="#cb23-502" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-503"><a href="#cb23-503" aria-hidden="true" tabindex="-1"></a>作業中新たにパッケージを使用した場合、それを<span class="in">`renv.lock`</span>ファイルに記録することで、必要なパッケージを記録することができます。記録することで環境を移したときに必要なパッケージをすぐインストールできたり、共同研究者と必要なパッケージを共有することができます。</span>
+<span id="cb23-504"><a href="#cb23-504" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-505"><a href="#cb23-505" aria-hidden="true" tabindex="-1"></a>バージョンごと記録できるので、全く同じ環境を再現することが可能です。</span>
+<span id="cb23-506"><a href="#cb23-506" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-507"><a href="#cb23-507" aria-hidden="true" tabindex="-1"></a>新しいパッケージをインストールし、コード内で使用したら、以下のコードを実行し、lockファイルに記録してください<span class="ot">[^11]</span>。</span>
+<span id="cb23-508"><a href="#cb23-508" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-509"><a href="#cb23-509" aria-hidden="true" tabindex="-1"></a><span class="ot">[^11]: </span>インストールしただけでコード内で使用していない場合は記録できません。</span>
+<span id="cb23-510"><a href="#cb23-510" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-511"><a href="#cb23-511" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.r filename="R"}</span></span>
+<span id="cb23-512"><a href="#cb23-512" aria-hidden="true" tabindex="-1"></a><span class="in">renv::snapshot()</span></span>
+<span id="cb23-513"><a href="#cb23-513" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-514"><a href="#cb23-514" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-515"><a href="#cb23-515" aria-hidden="true" tabindex="-1"></a>異なる環境に移行した場合、以下のコードで記録したパッケージを一括インストールできます。</span>
+<span id="cb23-516"><a href="#cb23-516" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-517"><a href="#cb23-517" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.r filename="R"}</span></span>
+<span id="cb23-518"><a href="#cb23-518" aria-hidden="true" tabindex="-1"></a><span class="in">renv::restore()</span></span>
+<span id="cb23-519"><a href="#cb23-519" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-520"><a href="#cb23-520" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-521"><a href="#cb23-521" aria-hidden="true" tabindex="-1"></a>これでRの開発環境を揃えることができます。</span>
+<span id="cb23-522"><a href="#cb23-522" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-523"><a href="#cb23-523" aria-hidden="true" tabindex="-1"></a>また、新しいパッケージを使ったら、その作業が終わるごとに<span class="in">`renv::snapshot()`</span>で記録しましょう。</span>
+<span id="cb23-524"><a href="#cb23-524" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-525"><a href="#cb23-525" aria-hidden="true" tabindex="-1"></a><span class="fu">### Python のパッケージ</span></span>
+<span id="cb23-526"><a href="#cb23-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-527"><a href="#cb23-527" aria-hidden="true" tabindex="-1"></a>設定ではPythonの設定も加えていますので、必要に応じてPythonも使用できます。</span>
+<span id="cb23-528"><a href="#cb23-528" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-529"><a href="#cb23-529" aria-hidden="true" tabindex="-1"></a>また、そもそもDVCがPythonのパッケージなので、それも<span class="in">`renv`</span>と同様に記録できます。</span>
+<span id="cb23-530"><a href="#cb23-530" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-531"><a href="#cb23-531" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Pythonのパッケージを追加</span>
+<span id="cb23-532"><a href="#cb23-532" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="co">[</span><span class="ot">先ほど</span><span class="co">](#sec-dvc-setting)</span>と同様に、新しいターミナルを開いて、以下のコードでパッケージをインストールします。</span>
+<span id="cb23-533"><a href="#cb23-533" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>DVC以外特に使うものがなければ、ここはスキップしてください。</span>
+<span id="cb23-534"><a href="#cb23-534" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-535"><a href="#cb23-535" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-536"><a href="#cb23-536" aria-hidden="true" tabindex="-1"></a><span class="in">pip install [パッケージ名]</span></span>
+<span id="cb23-537"><a href="#cb23-537" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-538"><a href="#cb23-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-539"><a href="#cb23-539" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>パッケージを記録</span>
+<span id="cb23-540"><a href="#cb23-540" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Rと同様に、作業が終わったら以下のコードでパッケージを記録します。</span>
+<span id="cb23-541"><a href="#cb23-541" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-542"><a href="#cb23-542" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-543"><a href="#cb23-543" aria-hidden="true" tabindex="-1"></a><span class="in">pip freeze &gt; requirements.txt</span></span>
+<span id="cb23-544"><a href="#cb23-544" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-545"><a href="#cb23-545" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-546"><a href="#cb23-546" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>パッケージをインストール（異なる環境に移行した場合）</span>
+<span id="cb23-547"><a href="#cb23-547" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>次のコードで、<span class="in">`requirements.txt`</span>に記録したパッケージをインストールできます。</span>
+<span id="cb23-548"><a href="#cb23-548" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-549"><a href="#cb23-549" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-550"><a href="#cb23-550" aria-hidden="true" tabindex="-1"></a><span class="in">pip install -r requirements.txt</span></span>
+<span id="cb23-551"><a href="#cb23-551" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-552"><a href="#cb23-552" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-553"><a href="#cb23-553" aria-hidden="true" tabindex="-1"></a><span class="fu">### データの管理</span></span>
+<span id="cb23-554"><a href="#cb23-554" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-555"><a href="#cb23-555" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb23-556"><a href="#cb23-556" aria-hidden="true" tabindex="-1"></a><span class="fu">## DVCの追加設定について</span></span>
+<span id="cb23-557"><a href="#cb23-557" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-558"><a href="#cb23-558" aria-hidden="true" tabindex="-1"></a>冒頭にも書いたように、エラーの対処に関する記事を書きました。</span>
+<span id="cb23-559"><a href="#cb23-559" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-560"><a href="#cb23-560" aria-hidden="true" tabindex="-1"></a>認証でブロックを食らった場合には、以下の記事を参照して下さい。</span>
+<span id="cb23-561"><a href="#cb23-561" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-562"><a href="#cb23-562" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">DVCのためのGoogle Cloud Project</span><span class="co">](../240831_google_cloud_project/index.html)</span></span>
+<span id="cb23-563"><a href="#cb23-563" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-564"><a href="#cb23-564" aria-hidden="true" tabindex="-1"></a>また、その他エラーいくつかエラーにも遭遇しましたので、以下の記事も参考にしてください。</span>
+<span id="cb23-565"><a href="#cb23-565" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-566"><a href="#cb23-566" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">環境構築におけるトラブルシューティング</span><span class="co">](../240619_trouble_shooting/index.html)</span></span>
+<span id="cb23-567"><a href="#cb23-567" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-568"><a href="#cb23-568" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-569"><a href="#cb23-569" aria-hidden="true" tabindex="-1"></a>データはDVCで管理します。データはGoogle Drive上で保管されます。</span>
+<span id="cb23-570"><a href="#cb23-570" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-571"><a href="#cb23-571" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>ワーキングディレクトリに、<span class="in">`data`</span>というフォルダを作成</span>
+<span id="cb23-572"><a href="#cb23-572" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>データが入ったら、以下のコードを実行</span>
+<span id="cb23-573"><a href="#cb23-573" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`data`</span>フォルダごとドライブに追加します。</span>
+<span id="cb23-574"><a href="#cb23-574" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`data`</span>フォルダは<span class="in">`.gitignore`</span>に記載されているため、GitHubにはアップロードされません。</span>
+<span id="cb23-575"><a href="#cb23-575" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-576"><a href="#cb23-576" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-577"><a href="#cb23-577" aria-hidden="true" tabindex="-1"></a><span class="in">dvc add data/</span></span>
+<span id="cb23-578"><a href="#cb23-578" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-579"><a href="#cb23-579" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-580"><a href="#cb23-580" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb23-581"><a href="#cb23-581" aria-hidden="true" tabindex="-1"></a><span class="fu">## データの入れ方</span></span>
+<span id="cb23-582"><a href="#cb23-582" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-583"><a href="#cb23-583" aria-hidden="true" tabindex="-1"></a>データは、WindowsのエクスプローラーやMacのFinderから直接フォルダに入れて大丈夫です（通常のWindowsやMacでの作業のように）。</span>
+<span id="cb23-584"><a href="#cb23-584" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-585"><a href="#cb23-585" aria-hidden="true" tabindex="-1"></a>データをプッシュした後にGoogle Driveを見てもらえれば分かりますが、よくわからない形で保存されています。DVCの仕組みがそうなっているからなので、決してファイルが破損しているわけではありません。</span>
+<span id="cb23-586"><a href="#cb23-586" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-587"><a href="#cb23-587" aria-hidden="true" tabindex="-1"></a>ちなみにWindowsユーザーの方で、一回ローカルに落としてからLinuxにデータ等を入れたら<span class="in">`Zone.Identifier`</span>というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。</span>
+<span id="cb23-588"><a href="#cb23-588" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-589"><a href="#cb23-589" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-590"><a href="#cb23-590" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>データをアップロード</span>
+<span id="cb23-591"><a href="#cb23-591" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>以下のコードでデータをプッシュします。</span>
+<span id="cb23-592"><a href="#cb23-592" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-593"><a href="#cb23-593" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-594"><a href="#cb23-594" aria-hidden="true" tabindex="-1"></a><span class="in">dvc push</span></span>
+<span id="cb23-595"><a href="#cb23-595" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-596"><a href="#cb23-596" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-597"><a href="#cb23-597" aria-hidden="true" tabindex="-1"></a>最初はaddとpushをする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください<span class="ot">[^12]</span>。</span>
+<span id="cb23-598"><a href="#cb23-598" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-599"><a href="#cb23-599" aria-hidden="true" tabindex="-1"></a><span class="ot">[^12]: </span>私の場合認証の読み込みが終わらない問題によく直面するので、その際にはターミナルを消し、再度新しいターミナルで実行するようにしています。</span>
+<span id="cb23-600"><a href="#cb23-600" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-601"><a href="#cb23-601" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>（共同作業者）データのダウンロード</span>
+<span id="cb23-602"><a href="#cb23-602" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>以下のコードでデータをダウンロードします。</span>
+<span id="cb23-603"><a href="#cb23-603" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-604"><a href="#cb23-604" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.sh filename="Terminal"}</span></span>
+<span id="cb23-605"><a href="#cb23-605" aria-hidden="true" tabindex="-1"></a><span class="in">dvc pull</span></span>
+<span id="cb23-606"><a href="#cb23-606" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-607"><a href="#cb23-607" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-608"><a href="#cb23-608" aria-hidden="true" tabindex="-1"></a><span class="fu">### Juliaのパッケージ</span></span>
+<span id="cb23-609"><a href="#cb23-609" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-610"><a href="#cb23-610" aria-hidden="true" tabindex="-1"></a>Julia はパッケージが自動で<span class="in">`Project.toml`</span>に保存されるため、共同作業者がインストールするだけで大丈夫です。</span>
+<span id="cb23-611"><a href="#cb23-611" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-612"><a href="#cb23-612" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="co">[</span><span class="ot">先ほど</span><span class="co">](#sec-julia-setting)</span>と同じ手順で環境をアクティベートする</span>
+<span id="cb23-613"><a href="#cb23-613" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>以下のコードでパッケージをインストール</span>
+<span id="cb23-614"><a href="#cb23-614" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-615"><a href="#cb23-615" aria-hidden="true" tabindex="-1"></a><span class="in">``` {.julia filename="Julia"}</span></span>
+<span id="cb23-616"><a href="#cb23-616" aria-hidden="true" tabindex="-1"></a><span class="in">Pkg.instantiate()</span></span>
+<span id="cb23-617"><a href="#cb23-617" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb23-618"><a href="#cb23-618" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-619"><a href="#cb23-619" aria-hidden="true" tabindex="-1"></a><span class="fu">### まとめ</span></span>
+<span id="cb23-620"><a href="#cb23-620" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-621"><a href="#cb23-621" aria-hidden="true" tabindex="-1"></a>これらの作業を通じて、共同作業者もホスト側と同じ環境を揃えることができます。</span>
+<span id="cb23-622"><a href="#cb23-622" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-623"><a href="#cb23-623" aria-hidden="true" tabindex="-1"></a>環境を揃えるためには、コミット、プッシュ、プルを行い、記録したファイルを共有することが重要です。</span>
+<span id="cb23-624"><a href="#cb23-624" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-625"><a href="#cb23-625" aria-hidden="true" tabindex="-1"></a>単独での場合は、ブランチを作成する必要はないですが、コミット、プッシュで管理を行いましょう。</span>
+<span id="cb23-626"><a href="#cb23-626" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-627"><a href="#cb23-627" aria-hidden="true" tabindex="-1"></a>以上がワークフローです。お疲れ様でした！</span>
+<span id="cb23-628"><a href="#cb23-628" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-629"><a href="#cb23-629" aria-hidden="true" tabindex="-1"></a><span class="fu">## 環境構築まとめ</span></span>
+<span id="cb23-630"><a href="#cb23-630" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-631"><a href="#cb23-631" aria-hidden="true" tabindex="-1"></a>作業フローは、~~超適当にまとめると~~次のようになります。</span>
+<span id="cb23-632"><a href="#cb23-632" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-633"><a href="#cb23-633" aria-hidden="true" tabindex="-1"></a><span class="fu">### ホスト</span></span>
+<span id="cb23-634"><a href="#cb23-634" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-635"><a href="#cb23-635" aria-hidden="true" tabindex="-1"></a><span class="ss">0.  </span>必要なソフト等をインストールし、事前準備を行う。</span>
+<span id="cb23-636"><a href="#cb23-636" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</span>
+<span id="cb23-637"><a href="#cb23-637" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>GitHubでリポジトリをインポート、クローン</span>
+<span id="cb23-638"><a href="#cb23-638" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>RStudio Serverでプロジェクトを作成</span>
+<span id="cb23-639"><a href="#cb23-639" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`renv::init()`</span> でrenvを開始</span>
+<span id="cb23-640"><a href="#cb23-640" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`renv::snapshot()`</span>で適宜パッケージを記録</span>
+<span id="cb23-641"><a href="#cb23-641" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span><span class="in">`data`</span>フォルダを作成し、DVCで管理</span>
+<span id="cb23-642"><a href="#cb23-642" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>データは<span class="in">`data`</span>内に追加</span>
+<span id="cb23-643"><a href="#cb23-643" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`dvc add data/`</span>と<span class="in">`dvc push`</span>を使用</span>
+<span id="cb23-644"><a href="#cb23-644" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>VSCode上でコミット、プッシュ</span>
+<span id="cb23-645"><a href="#cb23-645" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-646"><a href="#cb23-646" aria-hidden="true" tabindex="-1"></a><span class="fu">### 共同作業者</span></span>
+<span id="cb23-647"><a href="#cb23-647" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-648"><a href="#cb23-648" aria-hidden="true" tabindex="-1"></a><span class="ss">0.  </span>必要なソフト等をインストールし、事前準備を行う。</span>
+<span id="cb23-649"><a href="#cb23-649" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</span>
+<span id="cb23-650"><a href="#cb23-650" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>GitHubでリポジトリをクローン</span>
+<span id="cb23-651"><a href="#cb23-651" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>RStudio Serverでプロジェクトを開く</span>
+<span id="cb23-652"><a href="#cb23-652" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`renv::restore()`</span> でパッケージをインストール</span>
+<span id="cb23-653"><a href="#cb23-653" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>VSCode上で<span class="in">`pip install -r requirements.txt`</span>を実行</span>
+<span id="cb23-654"><a href="#cb23-654" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>Pythonパッケージをインストール</span>
+<span id="cb23-655"><a href="#cb23-655" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span><span class="in">`dvc pull`</span>でデータをダウンロード</span>
+<span id="cb23-656"><a href="#cb23-656" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>VSCode上でコミット、プッシュ</span>
+<span id="cb23-657"><a href="#cb23-657" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-658"><a href="#cb23-658" aria-hidden="true" tabindex="-1"></a><span class="fu">### 作業中</span></span>
+<span id="cb23-659"><a href="#cb23-659" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-660"><a href="#cb23-660" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>GitHubにコミット、プッシュ、プルを繰り返す。</span>
+<span id="cb23-661"><a href="#cb23-661" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>データも新たに追加した場合、DVCでadd, push, pullを行う。</span>
+<span id="cb23-662"><a href="#cb23-662" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-663"><a href="#cb23-663" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb23-664"><a href="#cb23-664" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-665"><a href="#cb23-665" aria-hidden="true" tabindex="-1"></a>今回はDocker &amp; VSCodeを用いた開発環境を説明しました。</span>
+<span id="cb23-666"><a href="#cb23-666" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-667"><a href="#cb23-667" aria-hidden="true" tabindex="-1"></a>個人的な経験として、環境構築はエラーとの戦いです。できるだけエラーに遭遇しないよう丁寧に書いたつもりですが、まだまだ把握していないエラーがたくさんあると思います。</span>
+<span id="cb23-668"><a href="#cb23-668" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-669"><a href="#cb23-669" aria-hidden="true" tabindex="-1"></a>何かエラー等ありましたら、コメントしていただけると幸いです。</span>
+<span id="cb23-670"><a href="#cb23-670" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-671"><a href="#cb23-671" aria-hidden="true" tabindex="-1"></a><span class="fu">## 参考文献</span></span>
+<span id="cb23-672"><a href="#cb23-672" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-673"><a href="#cb23-673" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb23-674"><a href="#cb23-674" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">VSCode + Dockerでよりミニマルでポータブルな研究環境を</span><span class="co">](https://zenn.dev/nicetak/articles/vscode-docker-2023)</span></span>
+<span id="cb23-675"><a href="#cb23-675" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-676"><a href="#cb23-676" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-677"><a href="#cb23-677" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb23-678"><a href="#cb23-678" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">UbuntuにGitをインストールする</span><span class="co">](https://qiita.com/tommy_g/items/771ac45b89b02e8a5d64)</span></span>
+<span id="cb23-679"><a href="#cb23-679" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-680"><a href="#cb23-680" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-681"><a href="#cb23-681" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb23-682"><a href="#cb23-682" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">githubを使った共同作業の手順</span><span class="co">](https://qiita.com/future_kame/items/9fa256aea09faa28b357)</span></span>
+<span id="cb23-683"><a href="#cb23-683" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb23-684"><a href="#cb23-684" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-685"><a href="#cb23-685" aria-hidden="true" tabindex="-1"></a><span class="fu">## 追記</span></span>
+<span id="cb23-686"><a href="#cb23-686" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-687"><a href="#cb23-687" aria-hidden="true" tabindex="-1"></a>2024/5/11：リポジトリ作成の手順を変更</span>
+<span id="cb23-688"><a href="#cb23-688" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-689"><a href="#cb23-689" aria-hidden="true" tabindex="-1"></a>2024/5/22：Mac への対応と、内容の刷新</span>
+<span id="cb23-690"><a href="#cb23-690" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-691"><a href="#cb23-691" aria-hidden="true" tabindex="-1"></a>2024/5/25：リポジトリのクローン方法を変更</span>
+<span id="cb23-692"><a href="#cb23-692" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-693"><a href="#cb23-693" aria-hidden="true" tabindex="-1"></a>2024/6/10：テンプレートのキャッシュに関する設定を変更</span>
+<span id="cb23-694"><a href="#cb23-694" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-695"><a href="#cb23-695" aria-hidden="true" tabindex="-1"></a>2024/9/18：GitHubの説明を簡略化</span></code><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024 Yosuke Abe <br> Content on this site is licensed under a <br> <i class="fa-brands fa-creative-commons" aria-label="creative-commons"></i> <i class="fa-brands fa-creative-commons-by" aria-label="creative-commons-by"></i> <i class="fa-brands fa-creative-commons-sa" aria-label="creative-commons-sa"></i> <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons BY-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>This website is created with <i class="fa-brands fa-r-project" aria-label="r-project"></i> and <a href="https://quarto.org">Quarto</a> <br> <i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/yo5uke/yo5uke.github.io">Source Code</a> <br> <i class="fa-solid fa-location-dot" aria-label="location-dot"></i> <a href="https://maps.app.goo.gl/PWAV2oqnWEHaTh3k8">Toyonaka</a>, Osaka, Japan</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
