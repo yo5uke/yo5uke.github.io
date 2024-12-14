@@ -258,7 +258,7 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
     <div>
     <div class="quarto-title-meta-heading">最終更新</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">2024年12月13日</p>
+      <p class="date-modified">2024年12月14日</p>
     </div>
   </div>
     
@@ -271,16 +271,15 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 
 <section id="はじめに" class="level1">
 <h1>はじめに</h1>
-<p>このページでは、R で GIS を使う上での基本について説明します。</p>
-<p>R 言語では主に <code>sf</code> パッケージを使って GIS を扱います。また、<code>tidyverse</code> パッケージ群を使うことで、データの前処理や可視化を行うことができます。</p>
-<p>また、R Project を使っていることを前提とします<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
+<p>このページでは、RでGISを使う上での基本について説明します。</p>
+<p>R 言語では主に<code>sf</code>パッケージを使ってGISを扱います。また、<code>tidyverse</code>パッケージ群を使うことで、データの前処理や可視化を行うことができます。</p>
+<p>また、R Projectを使っていることを前提とします<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
 </section>
 <section id="パッケージ" class="level1">
 <h1>パッケージ</h1>
-<p><code>sf</code>, <code>tidyverse</code> と <code>here()</code> の3つを使用します。</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"sf"</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"tidyverse"</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"here"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p><code>sf</code>, <code>tidyverse</code>と<code>here</code>の3つを使用します。</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># インストール</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="fu">c</span>(<span class="st">"sf"</span>, <span class="st">"tidyverse"</span>, <span class="st">"here"</span>))</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
@@ -299,7 +298,7 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 <li><a href="https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P13.html">国土数値情報ダウンロードサイト</a></li>
 </ul></li>
 </ol>
-<p>これらのデータを、<code>data</code> フォルダを作って入れておいてください。</p>
+<p>これらのデータを、ワーキングディレクトリに<code>data</code>フォルダを作って入れておいてください。</p>
 </section>
 <section id="作業" class="level1">
 <h1>作業</h1>
@@ -308,8 +307,8 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 <h2 class="anchored" data-anchor-id="データの抽出">データの抽出</h2>
 <section id="データの読み込み" class="level3">
 <h3 class="anchored" data-anchor-id="データの読み込み">データの読み込み</h3>
-<p><code>sf</code> パッケージの <code>read_sf()</code> 関数を用います。</p>
-<p>Shift_JIS で書かれたような<del>変な</del>データがたまにあるので、そのようなときはオプションで指定しましょう。<code>options = "ENCODING=Shift_JIS"</code> を追加してください。</p>
+<p><code>sf</code>パッケージの<code>read_sf()</code>関数を用います。</p>
+<p>Shift_JISで書かれたような<del>変な</del>データがたまにあるので、そのようなときはオプションで指定しましょう。<code>options = "ENCODING=Shift_JIS"</code>を追加してください。</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
@@ -322,24 +321,24 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p><code>read_sf()</code> は、<code>st_read()</code> の細かい設定を省いてくれた関数、というイメージです。</p>
+<p><code>read_sf()</code>は、<code>st_read()</code>の細かい設定を省いてくれた関数、というイメージです。</p>
 <p>具体的には、</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">read_sf</span>(dsn)</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">st_read</span>(dsn, <span class="at">quiet =</span> <span class="cn">TRUE</span>, <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>, <span class="at">as_tibble =</span> <span class="cn">TRUE</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>この2つが同じです<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。詳しくは <code>?st_read()</code> をコンソールに打ち込みドキュメントを読んでみてください。</p>
-<p>基本的には <code>read_sf()</code> で十分だと思います。</p>
+<p>この2つが同じです<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a>。詳しくは<code>?st_read()</code>をコンソールに打ち込みドキュメントを読んでみてください。</p>
+<p>基本的には<code>read_sf()</code>で十分だと思います。</p>
 </div>
 </div>
 </div>
-<p>また、公園のデータは CRS が設定されていないようです。その設定も行います。CRS については後の回で説明します。</p>
+<p>また、公園のデータはCRSが設定されていないようです。その設定も行います。CRSについては後の回で説明します。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>fukushima <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/N03-20240101_07_GML/N03-20240101_07.shp"</span>))</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>park <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/P13-11_07_GML/P13-11_07.shp"</span>), </span>
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">options =</span> <span class="st">"ENCODING=Shift_JIS"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_set_crs</span>(<span class="fu">st_crs</span>(<span class="dv">4612</span>)) <span class="sc">|&gt;</span>  <span class="co"># JGD2000/(B, L) データ本来のCRS</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(<span class="dv">6668</span>))  <span class="co"># JGD2011/(B, L) 変換したいCRS</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_set_crs</span>(<span class="fu">st_crs</span>(<span class="dv">4612</span>)) <span class="sc">|&gt;</span>  <span class="co"># JGD2000/(B, L) データ本来のCRS</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(<span class="dv">6668</span>))   <span class="co"># JGD2011/(B, L) 変換したいCRS</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="データを見てみる" class="level3">
@@ -366,555 +365,180 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </figcaption>
 <div aria-describedby="tbl-head-park-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<div id="qgpzjiphzp" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#qgpzjiphzp table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+<!-- preamble start -->
 
-#qgpzjiphzp thead, #qgpzjiphzp tbody, #qgpzjiphzp tfoot, #qgpzjiphzp tr, #qgpzjiphzp td, #qgpzjiphzp th {
-  border-style: none;
-}
+    <script>
 
-#qgpzjiphzp p {
-  margin: 0;
-  padding: 0;
-}
+      function styleCell_202acamuwft10idxnyyn(i, j, css_id) {
+          var table = document.getElementById("tinytable_202acamuwft10idxnyyn");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_202acamuwft10idxnyyn');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_202acamuwft10idxnyyn(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_202acamuwft10idxnyyn");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 }, { i: 0, j: 5 }, { i: 0, j: 6 }, { i: 0, j: 7 }, { i: 0, j: 8 }, { i: 0, j: 9 }, { i: 0, j: 10 },  ], css_id: 'tinytable_css_ba6h6w1r0331x0150313',}, 
+          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 }, { i: 6, j: 5 }, { i: 6, j: 6 }, { i: 6, j: 7 }, { i: 6, j: 8 }, { i: 6, j: 9 }, { i: 6, j: 10 },  ], css_id: 'tinytable_css_7c5b33acf9x5jek9on69',}, 
+          ];
 
-#qgpzjiphzp .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_202acamuwft10idxnyyn(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
 
-#qgpzjiphzp .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#qgpzjiphzp .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#qgpzjiphzp .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#qgpzjiphzp .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#qgpzjiphzp .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#qgpzjiphzp .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#qgpzjiphzp .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#qgpzjiphzp .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#qgpzjiphzp .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#qgpzjiphzp .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#qgpzjiphzp .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#qgpzjiphzp .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#qgpzjiphzp .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#qgpzjiphzp .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#qgpzjiphzp .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qgpzjiphzp .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#qgpzjiphzp .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#qgpzjiphzp .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#qgpzjiphzp .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qgpzjiphzp .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#qgpzjiphzp .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qgpzjiphzp .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#qgpzjiphzp .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qgpzjiphzp .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#qgpzjiphzp .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#qgpzjiphzp .gt_left {
-  text-align: left;
-}
-
-#qgpzjiphzp .gt_center {
-  text-align: center;
-}
-
-#qgpzjiphzp .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#qgpzjiphzp .gt_font_normal {
-  font-weight: normal;
-}
-
-#qgpzjiphzp .gt_font_bold {
-  font-weight: bold;
-}
-
-#qgpzjiphzp .gt_font_italic {
-  font-style: italic;
-}
-
-#qgpzjiphzp .gt_super {
-  font-size: 65%;
-}
-
-#qgpzjiphzp .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#qgpzjiphzp .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#qgpzjiphzp .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#qgpzjiphzp .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#qgpzjiphzp .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#qgpzjiphzp .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#qgpzjiphzp .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#qgpzjiphzp .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#qgpzjiphzp div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-
-<table class="gt_table do-not-create-environment cell caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<thead>
-<tr class="gt_col_headings header">
-<th id="P13_001" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">P13_001</th>
-<th id="P13_002" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">P13_002</th>
-<th id="P13_003" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">P13_003</th>
-<th id="P13_004" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">P13_004</th>
-<th id="P13_005" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">P13_005</th>
-<th id="P13_006" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">P13_006</th>
-<th id="P13_007" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">P13_007</th>
-<th id="P13_008" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">P13_008</th>
-<th id="P13_009" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">P13_009</th>
-<th id="P13_010" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">P13_010</th>
-<th id="geometry" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">geometry</th>
-</tr>
-</thead>
-<tbody class="gt_table_body">
-<tr class="odd">
-<td class="gt_row gt_left" headers="P13_001">福島県</td>
-<td class="gt_row gt_left" headers="P13_002">NA</td>
-<td class="gt_row gt_left" headers="P13_003">福島空港公園</td>
-<td class="gt_row gt_right" headers="P13_004">6</td>
-<td class="gt_row gt_left" headers="P13_005">福島県</td>
-<td class="gt_row gt_left" headers="P13_006">須賀川市</td>
-<td class="gt_row gt_right" headers="P13_007">1993</td>
-<td class="gt_row gt_right" headers="P13_008">520900</td>
-<td class="gt_row gt_right" headers="P13_009">1</td>
-<td class="gt_row gt_left" headers="P13_010">NA</td>
-<td class="gt_row gt_center" headers="geometry">c(140.42020783, 37.24667066)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="P13_001">福島県</td>
-<td class="gt_row gt_left" headers="P13_002">NA</td>
-<td class="gt_row gt_left" headers="P13_003">あづま総合運動公園</td>
-<td class="gt_row gt_right" headers="P13_004">6</td>
-<td class="gt_row gt_left" headers="P13_005">福島県</td>
-<td class="gt_row gt_left" headers="P13_006">福島市</td>
-<td class="gt_row gt_right" headers="P13_007">1980</td>
-<td class="gt_row gt_right" headers="P13_008">982000</td>
-<td class="gt_row gt_right" headers="P13_009">1</td>
-<td class="gt_row gt_left" headers="P13_010">NA</td>
-<td class="gt_row gt_center" headers="geometry">c(140.3619751, 37.7220006)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="P13_001">福島県</td>
-<td class="gt_row gt_left" headers="P13_002">NA</td>
-<td class="gt_row gt_left" headers="P13_003">逢瀬公園</td>
-<td class="gt_row gt_right" headers="P13_004">4</td>
-<td class="gt_row gt_left" headers="P13_005">福島県</td>
-<td class="gt_row gt_left" headers="P13_006">郡山市</td>
-<td class="gt_row gt_right" headers="P13_007">1979</td>
-<td class="gt_row gt_right" headers="P13_008">346000</td>
-<td class="gt_row gt_right" headers="P13_009">1</td>
-<td class="gt_row gt_left" headers="P13_010">NA</td>
-<td class="gt_row gt_center" headers="geometry">c(140.27387039, 37.41233912)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="P13_001">福島県</td>
-<td class="gt_row gt_left" headers="P13_002">NA</td>
-<td class="gt_row gt_left" headers="P13_003">会津レクリエーション公園</td>
-<td class="gt_row gt_right" headers="P13_004">6</td>
-<td class="gt_row gt_left" headers="P13_005">福島県</td>
-<td class="gt_row gt_left" headers="P13_006">会津若松市</td>
-<td class="gt_row gt_right" headers="P13_007">1998</td>
-<td class="gt_row gt_right" headers="P13_008">426000</td>
-<td class="gt_row gt_right" headers="P13_009">1</td>
-<td class="gt_row gt_left" headers="P13_010">NA</td>
-<td class="gt_row gt_center" headers="geometry">c(140.01659489, 37.51642757)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="P13_001">福島県</td>
-<td class="gt_row gt_left" headers="P13_002">NA</td>
-<td class="gt_row gt_left" headers="P13_003">東ヶ丘公園</td>
-<td class="gt_row gt_right" headers="P13_004">6</td>
-<td class="gt_row gt_left" headers="P13_005">福島県</td>
-<td class="gt_row gt_left" headers="P13_006">南相馬市</td>
-<td class="gt_row gt_right" headers="P13_007">1995</td>
-<td class="gt_row gt_right" headers="P13_008">212000</td>
-<td class="gt_row gt_right" headers="P13_009">1</td>
-<td class="gt_row gt_left" headers="P13_010">NA</td>
-<td class="gt_row gt_center" headers="geometry">c(140.96713139, 37.63259542)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="P13_001">福島県</td>
-<td class="gt_row gt_left" headers="P13_002">NA</td>
-<td class="gt_row gt_left" headers="P13_003">いわき公園</td>
-<td class="gt_row gt_right" headers="P13_004">6</td>
-<td class="gt_row gt_left" headers="P13_005">福島県</td>
-<td class="gt_row gt_left" headers="P13_006">いわき市</td>
-<td class="gt_row gt_right" headers="P13_007">1987</td>
-<td class="gt_row gt_right" headers="P13_008">713000</td>
-<td class="gt_row gt_right" headers="P13_009">1</td>
-<td class="gt_row gt_left" headers="P13_010">NA</td>
-<td class="gt_row gt_center" headers="geometry">c(140.92164642, 37.01329096)</td>
-</tr>
-</tbody>
-</table>
-
-</div>
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_ba6h6w1r0331x0150313, .table th.tinytable_css_ba6h6w1r0331x0150313 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_7c5b33acf9x5jek9on69, .table th.tinytable_css_7c5b33acf9x5jek9on69 { border-bottom: solid #d3d8dc 0.1em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_202acamuwft10idxnyyn" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">P13_001</th>
+                <th scope="col">P13_002</th>
+                <th scope="col">P13_003</th>
+                <th scope="col">P13_004</th>
+                <th scope="col">P13_005</th>
+                <th scope="col">P13_006</th>
+                <th scope="col">P13_007</th>
+                <th scope="col">P13_008</th>
+                <th scope="col">P13_009</th>
+                <th scope="col">P13_010</th>
+                <th scope="col">geometry</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>福島県</td>
+                  <td>NA</td>
+                  <td>福島空港公園            </td>
+                  <td>6</td>
+                  <td>福島県</td>
+                  <td>須賀川市  </td>
+                  <td>1993</td>
+                  <td>520900</td>
+                  <td>1</td>
+                  <td>NA</td>
+                  <td>POINT (140.4202 37.24667)</td>
+                </tr>
+                <tr>
+                  <td>福島県</td>
+                  <td>NA</td>
+                  <td>あづま総合運動公園      </td>
+                  <td>6</td>
+                  <td>福島県</td>
+                  <td>福島市    </td>
+                  <td>1980</td>
+                  <td>982000</td>
+                  <td>1</td>
+                  <td>NA</td>
+                  <td>POINT (140.362 37.722)</td>
+                </tr>
+                <tr>
+                  <td>福島県</td>
+                  <td>NA</td>
+                  <td>逢瀬公園                </td>
+                  <td>4</td>
+                  <td>福島県</td>
+                  <td>郡山市    </td>
+                  <td>1979</td>
+                  <td>346000</td>
+                  <td>1</td>
+                  <td>NA</td>
+                  <td>POINT (140.2739 37.41234)</td>
+                </tr>
+                <tr>
+                  <td>福島県</td>
+                  <td>NA</td>
+                  <td>会津レクリエーション公園</td>
+                  <td>6</td>
+                  <td>福島県</td>
+                  <td>会津若松市</td>
+                  <td>1998</td>
+                  <td>426000</td>
+                  <td>1</td>
+                  <td>NA</td>
+                  <td>POINT (140.0166 37.51643)</td>
+                </tr>
+                <tr>
+                  <td>福島県</td>
+                  <td>NA</td>
+                  <td>東ヶ丘公園              </td>
+                  <td>6</td>
+                  <td>福島県</td>
+                  <td>南相馬市  </td>
+                  <td>1995</td>
+                  <td>212000</td>
+                  <td>1</td>
+                  <td>NA</td>
+                  <td>POINT (140.9671 37.6326)</td>
+                </tr>
+                <tr>
+                  <td>福島県</td>
+                  <td>NA</td>
+                  <td>いわき公園              </td>
+                  <td>6</td>
+                  <td>福島県</td>
+                  <td>いわき市  </td>
+                  <td>1987</td>
+                  <td>713000</td>
+                  <td>1</td>
+                  <td>NA</td>
+                  <td>POINT (140.9216 37.01329)</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
 </div>
 </div>
 </figure>
@@ -943,17 +567,29 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </section>
 <section id="抽出" class="level3">
 <h3 class="anchored" data-anchor-id="抽出">抽出</h3>
-<p>今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す <code>geometry</code> の列だけが必要だとします。</p>
-<p><code>dplyr::select()</code> 関数を使って列を抽出し、同時に名前も変更します。</p>
-<p><code>select()</code> 内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。</p>
+<p>今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す<code>geometry</code>の列だけが必要だとします。</p>
+<p><code>dplyr::select()</code>関数を使って列を抽出し、同時に名前も変更します。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>select()</code>内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。</p>
+</div>
+</div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>park_s <span class="ot">&lt;-</span> park <span class="sc">|&gt;</span> </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">name_park =</span> P13_003, </span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">name_pref =</span> P13_005, </span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">name_muni =</span> P13_006, </span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>        geometry</span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_park =</span> P13_003,  <span class="co"># 公園名</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_pref =</span> P13_005,  <span class="co"># 都道府県名</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_muni =</span> P13_006,  <span class="co"># 市区町村名</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    geometry</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell">
 <div id="tbl-park-selected" class="cell quarto-float quarto-figure quarto-figure-center anchored">
@@ -963,522 +599,147 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </figcaption>
 <div aria-describedby="tbl-park-selected-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
-<div id="lqlwkvybfr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#lqlwkvybfr table {
-  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+<!-- preamble start -->
 
-#lqlwkvybfr thead, #lqlwkvybfr tbody, #lqlwkvybfr tfoot, #lqlwkvybfr tr, #lqlwkvybfr td, #lqlwkvybfr th {
-  border-style: none;
-}
+    <script>
 
-#lqlwkvybfr p {
-  margin: 0;
-  padding: 0;
-}
+      function styleCell_ak1soy4f7zabn6gz5whs(i, j, css_id) {
+          var table = document.getElementById("tinytable_ak1soy4f7zabn6gz5whs");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_ak1soy4f7zabn6gz5whs');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_ak1soy4f7zabn6gz5whs(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_ak1soy4f7zabn6gz5whs");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 },  ], css_id: 'tinytable_css_mgbzch6nrjz06g31sm7f',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_94y4zbghhy1n2bxrrwwy',}, 
+          ];
 
-#lqlwkvybfr .gt_table {
-  display: table;
-  border-collapse: collapse;
-  line-height: normal;
-  margin-left: auto;
-  margin-right: auto;
-  color: #333333;
-  font-size: 16px;
-  font-weight: normal;
-  font-style: normal;
-  background-color: #FFFFFF;
-  width: auto;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #A8A8A8;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #A8A8A8;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-}
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_ak1soy4f7zabn6gz5whs(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
 
-#lqlwkvybfr .gt_caption {
-  padding-top: 4px;
-  padding-bottom: 4px;
-}
-
-#lqlwkvybfr .gt_title {
-  color: #333333;
-  font-size: 125%;
-  font-weight: initial;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-color: #FFFFFF;
-  border-bottom-width: 0;
-}
-
-#lqlwkvybfr .gt_subtitle {
-  color: #333333;
-  font-size: 85%;
-  font-weight: initial;
-  padding-top: 3px;
-  padding-bottom: 5px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-color: #FFFFFF;
-  border-top-width: 0;
-}
-
-#lqlwkvybfr .gt_heading {
-  background-color: #FFFFFF;
-  text-align: center;
-  border-bottom-color: #FFFFFF;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_bottom_border {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_col_headings {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_col_heading {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 6px;
-  padding-left: 5px;
-  padding-right: 5px;
-  overflow-x: hidden;
-}
-
-#lqlwkvybfr .gt_column_spanner_outer {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: normal;
-  text-transform: inherit;
-  padding-top: 0;
-  padding-bottom: 0;
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-#lqlwkvybfr .gt_column_spanner_outer:first-child {
-  padding-left: 0;
-}
-
-#lqlwkvybfr .gt_column_spanner_outer:last-child {
-  padding-right: 0;
-}
-
-#lqlwkvybfr .gt_column_spanner {
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: bottom;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  overflow-x: hidden;
-  display: inline-block;
-  width: 100%;
-}
-
-#lqlwkvybfr .gt_spanner_row {
-  border-bottom-style: hidden;
-}
-
-#lqlwkvybfr .gt_group_heading {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  text-align: left;
-}
-
-#lqlwkvybfr .gt_empty_group_heading {
-  padding: 0.5px;
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  vertical-align: middle;
-}
-
-#lqlwkvybfr .gt_from_md > :first-child {
-  margin-top: 0;
-}
-
-#lqlwkvybfr .gt_from_md > :last-child {
-  margin-bottom: 0;
-}
-
-#lqlwkvybfr .gt_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  margin: 10px;
-  border-top-style: solid;
-  border-top-width: 1px;
-  border-top-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 1px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 1px;
-  border-right-color: #D3D3D3;
-  vertical-align: middle;
-  overflow-x: hidden;
-}
-
-#lqlwkvybfr .gt_stub {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#lqlwkvybfr .gt_stub_row_group {
-  color: #333333;
-  background-color: #FFFFFF;
-  font-size: 100%;
-  font-weight: initial;
-  text-transform: inherit;
-  border-right-style: solid;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-  padding-left: 5px;
-  padding-right: 5px;
-  vertical-align: top;
-}
-
-#lqlwkvybfr .gt_row_group_first td {
-  border-top-width: 2px;
-}
-
-#lqlwkvybfr .gt_row_group_first th {
-  border-top-width: 2px;
-}
-
-#lqlwkvybfr .gt_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#lqlwkvybfr .gt_first_summary_row {
-  border-top-style: solid;
-  border-top-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_first_summary_row.thick {
-  border-top-width: 2px;
-}
-
-#lqlwkvybfr .gt_last_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_grand_summary_row {
-  color: #333333;
-  background-color: #FFFFFF;
-  text-transform: inherit;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#lqlwkvybfr .gt_first_grand_summary_row {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-top-style: double;
-  border-top-width: 6px;
-  border-top-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_last_grand_summary_row_top {
-  padding-top: 8px;
-  padding-bottom: 8px;
-  padding-left: 5px;
-  padding-right: 5px;
-  border-bottom-style: double;
-  border-bottom-width: 6px;
-  border-bottom-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_striped {
-  background-color: rgba(128, 128, 128, 0.05);
-}
-
-#lqlwkvybfr .gt_table_body {
-  border-top-style: solid;
-  border-top-width: 2px;
-  border-top-color: #D3D3D3;
-  border-bottom-style: solid;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_footnotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_footnote {
-  margin: 0px;
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#lqlwkvybfr .gt_sourcenotes {
-  color: #333333;
-  background-color: #FFFFFF;
-  border-bottom-style: none;
-  border-bottom-width: 2px;
-  border-bottom-color: #D3D3D3;
-  border-left-style: none;
-  border-left-width: 2px;
-  border-left-color: #D3D3D3;
-  border-right-style: none;
-  border-right-width: 2px;
-  border-right-color: #D3D3D3;
-}
-
-#lqlwkvybfr .gt_sourcenote {
-  font-size: 90%;
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 5px;
-  padding-right: 5px;
-}
-
-#lqlwkvybfr .gt_left {
-  text-align: left;
-}
-
-#lqlwkvybfr .gt_center {
-  text-align: center;
-}
-
-#lqlwkvybfr .gt_right {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#lqlwkvybfr .gt_font_normal {
-  font-weight: normal;
-}
-
-#lqlwkvybfr .gt_font_bold {
-  font-weight: bold;
-}
-
-#lqlwkvybfr .gt_font_italic {
-  font-style: italic;
-}
-
-#lqlwkvybfr .gt_super {
-  font-size: 65%;
-}
-
-#lqlwkvybfr .gt_footnote_marks {
-  font-size: 75%;
-  vertical-align: 0.4em;
-  position: initial;
-}
-
-#lqlwkvybfr .gt_asterisk {
-  font-size: 100%;
-  vertical-align: 0;
-}
-
-#lqlwkvybfr .gt_indent_1 {
-  text-indent: 5px;
-}
-
-#lqlwkvybfr .gt_indent_2 {
-  text-indent: 10px;
-}
-
-#lqlwkvybfr .gt_indent_3 {
-  text-indent: 15px;
-}
-
-#lqlwkvybfr .gt_indent_4 {
-  text-indent: 20px;
-}
-
-#lqlwkvybfr .gt_indent_5 {
-  text-indent: 25px;
-}
-
-#lqlwkvybfr .katex-display {
-  display: inline-flex !important;
-  margin-bottom: 0.75em !important;
-}
-
-#lqlwkvybfr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
-  height: 0px !important;
-}
-</style>
-
-<table class="gt_table do-not-create-environment cell caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-quarto-disable-processing="false" data-quarto-bootstrap="false">
-<thead>
-<tr class="gt_col_headings header">
-<th id="name_park" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">name_park</th>
-<th id="name_pref" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">name_pref</th>
-<th id="name_muni" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">name_muni</th>
-<th id="geometry" class="gt_col_heading gt_columns_bottom_border gt_center" data-quarto-table-cell-role="th" scope="col">geometry</th>
-</tr>
-</thead>
-<tbody class="gt_table_body">
-<tr class="odd">
-<td class="gt_row gt_left" headers="name_park">福島空港公園</td>
-<td class="gt_row gt_left" headers="name_pref">福島県</td>
-<td class="gt_row gt_left" headers="name_muni">須賀川市</td>
-<td class="gt_row gt_center" headers="geometry">c(140.42020783, 37.24667066)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="name_park">あづま総合運動公園</td>
-<td class="gt_row gt_left" headers="name_pref">福島県</td>
-<td class="gt_row gt_left" headers="name_muni">福島市</td>
-<td class="gt_row gt_center" headers="geometry">c(140.3619751, 37.7220006)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="name_park">逢瀬公園</td>
-<td class="gt_row gt_left" headers="name_pref">福島県</td>
-<td class="gt_row gt_left" headers="name_muni">郡山市</td>
-<td class="gt_row gt_center" headers="geometry">c(140.27387039, 37.41233912)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="name_park">会津レクリエーション公園</td>
-<td class="gt_row gt_left" headers="name_pref">福島県</td>
-<td class="gt_row gt_left" headers="name_muni">会津若松市</td>
-<td class="gt_row gt_center" headers="geometry">c(140.01659489, 37.51642757)</td>
-</tr>
-<tr class="odd">
-<td class="gt_row gt_left" headers="name_park">東ヶ丘公園</td>
-<td class="gt_row gt_left" headers="name_pref">福島県</td>
-<td class="gt_row gt_left" headers="name_muni">南相馬市</td>
-<td class="gt_row gt_center" headers="geometry">c(140.96713139, 37.63259542)</td>
-</tr>
-<tr class="even">
-<td class="gt_row gt_left" headers="name_park">いわき公園</td>
-<td class="gt_row gt_left" headers="name_pref">福島県</td>
-<td class="gt_row gt_left" headers="name_muni">いわき市</td>
-<td class="gt_row gt_center" headers="geometry">c(140.92164642, 37.01329096)</td>
-</tr>
-</tbody>
-</table>
-
-</div>
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_mgbzch6nrjz06g31sm7f, .table th.tinytable_css_mgbzch6nrjz06g31sm7f { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_94y4zbghhy1n2bxrrwwy, .table th.tinytable_css_94y4zbghhy1n2bxrrwwy { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_ak1soy4f7zabn6gz5whs" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">name_park</th>
+                <th scope="col">name_pref</th>
+                <th scope="col">name_muni</th>
+                <th scope="col">geometry</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>福島空港公園            </td>
+                  <td>福島県</td>
+                  <td>須賀川市  </td>
+                  <td>POINT (140.4202 37.24667)</td>
+                </tr>
+                <tr>
+                  <td>あづま総合運動公園      </td>
+                  <td>福島県</td>
+                  <td>福島市    </td>
+                  <td>POINT (140.362 37.722)</td>
+                </tr>
+                <tr>
+                  <td>逢瀬公園                </td>
+                  <td>福島県</td>
+                  <td>郡山市    </td>
+                  <td>POINT (140.2739 37.41234)</td>
+                </tr>
+                <tr>
+                  <td>会津レクリエーション公園</td>
+                  <td>福島県</td>
+                  <td>会津若松市</td>
+                  <td>POINT (140.0166 37.51643)</td>
+                </tr>
+                <tr>
+                  <td>東ヶ丘公園              </td>
+                  <td>福島県</td>
+                  <td>南相馬市  </td>
+                  <td>POINT (140.9671 37.6326)</td>
+                </tr>
+                <tr>
+                  <td>いわき公園              </td>
+                  <td>福島県</td>
+                  <td>いわき市  </td>
+                  <td>POINT (140.9216 37.01329)</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
 </div>
 </div>
 </figure>
 </div>
 </div>
-<p>このように <code>tidyverse</code> の強みを活かしてデータハンドリングを行えます<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>。</p>
+<p>このように<code>tidyverse</code>の強みを活かしてデータハンドリングを行えます<a href="#fn3" class="footnote-ref" id="fnref3" role="doc-noteref"><sup>3</sup></a>。</p>
 </section>
 </section>
 <section id="可視化" class="level2">
 <h2 class="anchored" data-anchor-id="可視化">可視化</h2>
-<p><code>tidyverse</code> に含まれる <code>ggplot2</code> を使って、ここまでのデータをプロットしていきます。</p>
-<p>基本的な書き方は以下の通りです。データフレームから <code>ggplot()</code> を繋いで記述していきます。</p>
+<p><code>tidyverse</code>に含まれる<code>ggplot2</code>を使って、ここまでのデータをプロットしていきます。</p>
+<p>基本的な書き方は以下の通りです。データフレームから<code>ggplot()</code>を繋いで記述していきます。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>park_s <span class="sc">|&gt;</span> </span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>()  <span class="co"># GIS用のコマンド</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()   <span class="co"># 地図をプロットするためのコマンド</span></span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div id="fig-simple-plot" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1492,12 +753,12 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </div>
 </div>
 </div>
-<p>これだとやや分かりにくいので、背景を消しましょう。<code>theme_void()</code> や <code>theme_bw()</code>、<code>theme_classic()</code> などがよいと思います。</p>
+<p>これだとやや分かりにくいので、背景を消しましょう。<code>theme_void()</code>や<code>theme_bw()</code>、<code>theme_classic()</code>などがよいと思います。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>park_s <span class="sc">|&gt;</span> </span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>() <span class="sc">+</span> </span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_void</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>() <span class="sc">+</span> </span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div id="fig-delete-back" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1523,7 +784,7 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </div>
 <div class="callout-body-container callout-body">
 <p><code>ggplot</code> を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。</p>
-<p>今回は行政区域をベースとするので、先にこちらをプロットします。</p>
+<p>今回は行政区域をベースとし、その上に公園をプロットするので、先に行政区域をプロットします。</p>
 </div>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
@@ -1541,9 +802,9 @@ geom_sf() の注意点
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>(<span class="at">data =</span> fukushima) <span class="sc">+</span> </span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>(<span class="at">data =</span> park_s, <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span>  <span class="co"># 点の色も指定</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_void</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> fukushima) <span class="sc">+</span> </span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> park_s, <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span>  <span class="co"># 点の色も指定</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div id="fig-plot-all" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1562,8 +823,8 @@ geom_sf() の注意点
 </section>
 <section id="ファイルの出力" class="level2">
 <h2 class="anchored" data-anchor-id="ファイルの出力">ファイルの出力</h2>
-<p>先ほど作成した <code>park_s</code> を Shapefile として出力します。</p>
-<p>GIS データは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。</p>
+<p>先ほど作成した<code>park_s</code>をShapefileとして出力します。</p>
+<p>GISデータは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># フォルダがない場合に作成する</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"data/output/1_intro"</span>))) {</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"data/output/1_intro"</span>), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
@@ -1571,14 +832,14 @@ geom_sf() の注意点
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="fu">write_sf</span>(park_s, <span class="fu">here</span>(<span class="st">"data/output/1_intro/Park_selected.shp"</span>), </span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">layer_options =</span> <span class="st">"ENCODING=UTF-8"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<p>次回以降は <code>Park_selected.shp</code> を読み込めばここから作業を開始できます。</p>
+<p>次回以降は<code>Park_selected.shp</code>を読み込めばここから作業を開始できます。</p>
 </section>
 </section>
 <section id="おわりに" class="level1">
 <h1>おわりに</h1>
 <p>今回はここまでです。</p>
-<p>R で GIS データを読み込み、データを抽出してプロット、最後に csv ファイルに出力しました。</p>
-<p>データのハンドリングについては R でできることが多いので、強みが活かせると思います。プロジェクトに合わせて応用させてみてください。</p>
+<p>RでGISデータを読み込み、データを抽出してプロット、最後にシェープファイルに出力しました。</p>
+<p>データのハンドリングについてはRでできることが多いので、強みが活かせると思います。プロジェクトに合わせて応用させてみてください。</p>
 
 
 <!-- -->
@@ -1589,8 +850,8 @@ geom_sf() の注意点
 <div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">注</h2>
 
 <ol>
-<li id="fn1"><p>R Project と後述の <code>here</code> については<a href="https://yo5uke.github.io/tips/240515_rproj/index.html">こちら</a>を参照して下さい。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-<li id="fn2"><p><code>dsn</code> のところがデータです。<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>R Projectと後述の<code>here</code>については<a href="https://yo5uke.github.io/tips/240515_rproj/index.html">こちら</a>を参照して下さい。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p><code>dsn</code>のところがデータです。<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn3"><p>データハンドリングの基礎的な知識を身に付けるには、<a href="https://www.jaysong.net/RBook/">私たちのR</a>がおすすめです。<a href="#fnref3" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 <li id="fn4"><p>「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。<a href="#fnref4" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol>
@@ -2076,249 +1337,254 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "導入 + ハンドリング"</span></span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2024-05-16</span></span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> last-modified</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a><span class="fu"># はじめに</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>このページでは、R で GIS を使う上での基本について説明します。</span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>R 言語では主に <span class="in">`sf`</span> パッケージを使って GIS を扱います。また、<span class="in">`tidyverse`</span> パッケージ群を使うことで、データの前処理や可視化を行うことができます。</span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>また、R Project を使っていることを前提とします^<span class="co">[</span><span class="ot">R Project と後述の `here` については[こちら](https://yo5uke.github.io/tips/240515_rproj/index.html)を参照して下さい。</span><span class="co">]</span>。</span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="fu"># パッケージ</span></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="in">`sf`</span>, <span class="in">`tidyverse`</span> と <span class="in">`here()`</span> の3つを使用します。</span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="in">```{.r}</span></span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="in">install.packages("sf")</span></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="in">install.packages("tidyverse")</span></span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="in">install.packages("here")</span></span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
-<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="fu"># 使用するデータ</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="fu"># はじめに</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>このページでは、RでGISを使う上での基本について説明します。</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>R 言語では主に<span class="in">`sf`</span>パッケージを使ってGISを扱います。また、<span class="in">`tidyverse`</span>パッケージ群を使うことで、データの前処理や可視化を行うことができます。</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>また、R Projectを使っていることを前提とします<span class="ot">[^1]</span>。</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>R Projectと後述の<span class="in">`here`</span>については<span class="co">[</span><span class="ot">こちら</span><span class="co">](https://yo5uke.github.io/tips/240515_rproj/index.html)</span>を参照して下さい。</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="fu"># パッケージ</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="in">`sf`</span>, <span class="in">`tidyverse`</span>と<span class="in">`here`</span>の3つを使用します。</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="co"># インストール</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="fu">c</span>(<span class="st">"sf"</span>, <span class="st">"tidyverse"</span>, <span class="st">"here"</span>))</span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-34"><a href="#cb10-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>福島県の行政区域データ（2024年、ポリゴン）</span>
+<span id="cb10-35"><a href="#cb10-35" aria-hidden="true" tabindex="-1"></a><span class="fu"># 使用するデータ</span></span>
 <span id="cb10-36"><a href="#cb10-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="co">[</span><span class="ot">国土数値情報ダウンロードサイト</span><span class="co">](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html)</span></span>
+<span id="cb10-37"><a href="#cb10-37" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>福島県の行政区域データ（2024年、ポリゴン）</span>
 <span id="cb10-38"><a href="#cb10-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>福島県の公園データ（2011年、ポイント）</span>
+<span id="cb10-39"><a href="#cb10-39" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="co">[</span><span class="ot">国土数値情報ダウンロードサイト</span><span class="co">](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html)</span></span>
 <span id="cb10-40"><a href="#cb10-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a><span class="ss">    - </span><span class="co">[</span><span class="ot">国土数値情報ダウンロードサイト</span><span class="co">](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P13.html)</span></span>
+<span id="cb10-41"><a href="#cb10-41" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>福島県の公園データ（2011年、ポイント）</span>
 <span id="cb10-42"><a href="#cb10-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a>これらのデータを、<span class="in">`data`</span> フォルダを作って入れておいてください。</span>
+<span id="cb10-43"><a href="#cb10-43" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="co">[</span><span class="ot">国土数値情報ダウンロードサイト</span><span class="co">](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P13.html)</span></span>
 <span id="cb10-44"><a href="#cb10-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a><span class="fu"># 作業</span></span>
+<span id="cb10-45"><a href="#cb10-45" aria-hidden="true" tabindex="-1"></a>これらのデータを、ワーキングディレクトリに<span class="in">`data`</span>フォルダを作って入れておいてください。</span>
 <span id="cb10-46"><a href="#cb10-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a>このセクションでやることは、データの抽出と可視化です。</span>
+<span id="cb10-47"><a href="#cb10-47" aria-hidden="true" tabindex="-1"></a><span class="fu"># 作業</span></span>
 <span id="cb10-48"><a href="#cb10-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a><span class="fu">## データの抽出</span></span>
+<span id="cb10-49"><a href="#cb10-49" aria-hidden="true" tabindex="-1"></a>このセクションでやることは、データの抽出と可視化です。</span>
 <span id="cb10-50"><a href="#cb10-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a><span class="fu">### データの読み込み</span></span>
+<span id="cb10-51"><a href="#cb10-51" aria-hidden="true" tabindex="-1"></a><span class="fu">## データの抽出</span></span>
 <span id="cb10-52"><a href="#cb10-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a><span class="in">`sf`</span> パッケージの <span class="in">`read_sf()`</span> 関数を用います。</span>
+<span id="cb10-53"><a href="#cb10-53" aria-hidden="true" tabindex="-1"></a><span class="fu">### データの読み込み</span></span>
 <span id="cb10-54"><a href="#cb10-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a>Shift_JIS で書かれたような~~変な~~データがたまにあるので、そのようなときはオプションで指定しましょう。<span class="in">`options = "ENCODING=Shift_JIS"`</span> を追加してください。</span>
+<span id="cb10-55"><a href="#cb10-55" aria-hidden="true" tabindex="-1"></a><span class="in">`sf`</span>パッケージの<span class="in">`read_sf()`</span>関数を用います。</span>
 <span id="cb10-56"><a href="#cb10-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
-<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a><span class="fu">## 読み込みに使う関数について</span></span>
-<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a><span class="in">`read_sf()`</span> は、<span class="in">`st_read()`</span> の細かい設定を省いてくれた関数、というイメージです。</span>
+<span id="cb10-57"><a href="#cb10-57" aria-hidden="true" tabindex="-1"></a>Shift_JISで書かれたような~~変な~~データがたまにあるので、そのようなときはオプションで指定しましょう。<span class="in">`options = "ENCODING=Shift_JIS"`</span>を追加してください。</span>
+<span id="cb10-58"><a href="#cb10-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-59"><a href="#cb10-59" aria-hidden="true" tabindex="-1"></a>::: {.callout-note collapse="true"}</span>
+<span id="cb10-60"><a href="#cb10-60" aria-hidden="true" tabindex="-1"></a><span class="fu">## 読み込みに使う関数について</span></span>
 <span id="cb10-61"><a href="#cb10-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a>具体的には、</span>
+<span id="cb10-62"><a href="#cb10-62" aria-hidden="true" tabindex="-1"></a><span class="in">`read_sf()`</span>は、<span class="in">`st_read()`</span>の細かい設定を省いてくれた関数、というイメージです。</span>
 <span id="cb10-63"><a href="#cb10-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a><span class="in">```{.r}</span></span>
-<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a><span class="in">read_sf(dsn)</span></span>
-<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a><span class="in">st_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)</span></span>
-<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a>この2つが同じです^<span class="co">[</span><span class="ot">`dsn` のところがデータです。</span><span class="co">]</span>。詳しくは <span class="in">`?st_read()`</span> をコンソールに打ち込みドキュメントを読んでみてください。</span>
+<span id="cb10-64"><a href="#cb10-64" aria-hidden="true" tabindex="-1"></a>具体的には、</span>
+<span id="cb10-65"><a href="#cb10-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-66"><a href="#cb10-66" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb10-67"><a href="#cb10-67" aria-hidden="true" tabindex="-1"></a><span class="fu">read_sf</span>(dsn)</span>
+<span id="cb10-68"><a href="#cb10-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-69"><a href="#cb10-69" aria-hidden="true" tabindex="-1"></a><span class="fu">st_read</span>(dsn, <span class="at">quiet =</span> <span class="cn">TRUE</span>, <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>, <span class="at">as_tibble =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-70"><a href="#cb10-70" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-71"><a href="#cb10-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>基本的には <span class="in">`read_sf()`</span> で十分だと思います。</span>
-<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>また、公園のデータは CRS が設定されていないようです。その設定も行います。CRS については後の回で説明します。</span>
+<span id="cb10-72"><a href="#cb10-72" aria-hidden="true" tabindex="-1"></a>この2つが同じです<span class="ot">[^2]</span>。詳しくは<span class="in">`?st_read()`</span>をコンソールに打ち込みドキュメントを読んでみてください。</span>
+<span id="cb10-73"><a href="#cb10-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-74"><a href="#cb10-74" aria-hidden="true" tabindex="-1"></a>基本的には<span class="in">`read_sf()`</span>で十分だと思います。</span>
+<span id="cb10-75"><a href="#cb10-75" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb10-76"><a href="#cb10-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a>fukushima <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/N03-20240101_07_GML/N03-20240101_07.shp"</span>))</span>
-<span id="cb10-81"><a href="#cb10-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-82"><a href="#cb10-82" aria-hidden="true" tabindex="-1"></a>park <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/P13-11_07_GML/P13-11_07.shp"</span>), </span>
-<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a>                <span class="at">options =</span> <span class="st">"ENCODING=Shift_JIS"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_set_crs</span>(<span class="fu">st_crs</span>(<span class="dv">4612</span>)) <span class="sc">|&gt;</span>  <span class="co"># JGD2000/(B, L) データ本来のCRS</span></span>
-<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a>    <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(<span class="dv">6668</span>))  <span class="co"># JGD2011/(B, L) 変換したいCRS</span></span>
-<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a><span class="fu">### データを見てみる</span></span>
-<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a>公園のデータを見てみます。</span>
+<span id="cb10-77"><a href="#cb10-77" aria-hidden="true" tabindex="-1"></a><span class="ot">[^2]: </span><span class="in">`dsn`</span>のところがデータです。</span>
+<span id="cb10-78"><a href="#cb10-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-79"><a href="#cb10-79" aria-hidden="true" tabindex="-1"></a>また、公園のデータはCRSが設定されていないようです。その設定も行います。CRSについては後の回で説明します。</span>
+<span id="cb10-80"><a href="#cb10-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-83"><a href="#cb10-83" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-84"><a href="#cb10-84" aria-hidden="true" tabindex="-1"></a>fukushima <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/N03-20240101_07_GML/N03-20240101_07.shp"</span>))</span>
+<span id="cb10-85"><a href="#cb10-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-86"><a href="#cb10-86" aria-hidden="true" tabindex="-1"></a>park <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/P13-11_07_GML/P13-11_07.shp"</span>), </span>
+<span id="cb10-87"><a href="#cb10-87" aria-hidden="true" tabindex="-1"></a>                <span class="at">options =</span> <span class="st">"ENCODING=Shift_JIS"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb10-88"><a href="#cb10-88" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_set_crs</span>(<span class="fu">st_crs</span>(<span class="dv">4612</span>)) <span class="sc">|&gt;</span>  <span class="co"># JGD2000/(B, L) データ本来のCRS</span></span>
+<span id="cb10-89"><a href="#cb10-89" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="fu">st_crs</span>(<span class="dv">6668</span>))   <span class="co"># JGD2011/(B, L) 変換したいCRS</span></span>
+<span id="cb10-90"><a href="#cb10-90" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-91"><a href="#cb10-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb10-96"><a href="#cb10-96" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-park</span></span>
-<span id="cb10-97"><a href="#cb10-97" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "公園のポイントデータ"</span></span>
-<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a>mapview<span class="sc">::</span><span class="fu">mapviewOptions</span>(<span class="at">fgb =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a>mapview<span class="sc">::</span><span class="fu">mapview</span>(<span class="at">x =</span> park)</span>
-<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-92"><a href="#cb10-92" aria-hidden="true" tabindex="-1"></a><span class="fu">### データを見てみる</span></span>
+<span id="cb10-93"><a href="#cb10-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-94"><a href="#cb10-94" aria-hidden="true" tabindex="-1"></a>公園のデータを見てみます。</span>
+<span id="cb10-95"><a href="#cb10-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-98"><a href="#cb10-98" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-99"><a href="#cb10-99" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb10-100"><a href="#cb10-100" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-park</span></span>
+<span id="cb10-101"><a href="#cb10-101" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "公園のポイントデータ"</span></span>
 <span id="cb10-102"><a href="#cb10-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb10-107"><a href="#cb10-107" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-head-park</span></span>
-<span id="cb10-108"><a href="#cb10-108" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "公園データの中身（一部）"</span></span>
-<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a>gt<span class="sc">::</span><span class="fu">gt</span>(<span class="fu">head</span>(park))</span>
-<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a>国土数値情報ダウンロードサイトの説明を見てみると、各列は以下のようになっています。</span>
-<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a>:::: {.columns}</span>
-<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a>::: {.column}</span>
-<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_001`</span>：管理都道府県・整備局</span>
+<span id="cb10-103"><a href="#cb10-103" aria-hidden="true" tabindex="-1"></a>mapview<span class="sc">::</span><span class="fu">mapviewOptions</span>(<span class="at">fgb =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-104"><a href="#cb10-104" aria-hidden="true" tabindex="-1"></a>mapview<span class="sc">::</span><span class="fu">mapview</span>(<span class="at">x =</span> park)</span>
+<span id="cb10-105"><a href="#cb10-105" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-106"><a href="#cb10-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-109"><a href="#cb10-109" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-110"><a href="#cb10-110" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb10-111"><a href="#cb10-111" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-head-park</span></span>
+<span id="cb10-112"><a href="#cb10-112" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "公園データの中身（一部）"</span></span>
+<span id="cb10-113"><a href="#cb10-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-114"><a href="#cb10-114" aria-hidden="true" tabindex="-1"></a>tinytable<span class="sc">::</span><span class="fu">tt</span>(<span class="fu">head</span>(park))</span>
+<span id="cb10-115"><a href="#cb10-115" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-116"><a href="#cb10-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-117"><a href="#cb10-117" aria-hidden="true" tabindex="-1"></a>国土数値情報ダウンロードサイトの説明を見てみると、各列は以下のようになっています。</span>
 <span id="cb10-118"><a href="#cb10-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_002`</span>：管理市区町村</span>
-<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_003`</span>：公園名</span>
+<span id="cb10-119"><a href="#cb10-119" aria-hidden="true" tabindex="-1"></a>::::: columns</span>
+<span id="cb10-120"><a href="#cb10-120" aria-hidden="true" tabindex="-1"></a>::: column</span>
+<span id="cb10-121"><a href="#cb10-121" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_001`</span>：管理都道府県・整備局</span>
 <span id="cb10-122"><a href="#cb10-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_004`</span>：公園種別</span>
+<span id="cb10-123"><a href="#cb10-123" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_002`</span>：管理市区町村</span>
 <span id="cb10-124"><a href="#cb10-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_005`</span>：所在地都道府県名</span>
-<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a>::: {.column}</span>
-<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_006`</span>：所在地市区町村名</span>
+<span id="cb10-125"><a href="#cb10-125" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_003`</span>：公園名</span>
+<span id="cb10-126"><a href="#cb10-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-127"><a href="#cb10-127" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_004`</span>：公園種別</span>
+<span id="cb10-128"><a href="#cb10-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-129"><a href="#cb10-129" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_005`</span>：所在地都道府県名</span>
+<span id="cb10-130"><a href="#cb10-130" aria-hidden="true" tabindex="-1"></a>:::</span>
 <span id="cb10-131"><a href="#cb10-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_007`</span>：供用開始年</span>
-<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_008`</span>：供用済面積</span>
-<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_009`</span>：都市計画決定</span>
-<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`P13_010`</span>：備考</span>
-<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a>::::</span>
-<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a><span class="fu">### 抽出</span></span>
-<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a>今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す <span class="in">`geometry`</span> の列だけが必要だとします。</span>
-<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a><span class="in">`dplyr::select()`</span> 関数を使って列を抽出し、同時に名前も変更します。</span>
-<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a><span class="in">`select()`</span> 内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。</span>
-<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>park_s <span class="ot">&lt;-</span> park <span class="sc">|&gt;</span> </span>
-<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(</span>
-<span id="cb10-155"><a href="#cb10-155" aria-hidden="true" tabindex="-1"></a>        <span class="at">name_park =</span> P13_003, </span>
-<span id="cb10-156"><a href="#cb10-156" aria-hidden="true" tabindex="-1"></a>        <span class="at">name_pref =</span> P13_005, </span>
-<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a>        <span class="at">name_muni =</span> P13_006, </span>
-<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a>        geometry</span>
-<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
-<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-park-selected</span></span>
-<span id="cb10-167"><a href="#cb10-167" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "列抽出済みのデータ"</span></span>
-<span id="cb10-168"><a href="#cb10-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a>gt<span class="sc">::</span><span class="fu">gt</span>(<span class="fu">head</span>(park_s))</span>
-<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a>このように <span class="in">`tidyverse`</span> の強みを活かしてデータハンドリングを行えます^<span class="co">[</span><span class="ot">データハンドリングの基礎的な知識を身に付けるには、[私たちのR](https://www.jaysong.net/RBook/)がおすすめです。</span><span class="co">]</span>。</span>
+<span id="cb10-132"><a href="#cb10-132" aria-hidden="true" tabindex="-1"></a>::: column</span>
+<span id="cb10-133"><a href="#cb10-133" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_006`</span>：所在地市区町村名</span>
+<span id="cb10-134"><a href="#cb10-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-135"><a href="#cb10-135" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_007`</span>：供用開始年</span>
+<span id="cb10-136"><a href="#cb10-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-137"><a href="#cb10-137" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_008`</span>：供用済面積</span>
+<span id="cb10-138"><a href="#cb10-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-139"><a href="#cb10-139" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_009`</span>：都市計画決定</span>
+<span id="cb10-140"><a href="#cb10-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-141"><a href="#cb10-141" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`P13_010`</span>：備考</span>
+<span id="cb10-142"><a href="#cb10-142" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb10-143"><a href="#cb10-143" aria-hidden="true" tabindex="-1"></a>:::::</span>
+<span id="cb10-144"><a href="#cb10-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-145"><a href="#cb10-145" aria-hidden="true" tabindex="-1"></a><span class="fu">### 抽出</span></span>
+<span id="cb10-146"><a href="#cb10-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-147"><a href="#cb10-147" aria-hidden="true" tabindex="-1"></a>今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す<span class="in">`geometry`</span>の列だけが必要だとします。</span>
+<span id="cb10-148"><a href="#cb10-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-149"><a href="#cb10-149" aria-hidden="true" tabindex="-1"></a><span class="in">`dplyr::select()`</span>関数を使って列を抽出し、同時に名前も変更します。</span>
+<span id="cb10-150"><a href="#cb10-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-151"><a href="#cb10-151" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb10-152"><a href="#cb10-152" aria-hidden="true" tabindex="-1"></a><span class="in">`select()`</span>内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。</span>
+<span id="cb10-153"><a href="#cb10-153" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb10-154"><a href="#cb10-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-157"><a href="#cb10-157" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-158"><a href="#cb10-158" aria-hidden="true" tabindex="-1"></a>park_s <span class="ot">&lt;-</span> park <span class="sc">|&gt;</span> </span>
+<span id="cb10-159"><a href="#cb10-159" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb10-160"><a href="#cb10-160" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_park =</span> P13_003,  <span class="co"># 公園名</span></span>
+<span id="cb10-161"><a href="#cb10-161" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_pref =</span> P13_005,  <span class="co"># 都道府県名</span></span>
+<span id="cb10-162"><a href="#cb10-162" aria-hidden="true" tabindex="-1"></a>    <span class="at">name_muni =</span> P13_006,  <span class="co"># 市区町村名</span></span>
+<span id="cb10-163"><a href="#cb10-163" aria-hidden="true" tabindex="-1"></a>    geometry</span>
+<span id="cb10-164"><a href="#cb10-164" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-165"><a href="#cb10-165" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-166"><a href="#cb10-166" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-169"><a href="#cb10-169" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-170"><a href="#cb10-170" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb10-171"><a href="#cb10-171" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-park-selected</span></span>
+<span id="cb10-172"><a href="#cb10-172" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "列抽出済みのデータ"</span></span>
 <span id="cb10-173"><a href="#cb10-173" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a><span class="fu">## 可視化</span></span>
-<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a><span class="in">`tidyverse`</span> に含まれる <span class="in">`ggplot2`</span> を使って、ここまでのデータをプロットしていきます。</span>
-<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a>基本的な書き方は以下の通りです。データフレームから <span class="in">`ggplot()`</span> を繋いで記述していきます。</span>
-<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-simple-plot</span></span>
-<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "シンプルなプロット"</span></span>
-<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a>park_s <span class="sc">|&gt;</span> </span>
-<span id="cb10-187"><a href="#cb10-187" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb10-188"><a href="#cb10-188" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>()  <span class="co"># GIS用のコマンド</span></span>
-<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a>これだとやや分かりにくいので、背景を消しましょう。<span class="in">`theme_void()`</span> や <span class="in">`theme_bw()`</span>、<span class="in">`theme_classic()`</span> などがよいと思います。</span>
+<span id="cb10-174"><a href="#cb10-174" aria-hidden="true" tabindex="-1"></a>tinytable<span class="sc">::</span><span class="fu">tt</span>(<span class="fu">head</span>(park_s))</span>
+<span id="cb10-175"><a href="#cb10-175" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-176"><a href="#cb10-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-177"><a href="#cb10-177" aria-hidden="true" tabindex="-1"></a>このように<span class="in">`tidyverse`</span>の強みを活かしてデータハンドリングを行えます<span class="ot">[^3]</span>。</span>
+<span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-179"><a href="#cb10-179" aria-hidden="true" tabindex="-1"></a><span class="ot">[^3]: </span>データハンドリングの基礎的な知識を身に付けるには、<span class="co">[</span><span class="ot">私たちのR</span><span class="co">](https://www.jaysong.net/RBook/)</span>がおすすめです。</span>
+<span id="cb10-180"><a href="#cb10-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-181"><a href="#cb10-181" aria-hidden="true" tabindex="-1"></a><span class="fu">## 可視化</span></span>
+<span id="cb10-182"><a href="#cb10-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-183"><a href="#cb10-183" aria-hidden="true" tabindex="-1"></a><span class="in">`tidyverse`</span>に含まれる<span class="in">`ggplot2`</span>を使って、ここまでのデータをプロットしていきます。</span>
+<span id="cb10-184"><a href="#cb10-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-185"><a href="#cb10-185" aria-hidden="true" tabindex="-1"></a>基本的な書き方は以下の通りです。データフレームから<span class="in">`ggplot()`</span>を繋いで記述していきます。</span>
+<span id="cb10-186"><a href="#cb10-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-189"><a href="#cb10-189" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-190"><a href="#cb10-190" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-simple-plot</span></span>
+<span id="cb10-191"><a href="#cb10-191" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "シンプルなプロット"</span></span>
 <span id="cb10-192"><a href="#cb10-192" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-delete-back</span></span>
-<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "背景を削除"</span></span>
-<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a>park_s <span class="sc">|&gt;</span> </span>
-<span id="cb10-200"><a href="#cb10-200" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb10-201"><a href="#cb10-201" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>() <span class="sc">+</span> </span>
-<span id="cb10-202"><a href="#cb10-202" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_void</span>()</span>
-<span id="cb10-203"><a href="#cb10-203" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a>これだけだとどこなのかわからないので、先ほどダウンロードした福島県の行政区域を重ねてプロットします。</span>
-<span id="cb10-206"><a href="#cb10-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-207"><a href="#cb10-207" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
-<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a><span class="fu">## プロットするとき</span></span>
-<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a><span class="in">`ggplot`</span> を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。</span>
+<span id="cb10-193"><a href="#cb10-193" aria-hidden="true" tabindex="-1"></a>park_s <span class="sc">|&gt;</span> </span>
+<span id="cb10-194"><a href="#cb10-194" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb10-195"><a href="#cb10-195" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>()   <span class="co"># 地図をプロットするためのコマンド</span></span>
+<span id="cb10-196"><a href="#cb10-196" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-197"><a href="#cb10-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-198"><a href="#cb10-198" aria-hidden="true" tabindex="-1"></a>これだとやや分かりにくいので、背景を消しましょう。<span class="in">`theme_void()`</span>や<span class="in">`theme_bw()`</span>、<span class="in">`theme_classic()`</span>などがよいと思います。</span>
+<span id="cb10-199"><a href="#cb10-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-202"><a href="#cb10-202" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-203"><a href="#cb10-203" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-delete-back</span></span>
+<span id="cb10-204"><a href="#cb10-204" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "背景を削除"</span></span>
+<span id="cb10-205"><a href="#cb10-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-206"><a href="#cb10-206" aria-hidden="true" tabindex="-1"></a>park_s <span class="sc">|&gt;</span> </span>
+<span id="cb10-207"><a href="#cb10-207" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb10-208"><a href="#cb10-208" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>() <span class="sc">+</span> </span>
+<span id="cb10-209"><a href="#cb10-209" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb10-210"><a href="#cb10-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb10-211"><a href="#cb10-211" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a>今回は行政区域をベースとするので、先にこちらをプロットします。</span>
-<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-215"><a href="#cb10-215" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
-<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a><span class="fu">## geom_sf() の注意点</span></span>
-<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a><span class="in">`geom_sf()`</span> でデータを指定する引数は <span class="in">`data`</span> であり、これは第2引数なので、シンプルに <span class="in">`geom_sf(fukushima)`</span> と書くとプロットがうまくいきません^<span class="co">[</span><span class="ot">「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。</span><span class="co">]</span>。<span class="in">`geom_sf(data = fukushima)`</span> と書く必要がある点にご注意ください。</span>
-<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb10-224"><a href="#cb10-224" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-plot-all</span></span>
-<span id="cb10-225"><a href="#cb10-225" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "行政区域と公園ポイントのプロット"</span></span>
-<span id="cb10-226"><a href="#cb10-226" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-227"><a href="#cb10-227" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
-<span id="cb10-228"><a href="#cb10-228" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>(<span class="at">data =</span> fukushima) <span class="sc">+</span> </span>
-<span id="cb10-229"><a href="#cb10-229" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_sf</span>(<span class="at">data =</span> park_s, <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span>  <span class="co"># 点の色も指定</span></span>
-<span id="cb10-230"><a href="#cb10-230" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_void</span>()</span>
-<span id="cb10-231"><a href="#cb10-231" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-232"><a href="#cb10-232" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-233"><a href="#cb10-233" aria-hidden="true" tabindex="-1"></a>ここまでがプロットの方法です。</span>
-<span id="cb10-234"><a href="#cb10-234" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-235"><a href="#cb10-235" aria-hidden="true" tabindex="-1"></a>今後も可視化の際に <span class="in">`ggplot2`</span> を使いますので、その都度紹介します。</span>
-<span id="cb10-236"><a href="#cb10-236" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-237"><a href="#cb10-237" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルの出力</span></span>
-<span id="cb10-238"><a href="#cb10-238" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-239"><a href="#cb10-239" aria-hidden="true" tabindex="-1"></a>先ほど作成した <span class="in">`park_s`</span> を Shapefile として出力します。</span>
-<span id="cb10-240"><a href="#cb10-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-241"><a href="#cb10-241" aria-hidden="true" tabindex="-1"></a>GIS データは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。</span>
-<span id="cb10-242"><a href="#cb10-242" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-243"><a href="#cb10-243" aria-hidden="true" tabindex="-1"></a><span class="in">```{.r}</span></span>
-<span id="cb10-244"><a href="#cb10-244" aria-hidden="true" tabindex="-1"></a><span class="in"># フォルダがない場合に作成する</span></span>
-<span id="cb10-245"><a href="#cb10-245" aria-hidden="true" tabindex="-1"></a><span class="in">if (!dir.exists(here("data/output/1_intro"))) {</span></span>
-<span id="cb10-246"><a href="#cb10-246" aria-hidden="true" tabindex="-1"></a><span class="in">  dir.create(here("data/output/1_intro"), recursive = TRUE)</span></span>
-<span id="cb10-247"><a href="#cb10-247" aria-hidden="true" tabindex="-1"></a><span class="in">}</span></span>
-<span id="cb10-248"><a href="#cb10-248" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-249"><a href="#cb10-249" aria-hidden="true" tabindex="-1"></a><span class="in">write_sf(park_s, here("data/output/1_intro/Park_selected.shp"), </span></span>
-<span id="cb10-250"><a href="#cb10-250" aria-hidden="true" tabindex="-1"></a><span class="in">         layer_options = "ENCODING=UTF-8")</span></span>
-<span id="cb10-251"><a href="#cb10-251" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb10-252"><a href="#cb10-252" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-253"><a href="#cb10-253" aria-hidden="true" tabindex="-1"></a>次回以降は <span class="in">`Park_selected.shp`</span> を読み込めばここから作業を開始できます。</span>
-<span id="cb10-254"><a href="#cb10-254" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-255"><a href="#cb10-255" aria-hidden="true" tabindex="-1"></a><span class="fu"># おわりに</span></span>
-<span id="cb10-256"><a href="#cb10-256" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-257"><a href="#cb10-257" aria-hidden="true" tabindex="-1"></a>今回はここまでです。</span>
-<span id="cb10-258"><a href="#cb10-258" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-259"><a href="#cb10-259" aria-hidden="true" tabindex="-1"></a>R で GIS データを読み込み、データを抽出してプロット、最後に csv ファイルに出力しました。</span>
-<span id="cb10-260"><a href="#cb10-260" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-261"><a href="#cb10-261" aria-hidden="true" tabindex="-1"></a>データのハンドリングについては R でできることが多いので、強みが活かせると思います。プロジェクトに合わせて応用させてみてください。</span>
-<span id="cb10-262"><a href="#cb10-262" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-212"><a href="#cb10-212" aria-hidden="true" tabindex="-1"></a>これだけだとどこなのかわからないので、先ほどダウンロードした福島県の行政区域を重ねてプロットします。</span>
+<span id="cb10-213"><a href="#cb10-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-214"><a href="#cb10-214" aria-hidden="true" tabindex="-1"></a>::: callout-note</span>
+<span id="cb10-215"><a href="#cb10-215" aria-hidden="true" tabindex="-1"></a><span class="fu">## プロットするとき</span></span>
+<span id="cb10-216"><a href="#cb10-216" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-217"><a href="#cb10-217" aria-hidden="true" tabindex="-1"></a><span class="in">`ggplot`</span> を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。</span>
+<span id="cb10-218"><a href="#cb10-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-219"><a href="#cb10-219" aria-hidden="true" tabindex="-1"></a>今回は行政区域をベースとし、その上に公園をプロットするので、先に行政区域をプロットします。</span>
+<span id="cb10-220"><a href="#cb10-220" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb10-221"><a href="#cb10-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-222"><a href="#cb10-222" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
+<span id="cb10-223"><a href="#cb10-223" aria-hidden="true" tabindex="-1"></a><span class="fu">## geom_sf() の注意点</span></span>
+<span id="cb10-224"><a href="#cb10-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-225"><a href="#cb10-225" aria-hidden="true" tabindex="-1"></a><span class="in">`geom_sf()`</span> でデータを指定する引数は <span class="in">`data`</span> であり、これは第2引数なので、シンプルに <span class="in">`geom_sf(fukushima)`</span> と書くとプロットがうまくいきません<span class="ot">[^4]</span>。<span class="in">`geom_sf(data = fukushima)`</span> と書く必要がある点にご注意ください。</span>
+<span id="cb10-226"><a href="#cb10-226" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb10-227"><a href="#cb10-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-228"><a href="#cb10-228" aria-hidden="true" tabindex="-1"></a><span class="ot">[^4]: </span>「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。</span>
+<span id="cb10-229"><a href="#cb10-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-232"><a href="#cb10-232" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb10-233"><a href="#cb10-233" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-plot-all</span></span>
+<span id="cb10-234"><a href="#cb10-234" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "行政区域と公園ポイントのプロット"</span></span>
+<span id="cb10-235"><a href="#cb10-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-236"><a href="#cb10-236" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb10-237"><a href="#cb10-237" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> fukushima) <span class="sc">+</span> </span>
+<span id="cb10-238"><a href="#cb10-238" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> park_s, <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span>  <span class="co"># 点の色も指定</span></span>
+<span id="cb10-239"><a href="#cb10-239" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>()</span>
+<span id="cb10-240"><a href="#cb10-240" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-241"><a href="#cb10-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-242"><a href="#cb10-242" aria-hidden="true" tabindex="-1"></a>ここまでがプロットの方法です。</span>
+<span id="cb10-243"><a href="#cb10-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-244"><a href="#cb10-244" aria-hidden="true" tabindex="-1"></a>今後も可視化の際に <span class="in">`ggplot2`</span> を使いますので、その都度紹介します。</span>
+<span id="cb10-245"><a href="#cb10-245" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-246"><a href="#cb10-246" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルの出力</span></span>
+<span id="cb10-247"><a href="#cb10-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-248"><a href="#cb10-248" aria-hidden="true" tabindex="-1"></a>先ほど作成した<span class="in">`park_s`</span>をShapefileとして出力します。</span>
+<span id="cb10-249"><a href="#cb10-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-250"><a href="#cb10-250" aria-hidden="true" tabindex="-1"></a>GISデータは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。</span>
+<span id="cb10-251"><a href="#cb10-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-252"><a href="#cb10-252" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb10-253"><a href="#cb10-253" aria-hidden="true" tabindex="-1"></a><span class="co"># フォルダがない場合に作成する</span></span>
+<span id="cb10-254"><a href="#cb10-254" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"data/output/1_intro"</span>))) {</span>
+<span id="cb10-255"><a href="#cb10-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"data/output/1_intro"</span>), <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb10-256"><a href="#cb10-256" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb10-257"><a href="#cb10-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-258"><a href="#cb10-258" aria-hidden="true" tabindex="-1"></a><span class="fu">write_sf</span>(park_s, <span class="fu">here</span>(<span class="st">"data/output/1_intro/Park_selected.shp"</span>), </span>
+<span id="cb10-259"><a href="#cb10-259" aria-hidden="true" tabindex="-1"></a>         <span class="at">layer_options =</span> <span class="st">"ENCODING=UTF-8"</span>)</span>
+<span id="cb10-260"><a href="#cb10-260" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb10-261"><a href="#cb10-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-262"><a href="#cb10-262" aria-hidden="true" tabindex="-1"></a>次回以降は<span class="in">`Park_selected.shp`</span>を読み込めばここから作業を開始できます。</span>
 <span id="cb10-263"><a href="#cb10-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-264"><a href="#cb10-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-264"><a href="#cb10-264" aria-hidden="true" tabindex="-1"></a><span class="fu"># おわりに</span></span>
 <span id="cb10-265"><a href="#cb10-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-266"><a href="#cb10-266" aria-hidden="true" tabindex="-1"></a>今回はここまでです。</span>
+<span id="cb10-267"><a href="#cb10-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-268"><a href="#cb10-268" aria-hidden="true" tabindex="-1"></a>RでGISデータを読み込み、データを抽出してプロット、最後にシェープファイルに出力しました。</span>
+<span id="cb10-269"><a href="#cb10-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-270"><a href="#cb10-270" aria-hidden="true" tabindex="-1"></a>データのハンドリングについてはRでできることが多いので、強みが活かせると思います。プロジェクトに合わせて応用させてみてください。</span>
 </code><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

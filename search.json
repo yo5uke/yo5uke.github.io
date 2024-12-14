@@ -1880,35 +1880,35 @@
     "href": "pages/gis_in_r/1_intro/index.html",
     "title": "導入 + ハンドリング",
     "section": "",
-    "text": "このページでは、R で GIS を使う上での基本について説明します。\nR 言語では主に sf パッケージを使って GIS を扱います。また、tidyverse パッケージ群を使うことで、データの前処理や可視化を行うことができます。\nまた、R Project を使っていることを前提とします1。"
+    "text": "このページでは、RでGISを使う上での基本について説明します。\nR 言語では主にsfパッケージを使ってGISを扱います。また、tidyverseパッケージ群を使うことで、データの前処理や可視化を行うことができます。\nまた、R Projectを使っていることを前提とします1。"
   },
   {
     "objectID": "pages/gis_in_r/1_intro/index.html#データの抽出",
     "href": "pages/gis_in_r/1_intro/index.html#データの抽出",
     "title": "導入 + ハンドリング",
     "section": "データの抽出",
-    "text": "データの抽出\n\nデータの読み込み\nsf パッケージの read_sf() 関数を用います。\nShift_JIS で書かれたような変なデータがたまにあるので、そのようなときはオプションで指定しましょう。options = \"ENCODING=Shift_JIS\" を追加してください。\n\n\n\n\n\n\n読み込みに使う関数について\n\n\n\n\n\nread_sf() は、st_read() の細かい設定を省いてくれた関数、というイメージです。\n具体的には、\nread_sf(dsn)\n\nst_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)\nこの2つが同じです2。詳しくは ?st_read() をコンソールに打ち込みドキュメントを読んでみてください。\n基本的には read_sf() で十分だと思います。\n\n\n\nまた、公園のデータは CRS が設定されていないようです。その設定も行います。CRS については後の回で説明します。\n\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))\n\npark &lt;- read_sf(here(\"data/P13-11_07_GML/P13-11_07.shp\"), \n                options = \"ENCODING=Shift_JIS\") |&gt; \n    st_set_crs(st_crs(4612)) |&gt;  # JGD2000/(B, L) データ本来のCRS\n    st_transform(st_crs(6668))  # JGD2011/(B, L) 変換したいCRS\n\n\n\nデータを見てみる\n公園のデータを見てみます。\n\n\n\n\n\n\n\n\n図 1: 公園のポイントデータ\n\n\n\n\n\n\n\n\n表 1: 公園データの中身（一部）\n\n\n\n\n\n\n\n\n\nP13_001\nP13_002\nP13_003\nP13_004\nP13_005\nP13_006\nP13_007\nP13_008\nP13_009\nP13_010\ngeometry\n\n\n\n\n福島県\nNA\n福島空港公園\n6\n福島県\n須賀川市\n1993\n520900\n1\nNA\nc(140.42020783, 37.24667066)\n\n\n福島県\nNA\nあづま総合運動公園\n6\n福島県\n福島市\n1980\n982000\n1\nNA\nc(140.3619751, 37.7220006)\n\n\n福島県\nNA\n逢瀬公園\n4\n福島県\n郡山市\n1979\n346000\n1\nNA\nc(140.27387039, 37.41233912)\n\n\n福島県\nNA\n会津レクリエーション公園\n6\n福島県\n会津若松市\n1998\n426000\n1\nNA\nc(140.01659489, 37.51642757)\n\n\n福島県\nNA\n東ヶ丘公園\n6\n福島県\n南相馬市\n1995\n212000\n1\nNA\nc(140.96713139, 37.63259542)\n\n\n福島県\nNA\nいわき公園\n6\n福島県\nいわき市\n1987\n713000\n1\nNA\nc(140.92164642, 37.01329096)\n\n\n\n\n\n\n\n\n\n\n国土数値情報ダウンロードサイトの説明を見てみると、各列は以下のようになっています。\n\n\n\nP13_001：管理都道府県・整備局\nP13_002：管理市区町村\nP13_003：公園名\nP13_004：公園種別\nP13_005：所在地都道府県名\n\n\n\nP13_006：所在地市区町村名\nP13_007：供用開始年\nP13_008：供用済面積\nP13_009：都市計画決定\nP13_010：備考\n\n\n\n\n\n抽出\n今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表す geometry の列だけが必要だとします。\ndplyr::select() 関数を使って列を抽出し、同時に名前も変更します。\nselect() 内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。\n\npark_s &lt;- park |&gt; \n    select(\n        name_park = P13_003, \n        name_pref = P13_005, \n        name_muni = P13_006, \n        geometry\n    )\n\n\n\n\n\n表 2: 列抽出済みのデータ\n\n\n\n\n\n\n\n\n\nname_park\nname_pref\nname_muni\ngeometry\n\n\n\n\n福島空港公園\n福島県\n須賀川市\nc(140.42020783, 37.24667066)\n\n\nあづま総合運動公園\n福島県\n福島市\nc(140.3619751, 37.7220006)\n\n\n逢瀬公園\n福島県\n郡山市\nc(140.27387039, 37.41233912)\n\n\n会津レクリエーション公園\n福島県\n会津若松市\nc(140.01659489, 37.51642757)\n\n\n東ヶ丘公園\n福島県\n南相馬市\nc(140.96713139, 37.63259542)\n\n\nいわき公園\n福島県\nいわき市\nc(140.92164642, 37.01329096)\n\n\n\n\n\n\n\n\n\n\nこのように tidyverse の強みを活かしてデータハンドリングを行えます3。"
+    "text": "データの抽出\n\nデータの読み込み\nsfパッケージのread_sf()関数を用います。\nShift_JISで書かれたような変なデータがたまにあるので、そのようなときはオプションで指定しましょう。options = \"ENCODING=Shift_JIS\"を追加してください。\n\n\n\n\n\n\n読み込みに使う関数について\n\n\n\n\n\nread_sf()は、st_read()の細かい設定を省いてくれた関数、というイメージです。\n具体的には、\nread_sf(dsn)\n\nst_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)\nこの2つが同じです2。詳しくは?st_read()をコンソールに打ち込みドキュメントを読んでみてください。\n基本的にはread_sf()で十分だと思います。\n\n\n\nまた、公園のデータはCRSが設定されていないようです。その設定も行います。CRSについては後の回で説明します。\n\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))\n\npark &lt;- read_sf(here(\"data/P13-11_07_GML/P13-11_07.shp\"), \n                options = \"ENCODING=Shift_JIS\") |&gt; \n  st_set_crs(st_crs(4612)) |&gt;  # JGD2000/(B, L) データ本来のCRS\n  st_transform(st_crs(6668))   # JGD2011/(B, L) 変換したいCRS\n\n\n\nデータを見てみる\n公園のデータを見てみます。\n\n\n\n\n\n\n\n\n図 1: 公園のポイントデータ\n\n\n\n\n\n\n\n\n表 1: 公園データの中身（一部）\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                P13_001\n                P13_002\n                P13_003\n                P13_004\n                P13_005\n                P13_006\n                P13_007\n                P13_008\n                P13_009\n                P13_010\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  NA\n                  福島空港公園            \n                  6\n                  福島県\n                  須賀川市  \n                  1993\n                  520900\n                  1\n                  NA\n                  POINT (140.4202 37.24667)\n                \n                \n                  福島県\n                  NA\n                  あづま総合運動公園      \n                  6\n                  福島県\n                  福島市    \n                  1980\n                  982000\n                  1\n                  NA\n                  POINT (140.362 37.722)\n                \n                \n                  福島県\n                  NA\n                  逢瀬公園                \n                  4\n                  福島県\n                  郡山市    \n                  1979\n                  346000\n                  1\n                  NA\n                  POINT (140.2739 37.41234)\n                \n                \n                  福島県\n                  NA\n                  会津レクリエーション公園\n                  6\n                  福島県\n                  会津若松市\n                  1998\n                  426000\n                  1\n                  NA\n                  POINT (140.0166 37.51643)\n                \n                \n                  福島県\n                  NA\n                  東ヶ丘公園              \n                  6\n                  福島県\n                  南相馬市  \n                  1995\n                  212000\n                  1\n                  NA\n                  POINT (140.9671 37.6326)\n                \n                \n                  福島県\n                  NA\n                  いわき公園              \n                  6\n                  福島県\n                  いわき市  \n                  1987\n                  713000\n                  1\n                  NA\n                  POINT (140.9216 37.01329)\n                \n        \n      \n    \n\n\n\n\n\n\n国土数値情報ダウンロードサイトの説明を見てみると、各列は以下のようになっています。\n\n\n\nP13_001：管理都道府県・整備局\nP13_002：管理市区町村\nP13_003：公園名\nP13_004：公園種別\nP13_005：所在地都道府県名\n\n\n\nP13_006：所在地市区町村名\nP13_007：供用開始年\nP13_008：供用済面積\nP13_009：都市計画決定\nP13_010：備考\n\n\n\n\n\n抽出\n今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表すgeometryの列だけが必要だとします。\ndplyr::select()関数を使って列を抽出し、同時に名前も変更します。\n\n\n\n\n\n\nNote\n\n\n\nselect()内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。\n\n\n\npark_s &lt;- park |&gt; \n  select(\n    name_park = P13_003,  # 公園名\n    name_pref = P13_005,  # 都道府県名\n    name_muni = P13_006,  # 市区町村名\n    geometry\n  )\n\n\n\n\n\n表 2: 列抽出済みのデータ\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                name_park\n                name_pref\n                name_muni\n                geometry\n              \n        \n        \n        \n                \n                  福島空港公園            \n                  福島県\n                  須賀川市  \n                  POINT (140.4202 37.24667)\n                \n                \n                  あづま総合運動公園      \n                  福島県\n                  福島市    \n                  POINT (140.362 37.722)\n                \n                \n                  逢瀬公園                \n                  福島県\n                  郡山市    \n                  POINT (140.2739 37.41234)\n                \n                \n                  会津レクリエーション公園\n                  福島県\n                  会津若松市\n                  POINT (140.0166 37.51643)\n                \n                \n                  東ヶ丘公園              \n                  福島県\n                  南相馬市  \n                  POINT (140.9671 37.6326)\n                \n                \n                  いわき公園              \n                  福島県\n                  いわき市  \n                  POINT (140.9216 37.01329)\n                \n        \n      \n    \n\n\n\n\n\n\nこのようにtidyverseの強みを活かしてデータハンドリングを行えます3。"
   },
   {
     "objectID": "pages/gis_in_r/1_intro/index.html#可視化",
     "href": "pages/gis_in_r/1_intro/index.html#可視化",
     "title": "導入 + ハンドリング",
     "section": "可視化",
-    "text": "可視化\ntidyverse に含まれる ggplot2 を使って、ここまでのデータをプロットしていきます。\n基本的な書き方は以下の通りです。データフレームから ggplot() を繋いで記述していきます。\n\npark_s |&gt; \n    ggplot() + \n    geom_sf()  # GIS用のコマンド\n\n\n\n\n\n\n\n図 2: シンプルなプロット\n\n\n\n\n\nこれだとやや分かりにくいので、背景を消しましょう。theme_void() や theme_bw()、theme_classic() などがよいと思います。\n\npark_s |&gt; \n    ggplot() + \n    geom_sf() + \n    theme_void()\n\n\n\n\n\n\n\n図 3: 背景を削除\n\n\n\n\n\nこれだけだとどこなのかわからないので、先ほどダウンロードした福島県の行政区域を重ねてプロットします。\n\n\n\n\n\n\nプロットするとき\n\n\n\nggplot を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。\n今回は行政区域をベースとするので、先にこちらをプロットします。\n\n\n\n\n\n\n\n\ngeom_sf() の注意点\n\n\n\ngeom_sf() でデータを指定する引数は data であり、これは第2引数なので、シンプルに geom_sf(fukushima) と書くとプロットがうまくいきません4。geom_sf(data = fukushima) と書く必要がある点にご注意ください。\n\n\n\nggplot() + \n    geom_sf(data = fukushima) + \n    geom_sf(data = park_s, color = \"orange\") +  # 点の色も指定\n    theme_void()\n\n\n\n\n\n\n\n図 4: 行政区域と公園ポイントのプロット\n\n\n\n\n\nここまでがプロットの方法です。\n今後も可視化の際に ggplot2 を使いますので、その都度紹介します。"
+    "text": "可視化\ntidyverseに含まれるggplot2を使って、ここまでのデータをプロットしていきます。\n基本的な書き方は以下の通りです。データフレームからggplot()を繋いで記述していきます。\n\npark_s |&gt; \n  ggplot() + \n  geom_sf()   # 地図をプロットするためのコマンド\n\n\n\n\n\n\n\n図 2: シンプルなプロット\n\n\n\n\n\nこれだとやや分かりにくいので、背景を消しましょう。theme_void()やtheme_bw()、theme_classic()などがよいと思います。\n\npark_s |&gt; \n  ggplot() + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n図 3: 背景を削除\n\n\n\n\n\nこれだけだとどこなのかわからないので、先ほどダウンロードした福島県の行政区域を重ねてプロットします。\n\n\n\n\n\n\nプロットするとき\n\n\n\nggplot を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。\n今回は行政区域をベースとし、その上に公園をプロットするので、先に行政区域をプロットします。\n\n\n\n\n\n\n\n\ngeom_sf() の注意点\n\n\n\ngeom_sf() でデータを指定する引数は data であり、これは第2引数なので、シンプルに geom_sf(fukushima) と書くとプロットがうまくいきません4。geom_sf(data = fukushima) と書く必要がある点にご注意ください。\n\n\n\nggplot() + \n  geom_sf(data = fukushima) + \n  geom_sf(data = park_s, color = \"orange\") +  # 点の色も指定\n  theme_void()\n\n\n\n\n\n\n\n図 4: 行政区域と公園ポイントのプロット\n\n\n\n\n\nここまでがプロットの方法です。\n今後も可視化の際に ggplot2 を使いますので、その都度紹介します。"
   },
   {
     "objectID": "pages/gis_in_r/1_intro/index.html#ファイルの出力",
     "href": "pages/gis_in_r/1_intro/index.html#ファイルの出力",
     "title": "導入 + ハンドリング",
     "section": "ファイルの出力",
-    "text": "ファイルの出力\n先ほど作成した park_s を Shapefile として出力します。\nGIS データは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。\n# フォルダがない場合に作成する\nif (!dir.exists(here(\"data/output/1_intro\"))) {\n  dir.create(here(\"data/output/1_intro\"), recursive = TRUE)\n}\n\nwrite_sf(park_s, here(\"data/output/1_intro/Park_selected.shp\"), \n         layer_options = \"ENCODING=UTF-8\")\n次回以降は Park_selected.shp を読み込めばここから作業を開始できます。"
+    "text": "ファイルの出力\n先ほど作成したpark_sをShapefileとして出力します。\nGISデータは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。\n# フォルダがない場合に作成する\nif (!dir.exists(here(\"data/output/1_intro\"))) {\n  dir.create(here(\"data/output/1_intro\"), recursive = TRUE)\n}\n\nwrite_sf(park_s, here(\"data/output/1_intro/Park_selected.shp\"), \n         layer_options = \"ENCODING=UTF-8\")\n次回以降はPark_selected.shpを読み込めばここから作業を開始できます。"
   },
   {
     "objectID": "pages/gis_in_r/1_intro/index.html#footnotes",
     "href": "pages/gis_in_r/1_intro/index.html#footnotes",
     "title": "導入 + ハンドリング",
     "section": "注",
-    "text": "注\n\n\nR Project と後述の here についてはこちらを参照して下さい。↩︎\ndsn のところがデータです。↩︎\nデータハンドリングの基礎的な知識を身に付けるには、私たちのRがおすすめです。↩︎\n「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。↩︎"
+    "text": "注\n\n\nR Projectと後述のhereについてはこちらを参照して下さい。↩︎\ndsnのところがデータです。↩︎\nデータハンドリングの基礎的な知識を身に付けるには、私たちのRがおすすめです。↩︎\n「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。↩︎"
   },
   {
     "objectID": "pages/tips/241213_create_website/index.html",
@@ -2007,5 +2007,26 @@
     "title": "【Quarto & RStudio】ウェブサイトを作る！",
     "section": "無事公開完了！！",
     "text": "無事公開完了！！\n以上、個人のホームページを作る手順をまとめました。\n特にGitのところが面倒かもしれませんが、ページを作成するコード自体はマークダウンで書くことができ、難易度もそう高くありません。\n普段QuartoやR Markdownを使っている方は馴染みやすいのではないでしょうか。\n今回はベーシックな部分に絞って解説しましたが、ゆくゆく応用もアップしたいと思いますので、そちらも参考にしていただければと思います。\nそれでは！"
+  },
+  {
+    "objectID": "pages/gis_in_r/1.5_handling_plot/index.html",
+    "href": "pages/gis_in_r/1.5_handling_plot/index.html",
+    "title": "プロットの応用",
+    "section": "",
+    "text": "第1回でGISデータの読み込みと簡単なハンドリング、プロットを行いました。\n今回は、1.5回として、プロットにフォーカスしてもう少し踏み込んでいきたいと思います。"
+  },
+  {
+    "objectID": "pages/gis_in_r/1.5_handling_plot/index.html#はじめに",
+    "href": "pages/gis_in_r/1.5_handling_plot/index.html#はじめに",
+    "title": "プロットの応用",
+    "section": "",
+    "text": "第1回でGISデータの読み込みと簡単なハンドリング、プロットを行いました。\n今回は、1.5回として、プロットにフォーカスしてもう少し踏み込んでいきたいと思います。"
+  },
+  {
+    "objectID": "pages/gis_in_r/1.5_handling_plot/index.html#使用するデータ",
+    "href": "pages/gis_in_r/1.5_handling_plot/index.html#使用するデータ",
+    "title": "プロットの応用",
+    "section": "使用するデータ",
+    "text": "使用するデータ"
   }
 ]
