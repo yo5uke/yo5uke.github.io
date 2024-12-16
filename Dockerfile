@@ -1,4 +1,4 @@
-FROM rocker/geospatial:4.4.1
+FROM rocker/geospatial:4.4.2
 
 RUN apt update && apt install -y \
     libmagick++-dev \
@@ -28,7 +28,7 @@ RUN R -e "install.packages(c('renv'))"
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.11
-ENV JULIA_PATCH_VERSION=1
+ENV JULIA_PATCH_VERSION=2
 
 RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}/julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
     tar xvf julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
