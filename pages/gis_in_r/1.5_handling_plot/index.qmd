@@ -1,8 +1,7 @@
 ---
 title: "プロットの応用"
-date: 2024-12-14
+date: 2024-12-16
 editor: visual
-draft: true
 ---
 
 ## はじめに
@@ -12,3 +11,301 @@ draft: true
 今回は、1.5回として、プロットにフォーカスしてもう少し踏み込んでいきたいと思います。
 
 ## 使用するデータ
+
+第1回と同じデータを用います。
+
+1.  福島県の行政区域データ（2024年、ポリゴン）
+
+    -   [国土数値情報ダウンロードサイト](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html)
+
+2.  福島県の公園データ（2011年、ポイント）
+
+    -   [国土数値情報ダウンロードサイト](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-P13.html)
+
+これらのデータを、ワーキングディレクトリに`data`フォルダを作って入れておいてください。
+
+## 使用するパッケージ
+
+`sf`と`ggplot2`です。`ggplot2`は`tidyverse`パッケージ群に含まれていますので、後者で読み込みます。
+
+```{r}
+library(sf)
+library(tidyverse)
+library(here)
+```
+
+## データの読み込み
+
+前回と同様です。公園のポイントデータには座標参照系（CRS）が設定されていないので、`st_set_crs()`でデータ本来のCRSに設定し、その上でJDG2011に修正しています。
+
+```{r}
+fukushima <- read_sf(here("data/N03-20240101_07_GML/N03-20240101_07.shp"))
+
+park <- read_sf(here("data/P13-11_07_GML/P13-11_07.shp"), 
+                options = "ENCODING=Shift_JIS") |> 
+  st_set_crs(st_crs(4612)) |>  # JGD2000/(B, L) データ本来のCRS
+  st_transform(st_crs(6668))   # JGD2011/(B, L) 変換したいCRS
+
+# 必要な変数を抽出＆リネーム
+fukushima <- fukushima |> 
+  select(
+    name_pref = N03_001,  # 都道府県名
+    name_muni = N03_004,  # 市区町村名
+    geometry              # プロットに必要
+  )
+
+park_s <- park |> 
+  select(
+    name_park = P13_003,  # 公園名
+    name_pref = P13_005,  # 都道府県名
+    name_muni = P13_006,  # 市区町村名
+    geometry
+  )
+```
+
+## プロットの基本
+
+まずは前回のプロットを確認します。
+
+```{r}
+#| label: fig-plot-all
+#| fig-cap: "行政区域と公園ポイントのプロット"
+
+ggplot() + 
+  geom_sf(data = fukushima) + 
+  geom_sf(data = park_s, color = "orange") +  # 点の色も指定
+  theme_void()
+
+```
+
+**ポイント：**
+
+1.  `ggplot()`でプロットを開始
+2.  `geom_sf()`で各地理データをプロット
+    -   括弧内では`data =`を明記（ないとプロットできない）
+3.  コードを書いた順に上書き
+    -   公園のデータを先にプロットするとその後に書いた地図に消されてしまう
+4.  `theme_void()`でシンプルな背景に
+    -   緯度経度までプロットしたいことはあまりないと思いますが、軸も表示しつつシンプルなテーマを使いたい場合は[こちら](../../tips/241117_ggplot2/index.html#テーマ)も参考にしてください。
+
+## 地図の塗りつぶし
+
+### 全体
+
+例えば、デフォルトで市町村はグレーに塗られていますが、ここも白にしたいとします。
+
+```{r}
+#| label: fig-map-fill
+#| fig-cap: "白で塗りつぶしました"
+
+ggplot() + 
+  geom_sf(data = fukushima, fill = "white") + 
+  geom_sf(data = park_s, color = "orange") + 
+  theme_void()
+
+```
+
+`fill`を`geom_sf()`内で指定することにより、塗りつぶすことができます。
+
+### 一部
+
+時には一部の市町村だけ塗りつぶしたいこともあると思います。ここでは例として、公園が集中している福島市、郡山市、会津若松市、いわき市を塗りつぶしてみます。
+
+まずはデータの加工からです。
+
+`fukushima`のデータを加工し、4市のいずれかであれば「主要4市」となる変数を作ります。
+
+`cities`に該当する市の名前を格納し、`name_muni %in% cities`で`name_muni`が`cities`に入っていれば「主要4市」とラベリングされます。
+
+```{r}
+cities <- c("福島市", "郡山市", "会津若松市", "いわき市")
+
+fukushima <- fukushima |> 
+  mutate(is_in4cities = if_else(name_muni %in% cities, "主要4市", "その他"))
+```
+
+`if_else(条件, 真, 偽)`は、条件に当てはまっていれば真、そうでなければ偽の値をとるような関数です。
+
+::: {.callout-tip collapse="true"}
+## ダミー変数の場合
+
+この場合真と偽はダミー変数の1, 0でもよいのですが、プロットの際に連続変数と扱われてしまい、少々面倒です。百聞は一見に如かずということで、ダミー変数で作った場合のプロットはこちらです。
+
+```{r}
+#| echo: false
+
+fukushima <- fukushima |> 
+  mutate(is_in4cities = if_else(name_muni %in% cities, 1, 0))
+ggplot() + 
+  geom_sf(data = fukushima, aes(fill = is_in4cities)) + 
+  geom_sf(data = park_s, color = "orange") + 
+  theme_void()
+
+```
+
+これは色をいじっていないのできれいな図ではありませんが、凡例を見ていただければわかる通り、1, 0の2値ではなく連続変数扱いになってしまっています。
+
+そのため、もし2値でしたいのであれば`"1", "0"`のように文字列として変数を作成するのが良いかもしれません。
+:::
+
+```{r}
+#| echo: false
+
+fukushima <- fukushima |> 
+  mutate(is_in4cities = if_else(name_muni %in% cities, "主要4市", "その他"))
+
+```
+
+次に`is_in4cities`が1であれば塗りつぶすようにコードを修正します。
+
+```{r}
+#| label: fig-map-fill-4cities
+#| fig-cap: "特定の市を塗りつぶしました"
+
+ggplot() + 
+  geom_sf(data = fukushima, aes(fill = is_in4cities)) + 
+  geom_sf(data = park_s, color = "orange") + 
+  theme_void()
+
+```
+
+`aes(fill = is_in4cities)`を追加したことで、色分けをすることができました。変数に対して色分けをしたい場合は`aes()`内で指定する必要があります。
+
+しかしこのままでは色が非常に見にくいので、色を修正していきます。
+
+```{r}
+#| label: fig-map-fill-4cities-clean
+#| fig-cap: "特定の市を塗りつぶしました"
+
+ggplot() + 
+  geom_sf(data = fukushima, aes(fill = is_in4cities)) + 
+  geom_sf(data = park_s, color = "darkgreen") + 
+  scale_fill_manual(
+    values = c("white", "lightblue")
+  ) + 
+  theme_void()
+
+```
+
+これでより見やすいプロットになりました。`scale_fill_manual()`では、`aes(fill = )`で設定した変数に対して`values =`で色を割り当てることができます。
+
+例えば人口など連続変数をマッピングしたい場合はまた別ですが、離散値の場合は基本的にこの方法でプロット可能です。今は2種類しかないので`c("white", "lightblue")`ですが、3種類以上でも可能です[^1]。
+
+[^1]: 変数が「政令指定都市」、「中核市」、「その他」で`scale_fill_manual( values = c("white", "lightblue", "blue") )`とするなど。
+
+## 凡例の整理
+
+@fig-map-fill-4cities-clean では地図自体は整理できたものの、凡例部分が未整理です。
+
+例えば`is_in4cities`は消したいし、主要4市はその他の上にあってほしいです。
+
+その設定をするコードは以下です。
+
+```{r}
+#| label: fig-map-fill-4cities-guides
+#| fig-cap: "凡例を整理しました"
+
+ggplot() + 
+  geom_sf(data = fukushima, aes(fill = is_in4cities)) + 
+  geom_sf(data = park_s, color = "darkgreen") + 
+  scale_fill_manual(
+    values = c("white", "lightblue")
+  ) + 
+  guides(fill = guide_legend(title = NULL, reverse = TRUE)) + 
+  theme_void()
+
+```
+
+**ポイント：**
+
+1.  `guides()`内で`fill`を指定
+    -   これは`aes()`内で`fill`を使用しているため[^2]
+2.  `guide_legend()`内で`title = NULL`を指定
+    -   文字通りタイトルを空にする
+3.  `guide_legend()`内で`reverse = TRUE`を指定
+    -   要素の順を逆転させる
+
+[^2]: 例えば折れ線グラフで`linetype`を使っていたら、ここも`linetype =`になります。
+
+## 点を色で塗り分ける
+
+今度は点に色を付ける方法です。これまではオレンジや濃い緑で統一して色を付けてきましたが、これを色分けしていきます。
+
+先ほどと同様、分け方に従って変数を追加します。先ほどと同様の4市に含まれる公園に色を付けるとします。
+
+```{r}
+park_s <- park_s |> 
+  mutate(is_in4cities = if_else(name_muni %in% cities, "主要4市内", "その他"))
+```
+
+ほとんど同じです。
+
+続いてプロットを行います。
+
+```{r}
+#| label: fig-map-point-coloring
+#| fig-cap: "点を塗り分けました"
+
+ggplot() + 
+  geom_sf(data = fukushima, fill = "white") + 
+  geom_sf(data = park_s, aes(color = is_in4cities)) + 
+  theme_void()
+
+```
+
+先ほどとの違いは、`aes()`内で`fill`ではなく`color`を使っている点です。文字通り`fill`は塗りつぶしですので、点では`color`を使います。
+
+ここからは塗りつぶしで行った手順をまとめて行っていきます。
+
+```{r}
+#| label: fig-map-point-coloring-clean
+#| fig-cap: "点の色と凡例を整理しました"
+
+ggplot() + 
+  geom_sf(data = fukushima, fill = "white") + 
+  geom_sf(data = park_s, aes(color = is_in4cities)) + 
+  scale_color_manual(
+    values = c("lightblue", "darkblue")
+  ) + 
+  guides(color = guide_legend(title = NULL, reverse = TRUE)) + 
+  theme_void()
+
+```
+
+これで点の塗分けも可能になりました。
+
+**ポイント：**
+
+1.  `scale_color_manual(values = )`で色を指定
+    -   先ほどは`fill`だったが今回は`color`を使っている
+2.  `guides()`
+    -   1と同様`color =`になっている
+    -   他は塗りつぶしと同じ
+
+## 凡例の位置
+
+最後に、凡例の位置は`theme()`内で変更可能です。
+
+```{r}
+#| label: fig-legend
+#| fig-cap: "凡例の位置を変更"
+
+ggplot() + 
+  geom_sf(data = fukushima, fill = "white") + 
+  geom_sf(data = park_s, aes(color = is_in4cities)) + 
+  scale_color_manual(
+    values = c("lightblue", "darkblue")
+  ) + 
+  guides(color = guide_legend(title = NULL, reverse = TRUE)) + 
+  theme_void() + 
+  theme(
+    legend.position = "bottom"
+  )
+
+```
+
+凡例については他のプロット同じなので[こちら](../../tips/241117_ggplot2/index.html#凡例の位置)も参照してください。
+
+## おわりに
+
+今回は1.5回としてR上での地図のプロットをまとめました。今後の回でまた別タイプのプロットが出てくるかもしれませんが、その都度紹介していきます。
