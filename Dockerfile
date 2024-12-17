@@ -7,6 +7,7 @@ RUN apt update && apt install -y \
     openssh-client \
     libxt-dev \
     python3 \
+    python3-venv \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
@@ -26,6 +27,15 @@ COPY --chown=rstudio:rstudio /.vscode/_settings.json /home/rstudio/.vscode-serve
 # R Package
 RUN R -e "install.packages(c('renv'))"
 
+# Python
+RUN python3 -m venv /home/rstudio/venv && \
+    /home/rstudio/venv/bin/pip install --upgrade pip setuptools && \
+    /home/rstudio/venv/bin/pip install jupyter dvc
+
+ENV PATH="/home/rstudio/venv/bin:$PATH"
+
+RUN chown -R rstudio:rstudio /home/rstudio/venv
+
 # Julia
 ENV JULIA_MINOR_VERSION=1.11
 ENV JULIA_PATCH_VERSION=2
@@ -34,9 +44,6 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
     tar xvf julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
     rm julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
     ln -s $(pwd)/julia-$JULIA_MINOR_VERSION.$JULIA_PATCH_VERSION/bin/julia /usr/bin/julia
-
-# DVC Path
-ENV PATH $PATH:~/.cache/pip/bin
 
 ENV QUARTO_MINOR_VERSION=1.6
 ENV QUARTO_PATCH_VERSION=39
