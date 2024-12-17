@@ -28,11 +28,14 @@ COPY --chown=rstudio:rstudio /.vscode/_settings.json /home/rstudio/.vscode-serve
 RUN R -e "install.packages(c('renv'))"
 
 # Python
-RUN python3 -m venv /home/rstudio/.cache/venv && \
-    /home/rstudio/.cache/venv/bin/pip install --upgrade pip setuptools && \
-    /home/rstudio/.cache/venv/bin/pip install jupyter dvc
+RUN python3 -m venv /home/rstudio/venv && \
+    chown -R rstudio:rstudio /home/rstudio/venv && \
+    /home/rstudio/venv/bin/pip install --upgrade pip setuptools wheel && \
+    /home/rstudio/venv/bin/pip install jupyter dvc
 
-ENV PATH="/home/rstudio/.cache/venv/bin:$PATH"
+# Environment
+ENV PATH="/home/rstudio/venv/bin:$PATH"
+
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.11
