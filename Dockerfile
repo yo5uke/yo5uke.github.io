@@ -28,14 +28,13 @@ COPY --chown=rstudio:rstudio /.vscode/_settings.json /home/rstudio/.vscode-serve
 RUN R -e "install.packages(c('renv'))"
 
 # Python
-RUN python3 -m venv /home/rstudio/venv && \
-    chown -R rstudio:rstudio /home/rstudio/venv && \
-    /home/rstudio/venv/bin/pip install --upgrade pip setuptools wheel && \
-    /home/rstudio/venv/bin/pip install jupyter dvc
+RUN python3 -m venv /home/rstudio/.venv && \
+    chown -R rstudio:rstudio /home/rstudio/.venv && \
+    /home/rstudio/.venv/bin/pip install --upgrade pip setuptools wheel && \
+    /home/rstudio/.venv/bin/pip install jupyter dvc
 
 # Environment
-ENV PATH="/home/rstudio/venv/bin:$PATH"
-
+ENV PATH="/home/rstudio/.venv/bin:$PATH"
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.11
@@ -46,12 +45,15 @@ RUN wget https://julialang-s3.julialang.org/bin/linux/x64/${JULIA_MINOR_VERSION}
     rm julia-${JULIA_MINOR_VERSION}.${JULIA_PATCH_VERSION}-linux-x86_64.tar.gz && \
     ln -s $(pwd)/julia-$JULIA_MINOR_VERSION.$JULIA_PATCH_VERSION/bin/julia /usr/bin/julia
 
+# Quarto
 ENV QUARTO_MINOR_VERSION=1.6
 ENV QUARTO_PATCH_VERSION=39
 
 RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
     dpkg -i quarto.deb && \
     rm quarto.deb
+
+ENV QUARTO_PYTHON="/home/rstudio/.venv/bin/python"
 
 # Package Cahce & Permission
 RUN cd /home/rstudio && mkdir -p .cache .TinyTeX && \
