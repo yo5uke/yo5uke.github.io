@@ -29,12 +29,8 @@ RUN R -e "install.packages(c('renv'))"
 
 # Python
 RUN python3 -m venv /home/rstudio/.venv && \
-    chown -R rstudio:rstudio /home/rstudio/.venv && \
-    /home/rstudio/.venv/bin/pip install --upgrade pip setuptools wheel && \
-    /home/rstudio/.venv/bin/pip install jupyter dvc
-
-# Environment
-ENV PATH="/home/rstudio/.venv/bin:$PATH"
+    /home/rstudio/.venv/bin/pip install --upgrade pip && \
+    /home/rstudio/.venv/bin/pip install jupyter dvc dvc-gdrive
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.11
@@ -52,8 +48,6 @@ ENV QUARTO_PATCH_VERSION=39
 RUN wget -O quarto.deb https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb && \
     dpkg -i quarto.deb && \
     rm quarto.deb
-
-ENV QUARTO_PYTHON="/home/rstudio/.venv/bin/python"
 
 # Package Cahce & Permission
 RUN cd /home/rstudio && mkdir -p .cache .TinyTeX && \
