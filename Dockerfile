@@ -20,8 +20,8 @@ RUN sed -i '$d' /etc/locale.gen \
     && /usr/sbin/update-locale LANG=ja_JP.UTF-8 LANGUAGE="ja_JP:ja"
 RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
-COPY --chown=rstudio:rstudio /.rstudio/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
-COPY --chown=rstudio:rstudio /etc/rstudio/rsession.conf /etc/rstudio/rsession.conf
+COPY --chown=rstudio:rstudio /.config/.rstudio/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
+COPY --chown=rstudio:rstudio /.config/.rstudio/rsession.conf /etc/rstudio/rsession.conf
 COPY --chown=rstudio:rstudio /.vscode/_settings.json /home/rstudio/.vscode-server/data/Machine/settings.json
 
 # R Package
@@ -29,8 +29,7 @@ RUN R -e "install.packages(c('renv'))"
 
 # Python
 RUN python3 -m venv /home/rstudio/.venv && \
-    /home/rstudio/.venv/bin/pip install --upgrade pip && \
-    /home/rstudio/.venv/bin/pip install jupyter dvc dvc-gdrive
+    /home/rstudio/.venv/bin/pip install --upgrade pip
 
 # Julia
 ENV JULIA_MINOR_VERSION=1.11
