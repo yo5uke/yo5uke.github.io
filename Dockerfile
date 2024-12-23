@@ -1,23 +1,13 @@
 FROM rocker/geospatial:4.4.2
 
 RUN apt update && apt install -y \
-    libmagick++-dev \
-    tk \
-    locales \
     openssh-client \
-    libxt-dev \
     python3 \
     python3-venv \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-# Locale and Timezone
-ENV LANG ja_JP.UTF-8
-ENV LC_ALL ja_JP.UTF-8
-RUN sed -i '$d' /etc/locale.gen \
-    && echo "ja_JP.UTF-8 UTF-8" >> /etc/locale.gen \
-    && locale-gen ja_JP.UTF-8 \
-    && /usr/sbin/update-locale LANG=ja_JP.UTF-8 LANGUAGE="ja_JP:ja"
+# Timezone
 RUN ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
 
 COPY --chown=rstudio:rstudio /.config/.rstudio/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
