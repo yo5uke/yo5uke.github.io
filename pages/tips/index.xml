@@ -10,7 +10,275 @@
 <atom:link href="https://yo5uke.github.io/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.39</generator>
-<lastBuildDate>Wed, 18 Dec 2024 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 23 Dec 2024 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>pinsでデータ管理</title>
+  <link>https://yo5uke.github.io/pages/tips/241224_pins/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const share_url = encodeURIComponent(location.href);
+  const share_title = encodeURIComponent(document.title);
+  
+  // Twitter (X)
+  const twitterUsername = "@5uke_y";
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より"
+  );
+  
+  // Bluesky
+  const blueskyUsername = "@5uke.bsky.social";
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+  </script>
+  
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p><code>pins</code>というパッケージをご存じでしょうか。<code>pins</code>は、Rでデータやオブジェクトを簡単に共有・保存・再利用するためのパッケージです。</p>
+<p>このパッケージでは、Google Driveなど、様々なツールと連携してデータを管理することができます。</p>
+<p>これまでの記事<sup>1</sup>ではDVCを用いた方法を紹介してきましたが、特にGoogle Cloud projectを使用しなければならなくなって以降、正直めんどくさいです。</p>
+<p>ここではなるべく簡単にデータを管理、共有できるツールとして<code>pins</code>をご紹介します。</p>
+</section>
+<section id="設定" class="level2">
+<h2 class="anchored" data-anchor-id="設定">設定</h2>
+<p>早速設定です。インストールされていない場合、以下のコードでパッケージをインストールしてください。Tidyverseを使っている場合は、<code>googledrive</code>はインストール済みです。</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages("pak")</span></span>
+<span id="cb1-2">pak<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pak</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pins"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"googledrive"</span>))</span></code></pre></div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>余談ですが、最近はパッケージのインストールに<code>pak::pak()</code>をメインで使用しています。<code>pak::pak()</code>は</p>
+<blockquote class="blockquote">
+<p>A Fresh Approach to R Package Installation</p>
+</blockquote>
+<p>であり、<code>install.packages()</code>と<code>devtools::install_github()</code>を兼ね合わせています<sup>2</sup>。<del>ミーハーな僕としては使わずにはいられません。</del></p>
+</div>
+</div>
+</div>
+<p>続いて以下のコードでドライブと連携します。ブラウザ上でデータを保存したいフォルダを作成し、URLをコピーしておいてください。その後、以下のコードのリンク部分を置き換えて実行します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">board <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">board_gdrive</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://drive.google.com/drive/u/0/folders/1F3T0SUmdKBrYUvo180KqBf00yoRrzPdP"</span>)</span></code></pre></div>
+</div>
+<p>このコマンドを実行すると、</p>
+<pre><code>Is it OK to cache OAuth access credentials in the folder ~/.cache/gargle between R sessions?
+1: Yes
+2: No</code></pre>
+<p>と出てくると思いますが、基本的に1を打って実行でいいと思います。これでセッションが切れても（RStudioを再起動しても）認証が継続されます。共用のPCなどの場合は2になると思いますが。</p>
+<p>続けてブラウザでGoogleに認証を求められると思いますが、必要な権限を与え（チェックボックスにチェックを入れ）、次へと進んでいきます。</p>
+<p>最後に以下の画面が出てきたら、下部のコードをコピーし、RStudioのコンソールに打ち込み、実行します。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/241224_pins/image/gdrive_auth.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
+</figure>
+</div>
+<p>これで認証は完了です。</p>
+</section>
+<section id="データの管理" class="level2">
+<h2 class="anchored" data-anchor-id="データの管理">データの管理</h2>
+<section id="ピン留め" class="level3">
+<h3 class="anchored" data-anchor-id="ピン留め">ピン留め</h3>
+<p><code>pins</code>では、パッケージ名通りデータをピン留めすることができます。例えばデフォルトで入っている<code>mtcars</code>データを例に、データをフォルダにピン留めします。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">board <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb4-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pin_write</span>(mtcars, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mtcars"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Guessing `type = 'rds'`
+Creating new version '20241223T131135Z-418c9'
+Writing to pin 'mtcars'</code></pre>
+</div>
+</div>
+<p>メッセージに出ている通り、デフォルトでは<code>.rds</code>ファイルとして保存されるようです。試しに<code>head()</code>で行数を絞って、csvで保存してみます。その場合、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">board <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pin_write</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">head</span>(mtcars), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mtcars"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"csv"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Creating new version '20241223T131142Z-6a6e3'
+Writing to pin 'mtcars'</code></pre>
+</div>
+</div>
+<p>と、<code>type</code>を指定してください。</p>
+</section>
+<section id="読み込み" class="level3">
+<h3 class="anchored" data-anchor-id="読み込み">読み込み</h3>
+<p>保存したデータを読み込みたい場合は、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">board <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pin_read</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mtcars"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   mpg cyl disp  hp drat    wt  qsec vs am gear carb
+1 21.0   6  160 110 3.90 2.620 16.46  0  1    4    4
+2 21.0   6  160 110 3.90 2.875 17.02  0  1    4    4
+3 22.8   4  108  93 3.85 2.320 18.61  1  1    4    1
+4 21.4   6  258 110 3.08 3.215 19.44  1  0    3    1
+5 18.7   8  360 175 3.15 3.440 17.02  0  0    3    2
+6 18.1   6  225 105 2.76 3.460 20.22  1  0    3    1</code></pre>
+</div>
+</div>
+<p>で可能です。</p>
+</section>
+<section id="バージョン管理" class="level3">
+<h3 class="anchored" data-anchor-id="バージョン管理">バージョン管理</h3>
+<p>ちなみに、バージョン管理も可能です。まずは<code>pin_versions()</code>でバージョンを確認します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1">board <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pin_versions</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mtcars"</span>)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 3
+  version                created             hash 
+  &lt;chr&gt;                  &lt;dttm&gt;              &lt;chr&gt;
+1 20241223T131135Z-418c9 2024-12-23 22:11:35 418c9
+2 20241223T131142Z-6a6e3 2024-12-23 22:11:42 6a6e3</code></pre>
+</div>
+</div>
+<p>上は<code>mtcars</code>の全データ、下は<code>head()</code>を適用したデータです。</p>
+<p>現在は下のデータで上書きされている状態ですが、ここでやはり全データを読み込みたいとします。</p>
+<p>その場合、以下のようにして読み込みます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1">board <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb12-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pin_read</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mtcars"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">version =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"20241223T131135Z-418c9"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb12-3">  tibble<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as_tibble</span>()</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 32 × 11
+     mpg   cyl  disp    hp  drat    wt  qsec    vs    am  gear  carb
+   &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1  21       6  160    110  3.9   2.62  16.5     0     1     4     4
+ 2  21       6  160    110  3.9   2.88  17.0     0     1     4     4
+ 3  22.8     4  108     93  3.85  2.32  18.6     1     1     4     1
+ 4  21.4     6  258    110  3.08  3.22  19.4     1     0     3     1
+ 5  18.7     8  360    175  3.15  3.44  17.0     0     0     3     2
+ 6  18.1     6  225    105  2.76  3.46  20.2     1     0     3     1
+ 7  14.3     8  360    245  3.21  3.57  15.8     0     0     3     4
+ 8  24.4     4  147.    62  3.69  3.19  20       1     0     4     2
+ 9  22.8     4  141.    95  3.92  3.15  22.9     1     0     4     2
+10  19.2     6  168.   123  3.92  3.44  18.3     1     0     4     4
+# ℹ 22 more rows</code></pre>
+</div>
+</div>
+<p><code>version</code>引数に、上で出てきたバージョンをペーストしてやれば可能です。</p>
+</section>
+</section>
+<section id="まとめ" class="level2">
+<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
+<p>今回は<code>pins</code>パッケージを使ったデータ管理の方法についてご紹介しました。</p>
+<p>Google Driveは多くの人がアカウントを所持しているため、アカウント設定に時間を割かなくてよい点が魅力的だと思います。</p>
+<p>僕が思う良い点としては、直接Google Driveにデータが保存されるため、PCの容量を食わなくていいことがあると思います。</p>
+<p>ぜひ使ってみてください。</p>
+</section>
+<section id="番外編" class="level2">
+<h2 class="anchored" data-anchor-id="番外編">番外編</h2>
+<p>ちなみに今回はGoogle Driveでご紹介しましたが、Dropbox等でも可能です。</p>
+<div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">board <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">board_folder</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"~/Dropbox"</span>)</span></code></pre></div>
+<p>Dropboxのパスは環境によって異なると思いますが、Dropboxでの共有設定をしておき、各自そのフォルダへのパスを設定しておけば、Dropboxでも<code>pins</code>を使うことができます。</p>
+<p>Dropboxユーザーの方は是非お試しあれ。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>例えば<a href="../241219_container/index.html">こちら</a>など。↩︎</p></li>
+<li id="fn2"><p><a href="https://pak.r-lib.org/">pakドキュメント</a>↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <guid>https://yo5uke.github.io/pages/tips/241224_pins/</guid>
+  <pubDate>Mon, 23 Dec 2024 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【改訂版】開発コンテナを使ってR環境を構築！</title>
   <link>https://yo5uke.github.io/pages/tips/241219_container/</link>
@@ -2560,8 +2828,8 @@ font-style: inherit;">"cm"</span>)))</span></code></pre></div>
 
     <script>
 
-      function styleCell_az9vgzwiy2y2e0sc0ugt(i, j, css_id) {
-          var table = document.getElementById("tinytable_az9vgzwiy2y2e0sc0ugt");
+      function styleCell_wgiqxjhis9zi1y9nbmld(i, j, css_id) {
+          var table = document.getElementById("tinytable_wgiqxjhis9zi1y9nbmld");
           var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
@@ -2571,7 +2839,7 @@ font-style: inherit;">"cm"</span>)))</span></code></pre></div>
           }
       }
       function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_az9vgzwiy2y2e0sc0ugt');
+        var table = document.getElementById('tinytable_wgiqxjhis9zi1y9nbmld');
         var newRow = table.insertRow(i);
         var newCell = newRow.insertCell(0);
         newCell.setAttribute("colspan", colspan);
@@ -2579,8 +2847,8 @@ font-style: inherit;">"cm"</span>)))</span></code></pre></div>
         // this may be unsafe, but innerText does not interpret <br>
         newCell.innerHTML = content;
       }
-      function spanCell_az9vgzwiy2y2e0sc0ugt(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_az9vgzwiy2y2e0sc0ugt");
+      function spanCell_wgiqxjhis9zi1y9nbmld(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_wgiqxjhis9zi1y9nbmld");
         const targetRow = table.rows[i];
         const targetCell = targetRow.cells[j];
         for (let r = 0; r < rowspan; r++) {
@@ -2610,14 +2878,14 @@ font-style: inherit;">"cm"</span>)))</span></code></pre></div>
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_qa7tumt1fqaa6q1t3brr',}, 
-          { positions: [ { i: 10, j: 0 }, { i: 10, j: 1 }, { i: 10, j: 2 },  ], css_id: 'tinytable_css_lvejxq499fiaqz1e48ku',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_lyitg6aag8tsfqn0jgun',}, 
+          { positions: [ { i: 10, j: 0 }, { i: 10, j: 1 }, { i: 10, j: 2 },  ], css_id: 'tinytable_css_7pasujrtc5d19rl9951s',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_az9vgzwiy2y2e0sc0ugt(cell.i, cell.j, group.css_id);
+                  styleCell_wgiqxjhis9zi1y9nbmld(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -2625,11 +2893,11 @@ font-style: inherit;">"cm"</span>)))</span></code></pre></div>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_qa7tumt1fqaa6q1t3brr, .table th.tinytable_css_qa7tumt1fqaa6q1t3brr { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_lvejxq499fiaqz1e48ku, .table th.tinytable_css_lvejxq499fiaqz1e48ku { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_lyitg6aag8tsfqn0jgun, .table th.tinytable_css_lyitg6aag8tsfqn0jgun { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_7pasujrtc5d19rl9951s, .table th.tinytable_css_7pasujrtc5d19rl9951s { border-bottom: solid #d3d8dc 0.1em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_az9vgzwiy2y2e0sc0ugt" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_wgiqxjhis9zi1y9nbmld" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>
@@ -4299,8 +4567,8 @@ font-style: inherit;">470000</span>)</span>
 
     <script>
 
-      function styleCell_t8pxom9slpejq0n7zc4l(i, j, css_id) {
-          var table = document.getElementById("tinytable_t8pxom9slpejq0n7zc4l");
+      function styleCell_3r1ljn3se387diaqvk1d(i, j, css_id) {
+          var table = document.getElementById("tinytable_3r1ljn3se387diaqvk1d");
           var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
@@ -4310,7 +4578,7 @@ font-style: inherit;">470000</span>)</span>
           }
       }
       function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_t8pxom9slpejq0n7zc4l');
+        var table = document.getElementById('tinytable_3r1ljn3se387diaqvk1d');
         var newRow = table.insertRow(i);
         var newCell = newRow.insertCell(0);
         newCell.setAttribute("colspan", colspan);
@@ -4318,8 +4586,8 @@ font-style: inherit;">470000</span>)</span>
         // this may be unsafe, but innerText does not interpret <br>
         newCell.innerHTML = content;
       }
-      function spanCell_t8pxom9slpejq0n7zc4l(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_t8pxom9slpejq0n7zc4l");
+      function spanCell_3r1ljn3se387diaqvk1d(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_3r1ljn3se387diaqvk1d");
         const targetRow = table.rows[i];
         const targetCell = targetRow.cells[j];
         for (let r = 0; r < rowspan; r++) {
@@ -4349,14 +4617,14 @@ font-style: inherit;">470000</span>)</span>
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 }, { i: 0, j: 5 }, { i: 0, j: 6 }, { i: 0, j: 7 },  ], css_id: 'tinytable_css_xflm1r248p55c73ixumq',}, 
-          { positions: [ { i: 2, j: 0 }, { i: 2, j: 1 }, { i: 2, j: 2 }, { i: 2, j: 3 }, { i: 2, j: 4 }, { i: 2, j: 5 }, { i: 2, j: 6 }, { i: 2, j: 7 },  ], css_id: 'tinytable_css_gmv9ay4e6j9jwbg1qevd',}, 
+          { positions: [ { i: 2, j: 0 }, { i: 2, j: 1 }, { i: 2, j: 2 }, { i: 2, j: 3 }, { i: 2, j: 4 }, { i: 2, j: 5 }, { i: 2, j: 6 }, { i: 2, j: 7 },  ], css_id: 'tinytable_css_xd4jibcy5pelgc4uvxdo',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 }, { i: 0, j: 5 }, { i: 0, j: 6 }, { i: 0, j: 7 },  ], css_id: 'tinytable_css_4e9jgejyjgxxbutwdutj',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_t8pxom9slpejq0n7zc4l(cell.i, cell.j, group.css_id);
+                  styleCell_3r1ljn3se387diaqvk1d(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -4364,11 +4632,11 @@ font-style: inherit;">470000</span>)</span>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_xflm1r248p55c73ixumq, .table th.tinytable_css_xflm1r248p55c73ixumq { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_gmv9ay4e6j9jwbg1qevd, .table th.tinytable_css_gmv9ay4e6j9jwbg1qevd { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_xd4jibcy5pelgc4uvxdo, .table th.tinytable_css_xd4jibcy5pelgc4uvxdo { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_4e9jgejyjgxxbutwdutj, .table th.tinytable_css_4e9jgejyjgxxbutwdutj { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_t8pxom9slpejq0n7zc4l" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_3r1ljn3se387diaqvk1d" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>
@@ -4470,8 +4738,8 @@ font-style: inherit;">"_"</span></span>
 
     <script>
 
-      function styleCell_rulen9znycf7v1v4ma4a(i, j, css_id) {
-          var table = document.getElementById("tinytable_rulen9znycf7v1v4ma4a");
+      function styleCell_yyrmtm4slh0rfb4t50b8(i, j, css_id) {
+          var table = document.getElementById("tinytable_yyrmtm4slh0rfb4t50b8");
           var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
@@ -4481,7 +4749,7 @@ font-style: inherit;">"_"</span></span>
           }
       }
       function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_rulen9znycf7v1v4ma4a');
+        var table = document.getElementById('tinytable_yyrmtm4slh0rfb4t50b8');
         var newRow = table.insertRow(i);
         var newCell = newRow.insertCell(0);
         newCell.setAttribute("colspan", colspan);
@@ -4489,8 +4757,8 @@ font-style: inherit;">"_"</span></span>
         // this may be unsafe, but innerText does not interpret <br>
         newCell.innerHTML = content;
       }
-      function spanCell_rulen9znycf7v1v4ma4a(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_rulen9znycf7v1v4ma4a");
+      function spanCell_yyrmtm4slh0rfb4t50b8(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_yyrmtm4slh0rfb4t50b8");
         const targetRow = table.rows[i];
         const targetCell = targetRow.cells[j];
         for (let r = 0; r < rowspan; r++) {
@@ -4520,14 +4788,14 @@ font-style: inherit;">"_"</span></span>
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 },  ], css_id: 'tinytable_css_hy5h6nzmggj3edk699uo',}, 
-          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 },  ], css_id: 'tinytable_css_1435jh2h1jbilb4rb997',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 },  ], css_id: 'tinytable_css_qv9rlv67bf6pto2p4pfn',}, 
+          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 },  ], css_id: 'tinytable_css_m7aaj5w5csjxhqfffnv6',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_rulen9znycf7v1v4ma4a(cell.i, cell.j, group.css_id);
+                  styleCell_yyrmtm4slh0rfb4t50b8(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -4535,11 +4803,11 @@ font-style: inherit;">"_"</span></span>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_hy5h6nzmggj3edk699uo, .table th.tinytable_css_hy5h6nzmggj3edk699uo { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_1435jh2h1jbilb4rb997, .table th.tinytable_css_1435jh2h1jbilb4rb997 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_qv9rlv67bf6pto2p4pfn, .table th.tinytable_css_qv9rlv67bf6pto2p4pfn { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_m7aaj5w5csjxhqfffnv6, .table th.tinytable_css_m7aaj5w5csjxhqfffnv6 { border-bottom: solid #d3d8dc 0.1em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_rulen9znycf7v1v4ma4a" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_yyrmtm4slh0rfb4t50b8" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>
@@ -14885,176 +15153,6 @@ font-style: inherit;">tlmgr</span> install xltxtra</span></code></pre></div>
   <guid>https://yo5uke.github.io/pages/tips/240520_latex/</guid>
   <pubDate>Sun, 19 May 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.github.io/pages/tips/240520_latex/image/latex-output.png" medium="image" type="image/png" height="78" width="144"/>
-</item>
-<item>
-  <title>【R】アーカイブされたパッケージを使う</title>
-  <link>https://yo5uke.github.io/pages/tips/240516_archived_pkg/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const share_url = encodeURIComponent(location.href);
-  const share_title = encodeURIComponent(document.title);
-  
-  // Twitter (X)
-  const twitterUsername = "@5uke_y";
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より"
-  );
-  
-  // Bluesky
-  const blueskyUsername = "@5uke.bsky.social";
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-  </script>
-  
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>因果推論を勉強している人にはおなじみの <a href="https://mixtape.scunning.com/">Mixtape</a> ですが、昨年勉強中にこの中の合成コントロール法の章でパッケージがインストールできない問題に直面しました。</p>
-<p>よく調べてみると、当時<sup>1</sup> <code>SCtools</code> パッケージはアーカイブされてしまっており、<code>install.packages('SCtools')</code> ではインストールができないことが判明しました。</p>
-<p>現在<sup>2</sup>では復活してインストールできるようになっていますが、そんなときに備えて対処法をまとめます。</p>
-</section>
-<section id="作業の流れ" class="level2">
-<h2 class="anchored" data-anchor-id="作業の流れ">作業の流れ</h2>
-<section id="アーカイブされたパッケージを探す" class="level3">
-<h3 class="anchored" data-anchor-id="アーカイブされたパッケージを探す">アーカイブされたパッケージを探す</h3>
-<p>CRAN の<a href="https://cran.r-project.org/src/contrib/Archive/">アーカイブ</a>にアクセスして、アーカイブされたパッケージを探します。</p>
-<p>例えば当時アーカイブされていた <code>SCtools</code> を探すと、次のようになります。</p>
-<p><img src="https://yo5uke.github.io/pages/tips/240516_archived_pkg/sctools-archived.png" class="img-fluid"></p>
-<p>この中で最新のものを右クリックし、リンクをコピーしてください。</p>
-</section>
-<section id="rstudio-を開く" class="level3">
-<h3 class="anchored" data-anchor-id="rstudio-を開く">RStudio を開く</h3>
-<p>続いて RStudio を開き、スクリプトに次のコードを入力してください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb1" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1">url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://cran.r-project.org/src/contrib/Archive/SCtools/SCtools_0.3.2.tar.gz"</span></span>
-<span id="cb1-2">pkgFile <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"SCtools_0.3.2.tar.gz"</span></span>
-<span id="cb1-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">download.file</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">url =</span> url, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">destfile =</span> pkgFile)</span></code></pre></div>
-</div>
-<p>ここで URL はコピーしたものに変え、<code>pkgFile</code> は URL の最後の <code>.tar.gz</code> 部分をコピペしてください。</p>
-<p>実行するとエラーが出るかもしれませんが、それは依存しているパッケージがインストールされていないということです。エラーを読んでみて、足りなそうなパッケージを以下のコードの <code>c()</code> にまとめて入れて実行し、 改めて <code>download.file()</code> を実行してみてください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb2" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"xxx"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"yyy"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"zzz"</span>))</span></code></pre></div>
-</div>
-<p>そしてパッケージをインストールします。次のコードを実行してください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb3" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">pkgs=</span>pkgFile, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"source"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">repos=</span><span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>)</span></code></pre></div>
-</div>
-<p>最後に以下を実行して下さい。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb4" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">unlink</span>(pkgFile)</span></code></pre></div>
-</div>
-<p>以上です。インストール出来たのではないでしょうか。</p>
-</section>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>備忘録的にアーカイブされたパッケージのインストール方法をまとめました。</p>
-<p>出会ってしまった際にはご活用ください。</p>
-</section>
-<section id="参考" class="level2">
-<h2 class="anchored" data-anchor-id="参考">参考</h2>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://stackoverflow.com/questions/24194409/how-do-i-install-a-package-that-has-been-archived-from-cran">stackoverflow</a></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://yoshi-nishikawa.hatenablog.com/entry/2017/10/27/143615">CRANから消えた”Archived R package”をインストールしたい</a></p>
-</div>
-</div>
-</div>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>2023年秋↩︎</p></li>
-<li id="fn2"><p>2024年5月16日↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <guid>https://yo5uke.github.io/pages/tips/240516_archived_pkg/</guid>
-  <pubDate>Wed, 15 May 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
