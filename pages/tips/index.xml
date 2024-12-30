@@ -10,7 +10,474 @@
 <atom:link href="https://yo5uke.github.io/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.6.39</generator>
-<lastBuildDate>Mon, 23 Dec 2024 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 29 Dec 2024 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【パッケージ開発】fixesでイベントスタディを効率化</title>
+  <link>https://yo5uke.github.io/pages/tips/241230_fixes/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const share_url = encodeURIComponent(location.href);
+  const share_title = encodeURIComponent(document.title);
+  
+  // Twitter (X)
+  const twitterUsername = "@5uke_y";
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より"
+  );
+  
+  // Bluesky
+  const blueskyUsername = "@5uke.bsky.social";
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+  </script>
+  
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>突然ですが、最近Rパッケージを作成しました。その名も<code>fixes</code>です。</p>
+<p>初めて作ったので穴も多いと思うのですが、このパッケージではDIDにおける平行トレンドの確認をする方法であるイベントスタディをより簡易的に行う関数を提供しています。</p>
+<p>この記事では宣伝も兼ねて、使い方を簡単にご紹介します。</p>
+<p>改善点やお気づきの点があれば、最下部のコメントか、<a href="https://github.com/yo5uke/fixes">GitHub</a>のIssueに投げていただけると助かります。</p>
+</section>
+<section id="優位性" class="level2">
+<h2 class="anchored" data-anchor-id="優位性">優位性</h2>
+<p>イベントスタディのプロットをする方法として、<code>fixest</code>が提供する<code>i()</code>と<code>iplot()</code>を使うものがあります。</p>
+<p>個人的に<code>iplot()</code>では<code>ggplot2</code>を用いたプロットができない点があり、<code>i()</code>から結果をデータフレーム化するのも少々手間かなと思います。</p>
+<p>そこでダイレクトに結果のデータフレームが返ってくる、そしてベースのプロットが<code>ggplot2</code>であり、特にいじらなくてもそれなりのプロットが作成できる点が売りの<code>fixes</code>を作りました<sup>1</sup>。</p>
+<p>また、リードとラグの範囲を個別で指定できる点や、ベースラインも自由に指定できる点など、僕の技術で及ぶ範囲は柔軟性を求めたつもりです。</p>
+</section>
+<section id="使い方" class="level2">
+<h2 class="anchored" data-anchor-id="使い方">使い方</h2>
+<section id="インストール" class="level3">
+<h3 class="anchored" data-anchor-id="インストール">インストール</h3>
+<p>2024年12月30日時点では、パッケージをCRANに公開していないので、<code>install.packages()</code>でインストールすることができません。GitHubより以下の方法でインストールしてください。</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages("pak")</span></span>
+<span id="cb1-2">pak<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pak</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"yo5uke/fixes"</span>)</span></code></pre></div>
+<p>もしくは、</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages("devtools")</span></span>
+<span id="cb2-2">devtools<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install_github</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"yo5uke/fixes"</span>)</span></code></pre></div>
+<p>です。</p>
+</section>
+<section id="使用するデータ" class="level3">
+<h3 class="anchored" data-anchor-id="使用するデータ">使用するデータ</h3>
+<p>DIDに用いるデータフレームをそのまま用いることができます。</p>
+<p>要件は、</p>
+<ol type="1">
+<li>個体を識別する変数（例えば<code>id</code>）</li>
+<li>時間を識別する変数（例えば<code>year</code>）</li>
+<li>処置個体を示すダミー変数
+<ul>
+<li>時間によらず、<strong>処置される個体であれば常に1をとる</strong>必要があります。</li>
+</ul></li>
+<li>アウトカム変数</li>
+</ol>
+<p>を含んでいることです。</p>
+</section>
+<section id="関数イベントスタディの実行" class="level3">
+<h3 class="anchored" data-anchor-id="関数イベントスタディの実行">関数（イベントスタディの実行）</h3>
+<p>メインの関数は、<code>run_es()</code>関数です。ここにデータフレームを渡すことで、自動的にリード変数とラグ変数を作成し、回帰分析を実行、結果のデータフレームを返します。</p>
+<p>引数は次の通りです。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>引数</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>data</code></td>
+<td>使用するデータフレーム</td>
+</tr>
+<tr class="even">
+<td><code>outcome_var</code></td>
+<td>アウトカム変数</td>
+</tr>
+<tr class="odd">
+<td><code>treated_var</code></td>
+<td>処置個体を示すダミー変数</td>
+</tr>
+<tr class="even">
+<td><code>time_var</code></td>
+<td>時間を表す変数</td>
+</tr>
+<tr class="odd">
+<td><code>timing</code></td>
+<td>処置タイミングを表す数値</td>
+</tr>
+<tr class="even">
+<td><code>lead_range</code></td>
+<td>処置前の期間の長さ（処置年は除く）</td>
+</tr>
+<tr class="odd">
+<td><code>lag_range</code></td>
+<td>処置後の期間の長さ（処置年は除く）</td>
+</tr>
+<tr class="even">
+<td><code>fe_var</code></td>
+<td>固定効果</td>
+</tr>
+<tr class="odd">
+<td><code>cluster_var</code></td>
+<td>クラスタリングの単位（任意）</td>
+</tr>
+<tr class="even">
+<td><code>baseline</code></td>
+<td>ベースラインとする時点（相対時間で指定、デフォルトでは-1）</td>
+</tr>
+<tr class="odd">
+<td><code>interval</code></td>
+<td>時間変数の間隔（例：毎年のデータなら1、国勢調査なら5。デフォルトでは1）</td>
+</tr>
+</tbody>
+</table>
+<p><code>cluster_var</code>以下は任意です。</p>
+<p>この関数の限界として、時間の変数として年を想定している点があります。そのため、月次データ等は時間に通し番号を追加しておくことを推奨します。</p>
+<p>例えば、5つの個体に24カ月分の観測がある場合、</p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb3-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_var =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rep</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">24</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>))</span></code></pre></div>
+<p>としておくことで通し番号を追加できます。</p>
+<p>肝心の関数の使い方は以下の通りです。</p>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">event_study <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">run_es</span>(</span>
+<span id="cb4-2">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data        =</span> df, </span>
+<span id="cb4-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">outcome_var =</span> y, </span>
+<span id="cb4-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">treated_var =</span> is_treated, </span>
+<span id="cb4-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_var    =</span> year, </span>
+<span id="cb4-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">timing      =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1998</span>, </span>
+<span id="cb4-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">lead_range  =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, </span>
+<span id="cb4-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">lag_range   =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, </span>
+<span id="cb4-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">fe_var      =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"firm_id"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"year"</span>), </span>
+<span id="cb4-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cluster_var =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"state_id"</span>, </span>
+<span id="cb4-11">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">baseline    =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, </span>
+<span id="cb4-12">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">interval    =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb4-13">)</span></code></pre></div>
+<p>固定効果とクラスタリングについては、ダブルクォーテーションで囲む必要があることに留意してください。また、リードとラグに処置年は含まれません。それぞれ5であれば、前5年＋処置年＋後5年で11年分の結果になります。</p>
+<p>これを実行することにより、結果のデータフレームが返ってきます。</p>
+<p>この結果を使えば、<code>ggplot2</code>を用いて好きにプロットしていただけるのですが、<code>fixes</code>パッケージでは、<code>ggplot2</code>を用いたプロットのベースを作る関数を提供しています。</p>
+</section>
+<section id="関数結果をプロット" class="level3">
+<h3 class="anchored" data-anchor-id="関数結果をプロット">関数（結果をプロット）</h3>
+<p><code>plot_es()</code>関数を用いて、プロットのベースを簡単に作成できます。</p>
+<p>まず、引数は次の通りです。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>引数</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>data</code></td>
+<td><code>run_es()</code>で作成したデータ</td>
+</tr>
+<tr class="even">
+<td><code>type</code></td>
+<td>プロットのタイプ（<code>ribbon</code>（既定）か<code>errorbar</code>を選択）</td>
+</tr>
+<tr class="odd">
+<td><code>vline_val</code></td>
+<td>処置を表す垂直線位を引く置（相対時間で指定、デフォルトでは0）</td>
+</tr>
+<tr class="even">
+<td><code>vline_color</code></td>
+<td>垂直線の色（デフォルトでは黒）</td>
+</tr>
+<tr class="odd">
+<td><code>hline_val</code></td>
+<td>水平線を引く値（デフォルトでは0）</td>
+</tr>
+<tr class="even">
+<td><code>hline_color</code></td>
+<td>水平線の色（デフォルトでは黒）</td>
+</tr>
+<tr class="odd">
+<td><code>linewidth</code></td>
+<td>折れ線の太さ（デフォルトでは1）</td>
+</tr>
+<tr class="even">
+<td><code>pointsize</code></td>
+<td>点のサイズ（デフォルトでは2）</td>
+</tr>
+<tr class="odd">
+<td><code>alpha</code></td>
+<td>リボンの透明度（デフォルトでは0.2）</td>
+</tr>
+<tr class="even">
+<td><code>barwidth</code></td>
+<td>エラーバーの幅（デフォルトでは0.2）</td>
+</tr>
+<tr class="odd">
+<td><code>color</code></td>
+<td>折れ線と点の色（デフォルトでは#B25D91FF）</td>
+</tr>
+<tr class="even">
+<td><code>fill</code></td>
+<td>リボンの色（デフォルトでは#B25D91FF）</td>
+</tr>
+</tbody>
+</table>
+<p>プロットすると以下のように出力されます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_es</span>(event_study)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/241230_fixes/index_files/figure-html/unnamed-chunk-2-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>エラーバーを用いれば、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_es</span>(event_study, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"errorbar"</span>)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/241230_fixes/index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>引数を指定すると、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_es</span>(</span>
+<span id="cb7-2">  event_study, </span>
+<span id="cb7-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"errorbar"</span>, </span>
+<span id="cb7-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline_val =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, </span>
+<span id="cb7-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline_color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"darkred"</span>, </span>
+<span id="cb7-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"navy"</span></span>
+<span id="cb7-7">)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/241230_fixes/index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><code>ggplot2</code>ベースで作られていますので、<code>+</code>で繋いで自在に編集できます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_es</span>(</span>
+<span id="cb8-2">  event_study, </span>
+<span id="cb8-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"errorbar"</span>, </span>
+<span id="cb8-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline_val =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, </span>
+<span id="cb8-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline_color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"darkred"</span>, </span>
+<span id="cb8-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"navy"</span></span>
+<span id="cb8-7">) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb8-8">  ggplot2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scale_x_continuous</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">breaks =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">seq</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">by =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> </span>
+<span id="cb8-9">  ggplot2<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_bw</span>()</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/241230_fixes/index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>ベースを作る手間が省けるのが売りです。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>簡単ではありましたが、以上<code>fixes</code>の紹介と解説でした。</p>
+<p>はじめの方に書いた通り、利便性と柔軟性を求め、プロットも好みを反映できる点がこのパッケージの売りになっています。</p>
+<p>使ってみていただけると大変うれしいです。</p>
+<p>フィードバックもお待ちしています。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>一つ弁明したいのが、<code>fixest</code>が裏で動いていることもあり、<code>fixes</code>リスペクトでfix event studyから<code>fixes</code>と名付けたのですが、GitHubにアップしてからtを抜いただけであることに気づきました。もっと早く気づけという指摘はごもっともです。すみません。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <guid>https://yo5uke.github.io/pages/tips/241230_fixes/</guid>
+  <pubDate>Sun, 29 Dec 2024 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>pinsでデータ管理</title>
   <link>https://yo5uke.github.io/pages/tips/241224_pins/</link>
@@ -14507,176 +14974,6 @@ font-style: inherit;">tlmgr</span> install xltxtra</span></code></pre></div>
   <guid>https://yo5uke.github.io/pages/tips/240520_latex/</guid>
   <pubDate>Sun, 19 May 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.github.io/pages/tips/240520_latex/image/latex-output.png" medium="image" type="image/png" height="78" width="144"/>
-</item>
-<item>
-  <title>【R】アーカイブされたパッケージを使う</title>
-  <link>https://yo5uke.github.io/pages/tips/240516_archived_pkg/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const share_url = encodeURIComponent(location.href);
-  const share_title = encodeURIComponent(document.title);
-  
-  // Twitter (X)
-  const twitterUsername = "@5uke_y";
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より"
-  );
-  
-  // Bluesky
-  const blueskyUsername = "@5uke.bsky.social";
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-  </script>
-  
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>因果推論を勉強している人にはおなじみの <a href="https://mixtape.scunning.com/">Mixtape</a> ですが、昨年勉強中にこの中の合成コントロール法の章でパッケージがインストールできない問題に直面しました。</p>
-<p>よく調べてみると、当時<sup>1</sup> <code>SCtools</code> パッケージはアーカイブされてしまっており、<code>install.packages('SCtools')</code> ではインストールができないことが判明しました。</p>
-<p>現在<sup>2</sup>では復活してインストールできるようになっていますが、そんなときに備えて対処法をまとめます。</p>
-</section>
-<section id="作業の流れ" class="level2">
-<h2 class="anchored" data-anchor-id="作業の流れ">作業の流れ</h2>
-<section id="アーカイブされたパッケージを探す" class="level3">
-<h3 class="anchored" data-anchor-id="アーカイブされたパッケージを探す">アーカイブされたパッケージを探す</h3>
-<p>CRAN の<a href="https://cran.r-project.org/src/contrib/Archive/">アーカイブ</a>にアクセスして、アーカイブされたパッケージを探します。</p>
-<p>例えば当時アーカイブされていた <code>SCtools</code> を探すと、次のようになります。</p>
-<p><img src="https://yo5uke.github.io/pages/tips/240516_archived_pkg/sctools-archived.png" class="img-fluid"></p>
-<p>この中で最新のものを右クリックし、リンクをコピーしてください。</p>
-</section>
-<section id="rstudio-を開く" class="level3">
-<h3 class="anchored" data-anchor-id="rstudio-を開く">RStudio を開く</h3>
-<p>続いて RStudio を開き、スクリプトに次のコードを入力してください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb1" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1">url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://cran.r-project.org/src/contrib/Archive/SCtools/SCtools_0.3.2.tar.gz"</span></span>
-<span id="cb1-2">pkgFile <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"SCtools_0.3.2.tar.gz"</span></span>
-<span id="cb1-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">download.file</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">url =</span> url, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">destfile =</span> pkgFile)</span></code></pre></div>
-</div>
-<p>ここで URL はコピーしたものに変え、<code>pkgFile</code> は URL の最後の <code>.tar.gz</code> 部分をコピペしてください。</p>
-<p>実行するとエラーが出るかもしれませんが、それは依存しているパッケージがインストールされていないということです。エラーを読んでみて、足りなそうなパッケージを以下のコードの <code>c()</code> にまとめて入れて実行し、 改めて <code>download.file()</code> を実行してみてください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb2" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"xxx"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"yyy"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"zzz"</span>))</span></code></pre></div>
-</div>
-<p>そしてパッケージをインストールします。次のコードを実行してください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb3" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">pkgs=</span>pkgFile, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"source"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">repos=</span><span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>)</span></code></pre></div>
-</div>
-<p>最後に以下を実行して下さい。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="sourceCode" id="cb4" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">unlink</span>(pkgFile)</span></code></pre></div>
-</div>
-<p>以上です。インストール出来たのではないでしょうか。</p>
-</section>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>備忘録的にアーカイブされたパッケージのインストール方法をまとめました。</p>
-<p>出会ってしまった際にはご活用ください。</p>
-</section>
-<section id="参考" class="level2">
-<h2 class="anchored" data-anchor-id="参考">参考</h2>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://stackoverflow.com/questions/24194409/how-do-i-install-a-package-that-has-been-archived-from-cran">stackoverflow</a></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://yoshi-nishikawa.hatenablog.com/entry/2017/10/27/143615">CRANから消えた”Archived R package”をインストールしたい</a></p>
-</div>
-</div>
-</div>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>2023年秋↩︎</p></li>
-<li id="fn2"><p>2024年5月16日↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <guid>https://yo5uke.github.io/pages/tips/240516_archived_pkg/</guid>
-  <pubDate>Wed, 15 May 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
