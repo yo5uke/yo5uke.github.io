@@ -4,7 +4,7 @@
     "href": "pages/gis_in_r/index.html",
     "title": "GIS in R",
     "section": "",
-    "text": "R で GIS を使う方法についてまとめています。\n\n\n\n\n   \n     \n     \n       並び替え\n       デフォルト\n         \n          公開日 - 日付（昇順）\n        \n         \n          公開日 - 日付（降順）\n        \n         \n          トピック\n        \n     \n  \n    \n      \n      \n    \n\n\n\n\n\nトピック\n\n\n公開日\n\n\n\n\n\n\n導入 + ハンドリング\n\n\n2024/05/16\n\n\n\n\nプロットの応用\n\n\n2024/12/16\n\n\n\n\n\n一致なし"
+    "text": "R で GIS を使う方法についてまとめています。\n\n\n\n\n   \n    \n    \n      並び替え\n      デフォルト\n      \n        公開日 - 日付（昇順）\n      \n      \n        公開日 - 日付（降順）\n      \n      \n        トピック\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\nトピック\n\n\n公開日\n\n\n\n\n\n\n導入 + ハンドリング\n\n\n2024/05/16\n\n\n\n\nプロットの応用\n\n\n2024/12/16\n\n\n\n\n地理データを集約\n\n\n2025/02/21\n\n\n\n\n一致なし"
   },
   {
     "objectID": "pages/tips/240829_local_r/index.html#はじめに",
@@ -1804,5 +1804,54 @@
     "title": "Yosuke Abe",
     "section": "📢 What’s New",
     "text": "📢 What’s New\n🗓 2025/02/16\n「政令指定都市・中核市の整理」ページをアップデート\n📌 行政区を市単位で集計できるコードを追加しました。\n🗓 2025/02/05\n「Life with R」を公開🚀\n📌 初期段階ですが、随時更新していきます！"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#はじめに",
+    "href": "pages/gis_in_r/2_summarise/index.html#はじめに",
+    "title": "地理データを集約",
+    "section": "はじめに",
+    "text": "はじめに\n今回は地理データを集約する方法について説明します。\n集約とは、例えば市町村単位のデータを県単位のデータにまとめるというイメージです。市町村単位のデータしかもっていないものの都道府県単位でプロットしたいといった場合に、今回説明する方法を使えば対応することができます。"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#使用するパッケージデータ",
+    "href": "pages/gis_in_r/2_summarise/index.html#使用するパッケージデータ",
+    "title": "地理データを集約",
+    "section": "使用するパッケージ・データ",
+    "text": "使用するパッケージ・データ\n今回は使用するデータを軽量化するために、イントロで使用した福島県のデータを使います1。日本の全市町村のような場合でも同様の流れで進めることができます。\n\nlibrary(tidyverse)  # データハンドリング\nlibrary(here)       # 相対パスを使用\nlibrary(sf)         # 地理データを使用\n\n# 福島県のデータの読み込み\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#footnotes",
+    "href": "pages/gis_in_r/2_summarise/index.html#footnotes",
+    "title": "地理データを集約",
+    "section": "注",
+    "text": "注\n\n\n導入 + ハンドリングに出典も示しています。↩︎"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#データの確認",
+    "href": "pages/gis_in_r/2_summarise/index.html#データの確認",
+    "title": "地理データを集約",
+    "section": "データの確認",
+    "text": "データの確認\nデータのCRS（座標参照系）はデータを読み込んだら確認しておくようにしましょう。これがデータごとに異なるとデータ間で整合性が失われたり、同じデータでも思ったプロットにならなかったりします。\n\nst_crs(fukushima)\n\nCoordinate Reference System:\n  User input: JGD2011 \n  wkt:\nGEOGCRS[\"JGD2011\",\n    DATUM[\"Japanese Geodetic Datum 2011\",\n        ELLIPSOID[\"GRS 1980\",6378137,298.257222101,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"Japan - onshore and offshore.\"],\n        BBOX[17.09,122.38,46.05,157.65]],\n    ID[\"EPSG\",6668]]\n\n\n2行目にJGD2011、1番下にID[\"EPSG\",6668]]と書かれています。6668はJGD2011に対応する数字であり、他の数字であっても1対１の関係で数字が割り振られています。JGD2011は日本測地系2011を表しているのですが、CRSの詳細は次回に回します。\nひとまずここでは問題ないので、データの中身を確認したいと思います。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                N03_001\n                N03_002\n                N03_003\n                N03_004\n                N03_005\n                N03_007\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  NA\n                  NA\n                  福島市\n                  NA\n                  07201\n                  POLYGON ((140.3745 37.65095...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  会津若松市\n                  NA\n                  07202\n                  POLYGON ((139.949 37.33309,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  郡山市\n                  NA\n                  07203\n                  POLYGON ((140.1249 37.33085...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.8494 36.9161,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.889 36.91886,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.8873 36.91099...\n                \n        \n      \n    \n\n\n\n1列目に県名、4列目に市町村名、6列目に市町村コード、7列目に座標データが入っているのが確認できます。\n次にプロットして確認します。\n\nggplot() + \n  geom_sf(data = fukushima) + \n  theme_void()\n\n\n\n\n\n\n\n\nこのように市町村の境界が示されています。\n今回の目標はこれを県でまとめることなので、最終的に県境だけが残ることになります。"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#データの集約",
+    "href": "pages/gis_in_r/2_summarise/index.html#データの集約",
+    "title": "地理データを集約",
+    "section": "データの集約",
+    "text": "データの集約\nそれでは本題のデータの集約に入ります。\nこれまでTidyverseを使ったことがある方であれば、dplyr::summarise()が思い浮かぶ方がいらっしゃるのではないでしょうか。特定のグループごとに平均や合計を集計する際に便利な関数ですが、基本的な概念はそれと同じです。\n平均を算出する場合であればmean()を使いますが、地理データをまとめる際にはsfパッケージのst_union()を用います。\n早速使い方を見てみると、\n\nfukushima_summarise &lt;- fukushima |&gt; \n  summarise(geometry = st_union(geometry), \n            .by = N03_001)\n\n# 先にgroup_by()をしても同じ\n# fukushima_summarise &lt;- fukushima |&gt; \n#   group_by(N03_001) |&gt; \n#   summarise(geometry = st_union(geometry))\n\nこのように、県を表す変数でグルーピングした上でgeometryを上書きするような形になります。県番号のような、グループを識別できる変数があればそれを用いてもよいのですが、今回は県名しかないので、それを利用しています。\nコードにもコメントアウトして書いているように、group_by()は先に実行しても問題ありません。summarise()内の.byは、group_by()を指定しているのと同様です。"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#集約したデータの確認",
+    "href": "pages/gis_in_r/2_summarise/index.html#集約したデータの確認",
+    "title": "地理データを集約",
+    "section": "集約したデータの確認",
+    "text": "集約したデータの確認\nfukushima_summariseを確認してみると、1つの行にまとまっていることがわかります。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                N03_001\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  MULTIPOLYGON (((141.0231 37...\n                \n        \n      \n    \n\n\n\nさらにこれをプロットしてみると、\n\nggplot() + \n  geom_sf(data = fukushima_summarise) + \n  theme_void()\n\n\n\n\n\n\n\n\nこのように、市境がなくなり、県境のみが残っています。\n今は1つの県のみを用いていますが、全国のデータを用いた場合でも、都道府県ごとにgroup_by()されますので、都道府県単位のプロットに集約することが可能です。"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#おわりに",
+    "href": "pages/gis_in_r/2_summarise/index.html#おわりに",
+    "title": "地理データを集約",
+    "section": "おわりに",
+    "text": "おわりに\n今回はsummarise()とst_union()を用いて地理データを集約する方法を説明しました。\n市町村を都道府県単位にする以外にも、政令指定都市が区単位になっているので市単位にしたい、と言った場合にも応用することができます。\nそういった場合にはTipsページでご紹介したデータフレームを用い、政令指定都市の区コードを市町村コードに書き換えた後で今回と同じ工程を踏めば、まとめることができます。\nぜひご活用ください。"
   }
 ]
