@@ -9,8 +9,588 @@
 <link>https://yo5uke.github.io/pages/tips/</link>
 <atom:link href="https://yo5uke.github.io/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.6.40</generator>
-<lastBuildDate>Tue, 04 Feb 2025 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.7.13</generator>
+<lastBuildDate>Sat, 08 Mar 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>e-Stat APIを使ってデータを取得しよう</title>
+  <link>https://yo5uke.github.io/pages/tips/250309_estat_api/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const share_url = encodeURIComponent(location.href);
+  const share_title = encodeURIComponent(document.title);
+  
+  // Twitter (X)
+  const twitterUsername = "@5uke_y";
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より"
+  );
+  
+  // Bluesky
+  const blueskyUsername = "@5uke.bsky.social";
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+  </script>
+  
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>今回は説明するという言い方がおこがましい程度の備忘録的な内容です。</p>
+<p>今後データを使う仕事をするにあたり、もう少し統計データに詳しくなりたいと思い、e-Statでよく目にするAPIに目を付けました。正直APIというのが何かわからないレベルからのスタートでしたが、調べながら初歩的な部分をすこーし理解できた気がしないでもありません。</p>
+<p>今回はAPIの初歩の初歩をまとめていきたいと思います。</p>
+</section>
+<section id="e-statでの準備" class="level2">
+<h2 class="anchored" data-anchor-id="e-statでの準備">e-Statでの準備</h2>
+<p>まずはじめにe-Statでユーザー登録をし、アプリケーションIDを取得する必要があります。</p>
+<p>ブラウザでe-Statを開き、画面右上の「新規登録」から登録します。難しい点はほとんどないと思うので詳細は省略しますが、登録できたらログインした状態にしておいてください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/250309_estat_api/image/e-stat_home.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>右上の「新規登録」から登録します</figcaption>
+</figure>
+</div>
+<p>ログインできたら、上部の青いナビゲーションバーに「マイページ」が出てきますので、そこをクリックしてマイページに進みます。</p>
+<p>するとナビゲーションバーの少し下に水色のバーが出てきて、そこに「API機能（アプリケーションID発行）」とあるので、そこをクリックします。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/250309_estat_api/image/e-stat_mypage.png" class="img-fluid figure-img"></p>
+<figcaption>右から2つ目の項目です</figcaption>
+</figure>
+</div>
+<p>するとアプリケーションIDの取得ということで3つの欄が出てきますので、1番上の欄を使用していきます。名称の部分に任意の名前を入れ、URLはそのままにしておきます。右側の「発行」をクリックすれば「appId」の部分にアプリケーションIDが表示され、これを後ほど使うことになります。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/250309_estat_api/image/e-stat_get_appid.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>名称は何でも大丈夫です</figcaption>
+</figure>
+</div>
+</section>
+<section id="使用するパッケージ" class="level2">
+<h2 class="anchored" data-anchor-id="使用するパッケージ">使用するパッケージ</h2>
+<p>Rに戻ります。</p>
+<p>今回は以下の3つのパッケージを使用します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># インストール</span></span>
+<span id="cb1-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pak::pak(c("httr", "xml2", "tidyverse"))</span></span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(httr)</span>
+<span id="cb1-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(xml2)</span>
+<span id="cb1-6"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span></code></pre></div>
+</div>
+<p><code>httr</code>はHTTPリクエストを送信してWeb APIからデータを取得するためのパッケージで、<code>xml2</code>はXMLデータを解析して必要な情報を抽出するためのパッケージです。XMLはデータを構造化して表現するためのフォーマットであり、APIなどでデータを受け取る際によく使われるようです。</p>
+<p><code>tidyverse</code>はおなじみのデータハンドリング用です。</p>
+</section>
+<section id="apiでデータを取得" class="level2">
+<h2 class="anchored" data-anchor-id="apiでデータを取得">APIでデータを取得</h2>
+<section id="apiリクエストurlを取得格納" class="level3">
+<h3 class="anchored" data-anchor-id="apiリクエストurlを取得格納">APIリクエストURLを取得、格納</h3>
+<p>まずはe-Statで取得したい統計のページへアクセスします。今回は令和2年国勢調査の人口等基本集計、総人口と男女別人口のデータを取得したいと思います。今回使うページのURLは以下です。</p>
+<p><a href="https://www.e-stat.go.jp/stat-search/database?page=1&amp;layout=datalist&amp;toukei=00200521&amp;tstat=000001136464&amp;cycle=0&amp;tclass1=000001136466&amp;statdisp_id=0003445078&amp;tclass2val=0" class="uri">https://www.e-stat.go.jp/stat-search/database?page=1&amp;layout=datalist&amp;toukei=00200521&amp;tstat=000001136464&amp;cycle=0&amp;tclass1=000001136466&amp;statdisp_id=0003445078&amp;tclass2val=0</a></p>
+<p>ページにAPIと書かれた青いアイコンがあるので、そこをクリックします。するとURLが表示されるので、表示されたURLをコピーしておきます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/250309_estat_api/image/e-stat_api_url.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>左側にあるAPIと書かれた部分をクリックして出てきたURLをコピーします</figcaption>
+</figure>
+</div>
+<p>次にRで今コピーしたURLを格納します。ダブルクォーテーションで囲んでください。</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">url <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=&amp;lang=J&amp;statsDataId=0003445078&amp;metaGetFlg=Y&amp;cntGetFlg=N&amp;explanationGetFlg=Y&amp;annotationGetFlg=Y&amp;sectionHeaderFlg=1&amp;replaceSpChars=0"</span></span></code></pre></div>
+<p>ここで注意ですが、<strong>URLの中に<code>appId=</code>という部分があり、ここに先ほど作成したアプリケーションIDを入れる必要があります</strong>。仮にアプリケーションIDを<code>hogehoge</code>とすると、</p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">url <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=hogehoge&amp;lang=J&amp;statsDataId=0003445078&amp;metaGetFlg=Y&amp;cntGetFlg=N&amp;explanationGetFlg=Y&amp;annotationGetFlg=Y&amp;sectionHeaderFlg=1&amp;replaceSpChars=0"</span></span></code></pre></div>
+<p>となります。</p>
+</section>
+<section id="urlを使ってapiリクエストを実行" class="level3">
+<h3 class="anchored" data-anchor-id="urlを使ってapiリクエストを実行">URLを使ってAPIリクエストを実行</h3>
+<p>次に入力したURLを使ってAPIリクエストを実行します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">response <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">GET</span>(url)</span></code></pre></div>
+</div>
+<p>このレスポンスの内容をテキストとして取得し、XMLとして読み込んでいきます。<code>response</code>にはステータスコードが含まれているのですが、これが200だと読み込みが成功しています。成功していれば読み込むように設定します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> (<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">status_code</span>(response) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>) {</span>
+<span id="cb5-2">  </span>
+<span id="cb5-3">  xml_data <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_xml</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">content</span>(response, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">as =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"text"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">encoding =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"UTF-8"</span>))</span>
+<span id="cb5-4">  </span>
+<span id="cb5-5">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(xml_data)</span>
+<span id="cb5-6">  </span>
+<span id="cb5-7">} <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> {</span>
+<span id="cb5-8">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">stop</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"データの取得に失敗しました。HTTPステータスコード: "</span>, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">status_code</span>(response))</span>
+<span id="cb5-9">}</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>{xml_document}
+&lt;GET_STATS_DATA noNamespaceSchemaLocation="https://api.e-stat.go.jp/rest/3.0/schema/GetStatsData.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+[1] &lt;RESULT&gt;\n  &lt;STATUS&gt;0&lt;/STATUS&gt;\n  &lt;ERROR_MSG&gt;正常に終了しました。&lt;/ERROR_MSG&gt;\n  &lt;D ...
+[2] &lt;PARAMETER&gt;\n  &lt;LANG&gt;J&lt;/LANG&gt;\n  &lt;STATS_DATA_ID&gt;0003445078&lt;/STATS_DATA_ID ...
+[3] &lt;STATISTICAL_DATA&gt;\n  &lt;RESULT_INF&gt;\n    &lt;TOTAL_NUMBER&gt;12258&lt;/TOTAL_NUMBER ...</code></pre>
+</div>
+</div>
+<p>ステータスコードが200になっていたので<code>{xml_document}</code>としていろいろ出てきました。また、<code>xml_data</code>に読み込んだXMLが保存されています。</p>
+</section>
+<section id="xmlの構造確認" class="level3">
+<h3 class="anchored" data-anchor-id="xmlの構造確認">XMLの構造確認</h3>
+<p>次にXMLの構造を確認してみます。しかしこれは非常に長くなるので、結果は表示しません。実際に手元で実行してみてください。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_structure</span>(xml_data)</span></code></pre></div>
+</div>
+<p>結果の中には様々な情報が構造化されて格納されていることがわかります。僕たちが抽出したい情報は<code>{text}</code>と書かれているのでこのままでは確認することができませんが、この中には統計名やカテゴリ、更新日など、統計に関する様々な情報が含まれます。必要に応じてここから情報を取得することができるので、試しにいろいろやってみましょう。</p>
+<ol type="1">
+<li>統計表の名前</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">table_name <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_first</span>(xml_data, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//TABLE_INF/STATISTICS_NAME"</span>))</span>
+<span id="cb8-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(table_name)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "令和２年国勢調査 人口等基本集計　（主な内容：男女・年齢・配偶関係，世帯の構成，住居の状態，母子・父子世帯，国籍など）"</code></pre>
+</div>
+</div>
+<ol start="2" type="1">
+<li>調査日</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1">survey_date <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_first</span>(xml_data, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//TABLE_INF/SURVEY_DATE"</span>))</span>
+<span id="cb10-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(survey_date)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "202010"</code></pre>
+</div>
+</div>
+<ol start="3" type="1">
+<li>カテゴリ</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1">open_date <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_first</span>(xml_data, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//TABLE_INF/OPEN_DATE"</span>))</span>
+<span id="cb12-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(open_date)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "2021-11-30"</code></pre>
+</div>
+</div>
+<p>いろいろ結果が出てきました。ここで、使用していた関数について説明します。</p>
+<p>まず<code>xml_text()</code>です。これはXML内の ノード<sup>1</sup>のテキストを取得する関数です。内容をテキストとして抽出するものというようなイメージだと思ってください。</p>
+<p>次に<code>xml_find_first()</code>です。これは括弧内で指定したパスと合致する最初のものを抽出してくるという関数です。例えば1番では、<code>"//TABLE_INF/STATISTICS_NAME"</code>に一致する部分を探して、そこに書かれている内容を引っ張ってきます。最初ということは複数あるのか？と僕も最初は思ったのですが、どうやら1つしかない要素に対しても一般的に使うようです<sup>2</sup>。</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+XPath（XML上のパス）について
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>XMLの構造を丁寧に見た方の中には<code>TABLE_INF</code>は<code>GET_STATS_DATA</code>の中のさらに<code>STATISTICAL_DATA</code>の中に入っているがそれは指定しなくてよいのか、と思った方もいるかもしれません。そこは最初の2つのスラッシュ（<code>//</code>）で対応していて、これは全体のどこにあっても例えば<code>TABLE_INF/STATISTICS_NAME</code>となっている部分を見つけ出して中身を抽出するということを意味しています。つまり、上記の書き方は<code>"/GET_STATS_DATA/STATISTICAL_DATA/TABLE_INF/STATISTICS_NAME"</code>に等しいです。</p>
+</div>
+</div>
+</section>
+<section id="データを取得" class="level3">
+<h3 class="anchored" data-anchor-id="データを取得">データを取得</h3>
+<p>ではいろいろ確認できたところでデータを取得する作業に入ります。</p>
+<p>データは<code>//DATA_INF/VALUE</code>というところに含まれているので、このパスを用います。また構造を確認していただけばわかるように、<code>VALUE</code>というのは大量にありますので<code>xml_find_first()</code>では最初の1つしか取得できず、不適切です。ここでは<code>xml_find_all()</code>ですべての用をを取得していきます。</p>
+<p>加えて、</p>
+<pre><code>&lt;VALUE [tab, cat01, area, time, unit]&gt;</code></pre>
+<p>となっているように、<code>VALUE</code>には5つの属性が付与されており、それぞれ統計表のタブ（表のバージョンや種類）、統計のカテゴリ、自治体コード、時間（ここでは年）、単位を示します。これを踏まえて必要な情報を以下のコードでは取得しています。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データがあるノードをすべて取得</span></span>
+<span id="cb15-2">value_nodes <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_all</span>(xml_data, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//DATA_INF/VALUE"</span>)</span>
+<span id="cb15-3"></span>
+<span id="cb15-4">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb15-5">  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># xml_attr()で特定の属性を取得</span></span>
+<span id="cb15-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">area     =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_attr</span>(value_nodes, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"area"</span>),</span>
+<span id="cb15-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time     =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_attr</span>(value_nodes, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"time"</span>),</span>
+<span id="cb15-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_attr</span>(value_nodes, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cat01"</span>),</span>
+<span id="cb15-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">value    =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.numeric</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>(value_nodes))</span>
+<span id="cb15-10">)</span>
+<span id="cb15-11"></span>
+<span id="cb15-12"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12,258 × 4
+   area  time       category     value
+   &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;        &lt;dbl&gt;
+ 1 00000 2020000000 0        126146099
+ 2 01000 2020000000 0          5224614
+ 3 01100 2020000000 0          1973395
+ 4 01101 2020000000 0           248680
+ 5 01102 2020000000 0           289323
+ 6 01103 2020000000 0           265379
+ 7 01104 2020000000 0           211835
+ 8 01105 2020000000 0           225298
+ 9 01106 2020000000 0           135777
+10 01107 2020000000 0           217040
+# ℹ 12,248 more rows</code></pre>
+</div>
+</div>
+<p>このままだと少しわかりにくいですね。<code>time</code>は年なので上4桁だけ取り出したいし、<code>category</code>には３つの数字があるのですが、それぞれが何を意味しているのか分かりません。</p>
+<p>ひとまずカテゴリについて確認しておきましょう。XMLの中に<code>CLASS_INF</code>があり、その中に情報が含まれています。カテゴリ（<code>cat01</code>がそれです）について知りたい場合は<code>"//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS"</code>で確認できます。以下のコードを実行してください。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># xml_data内のノードを取得</span></span>
+<span id="cb17-2">cat01_nodes <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_all</span>(xml_data, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS"</span>)</span>
+<span id="cb17-3"></span>
+<span id="cb17-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># cat01のコードと対応する名前を取得</span></span>
+<span id="cb17-5">df_cat01 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb17-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cat01_code =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_attr</span>(cat01_nodes, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"code"</span>),</span>
+<span id="cb17-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cat01_name =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_attr</span>(cat01_nodes, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"name"</span>)</span>
+<span id="cb17-8">)</span>
+<span id="cb17-9"></span>
+<span id="cb17-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 結果を表示</span></span>
+<span id="cb17-11"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df_cat01)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 2
+  cat01_code cat01_name
+  &lt;chr&gt;      &lt;chr&gt;     
+1 0          総数      
+2 1          男        
+3 2          女        </code></pre>
+</div>
+</div>
+<p>0が総数、1が男、2が女であることがわかりました。なのでここでカテゴリを書き換え、ついでに年も整理し並べ替えておきましょう。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1">df_clean <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb19-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">arrange</span>(area, time, category) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb19-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb19-4">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># timeの上4桁を整数として格納</span></span>
+<span id="cb19-5">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.integer</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">str_sub</span>(time, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>)), </span>
+<span id="cb19-6">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># case_when()で条件分岐</span></span>
+<span id="cb19-7">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">case_when</span>(</span>
+<span id="cb19-8">      <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 文字列として格納されているので""で囲みます</span></span>
+<span id="cb19-9">      category <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"0"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"population"</span>, </span>
+<span id="cb19-10">      category <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pop_male"</span>, </span>
+<span id="cb19-11">      category <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pop_female"</span></span>
+<span id="cb19-12">      )</span>
+<span id="cb19-13">  )</span>
+<span id="cb19-14"></span>
+<span id="cb19-15"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df_clean)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 12,258 × 4
+   area   time category       value
+   &lt;chr&gt; &lt;int&gt; &lt;chr&gt;          &lt;dbl&gt;
+ 1 00000  2020 population 126146099
+ 2 00000  2020 pop_male    61349581
+ 3 00000  2020 pop_female  64796518
+ 4 01000  2020 population   5224614
+ 5 01000  2020 pop_male     2465088
+ 6 01000  2020 pop_female   2759526
+ 7 01100  2020 population   1973395
+ 8 01100  2020 pop_male      918682
+ 9 01100  2020 pop_female   1054713
+10 01101  2020 population    248680
+# ℹ 12,248 more rows</code></pre>
+</div>
+</div>
+<p>もしカテゴリの各種をそれぞれ列にしたければ<code>pivot_wider()</code>でできます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1">df_wide <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df_clean <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb21-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pivot_wider</span>(</span>
+<span id="cb21-3">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">names_from =</span> category, </span>
+<span id="cb21-4">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">values_from =</span> value</span>
+<span id="cb21-5">  )</span>
+<span id="cb21-6"></span>
+<span id="cb21-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df_wide)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4,086 × 5
+   area   time population pop_male pop_female
+   &lt;chr&gt; &lt;int&gt;      &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;
+ 1 00000  2020  126146099 61349581   64796518
+ 2 01000  2020    5224614  2465088    2759526
+ 3 01100  2020    1973395   918682    1054713
+ 4 01101  2020     248680   112853     135827
+ 5 01102  2020     289323   136596     152727
+ 6 01103  2020     265379   126023     139356
+ 7 01104  2020     211835   100062     111773
+ 8 01105  2020     225298   104154     121144
+ 9 01106  2020     135777    62347      73430
+10 01107  2020     217040   100027     117013
+# ℹ 4,076 more rows</code></pre>
+</div>
+</div>
+<p>これでひとまずデータフレームとして整理することができました。ここからさらに整理したり、分析を回していきましょう！</p>
+</section>
+</section>
+<section id="データベースから取得する" class="level2">
+<h2 class="anchored" data-anchor-id="データベースから取得する">データベースから取得する</h2>
+<p>今回は国勢調査のような既にまとめられたデータを用いましたが、e-Statのデータベースを使えば必要なデータを選択して取得することができます。</p>
+<p>例えば<a href="https://www.e-stat.go.jp/regional-statistics/ssdsview">こちら</a>から「市区町村データ」を選択し「データ表示」をクリックします。</p>
+<p>出てきた画面から地域を選択し、「確定」をクリックしたのち取得したいデータを選択し、再度「確定」をクリックします。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/250309_estat_api/image/e-stat_database_area.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>地域を選択します</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/250309_estat_api/image/e-stat_database_category.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>取得したい統計項目を選択します</figcaption>
+</figure>
+</div>
+<p>するとデータが画面に表示されますが、ここで右上の「API」をクリックし、表示されたURLをコピーします。ここからは上で書いてきた手順と同様です。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.github.io/pages/tips/250309_estat_api/image/e-stat_database_api.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>URLの使い方はこれまでと同様です</figcaption>
+</figure>
+</div>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>APIは正直初心者には難しいなと感じましたが、大体のコードはそのまま使いまわせますし、XMLの構造を少し辛抱して眺めてみればどこに何が入っているのか少しずつわかってきました。</p>
+<p>CSVでダウンロードすると余計な情報量が多く分析の手間に感じていましたので、春休みを機に少しではありますが知れてよかったと思います。ぜひ活用してみて下さい。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>XMLデータの中の要素（タグ）や属性、テキストなどの構成要素のことを言います。↩︎</p></li>
+<li id="fn2"><p>今回取得してきたような要素は全体を見ても1か所にしか出てきません。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.github.io/pages/tips/250309_estat_api/</guid>
+  <pubDate>Sat, 08 Mar 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【ウェブサイト】設定を追加する</title>
   <link>https://yo5uke.github.io/pages/tips/250205_website_tools/</link>
@@ -9213,9 +9793,9 @@ font-style: inherit;">plot</span>(cars)</span></code></pre></div>
 <div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><span class="in" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">``` {.r filename="ここがfilename"}</span></span>
-<span id="cb11-2"><span class="in" style="color: #5E5E5E;
+<span id="cb11-2"><span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">plot(cars)</span></span>
+font-style: inherit;">plot</span>(cars)</span>
 <span id="cb11-3"><span class="in" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">```</span></span></code></pre></div>
@@ -14728,278 +15308,6 @@ font-style: inherit;">\</span></span>
   <category>備忘録</category>
   <guid>https://yo5uke.github.io/pages/tips/240531_wsl_memory/</guid>
   <pubDate>Thu, 30 May 2024 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【ワークフロー】VSCode で GitHub を使う</title>
-  <link>https://yo5uke.github.io/pages/tips/240525_vscode_github/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const share_url = encodeURIComponent(location.href);
-  const share_title = encodeURIComponent(document.title);
-  
-  // Twitter (X)
-  const twitterUsername = "@5uke_y";
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より"
-  );
-  
-  // Bluesky
-  const blueskyUsername = "@5uke.bsky.social";
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-  </script>
-  
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p><a href="../240504_container/index.html">以前</a> VSCode を用いた R 環境の構築方法についてご紹介しました。</p>
-<p>その中で GitHub についても触れましたが、今回は VSCode で GitHub を使った作業の流れを詳しく紹介します。</p>
-<p>基本的に共同研究を想定していますが、個人で使う場合も同様の流れで作業を進めることができます。</p>
-<p>具体的な違いとして、個人作業の場合はブランチを作成したりしなくてもよいと思いますが、共同研究の場合はブランチを作成して作業を進めることが一般的です。</p>
-</section>
-<section id="事前準備" class="level2">
-<h2 class="anchored" data-anchor-id="事前準備">事前準備</h2>
-<p><a href="../240504_container/index.html">こちらの記事</a>の手順は踏んでいるとします。</p>
-<ol type="1">
-<li><p>GitHub アカウントを作成している</p></li>
-<li><p>VSCode で GitHub にログインする</p></li>
-<li><p>コラボレーターとして登録する</p>
-<ul>
-<li>招待の詳細については記事をご覧ください。</li>
-</ul></li>
-</ol>
-</section>
-<section id="ワークフロー" class="level2">
-<h2 class="anchored" data-anchor-id="ワークフロー">ワークフロー</h2>
-<section id="リポジトリをクローンする" class="level3">
-<h3 class="anchored" data-anchor-id="リポジトリをクローンする">1. リポジトリをクローンする</h3>
-<ol type="1">
-<li><p>VSCode を開き、WSL に接続</p></li>
-<li><p>画面左のアイコンで上から3つ目の「ソース管理」を選択</p></li>
-<li><p>「リポジトリを複製」、「GitHub から複製」を順に選択</p></li>
-<li><p>クローンしたいリポジトリを選択しOK をクリック<sup>1</sup></p>
-<ul>
-<li>リポジトリが表示されない場合は「ユーザー名/リポジトリ名」の書き方でクローンできます。</li>
-</ul></li>
-<li><p>クローンするディレクトリを選択</p>
-<ul>
-<li>特に理由がなければそのまま OK をクリックして下さい。</li>
-</ul></li>
-<li><p>クローンされる</p>
-<ul>
-<li><p>自動でクローンしたリポジトリが開かれます。</p></li>
-<li><p>開発コンテナを使用する場合は「開発コンテナで再度開く」と出るので、選択してください。</p></li>
-</ul></li>
-</ol>
-</section>
-<section id="ブランチを作成する" class="level3">
-<h3 class="anchored" data-anchor-id="ブランチを作成する">2. ブランチを作成する</h3>
-<p>作業ブランチを作成します。デフォルトでは <code>main</code> ブランチになっているので、作業ブランチを作成して作業を進めます。</p>
-<p>ブランチは、イメージで言うと「自分の作業用のコピー」です。そっくりそのままファイル等をコピーして作業を行い、完成したら <code>main</code> にくっつけてあげるという感じです。</p>
-<p><code>main</code> ブランチは基本的に完成品を置いておくイメージなので、各自でブランチを作成して作業を進めてください。</p>
-<ol type="1">
-<li><p>画面左下の「main」をクリック</p></li>
-<li><p>「新しいブランチを作成」を選択</p></li>
-<li><p>ブランチ名を入力し、Enter キーを押す</p>
-<ul>
-<li><p>ブランチ名は、作業内容がわかるように命名するとよいと思います。</p></li>
-<li><p>しかし何でも大丈夫です。</p></li>
-</ul></li>
-<li><p>ブランチが作成される</p>
-<ul>
-<li>画面左下に作成したブランチ名が表示されます。</li>
-</ul></li>
-</ol>
-<p>これでブランチが作成されました。作業を進めていきましょう。</p>
-</section>
-<section id="ファイルを編集する" class="level3">
-<h3 class="anchored" data-anchor-id="ファイルを編集する">3. ファイルを編集する</h3>
-<p>作業を進めます。コードを書いたりデータを追加したり、何らかの作業が行われたとします。</p>
-</section>
-<section id="変更をコミットする" class="level3">
-<h3 class="anchored" data-anchor-id="変更をコミットする">4. 変更をコミットする</h3>
-<p>作業が終わったら、変更をコミットします。</p>
-<ol type="1">
-<li><p>画面左のアイコンで上から3つ目の「ソース管理」を選択</p></li>
-<li><p>コミットするファイルを選択</p>
-<ul>
-<li><p>カーソルをファイルに当てると「+」が表示されるので、クリックしてステージングします。</p></li>
-<li><p>すべてのファイルをステージングする場合は「変更」の右側にある「+」をクリックすれば OK です。</p></li>
-</ul></li>
-<li><p>コミットメッセージを入力</p>
-<ul>
-<li><p>コミットメッセージは、変更内容がわかるように簡潔に書くとよいと思います。</p></li>
-<li><p>例: <code>Add new data</code></p></li>
-</ul></li>
-<li><p>「✓コミット」をクリック</p>
-<ul>
-<li>コミットが完了します。</li>
-</ul></li>
-</ol>
-</section>
-<section id="プッシュする" class="level3">
-<h3 class="anchored" data-anchor-id="プッシュする">5. プッシュする</h3>
-<p>コミットした内容をリモートリポジトリに反映させます。</p>
-<ol type="1">
-<li><p>「ソース管理」の右にある「…」をクリック</p>
-<ul>
-<li>カーソルを当てると出てきます。</li>
-</ul></li>
-<li><p>「プッシュ」を選択</p>
-<ul>
-<li><p>ブランチを公開するか聞かれたら、OK をクリックしてください。</p></li>
-<li><p>プッシュが完了します。</p></li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.github.io/pages/tips/240525_vscode_github/image/vscode-push.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<p>これでリモートリポジトリに変更が反映されました。</p>
-<p>コミットしてすぐプッシュしたい場合は、コミットメッセージを入力した後に「✓コミット」の右側にある下矢印から「コミットしてプッシュ」を選択することで一括で行えます。</p>
-</section>
-<section id="プルリクエストを作成する" class="level3">
-<h3 class="anchored" data-anchor-id="プルリクエストを作成する">6. プルリクエストを作成する</h3>
-<p>作業が終わったら、プルリクエストを作成します。</p>
-<p>現段階では、自分のブランチに反映させただけなので、これを <code>main</code> ブランチに反映させる必要があります。</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-この手続きを踏む理由
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>プルリクエストを作成する理由は、他の人に自分の作業内容を確認してもらうためです。</p>
-<p>プルリクエストを作成することで、他の人が自分の作業内容を確認し、問題がなければ <code>main</code> ブランチに反映させることができます。</p>
-<p>もし全員が <code>main</code> ブランチに直接コミットしてしまうと、他の人の作業とコンフリクトする場合があったり、誤って動かないコードで上書きされてしまったりなど、問題が発生する可能性があります。</p>
-<p>そのため、プルリクエストを作成して他の人に確認してもらいながら、問題がなければ <code>main</code> ブランチに反映させるという手順を踏むことが一般的です。</p>
-</div>
-</div>
-<ol type="1">
-<li><p>GitHub にアクセスし、リポジトリを開く</p></li>
-<li><p>「Compare &amp; pull request」を選択</p>
-<ul>
-<li>以下のようなバナーが表示されるので、クリックしてください。</li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.github.io/pages/tips/240525_vscode_github/image/pull-request.png" class="img-fluid quarto-figure quarto-figure-center figure-img"></p>
-</figure>
-</div>
-<ol start="3" type="1">
-<li><p>プルリクエストの内容を入力</p>
-<ul>
-<li><p>「Add a title」にはコミットメッセージが入力されていると思います。</p></li>
-<li><p>「Add a description」には、必要に応じて作業内容や変更点などを詳しく書くとよいと思います。</p></li>
-</ul></li>
-<li><p>「Create pull request」をクリック</p>
-<ul>
-<li>プルリクエストが作成されます。</li>
-</ul></li>
-</ol>
-<p>これでプルリクエストが作成されました。他の人に確認してもらいましょう。</p>
-</section>
-<section id="プルリクエストをマージする" class="level3">
-<h3 class="anchored" data-anchor-id="プルリクエストをマージする">7. プルリクエストをマージする</h3>
-<p>プルリクエストを作成したら、他の人に確認してもらい、問題がなければマージします。</p>
-<ol type="1">
-<li><p>リポジトリのページにアクセスし、「Pull requests」を開く</p></li>
-<li><p>リクエストを選択して開く</p></li>
-<li><p>問題がなければ「Merge pull request」をクリック</p>
-<ul>
-<li>問題ない場合「This branch has no conflicts with the base branch」と表示されます。</li>
-</ul></li>
-</ol>
-<p><img src="https://yo5uke.github.io/pages/tips/240525_vscode_github/image/pull-request-merge.png" class="img-fluid"></p>
-<ol start="4" type="1">
-<li><p>「Confirm merge」をクリック</p>
-<ul>
-<li>マージが完了します。</li>
-</ul></li>
-</ol>
-</section>
-<section id="ブランチを削除する" class="level3">
-<h3 class="anchored" data-anchor-id="ブランチを削除する">8. ブランチを削除する</h3>
-<p>プルリクエストがマージされたら、作業ブランチを削除します。ちなみにブランチは作業ごとに新しいものを作り、プルリクエストがマージされたら削除するという流れが推奨されるようです。</p>
-<ol type="1">
-<li><p>VSCode でリポジトリを開く</p></li>
-<li><p>画面左側のアイコンから「ソース管理」を選択</p></li>
-<li><p>「ソース管理」の右にある「…」をクリック</p></li>
-<li><p>「ブランチ」から「ブランチを削除」を選択</p></li>
-<li><p>削除するブランチを選択</p>
-<ul>
-<li>削除するブランチを選択して OK をクリック</li>
-</ul></li>
-<li><p>ブランチが削除される</p>
-<ul>
-<li>画面左下のブランチ名が <code>main</code> になっていることを確認してください。</li>
-</ul></li>
-</ol>
-<p>これで作業ブランチが削除されました。次回別の作業を行うときは、新しいブランチを作成して作業を進めてください。</p>
-</section>
-<section id="ローカルリポジトリを更新する" class="level3">
-<h3 class="anchored" data-anchor-id="ローカルリポジトリを更新する">9. ローカルリポジトリを更新する</h3>
-<p>リモートリポジトリに変更が反映されたので、他の人はローカルリポジトリを更新します。</p>
-<ol type="1">
-<li><p>VSCode でリポジトリを開く</p></li>
-<li><p>画面左下のブランチが <code>main</code> であれば自分の作業ブランチに切り替える</p>
-<ul>
-<li>画面左下のブランチ名をクリックして、切り替えてください。</li>
-</ul></li>
-<li><p>画面左のアイコンから「ソース管理」を選択</p></li>
-<li><p>「変更の同期」と出ていたらそれを、出ていなければ「…」をクリックして「プル」を選択</p>
-<ul>
-<li><p>プルすることでリモートリポジトリの変更をローカルリポジトリに反映させます。</p></li>
-<li><p>プルが完了します。ファイルを見てみてください。</p></li>
-</ul></li>
-</ol>
-<p>これで他の人の変更が反映されたローカルリポジトリが得られました。</p>
-<p>ここからは再び作業を進め、作業をサイクルさせていきます。</p>
-</section>
-</section>
-<section id="まとめ" class="level2">
-<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
-<p>VSCode で GitHub を使った作業の流れを紹介しました。</p>
-<p>基本的には、リポジトリをクローンして作業ブランチを作成し、作業を進め、変更をコミットしてプッシュし、プルリクエストを作成してマージするという流れです。</p>
-<p>共同研究を行う場合は、このような流れで作業を進めることで、コンフリクトなどを回避しながら効率的に作業を進めることができます。</p>
-<p>ぜひ参考にしてみてください。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>Enter キーでも OK です。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>VSCode</category>
-  <category>GitHub</category>
-  <guid>https://yo5uke.github.io/pages/tips/240525_vscode_github/</guid>
-  <pubDate>Fri, 24 May 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
