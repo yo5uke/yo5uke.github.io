@@ -1,0 +1,272 @@
+---
+title: "e-Stat APIを使ってデータを取得しよう"
+description: |
+  APIの第一歩についてまとめます！
+date: 2025-03-09
+categories:
+  - R
+  - データ処理
+editor: visual
+---
+
+## はじめに
+
+今回は説明するという言い方がおこがましい程度の備忘録的な内容です。
+
+今後データを使う仕事をするにあたり、もう少し統計データに詳しくなりたいと思い、e-Statでよく目にするAPIに目を付けました。正直APIというのが何かわからないレベルからのスタートでしたが、調べながら初歩的な部分をすこーし理解できた気がしないでもありません。
+
+今回はAPIの初歩の初歩をまとめていきたいと思います。
+
+## e-Statでの準備
+
+まずはじめにe-Statでユーザー登録をし、アプリケーションIDを取得する必要があります。
+
+ブラウザで[e-Stat](#0)を開き、画面右上の「新規登録」から登録します。難しい点はほとんどないと思うので詳細は省略しますが、登録できたらログインした状態にしておいてください。
+
+![右上の「新規登録」から登録します](image/e-stat_home.png){fig-align="center" width="80%"}
+
+ログインできたら、上部の青いナビゲーションバーに「マイページ」が出てきますので、そこをクリックしてマイページに進みます。
+
+するとナビゲーションバーの少し下に水色のバーが出てきて、そこに「API機能（アプリケーションID発行）」とあるので、そこをクリックします。
+
+![右から2つ目の項目です](image/e-stat_mypage.png){fig-align="center"}
+
+するとアプリケーションIDの取得ということで3つの欄が出てきますので、1番上の欄を使用していきます。名称の部分に任意の名前を入れ、URLはそのままにしておきます。右側の「発行」をクリックすれば「appId」の部分にアプリケーションIDが表示され、これを後ほど使うことになります。
+
+![名称は何でも大丈夫です](image/e-stat_get_appid.png){fig-align="center" width="80%"}
+
+## 使用するパッケージ
+
+Rに戻ります。
+
+今回は以下の3つのパッケージを使用します。
+
+```{r}
+# インストール
+# pak::pak(c("httr", "xml2", "tidyverse"))
+
+library(httr)
+library(xml2)
+library(tidyverse)
+```
+
+`httr`はHTTPリクエストを送信してWeb APIからデータを取得するためのパッケージで、`xml2`はXMLデータを解析して必要な情報を抽出するためのパッケージです。XMLはデータを構造化して表現するためのフォーマットであり、APIなどでデータを受け取る際によく使われるようです。
+
+`tidyverse`はおなじみのデータハンドリング用です。
+
+## APIでデータを取得
+
+### APIリクエストURLを取得、格納
+
+まずはe-Statで取得したい統計のページへアクセスします。今回は令和2年国勢調査の人口等基本集計、総人口と男女別人口のデータを取得したいと思います。今回使うページのURLは以下です。
+
+<https://www.e-stat.go.jp/stat-search/database?page=1&layout=datalist&toukei=00200521&tstat=000001136464&cycle=0&tclass1=000001136466&statdisp_id=0003445078&tclass2val=0>
+
+ページにAPIと書かれた青いアイコンがあるので、そこをクリックします。するとURLが表示されるので、表示されたURLをコピーしておきます。
+
+![左側にあるAPIと書かれた部分をクリックして出てきたURLをコピーします](image/e-stat_api_url.png){fig-align="center" width="80%"}
+
+次にRで今コピーしたURLを格納します。ダブルクォーテーションで囲んでください。
+
+``` r
+url <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=&lang=J&statsDataId=0003445078&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+```
+
+ここで注意ですが、**URLの中に`appId=`という部分があり、ここに先ほど作成したアプリケーションIDを入れる必要があります**。仮にアプリケーションIDを`hogehoge`とすると、
+
+``` r
+url <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=hogehoge&lang=J&statsDataId=0003445078&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+```
+
+となります。
+
+```{r}
+#| include: false
+
+url_template <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=%s&lang=J&statsDataId=0003445078&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+
+appId <- Sys.getenv("E_STAT_APP_ID")
+
+url <- sprintf(url_template, appId)
+
+print(url)
+
+```
+
+### URLを使ってAPIリクエストを実行
+
+次に入力したURLを使ってAPIリクエストを実行します。
+
+```{r}
+response <- GET(url)
+```
+
+このレスポンスの内容をテキストとして取得し、XMLとして読み込んでいきます。`response`にはステータスコードが含まれているのですが、これが200だと読み込みが成功しています。成功していれば読み込むように設定します。
+
+```{r}
+if (status_code(response) == 200) {
+  
+  xml_data <- read_xml(content(response, as = "text", encoding = "UTF-8"))
+  
+  print(xml_data)
+  
+} else {
+  stop("データの取得に失敗しました。HTTPステータスコード: ", status_code(response))
+}
+```
+
+ステータスコードが200になっていたので`{xml_document}`としていろいろ出てきました。また、`xml_data`に読み込んだXMLが保存されています。
+
+### XMLの構造確認
+
+次にXMLの構造を確認してみます。しかしこれは非常に長くなるので、結果は表示しません。実際に手元で実行してみてください。
+
+```{r}
+#| results: false
+
+xml_structure(xml_data)
+
+```
+
+結果の中には様々な情報が構造化されて格納されていることがわかります。僕たちが抽出したい情報は`{text}`と書かれているのでこのままでは確認することができませんが、この中には統計名やカテゴリ、更新日など、統計に関する様々な情報が含まれます。必要に応じてここから情報を取得することができるので、試しにいろいろやってみましょう。
+
+1.  統計表の名前
+
+```{r}
+table_name <- xml_text(xml_find_first(xml_data, "//TABLE_INF/STATISTICS_NAME"))
+print(table_name)
+```
+
+2.  調査日
+
+```{r}
+survey_date <- xml_text(xml_find_first(xml_data, "//TABLE_INF/SURVEY_DATE"))
+print(survey_date)
+```
+
+3.  カテゴリ
+
+```{r}
+open_date <- xml_text(xml_find_first(xml_data, "//TABLE_INF/OPEN_DATE"))
+print(open_date)
+```
+
+いろいろ結果が出てきました。ここで、使用していた関数について説明します。
+
+まず`xml_text()`です。これはXML内の ノード[^1]のテキストを取得する関数です。内容をテキストとして抽出するものというようなイメージだと思ってください。
+
+[^1]: XMLデータの中の要素（タグ）や属性、テキストなどの構成要素のことを言います。
+
+次に`xml_find_first()`です。これは括弧内で指定したパスと合致する最初のものを抽出してくるという関数です。例えば1番では、`"//TABLE_INF/STATISTICS_NAME"`に一致する部分を探して、そこに書かれている内容を引っ張ってきます。最初ということは複数あるのか？と僕も最初は思ったのですが、どうやら1つしかない要素に対しても一般的に使うようです[^2]。
+
+[^2]: 今回取得してきたような要素は全体を見ても1か所にしか出てきません。
+
+::: callout-tip
+## XPath（XML上のパス）について
+
+XMLの構造を丁寧に見た方の中には`TABLE_INF`は`GET_STATS_DATA`の中のさらに`STATISTICAL_DATA`の中に入っているがそれは指定しなくてよいのか、と思った方もいるかもしれません。そこは最初の2つのスラッシュ（`//`）で対応していて、これは全体のどこにあっても例えば`TABLE_INF/STATISTICS_NAME`となっている部分を見つけ出して中身を抽出するということを意味しています。つまり、上記の書き方は`"/GET_STATS_DATA/STATISTICAL_DATA/TABLE_INF/STATISTICS_NAME"`に等しいです。
+:::
+
+### データを取得
+
+ではいろいろ確認できたところでデータを取得する作業に入ります。
+
+データは`//DATA_INF/VALUE`というところに含まれているので、このパスを用います。また構造を確認していただけばわかるように、`VALUE`というのは大量にありますので`xml_find_first()`では最初の1つしか取得できず、不適切です。ここでは`xml_find_all()`ですべての用をを取得していきます。
+
+加えて、
+
+```         
+<VALUE [tab, cat01, area, time, unit]>
+```
+
+となっているように、`VALUE`には5つの属性が付与されており、それぞれ統計表のタブ（表のバージョンや種類）、統計のカテゴリ、自治体コード、時間（ここでは年）、単位を示します。これを踏まえて必要な情報を以下のコードでは取得しています。
+
+```{r}
+# データがあるノードをすべて取得
+value_nodes <- xml_find_all(xml_data, "//DATA_INF/VALUE")
+
+df <- tibble(
+  # xml_attr()で特定の属性を取得
+  area     = xml_attr(value_nodes, "area"),
+  time     = xml_attr(value_nodes, "time"),
+  category = xml_attr(value_nodes, "cat01"),
+  value    = as.numeric(xml_text(value_nodes))
+)
+
+print(df)
+```
+
+このままだと少しわかりにくいですね。`time`は年なので上4桁だけ取り出したいし、`category`には３つの数字があるのですが、それぞれが何を意味しているのか分かりません。
+
+ひとまずカテゴリについて確認しておきましょう。XMLの中に`CLASS_INF`があり、その中に情報が含まれています。カテゴリ（`cat01`がそれです）について知りたい場合は`"//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS"`で確認できます。以下のコードを実行してください。
+
+```{r}
+# xml_data内のノードを取得
+cat01_nodes <- xml_find_all(xml_data, "//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS")
+
+# cat01のコードと対応する名前を取得
+df_cat01 <- tibble(
+  cat01_code = xml_attr(cat01_nodes, "code"),
+  cat01_name = xml_attr(cat01_nodes, "name")
+)
+
+# 結果を表示
+print(df_cat01)
+
+```
+
+0が総数、1が男、2が女であることがわかりました。なのでここでカテゴリを書き換え、ついでに年も整理し並べ替えておきましょう。
+
+```{r}
+df_clean <- df |> 
+  arrange(area, time, category) |> 
+  mutate(
+    # timeの上4桁を整数として格納
+    time = as.integer(str_sub(time, 1, 4)), 
+    # case_when()で条件分岐
+    category = case_when(
+      # 文字列として格納されているので""で囲みます
+      category == "0" ~ "population", 
+      category == "1" ~ "pop_male", 
+      category == "2" ~ "pop_female"
+      )
+  )
+
+print(df_clean)
+```
+
+もしカテゴリの各種をそれぞれ列にしたければ`pivot_wider()`でできます。
+
+```{r}
+df_wide <- df_clean |> 
+  pivot_wider(
+    names_from = category, 
+    values_from = value
+  )
+
+print(df_wide)
+```
+
+これでひとまずデータフレームとして整理することができました。ここからさらに整理したり、分析を回していきましょう！
+
+## データベースから取得する
+
+今回は国勢調査のような既にまとめられたデータを用いましたが、e-Statのデータベースを使えば必要なデータを選択して取得することができます。
+
+例えば[こちら](https://www.e-stat.go.jp/regional-statistics/ssdsview)から「市区町村データ」を選択し「データ表示」をクリックします。
+
+出てきた画面から地域を選択し、「確定」をクリックしたのち取得したいデータを選択し、再度「確定」をクリックします。
+
+![地域を選択します](image/e-stat_database_area.png){fig-align="center" width="80%"}
+
+![取得したい統計項目を選択します](image/e-stat_database_category.png){fig-align="center" width="80%"}
+
+するとデータが画面に表示されますが、ここで右上の「API」をクリックし、表示されたURLをコピーします。ここからは上で書いてきた手順と同様です。
+
+![URLの使い方はこれまでと同様です](image/e-stat_database_api.png){fig-align="center" width="80%"}
+
+## おわりに
+
+APIは正直初心者には難しいなと感じましたが、大体のコードはそのまま使いまわせますし、XMLの構造を少し辛抱して眺めてみればどこに何が入っているのか少しずつわかってきました。
+
+CSVでダウンロードすると余計な情報量が多く分析の手間に感じていましたので、春休みを機に少しではありますが知れてよかったと思います。ぜひ活用してみて下さい。
