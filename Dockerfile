@@ -1,7 +1,7 @@
 FROM rocker/geospatial:4.4.3
 
 # R packages
-RUN R -e "install.packages(c('renv'))"
+RUN R -e "install.packages(c('renv', 'pak'))"
 
 # Python
 RUN apt update && apt install -y \
