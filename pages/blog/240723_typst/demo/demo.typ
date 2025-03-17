@@ -312,7 +312,7 @@
 
 = Section 1
 <section-1>
-You can plot a figure like @fig-cars
+You can plot a figure like #ref(<fig-cars>, supplement: [Figure])
 
 ```r
 plot(cars)
@@ -336,6 +336,6 @@ supplement: "Figure",
 <section-2>
 == Subsection
 <subsection>
-You can also write mathematical expressions like @eq-panel.
+You can also write mathematical expressions like #ref(<eq-panel>, supplement: [Equation]).
 
 #math.equation(block: true, numbering: "(1)", [ $ Y_(i t) = delta D_(i t) + u_i + epsilon_(i t) , quad t = 1 , 2 , dots.h , T $ ])<eq-panel>
