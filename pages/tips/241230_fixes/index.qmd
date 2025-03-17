@@ -1,10 +1,17 @@
 ---
-title: "【パッケージ開発】`fixes`でイベントスタディを効率化"
+title: "【パッケージ開発】[fixes]{.fira-code}でイベントスタディを効率化"
 date: 2024-12-30
+date-modified: today
 categories:
   - R
 editor: visual
 ---
+
+::: callout-note
+## 更新
+
+2025年3月17日、`fixes`パッケージをCRANに提出しました。これが承認されれば`install.packages("fixes")`や`pak::pak("fixes")`でインストール可能になります。結果が出次第、再度更新します。
+:::
 
 ## はじめに
 
@@ -32,7 +39,9 @@ editor: visual
 
 ### インストール
 
-2024年12月30日時点では、パッケージをCRANに公開していないので、`install.packages()`でインストールすることができません。GitHubより以下の方法でインストールしてください。
+~~2024年12月30日時点では、パッケージをCRANに公開していないので、`install.packages()`でインストールすることができません。~~冒頭にも書いた通りCRANに提出しましたので、今後インストール可能になるかと思われます。現在のところはGitHubよりインストールしてください。
+
+GitHubより以下の方法でインストール可能です。
 
 ``` r
 # install.packages("pak")
@@ -71,14 +80,14 @@ DIDに用いるデータフレームをそのまま用いることができま�
 | 引数 | 説明 |
 |------------------------------------|------------------------------------|
 | `data` | 使用するデータフレーム |
-| `outcome_var` | アウトカム変数 |
-| `treated_var` | 処置個体を示すダミー変数 |
-| `time_var` | 時間を表す変数 |
+| `outcome` | アウトカム変数 |
+| `treatment` | 処置個体を示すダミー変数 |
+| `time` | 時間を表す変数 |
 | `timing` | 処置タイミングを表す数値 |
 | `lead_range` | 処置前の期間の長さ（処置年は除く） |
 | `lag_range` | 処置後の期間の長さ（処置年は除く） |
-| `fe_var` | 固定効果 |
-| `cluster_var` | クラスタリングの単位（任意） |
+| `fe` | 固定効果 |
+| `cluster` | クラスタリングの単位（任意） |
 | `baseline` | ベースラインとする時点（相対時間で指定、デフォルトでは-1） |
 | `interval` | 時間変数の間隔（例：毎年のデータなら1、国勢調査なら5。デフォルトでは1） |
 
@@ -106,18 +115,20 @@ event_study <- run_es(
   timing      = 1998, 
   lead_range  = 5, 
   lag_range   = 5, 
-  fe_var      = c("firm_id", "year"), 
+  fe_var      = firm_id + year, 
   cluster_var = "state_id", 
   baseline    = -1, 
   interval    = 1
 )
 ```
 
-固定効果とクラスタリングについては、ダブルクォーテーションで囲む必要があることに留意してください。また、リードとラグに処置年は含まれません。それぞれ5であれば、前5年＋処置年＋後5年で11年分の結果になります。
+固定効果については、`feols()`と同様に和の形で記述することが可能です[^2]。クラスタリングについては、ダブルクォーテーションで囲む必要があることに留意してください。また、リードとラグに処置年は含まれません。それぞれ5であれば、前5年＋処置年＋後5年で11年分の結果になります。
+
+[^2]: 以前のバージョンでは`c("firm_id", "year")`のような形で書く必要がありましたが、変更しました。
 
 これを実行することにより、結果のデータフレームが返ってきます。
 
-この結果を使えば、`ggplot2`を用いて好きにプロットしていただけるのですが、`fixes`パッケージでは、`ggplot2`を用いたプロットのベースを作る関数を提供しています。
+この結果を使えば、`ggplot2`を用いて好きにプロットしていただけるのですが、`fixes`パッケージでは、1からコードを書かずとも`ggplot2`を用いたプロットのベースを作る関数を提供しています。
 
 ### 関数（結果をプロット）
 
@@ -147,33 +158,36 @@ treated_1998 <- sample(c(1, 0), size = n_firms,
                        replace = TRUE, prob = c(1/2, 1/2))
 
 df <- tibble::tibble(
-  firm_id = rep(firm_id, each = T), 
-  state_id = rep(state_id, each = T), 
-  year = rep(year, times = n_firms), 
-  fe_firm = rep(fe_firm, each = T), 
-  fe_year = rep(fe_year, times = n_firms), 
-  error = error, 
-  is_treated = rep(treated_1998, each = T), 
+  firm_id     = rep(firm_id, each = T), 
+  state_id    = rep(state_id, each = T), 
+  year        = rep(year, times = n_firms), 
+  fe_firm     = rep(fe_firm, each = T), 
+  fe_year     = rep(fe_year, times = n_firms), 
+  error       = error, 
+  is_treated  = rep(treated_1998, each = T), 
   after_treat = dplyr::if_else(is_treated == 1 & year >= 1998, 1, 0), 
-  y = dplyr::case_when(
-    after_treat == 1 ~ 
-      rnorm(n_firms * T, mean = .3, sd = .2) * (year - 1997) + fe_firm + fe_year + error, 
-    .default = fe_firm + fe_year + error
+  y = dplyr::if_else(
+    after_treat == 1, 
+    fe_firm + fe_year +
+      rnorm(n_firms * T, mean = 0.3, sd = (0.2 + 0.1 * (year - 1998))) * (year - 1997) +
+      rnorm(n_firms * T, mean = 0, sd = (0.2 + 0.1 * (year - 1998))), 
+    fe_firm + fe_year + rnorm(n_firms * T, mean = 0, sd = 1)
   )
 )
 
+
 event_study <- run_es(
-  data        = df, 
-  outcome_var = y, 
-  treated_var = is_treated, 
-  time_var    = year, 
-  timing      = 1998, 
-  lead_range  = 5, 
-  lag_range   = 5, 
-  fe_var      = c("firm_id", "year"), 
-  cluster_var = "state_id", 
-  baseline    = -1, 
-  interval    = 1
+  data       = df, 
+  outcome    = y, 
+  treatment  = is_treated, 
+  time       = year, 
+  timing     = 1998, 
+  lead_range = 5, 
+  lag_range  = 5, 
+  fe         = firm_id + year, 
+  cluster    = "state_id", 
+  baseline   = -1, 
+  interval   = 1
 )
 
 ```
