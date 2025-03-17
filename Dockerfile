@@ -8,13 +8,13 @@ RUN apt update && apt install -y \
     python3 python3-venv python3-pip && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
-RUN python3 -m venv /home/rstudio/yo5uke.github.io/.venv && \
-    /home/rstudio/yo5uke.github.io/.venv/bin/pip install --upgrade pip
-ENV PATH="/home/rstudio/yo5uke.github.io/.venv/bin:$PATH"
+RUN python3 -m venv /home/rstudio/.venv && \
+    /home/rstudio/.venv/bin/pip install --upgrade pip
+ENV PATH="/home/rstudio/.venv/bin:$PATH"
 
 # Quarto
 ENV QUARTO_MINOR_VERSION=1.7
-ENV QUARTO_PATCH_VERSION=15
+ENV QUARTO_PATCH_VERSION=17
 
 RUN wget "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb" -O quarto.deb && \
     dpkg -i quarto.deb && \
