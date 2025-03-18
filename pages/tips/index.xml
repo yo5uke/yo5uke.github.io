@@ -10,7 +10,120 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.7.17</generator>
-<lastBuildDate>Sat, 08 Mar 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Wed, 19 Mar 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【スクレイピング】rvestを使ってデータを取得する</title>
+  <link>https://yo5uke.com/pages/tips/250320_rvest/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p><a href="../250309_estat_api/index.html">前回の記事</a>でe-StatでAPIを使う方法について簡単に載せましたが、中にはAPIで取得できないものもあります。例えば統計地理情報システム内の境界データです。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250320_rvest/image/e-stat_kyokai_data.png" class="img-fluid figure-img" style="width:80.0%"></p>
+<figcaption>メッシュごとにShapefileが並んでいます。</figcaption>
+</figure>
+</div>
+<p>僕は以前メッシュデータを使用して分析をしていたことがあったのですが、当時はAPIについて微塵も知りませんでしたし、ましてやスクレイピングにも触れたことがありませんでした。上の画像の場合ファイルが9ページ分あるので150を超えるファイルがあり、一つずつダウンロードしていたのでは日が暮れてしまいます。しかし当時はどうしようもなかったので、DownThemAllというページ内のファイルを一括でダウンロードできるようなブラウザの拡張機能を使っていました<sup>1</sup>。</p>
+<p>とはいえやはりこの手の方法は再現性に乏しく、久しぶりだと忘れてしまっているのでどうにかしたいと思っていましたし、最近以下で紹介するようなページを友人に紹介してもらい、動的サイトでもスクレイピングができることを知りましたので、今回改めてきちんと方法をまとめることにしました<sup>2</sup>。</p>
+<p>紹介してもらったページはこちらです。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://uchidamizuki.quarto.pub/blog/posts/2024/02/scraping-dynamic-sites-with-rvest.html">rvestで動的サイトをスクレイピングする（Seleniumを使わずに）</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="準備" class="level2">
+<h2 class="anchored" data-anchor-id="準備">準備</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+実行環境について
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>スクレイピングを実行するのにGoogle Chromeが必要ですので、もし使用していない場合はインストールしてください。また、開発コンテナ上ではChromeがありませんので実行できません。ローカル環境で試してください。</p>
+</div>
+</div>
+<p>まず今回使用するパッケージは以下の通りです。<code>rvest</code>が今回鍵となるパッケージです。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(rvest)</span></code></pre></div>
+</div>
+<p>また、ダウンロードするのに使うe-Statのページは以下です（先ほどの画像のページです）。</p>
+<p><a href="https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape" class="uri">https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape</a></p>
+<p>このURLを<code>rvest::read_html_live()</code>で読み込みます。<code>chromote</code>が必要なのでインストールしますか的なことを聞かれたら、Yesの方を選択して進めてください。</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">html <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_html_live</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span></code></pre></div>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>今ではChrome版はサービスが終了したようです。Firefoxはまだ使えると思います。↩︎</p></li>
+<li id="fn2"><p>以前少しだけ挑戦してみたのですが、どうやら静的サイトと動的サイトがあるらしく、動的サイトの方は難しいということで↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/250320_rvest/</guid>
+  <pubDate>Wed, 19 Mar 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>e-Stat APIを使ってデータを取得しよう</title>
   <link>https://yo5uke.com/pages/tips/250309_estat_api/</link>
@@ -15247,98 +15360,6 @@ font-style: inherit;">\</span></span>
   <guid>https://yo5uke.com/pages/tips/240619_trouble_shooting/</guid>
   <pubDate>Tue, 18 Jun 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/240619_trouble_shooting/image/vscode.png" medium="image" type="image/png" height="144" width="144"/>
-</item>
-<item>
-  <title>【WSL】割り当てるメモリを増やす方法</title>
-  <link>https://yo5uke.com/pages/tips/240531_wsl_memory/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>WSL &amp; Docker を使用していて、使えるメモリを増やしたい、そんな時にどうすればよいのか解説します。</p>
-<p>上にも書いてあるように、デフォルトでは PC の半分のメモリが WSL には割り当てられています。</p>
-<p>すなわちメモリが 8GB の PC であれば 4GB が、16GB の PC であれば 8GB が割り当てられています。</p>
-<p>プロジェクトによってはより多くのメモリを使いたいこともあると思うので、以下の方法を実行してみて下さい。</p>
-<p>ちなみに Mac では Docker Desktop の設定から Resources で変更できます。</p>
-</section>
-<section id="手順" class="level2">
-<h2 class="anchored" data-anchor-id="手順">手順</h2>
-<ol type="1">
-<li><p>エクスプローラーを開く</p></li>
-<li><p><code>c:</code> → <code>ユーザー</code> → 自分のユーザー と進む</p>
-<ul>
-<li>僕の場合だったら <code>C:\Users\yo5uk</code></li>
-</ul></li>
-<li><p>左上の「新規作成」から「テキストドキュメント」を選び、ファイル名を <code>.wslconfig</code> とする</p>
-<ul>
-<li><p>拡張子も全て消して名前を付けてください。<code>.wslconfig.txt</code> ではだめです。</p></li>
-<li><p>もし拡張子がデフォルトで表示されない設定の場合は、表示されるよう設定を変更してから行って下さい。</p></li>
-<li><p>エクスプローラー右上の「表示」→「表示」→「ファイル名拡張子」をオンにします。</p></li>
-</ul></li>
-<li><p>メモ帳など任意のテキストエディタで開く</p></li>
-<li><p>中身を以下のように記述</p>
-<ul>
-<li><p>GB の部分は好きに置き換えてください。</p></li>
-<li><p>8GB のPC を使っている場合には、もちろん 12GB は割り当てられません。</p></li>
-</ul></li>
-</ol>
-<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode txt code-with-copy"><code class="sourceCode default"><span id="cb1-1">[wsl2]</span>
-<span id="cb1-2">memory=12GB</span>
-<span id="cb1-3">swap=8GB</span></code></pre></div>
-<ol start="6" type="1">
-<li>保存して閉じる</li>
-</ol>
-<p>以上です。これで WSL に割り当てられるメモリが増えました。</p>
-<p>ちなみに <code>memory</code> は読んで字のごとくメモリを表しますが、ここでの <code>swap</code> は、WSL2 が使用するスワップファイルのサイズを設定することを意味します。スワップファイルを適切に設定することで、物理メモリが不足した場合でもシステムの安定性を維持することができます。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>WSL に割り当てるメモリを増やす方法をご紹介しました。</p>
-<p>プロジェクトによっては必要になることもあると思うので、ご参考まで。</p>
-
-
-<!-- -->
-
-</section>
-
- ]]></description>
-  <category>WSL</category>
-  <category>Windows</category>
-  <category>備忘録</category>
-  <guid>https://yo5uke.com/pages/tips/240531_wsl_memory/</guid>
-  <pubDate>Thu, 30 May 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
