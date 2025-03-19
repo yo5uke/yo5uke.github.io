@@ -20,6 +20,13 @@ RUN wget "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_M
     dpkg -i quarto.deb && \
     rm quarto.deb
 
+# Google Chrome
+RUN wget -q -O google-chrome-stable_current_amd64.deb https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb && \
+    apt-get update && apt-get install -y --no-install-recommends ./google-chrome-stable_current_amd64.deb && \
+    rm google-chrome-stable_current_amd64.deb
+
+ENV CHROMOTE_CHROME="/usr/bin/google-chrome-stable"
+
 # RStudio and VSCode settings
 COPY --chown=rstudio:rstudio /.config/.rstudio/rstudio-prefs.json /home/rstudio/.config/rstudio/rstudio-prefs.json
 COPY --chown=rstudio:rstudio /.config/.rstudio/rsession.conf /etc/rstudio/rsession.conf
