@@ -190,8 +190,8 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </div>
       </div> <!-- /container-fluid -->
     </nav>
-  <div id="quarto-announcement" data-announcement-id="353217a3f96e0d0c4a87fbf7ce484952" class="alert alert-secondary hidden"><i class="bi bi-info-circle quarto-announcement-icon"></i><div class="quarto-announcement-content">
-<p>ドメインが <span class="fira-code">yo5uke.com</span> に変更されました！</p>
+  <div id="quarto-announcement" data-announcement-id="f54840e2a5f5405c89ffe4fa5ea5fe3e" class="alert alert-secondary hidden"><i class="bi bi-info-circle quarto-announcement-icon"></i><div class="quarto-announcement-content">
+<p><span class="fira-code">fixes</span> パッケージがCRANに公開されました！</p>
 </div><i class="bi bi-x-lg quarto-announcement-action"></i></div>
 </header>
 <!-- content -->
@@ -327,12 +327,10 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 <h2 class="anchored" data-anchor-id="ページを取得">ページを取得</h2>
 <p>基本的には<code>read_html()</code>関数で読み込むことができるのですが、JavaScriptを使用しているような動的なページには対応していません。そこで使用するのが<code>read_html_live()</code>関数です。これらの関数の仕組み自体は冒頭で紹介したページがわかりやすいのでそちらを読んでみてください。</p>
 <p>先ほどのURLを読み込んでみましょう。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ページを見る</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>html<span class="sc">$</span><span class="fu">view</span>()</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <p>以下のようなページが表示されれば成功です。</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -378,18 +376,14 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 </div>
 </div>
 <p>ここでは<code>a</code>タグを探す→<code>href</code>を探し取得する、という手順を踏みます。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"a"</span>) <span class="sc">|&gt;</span> </span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_attr</span>(<span class="st">"href"</span>)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 <p><code>html_elements("a")</code>で<code>a</code>タグを探し、<code>html_attr("href")</code>で属性（attribute）を探しています。<code>links</code>には<code>a</code>タグの中の<code>href</code>に入っているリンクがずらーっと入っていることになります。</p>
 <p>ここでは表示しませんが、<code>links</code>の中身を確認すると、想像以上にたくさんのリンクが入っていることがわかります。ここからさらにシェープファイルのダウンロードリンクを探さなければなりません。</p>
 <p>上の<code>a</code>タグの例を見てもらうと、<code>/gis/statmap-search/data?dlserveyId=S&amp;code=3036&amp;coordSys=2&amp;format=shape&amp;downloadType=5</code>というのがシェープファイルのダウンロードリンクであることがわかります。他のシェープファイルのリンクと見比べてもらうと、<code>code=3036</code>の部分だけがそれぞれ異なっており、他は同じです。すなわち、まとめてダウンロードしたければこの部分さえうまいことやれば可能になるということです。</p>
 <p>とりあえず、数多のリンクの中からシェープファイルのリンクだけ抽出しておきましょう。<code>links</code>の中のリンクを確認すると、<code>data?dlserveyId=S&amp;</code>という部分がシェープファイルのダウンロードリンクにのみ含まれていることがわかる、これを含むリンクを抽出すればよいことになります。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>ポイント：</strong></p>
 <ul>
 <li><p><code>grepl()</code>で条件に合致するものを抽出</p>
@@ -409,41 +403,34 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 <h2 class="anchored" data-anchor-id="リンクを整形する">リンクを整形する</h2>
 <p>お気づきの方もいらっしゃると思いますが、実は先ほどのリンクは相対的なものです。<code>https://</code>から始まっていません。ベースとして<code>https://www.e-stat.go.jp</code>というURLがあり、そこに続く形で<code>/gis/...</code>が入ってきます。</p>
 <p>以下では取得したリンクにベースリンクをくっつけていきます。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(full_urls)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "https://www.e-stat.go.jp"</code></pre>
-</div>
-</div>
-<p>ご覧のようにページ内の20個のリンクを抽出することができました。次にこれらのリンクを使ってダウンロードしていきます。</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>これでページ内の20個のリンクを抽出することができました。次にこれらのリンクを使ってダウンロードしていきます。</p>
 </section>
 <section id="ファイルをダウンロード" class="level2">
 <h2 class="anchored" data-anchor-id="ファイルをダウンロード">ファイルをダウンロード</h2>
 <p>いよいよダウンロードをしていきます。</p>
 <p>まず保存するフォルダがなければ作成します。作成する場所は好きなところで大丈夫です。<code>here("data/shapefiles")</code>とか。</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ダウンロード用のフォルダがなければ作成する</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ダウンロード用のフォルダがなければ作成する</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>全てのリンクに対しダウンロードするコードを適用します。<code>for</code>の出番です。</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># リンクからメッシュコードを取得</span></span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ダウンロードするファイルのパスを指定する</span></span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 例: shpfiles/shpfile_3036.zip</span></span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ファイルをダウンロード</span></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># アクセス間隔を空ける</span></span>
-<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># サーバー負荷を考慮</span></span>
-<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
-<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># リンクからメッシュコードを取得</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ダウンロードするファイルのパスを指定する</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 例: shpfiles/shpfile_3036.zip</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ファイルをダウンロード</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="co"># アクセス間隔を空ける</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># サーバー負荷を考慮</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p><strong>ポイント：</strong></p>
 <ul>
 <li><p><code>seq_along(full_urls)</code>は<code>full_urls</code>の要素の数を取得している</p>
@@ -509,37 +496,37 @@ gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
 <p>今回は各コードを個別に紹介してきましたが、<strong>ひとまとめにして回す場合、コードの実行間隔が短すぎて十分に取得できないまま次に進んでしまうことがあります</strong>。そのため途中にコードを追加しています。ご確認ください。</p>
 </div>
 </div>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>html<span class="sc">$</span><span class="fu">view</span>()</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 一気に回すために追加</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.sleep</span>(<span class="dv">3</span>)</span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"a"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_attr</span>(<span class="st">"href"</span>)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
-<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>html<span class="sc">$</span><span class="fu">view</span>()</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 一気に回すために追加</span></span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.sleep</span>(<span class="dv">3</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"a"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_attr</span>(<span class="st">"href"</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="コピー" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="おわりに" class="level2">
 <h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
@@ -1063,319 +1050,293 @@ function loadGiscusWhenReady() {
 }
 loadGiscusWhenReady();
 </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb13" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "【スクレイピング】[rvest]{.fira-code}を使ってe-Statからファイルを取得する"</span></span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Rのrvestパッケージを使って、e-Statの境界データを取得していきます！</span></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-03-19</span></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - データ処理</span></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>今回はRでスクレイピングを行っていきます。<span class="in">`rvest`</span>パッケージを使ったスクレイピング自体は他のウェブサイトでも多数紹介されているのですが、今回JavaScriptが使われているページ（特にe-Stat）にも対応した方法をまとめます。これを行うには既に紹介されている方法からもう一工夫する必要があり、それも少々面倒です。</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>これまで僕はブラウザ拡張機能の「DownThemAll!」<span class="ot">[^1]</span>を使って無理くり実行していたのですが、この手の方法は再現が難しいし手間という欠点があるので、できればR上でコードとして残しておきたいと思っていました。そんなところ友人からあるページを紹介してもらい、抱えていた課題<span class="ot">[^2]</span>が解決できそうでしたので、これを機にまとめていきます。</span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>Chromeではサービスが終了したみたいです。Firefoxではまだあるようです。</span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="ot">[^2]: </span>先述のJavaScriptが使われているページで実行できないという課題</span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>紹介してもらったページはこちらです↓</span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">rvestで動的サイトをスクレイピングする（Seleniumを使わずに）</span><span class="co">](https://uchidamizuki.quarto.pub/blog/posts/2024/02/scraping-dynamic-sites-with-rvest.html)</span></span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>また、Google Chromeを使用するので、インストールしていない方はしておいてください。</span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a><span class="fu">## 使用するパッケージ</span></span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>使用するパッケージは以下の通りです。Rプロジェクトを使うなり<span class="in">`setwd()`</span>を使うなりでワーキングディレクトリを現在のディレクトリに設定しておいてください。プロジェクトについては<span class="co">[</span><span class="ot">こちら</span><span class="co">](../240515_rproj/index.html)</span>。</span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
-<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルをダウンロードするページ</span></span>
-<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>今回ファイルを取得していくのは、e-Statの「地図」→「境界データダウンロード」→「3次メッシュ」→「世界測地系平面直角座標系・Shapefile」のページです。</span>
-<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a><span class="ot">&lt;https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape&gt;</span></span>
-<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>メッシュいうのは国土を例えば1km×1kmの正方形で区切ったものをいい、その中の人口等のデータを扱うことができるようになります。このあたりの詳細は以下の書籍が非常にわかりやすいのでおすすめです。RでGISを扱う方法も学べます。</span>
-<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
-<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">事例で学ぶ経済・政策分析のためのGIS入門: QGIS,R,GeoDa対応</span><span class="co">](https://www.amazon.co.jp/%E4%BA%8B%E4%BE%8B%E3%81%A7%E5%AD%A6%E3%81%B6%E7%B5%8C%E6%B8%88%E3%83%BB%E6%94%BF%E7%AD%96%E5%88%86%E6%9E%90%E3%81%AE%E3%81%9F%E3%82%81%E3%81%AEGIS%E5%85%A5%E9%96%80-QGIS-GeoDa%E5%AF%BE%E5%BF%9C-%E6%B2%B3%E7%AB%AF-%E7%91%9E%E8%B2%B4/dp/4772242309)</span></span>
-<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a><span class="fu">## ページを取得</span></span>
-<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a>基本的には<span class="in">`read_html()`</span>関数で読み込むことができるのですが、JavaScriptを使用しているような動的なページには対応していません。そこで使用するのが<span class="in">`read_html_live()`</span>関数です。これらの関数の仕組み自体は冒頭で紹介したページがわかりやすいのでそちらを読んでみてください。</span>
-<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>先ほどのURLを読み込んでみましょう。</span>
-<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
-<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a><span class="co"># ページを見る</span></span>
-<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a>html<span class="sc">$</span><span class="fu">view</span>()</span>
-<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a>以下のようなページが表示されれば成功です。</span>
-<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/html_view.png)</span>{fig-align="center" width="80%"}</span>
-<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルのリンクを取得</span></span>
-<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-74"><a href="#cb13-74" aria-hidden="true" tabindex="-1"></a>次にいよいよファイルを取得していきます。僕もHTMLに詳しいわけではないので詳細は書きませんが、<span class="in">`a`</span>タグというのがリンクを生成するためのもので、その中に<span class="in">`href`</span>という属性があります。例えば</span>
-<span id="cb13-75"><a href="#cb13-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-76"><a href="#cb13-76" aria-hidden="true" tabindex="-1"></a><span class="in">``` html</span></span>
-<span id="cb13-77"><a href="#cb13-77" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>a class<span class="op">=</span><span class="st">"stat-dl_icon stat-statistics-table_icon"</span> tabindex<span class="op">=</span><span class="st">"40"</span> href<span class="op">=</span><span class="st">"/gis/statmap-search/data?dlserveyId=S&amp;amp;code=3036&amp;amp;coordSys=2&amp;amp;format=shape&amp;amp;downloadType=5"</span><span class="op">&gt;</span></span>
-<span id="cb13-78"><a href="#cb13-78" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>span class<span class="op">=</span><span class="st">"stat-dl_text"</span><span class="op">&gt;</span>世界測地系平面直角座標系・Shapefile<span class="op">&lt;/</span>span<span class="op">&gt;</span></span>
-<span id="cb13-79"><a href="#cb13-79" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>a<span class="op">&gt;</span></span>
-<span id="cb13-80"><a href="#cb13-80" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-81"><a href="#cb13-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-82"><a href="#cb13-82" aria-hidden="true" tabindex="-1"></a>というようになっており、<span class="in">`a`</span>と<span class="in">`/a`</span>で囲まれている間に<span class="in">`href`</span>やその他の属性が含まれていることがわかります。</span>
-<span id="cb13-83"><a href="#cb13-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-84"><a href="#cb13-84" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
-<span id="cb13-85"><a href="#cb13-85" aria-hidden="true" tabindex="-1"></a><span class="fu">## どうやって探す？</span></span>
-<span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-87"><a href="#cb13-87" aria-hidden="true" tabindex="-1"></a>このHTMLはどうやって探せばよいのでしょうか。実はブラウザ上から簡単に見ることができます。</span>
-<span id="cb13-88"><a href="#cb13-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-89"><a href="#cb13-89" aria-hidden="true" tabindex="-1"></a>ブラウザ上で任意のページを開いたら、<span class="in">`Ctrl`</span> + <span class="in">`Shift`</span> + <span class="in">`I`</span>を同時に入力します。もしくはブラウザ右上の点々から「その他のツール」→「デベロッパー ツール」でも開けます。</span>
-<span id="cb13-90"><a href="#cb13-90" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-91"><a href="#cb13-91" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/developer_tool.png)</span>{fig-align="center" width="80%"}</span>
-<span id="cb13-92"><a href="#cb13-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-93"><a href="#cb13-93" aria-hidden="true" tabindex="-1"></a>すると画面右側になにやらぶわぁーっと出てきますね。これの上半分がHTMLコードです。ここから特定のコードを探すのは骨が折れそうですが、逆にページの要素をクリックすることで該当するコードを探すことができます。デベロッパーツール画面上部の左側にカーソルのようなアイコンがあります。</span>
-<span id="cb13-94"><a href="#cb13-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-95"><a href="#cb13-95" aria-hidden="true" tabindex="-1"></a><span class="al">![一番左側です](image/dev_tool_bar.png)</span>{fig-align="center" width="80%"}</span>
-<span id="cb13-96"><a href="#cb13-96" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-97"><a href="#cb13-97" aria-hidden="true" tabindex="-1"></a>これをクリックしたうえでページ上の要素にカーソルを重ねてクリックすると、該当箇所のコードが表示されます。カーソルを「世界測地系平面直角座標系・Shapefile」という文字に重ねると先ほどのコードが表示されます。</span>
-<span id="cb13-98"><a href="#cb13-98" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb13-99"><a href="#cb13-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-100"><a href="#cb13-100" aria-hidden="true" tabindex="-1"></a>ここでは<span class="in">`a`</span>タグを探す→<span class="in">`href`</span>を探し取得する、という手順を踏みます。</span>
-<span id="cb13-101"><a href="#cb13-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-104"><a href="#cb13-104" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-105"><a href="#cb13-105" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
-<span id="cb13-106"><a href="#cb13-106" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"a"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb13-107"><a href="#cb13-107" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_attr</span>(<span class="st">"href"</span>)</span>
-<span id="cb13-108"><a href="#cb13-108" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-109"><a href="#cb13-109" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-110"><a href="#cb13-110" aria-hidden="true" tabindex="-1"></a><span class="in">`html_elements("a")`</span>で<span class="in">`a`</span>タグを探し、<span class="in">`html_attr("href")`</span>で属性（attribute）を探しています。<span class="in">`links`</span>には<span class="in">`a`</span>タグの中の<span class="in">`href`</span>に入っているリンクがずらーっと入っていることになります。</span>
-<span id="cb13-111"><a href="#cb13-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-112"><a href="#cb13-112" aria-hidden="true" tabindex="-1"></a>ここでは表示しませんが、<span class="in">`links`</span>の中身を確認すると、想像以上にたくさんのリンクが入っていることがわかります。ここからさらにシェープファイルのダウンロードリンクを探さなければなりません。</span>
-<span id="cb13-113"><a href="#cb13-113" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-114"><a href="#cb13-114" aria-hidden="true" tabindex="-1"></a>上の<span class="in">`a`</span>タグの例を見てもらうと、<span class="in">`/gis/statmap-search/data?dlserveyId=S&amp;code=3036&amp;coordSys=2&amp;format=shape&amp;downloadType=5`</span>というのがシェープファイルのダウンロードリンクであることがわかります。他のシェープファイルのリンクと見比べてもらうと、<span class="in">`code=3036`</span>の部分だけがそれぞれ異なっており、他は同じです。すなわち、まとめてダウンロードしたければこの部分さえうまいことやれば可能になるということです。</span>
-<span id="cb13-115"><a href="#cb13-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-116"><a href="#cb13-116" aria-hidden="true" tabindex="-1"></a>とりあえず、数多のリンクの中からシェープファイルのリンクだけ抽出しておきましょう。<span class="in">`links`</span>の中のリンクを確認すると、<span class="in">`data?dlserveyId=S&amp;`</span>という部分がシェープファイルのダウンロードリンクにのみ含まれていることがわかる、これを含むリンクを抽出すればよいことになります。</span>
-<span id="cb13-117"><a href="#cb13-117" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-120"><a href="#cb13-120" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-121"><a href="#cb13-121" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span>
-<span id="cb13-122"><a href="#cb13-122" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-123"><a href="#cb13-123" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-124"><a href="#cb13-124" aria-hidden="true" tabindex="-1"></a>**ポイント：**</span>
-<span id="cb13-125"><a href="#cb13-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-126"><a href="#cb13-126" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`grepl()`</span>で条件に合致するものを抽出</span>
-<span id="cb13-127"><a href="#cb13-127" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-128"><a href="#cb13-128" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`grepl(x, y)`</span>で、<span class="in">`y`</span>の中で<span class="in">`x`</span>を含むものに<span class="in">`TRUE`</span>を返す</span>
-<span id="cb13-129"><a href="#cb13-129" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-130"><a href="#cb13-130" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`links`</span>の中で<span class="in">`data\\?dlserveyId=S&amp;`</span>を含むものに<span class="in">`TRUE`</span>を返している</span>
-<span id="cb13-131"><a href="#cb13-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-132"><a href="#cb13-132" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`?`</span>の前に<span class="in">`\\`</span>が入っているのは、正規表現の中で<span class="in">`?`</span>は特別な役割を持っているので、その役割として認識されるのを防ぐため（エスケープしている）</span>
-<span id="cb13-133"><a href="#cb13-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-134"><a href="#cb13-134" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`links[ ]`</span> で、<span class="in">`TRUE`</span>を持つものを抽出している</span>
-<span id="cb13-135"><a href="#cb13-135" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-136"><a href="#cb13-136" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>すなわち<span class="in">`grepl()`</span>で<span class="in">`TRUE`</span>を返したもの（=シェープファイルのダウンロードリンクをもつもの）だけが残る</span>
-<span id="cb13-137"><a href="#cb13-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-138"><a href="#cb13-138" aria-hidden="true" tabindex="-1"></a>短いコードでもややこしいですね。特に記号のところには気を付けていただければと思います。</span>
-<span id="cb13-139"><a href="#cb13-139" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-140"><a href="#cb13-140" aria-hidden="true" tabindex="-1"></a><span class="fu">## リンクを整形する</span></span>
-<span id="cb13-141"><a href="#cb13-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a>お気づきの方もいらっしゃると思いますが、実は先ほどのリンクは相対的なものです。<span class="in">`https://`</span>から始まっていません。ベースとして<span class="in">`https://www.e-stat.go.jp`</span>というURLがあり、そこに続く形で<span class="in">`/gis/...`</span>が入ってきます。</span>
-<span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a>以下では取得したリンクにベースリンクをくっつけていきます。</span>
-<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
-<span id="cb13-150"><a href="#cb13-150" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span>
-<span id="cb13-151"><a href="#cb13-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(full_urls)</span>
-<span id="cb13-153"><a href="#cb13-153" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-154"><a href="#cb13-154" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a>ご覧のようにページ内の20個のリンクを抽出することができました。次にこれらのリンクを使ってダウンロードしていきます。</span>
-<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-157"><a href="#cb13-157" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルをダウンロード</span></span>
-<span id="cb13-158"><a href="#cb13-158" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a>いよいよダウンロードをしていきます。</span>
-<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a>まず保存するフォルダがなければ作成します。作成する場所は好きなところで大丈夫です。<span class="in">`here("data/shapefiles")`</span>とか。</span>
-<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a><span class="co"># ダウンロード用のフォルダがなければ作成する</span></span>
-<span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
-<span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
-<span id="cb13-167"><a href="#cb13-167" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-168"><a href="#cb13-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-169"><a href="#cb13-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-172"><a href="#cb13-172" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-173"><a href="#cb13-173" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb13-174"><a href="#cb13-174" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-175"><a href="#cb13-175" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"data/shpfiles"</span>))) {</span>
-<span id="cb13-176"><a href="#cb13-176" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"data/shpfiles"</span>))</span>
-<span id="cb13-177"><a href="#cb13-177" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-178"><a href="#cb13-178" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-179"><a href="#cb13-179" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-180"><a href="#cb13-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-181"><a href="#cb13-181" aria-hidden="true" tabindex="-1"></a>全てのリンクに対しダウンロードするコードを適用します。<span class="in">`for`</span>の出番です。</span>
-<span id="cb13-182"><a href="#cb13-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-183"><a href="#cb13-183" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb13-184"><a href="#cb13-184" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
-<span id="cb13-185"><a href="#cb13-185" aria-hidden="true" tabindex="-1"></a>  <span class="co"># リンクからメッシュコードを取得</span></span>
-<span id="cb13-186"><a href="#cb13-186" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
-<span id="cb13-187"><a href="#cb13-187" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-188"><a href="#cb13-188" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ダウンロードするファイルのパスを指定する</span></span>
-<span id="cb13-189"><a href="#cb13-189" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 例: shpfiles/shpfile_3036.zip</span></span>
-<span id="cb13-190"><a href="#cb13-190" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
-<span id="cb13-191"><a href="#cb13-191" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-192"><a href="#cb13-192" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ファイルをダウンロード</span></span>
-<span id="cb13-193"><a href="#cb13-193" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb13-194"><a href="#cb13-194" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-195"><a href="#cb13-195" aria-hidden="true" tabindex="-1"></a>  <span class="co"># アクセス間隔を空ける</span></span>
-<span id="cb13-196"><a href="#cb13-196" aria-hidden="true" tabindex="-1"></a>  <span class="co"># サーバー負荷を考慮</span></span>
-<span id="cb13-197"><a href="#cb13-197" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
-<span id="cb13-198"><a href="#cb13-198" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-199"><a href="#cb13-199" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-200"><a href="#cb13-200" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-203"><a href="#cb13-203" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb13-204"><a href="#cb13-204" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
-<span id="cb13-205"><a href="#cb13-205" aria-hidden="true" tabindex="-1"></a><span class="co">#| eval: false</span></span>
-<span id="cb13-206"><a href="#cb13-206" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-207"><a href="#cb13-207" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
-<span id="cb13-208"><a href="#cb13-208" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
-<span id="cb13-209"><a href="#cb13-209" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"data/shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
-<span id="cb13-210"><a href="#cb13-210" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-211"><a href="#cb13-211" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb13-212"><a href="#cb13-212" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-213"><a href="#cb13-213" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
-<span id="cb13-214"><a href="#cb13-214" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-215"><a href="#cb13-215" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-216"><a href="#cb13-216" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-217"><a href="#cb13-217" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-218"><a href="#cb13-218" aria-hidden="true" tabindex="-1"></a>**ポイント：**</span>
-<span id="cb13-219"><a href="#cb13-219" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-220"><a href="#cb13-220" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`seq_along(full_urls)`</span>は<span class="in">`full_urls`</span>の要素の数を取得している</span>
-<span id="cb13-221"><a href="#cb13-221" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-222"><a href="#cb13-222" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>今回はURLが20個と分かっているが、数が多くて数えにくいような場合にも有用</span>
-<span id="cb13-223"><a href="#cb13-223" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-224"><a href="#cb13-224" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`sub(".*code=([0-9]+).*", "\1", shp_links[i])`</span>でメッシュコードを取得</span>
-<span id="cb13-225"><a href="#cb13-225" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-226"><a href="#cb13-226" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`sub(pattern, replacement, x)`</span>で<span class="in">`x`</span>の<span class="in">`pettern`</span>を<span class="in">`replacement`</span>に置換する</span>
-<span id="cb13-227"><a href="#cb13-227" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-228"><a href="#cb13-228" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`.*code=([0-9]+).*`</span>はざっくり言うと、前後が何であれ<span class="in">`code=(何らかの数字)`</span>というものを探してきて、括弧内の数字を取得しているということ</span>
-<span id="cb13-229"><a href="#cb13-229" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-230"><a href="#cb13-230" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`\\1`</span>は今取得した数字を返すということ</span>
-<span id="cb13-231"><a href="#cb13-231" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-232"><a href="#cb13-232" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`x`</span>には<span class="in">`shp_links[i]`</span>が該当するので、<span class="in">`i`</span>番目のリンクで上で述べた置換をしているということ</span>
-<span id="cb13-233"><a href="#cb13-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-234"><a href="#cb13-234" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`here("shpfiles", paste0("shpfile_", code, ".zip"))`</span>で保存する際のファイル名を作成</span>
-<span id="cb13-235"><a href="#cb13-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-236"><a href="#cb13-236" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>現在のワーキングディレクトリにある<span class="in">`shpfiles`</span>というフォルダの中に<span class="in">`shpfile_3036.zip`</span>というようなZipファイルを作成する</span>
-<span id="cb13-237"><a href="#cb13-237" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-238"><a href="#cb13-238" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ダウンロードはzipファイルで行われるので拡張子は<span class="in">`.zip`</span>としておく</span>
-<span id="cb13-239"><a href="#cb13-239" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-240"><a href="#cb13-240" aria-hidden="true" tabindex="-1"></a><span class="in">```         </span></span>
-<span id="cb13-241"><a href="#cb13-241" aria-hidden="true" tabindex="-1"></a><span class="in">my_project/</span></span>
-<span id="cb13-242"><a href="#cb13-242" aria-hidden="true" tabindex="-1"></a><span class="in">├── data/</span></span>
-<span id="cb13-243"><a href="#cb13-243" aria-hidden="true" tabindex="-1"></a><span class="in">├── shpfiles/  ← ここにダウンロードする</span></span>
-<span id="cb13-244"><a href="#cb13-244" aria-hidden="true" tabindex="-1"></a><span class="in">└── scripts/</span></span>
-<span id="cb13-245"><a href="#cb13-245" aria-hidden="true" tabindex="-1"></a><span class="in">    ├── download_script.R</span></span>
-<span id="cb13-246"><a href="#cb13-246" aria-hidden="true" tabindex="-1"></a><span class="in">    ├── analysis.R</span></span>
-<span id="cb13-247"><a href="#cb13-247" aria-hidden="true" tabindex="-1"></a><span class="in">    └── ...</span></span>
-<span id="cb13-248"><a href="#cb13-248" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-249"><a href="#cb13-249" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-250"><a href="#cb13-250" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`download.file(full_urls[i], destfile = file_path, mode = "wb")`</span>でダウンロード</span>
-<span id="cb13-251"><a href="#cb13-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-252"><a href="#cb13-252" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`download.file(url, destfile, mode)`</span>で<span class="in">`url`</span>を<span class="in">`destfile`</span>に<span class="in">`mode`</span>で指定したモードでダウンロードする</span>
-<span id="cb13-253"><a href="#cb13-253" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-254"><a href="#cb13-254" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>詳細は省くが、Zipファイルに対しては<span class="in">`mode="wb`</span>を指定する</span>
-<span id="cb13-255"><a href="#cb13-255" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-256"><a href="#cb13-256" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`Sys.sleep(2)`</span>でサーバー負荷を軽減する</span>
-<span id="cb13-257"><a href="#cb13-257" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-258"><a href="#cb13-258" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>作業ごとに2秒のインターバルを設けるということ</span>
-<span id="cb13-259"><a href="#cb13-259" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-260"><a href="#cb13-260" aria-hidden="true" tabindex="-1"></a>さすがに面倒すぎますね。最初は困ると思いますが、2回目以降大変便利に思えるはずです。</span>
-<span id="cb13-261"><a href="#cb13-261" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-262"><a href="#cb13-262" aria-hidden="true" tabindex="-1"></a>ひとまずこれでページ上のファイルをダウンロードすることができました！</span>
-<span id="cb13-263"><a href="#cb13-263" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-264"><a href="#cb13-264" aria-hidden="true" tabindex="-1"></a><span class="fu">## 今後について</span></span>
-<span id="cb13-265"><a href="#cb13-265" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-266"><a href="#cb13-266" aria-hidden="true" tabindex="-1"></a>今回は1つのページにある複数のファイルをダウンロードする方法をまとめてきたのですが、やはりしたいこととしては9ページ分のファイルをダウンロードすることです。</span>
-<span id="cb13-267"><a href="#cb13-267" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-268"><a href="#cb13-268" aria-hidden="true" tabindex="-1"></a>しかし現状の限界として、2ページ目を読み込む際にエラーが避けられないということがあります。一度読み込んだ状態で別のページを<span class="in">`read_html_live()`</span>しようとすると、以下のエラーが出ます。</span>
-<span id="cb13-269"><a href="#cb13-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-270"><a href="#cb13-270" aria-hidden="true" tabindex="-1"></a><span class="in">```         </span></span>
-<span id="cb13-271"><a href="#cb13-271" aria-hidden="true" tabindex="-1"></a><span class="in">Error in callback(...) : code: -32602</span></span>
-<span id="cb13-272"><a href="#cb13-272" aria-hidden="true" tabindex="-1"></a><span class="in">  message: Target position can only be set for new windows</span></span>
-<span id="cb13-273"><a href="#cb13-273" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-274"><a href="#cb13-274" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-275"><a href="#cb13-275" aria-hidden="true" tabindex="-1"></a>自分の理解では対処法がわからず、逐一Rのセッションを終了することが今の最善策となっています。ローカルのRStudioではアプリを一度閉じることで再び<span class="in">`read_html_live()`</span>が可能になります。RStudio Serverであれば右上の{{&lt; fa power-off &gt;}}で一度閉じ再度開くと可能になります。</span>
-<span id="cb13-276"><a href="#cb13-276" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-277"><a href="#cb13-277" aria-hidden="true" tabindex="-1"></a>URL内の<span class="in">`page=1`</span>の数字部分を変えながら進めていくのが現状の方法となります。</span>
-<span id="cb13-278"><a href="#cb13-278" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-279"><a href="#cb13-279" aria-hidden="true" tabindex="-1"></a><span class="fu">## コードまとめ</span></span>
-<span id="cb13-280"><a href="#cb13-280" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-281"><a href="#cb13-281" aria-hidden="true" tabindex="-1"></a>最後に今回のコードをまとめます。</span>
-<span id="cb13-282"><a href="#cb13-282" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-283"><a href="#cb13-283" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
-<span id="cb13-284"><a href="#cb13-284" aria-hidden="true" tabindex="-1"></a><span class="fu">## コードの実行について</span></span>
-<span id="cb13-285"><a href="#cb13-285" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-286"><a href="#cb13-286" aria-hidden="true" tabindex="-1"></a>今回は各コードを個別に紹介してきましたが、**ひとまとめにして回す場合、コードの実行間隔が短すぎて十分に取得できないまま次に進んでしまうことがあります**。そのため途中にコードを追加しています。ご確認ください。</span>
-<span id="cb13-287"><a href="#cb13-287" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb13-288"><a href="#cb13-288" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-289"><a href="#cb13-289" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb13-290"><a href="#cb13-290" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
-<span id="cb13-291"><a href="#cb13-291" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
-<span id="cb13-292"><a href="#cb13-292" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-293"><a href="#cb13-293" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
-<span id="cb13-294"><a href="#cb13-294" aria-hidden="true" tabindex="-1"></a>html<span class="sc">$</span><span class="fu">view</span>()</span>
-<span id="cb13-295"><a href="#cb13-295" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-296"><a href="#cb13-296" aria-hidden="true" tabindex="-1"></a><span class="co"># 一気に回すために追加</span></span>
-<span id="cb13-297"><a href="#cb13-297" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.sleep</span>(<span class="dv">3</span>)</span>
-<span id="cb13-298"><a href="#cb13-298" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-299"><a href="#cb13-299" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
-<span id="cb13-300"><a href="#cb13-300" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"a"</span>) <span class="sc">|&gt;</span> </span>
-<span id="cb13-301"><a href="#cb13-301" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_attr</span>(<span class="st">"href"</span>)</span>
-<span id="cb13-302"><a href="#cb13-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-303"><a href="#cb13-303" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span>
-<span id="cb13-304"><a href="#cb13-304" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-305"><a href="#cb13-305" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
-<span id="cb13-306"><a href="#cb13-306" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span>
-<span id="cb13-307"><a href="#cb13-307" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-308"><a href="#cb13-308" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
-<span id="cb13-309"><a href="#cb13-309" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
-<span id="cb13-310"><a href="#cb13-310" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-311"><a href="#cb13-311" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-312"><a href="#cb13-312" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
-<span id="cb13-313"><a href="#cb13-313" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
-<span id="cb13-314"><a href="#cb13-314" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-315"><a href="#cb13-315" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
-<span id="cb13-316"><a href="#cb13-316" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-317"><a href="#cb13-317" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
-<span id="cb13-318"><a href="#cb13-318" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-319"><a href="#cb13-319" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
-<span id="cb13-320"><a href="#cb13-320" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb13-321"><a href="#cb13-321" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb13-322"><a href="#cb13-322" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-323"><a href="#cb13-323" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
-<span id="cb13-324"><a href="#cb13-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-325"><a href="#cb13-325" aria-hidden="true" tabindex="-1"></a>今回はRでe-Statのシェープファイルを取得してきました。個人的にもずっとやりたいことだったので、不完全とはいえ、念願かなった感じです。</span>
-<span id="cb13-326"><a href="#cb13-326" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-327"><a href="#cb13-327" aria-hidden="true" tabindex="-1"></a>今後も調査して全ページを一つのループでダウンロードできるようなコードを書いていきたいと思います。</span>
+<div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "【スクレイピング】[rvest]{.fira-code}を使ってe-Statからファイルを取得する"</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Rのrvestパッケージを使って、e-Statの境界データを取得していきます！</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-03-19</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - データ処理</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>今回はRでスクレイピングを行っていきます。<span class="in">`rvest`</span>パッケージを使ったスクレイピング自体は他のウェブサイトでも多数紹介されているのですが、今回JavaScriptが使われているページ（特にe-Stat）にも対応した方法をまとめます。これを行うには既に紹介されている方法からもう一工夫する必要があり、それも少々面倒です。</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>これまで僕はブラウザ拡張機能の「DownThemAll!」<span class="ot">[^1]</span>を使って無理くり実行していたのですが、この手の方法は再現が難しいし手間という欠点があるので、できればR上でコードとして残しておきたいと思っていました。そんなところ友人からあるページを紹介してもらい、抱えていた課題<span class="ot">[^2]</span>が解決できそうでしたので、これを機にまとめていきます。</span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>Chromeではサービスが終了したみたいです。Firefoxではまだあるようです。</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="ot">[^2]: </span>先述のJavaScriptが使われているページで実行できないという課題</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>紹介してもらったページはこちらです↓</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">rvestで動的サイトをスクレイピングする（Seleniumを使わずに）</span><span class="co">](https://uchidamizuki.quarto.pub/blog/posts/2024/02/scraping-dynamic-sites-with-rvest.html)</span></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a>また、Google Chromeを使用するので、インストールしていない方はしておいてください。</span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a><span class="fu">## 使用するパッケージ</span></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>使用するパッケージは以下の通りです。Rプロジェクトを使うなり<span class="in">`setwd()`</span>を使うなりでワーキングディレクトリを現在のディレクトリに設定しておいてください。プロジェクトについては<span class="co">[</span><span class="ot">こちら</span><span class="co">](../240515_rproj/index.html)</span>。</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルをダウンロードするページ</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a>今回ファイルを取得していくのは、e-Statの「地図」→「境界データダウンロード」→「3次メッシュ」→「世界測地系平面直角座標系・Shapefile」のページです。</span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a><span class="ot">&lt;https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape&gt;</span></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>メッシュいうのは国土を例えば1km×1kmの正方形で区切ったものをいい、その中の人口等のデータを扱うことができるようになります。このあたりの詳細は以下の書籍が非常にわかりやすいのでおすすめです。RでGISを扱う方法も学べます。</span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip appearance="minimal"}</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">事例で学ぶ経済・政策分析のためのGIS入門: QGIS,R,GeoDa対応</span><span class="co">](https://www.amazon.co.jp/%E4%BA%8B%E4%BE%8B%E3%81%A7%E5%AD%A6%E3%81%B6%E7%B5%8C%E6%B8%88%E3%83%BB%E6%94%BF%E7%AD%96%E5%88%86%E6%9E%90%E3%81%AE%E3%81%9F%E3%82%81%E3%81%AEGIS%E5%85%A5%E9%96%80-QGIS-GeoDa%E5%AF%BE%E5%BF%9C-%E6%B2%B3%E7%AB%AF-%E7%91%9E%E8%B2%B4/dp/4772242309)</span></span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a><span class="fu">## ページを取得</span></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>基本的には<span class="in">`read_html()`</span>関数で読み込むことができるのですが、JavaScriptを使用しているような動的なページには対応していません。そこで使用するのが<span class="in">`read_html_live()`</span>関数です。これらの関数の仕組み自体は冒頭で紹介したページがわかりやすいのでそちらを読んでみてください。</span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>先ほどのURLを読み込んでみましょう。</span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a><span class="co"># ページを見る</span></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>html<span class="sc">$</span><span class="fu">view</span>()</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>以下のようなページが表示されれば成功です。</span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/html_view.png)</span>{fig-align="center" width="80%"}</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルのリンクを取得</span></span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a>次にいよいよファイルを取得していきます。僕もHTMLに詳しいわけではないので詳細は書きませんが、<span class="in">`a`</span>タグというのがリンクを生成するためのもので、その中に<span class="in">`href`</span>という属性があります。例えば</span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a><span class="in">``` html</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>a class<span class="op">=</span><span class="st">"stat-dl_icon stat-statistics-table_icon"</span> tabindex<span class="op">=</span><span class="st">"40"</span> href<span class="op">=</span><span class="st">"/gis/statmap-search/data?dlserveyId=S&amp;amp;code=3036&amp;amp;coordSys=2&amp;amp;format=shape&amp;amp;downloadType=5"</span><span class="op">&gt;</span></span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;</span>span class<span class="op">=</span><span class="st">"stat-dl_text"</span><span class="op">&gt;</span>世界測地系平面直角座標系・Shapefile<span class="op">&lt;/</span>span<span class="op">&gt;</span></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a><span class="op">&lt;/</span>a<span class="op">&gt;</span></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>というようになっており、<span class="in">`a`</span>と<span class="in">`/a`</span>で囲まれている間に<span class="in">`href`</span>やその他の属性が含まれていることがわかります。</span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip collapse="true"}</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a><span class="fu">## どうやって探す？</span></span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>このHTMLはどうやって探せばよいのでしょうか。実はブラウザ上から簡単に見ることができます。</span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a>ブラウザ上で任意のページを開いたら、<span class="in">`Ctrl`</span> + <span class="in">`Shift`</span> + <span class="in">`I`</span>を同時に入力します。もしくはブラウザ右上の点々から「その他のツール」→「デベロッパー ツール」でも開けます。</span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a><span class="al">![](image/developer_tool.png)</span>{fig-align="center" width="80%"}</span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>すると画面右側になにやらぶわぁーっと出てきますね。これの上半分がHTMLコードです。ここから特定のコードを探すのは骨が折れそうですが、逆にページの要素をクリックすることで該当するコードを探すことができます。デベロッパーツール画面上部の左側にカーソルのようなアイコンがあります。</span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a><span class="al">![一番左側です](image/dev_tool_bar.png)</span>{fig-align="center" width="80%"}</span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a>これをクリックしたうえでページ上の要素にカーソルを重ねてクリックすると、該当箇所のコードが表示されます。カーソルを「世界測地系平面直角座標系・Shapefile」という文字に重ねると先ほどのコードが表示されます。</span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>ここでは<span class="in">`a`</span>タグを探す→<span class="in">`href`</span>を探し取得する、という手順を踏みます。</span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"a"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_attr</span>(<span class="st">"href"</span>)</span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a><span class="in">`html_elements("a")`</span>で<span class="in">`a`</span>タグを探し、<span class="in">`html_attr("href")`</span>で属性（attribute）を探しています。<span class="in">`links`</span>には<span class="in">`a`</span>タグの中の<span class="in">`href`</span>に入っているリンクがずらーっと入っていることになります。</span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>ここでは表示しませんが、<span class="in">`links`</span>の中身を確認すると、想像以上にたくさんのリンクが入っていることがわかります。ここからさらにシェープファイルのダウンロードリンクを探さなければなりません。</span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>上の<span class="in">`a`</span>タグの例を見てもらうと、<span class="in">`/gis/statmap-search/data?dlserveyId=S&amp;code=3036&amp;coordSys=2&amp;format=shape&amp;downloadType=5`</span>というのがシェープファイルのダウンロードリンクであることがわかります。他のシェープファイルのリンクと見比べてもらうと、<span class="in">`code=3036`</span>の部分だけがそれぞれ異なっており、他は同じです。すなわち、まとめてダウンロードしたければこの部分さえうまいことやれば可能になるということです。</span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a>とりあえず、数多のリンクの中からシェープファイルのリンクだけ抽出しておきましょう。<span class="in">`links`</span>の中のリンクを確認すると、<span class="in">`data?dlserveyId=S&amp;`</span>という部分がシェープファイルのダウンロードリンクにのみ含まれていることがわかる、これを含むリンクを抽出すればよいことになります。</span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span>
+<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-117"><a href="#cb12-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a>**ポイント：**</span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`grepl()`</span>で条件に合致するものを抽出</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`grepl(x, y)`</span>で、<span class="in">`y`</span>の中で<span class="in">`x`</span>を含むものに<span class="in">`TRUE`</span>を返す</span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`links`</span>の中で<span class="in">`data\\?dlserveyId=S&amp;`</span>を含むものに<span class="in">`TRUE`</span>を返している</span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`?`</span>の前に<span class="in">`\\`</span>が入っているのは、正規表現の中で<span class="in">`?`</span>は特別な役割を持っているので、その役割として認識されるのを防ぐため（エスケープしている）</span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`links[ ]`</span> で、<span class="in">`TRUE`</span>を持つものを抽出している</span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>すなわち<span class="in">`grepl()`</span>で<span class="in">`TRUE`</span>を返したもの（=シェープファイルのダウンロードリンクをもつもの）だけが残る</span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a>短いコードでもややこしいですね。特に記号のところには気を付けていただければと思います。</span>
+<span id="cb12-133"><a href="#cb12-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-134"><a href="#cb12-134" aria-hidden="true" tabindex="-1"></a><span class="fu">## リンクを整形する</span></span>
+<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a>お気づきの方もいらっしゃると思いますが、実は先ほどのリンクは相対的なものです。<span class="in">`https://`</span>から始まっていません。ベースとして<span class="in">`https://www.e-stat.go.jp`</span>というURLがあり、そこに続く形で<span class="in">`/gis/...`</span>が入ってきます。</span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>以下では取得したリンクにベースリンクをくっつけていきます。</span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>これでページ内の20個のリンクを抽出することができました。次にこれらのリンクを使ってダウンロードしていきます。</span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルをダウンロード</span></span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a>いよいよダウンロードをしていきます。</span>
+<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a>まず保存するフォルダがなければ作成します。作成する場所は好きなところで大丈夫です。<span class="in">`here("data/shapefiles")`</span>とか。</span>
+<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a><span class="co"># ダウンロード用のフォルダがなければ作成する</span></span>
+<span id="cb12-155"><a href="#cb12-155" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
+<span id="cb12-156"><a href="#cb12-156" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
+<span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a>全てのリンクに対しダウンロードするコードを適用します。<span class="in">`for`</span>の出番です。</span>
+<span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb12-163"><a href="#cb12-163" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
+<span id="cb12-164"><a href="#cb12-164" aria-hidden="true" tabindex="-1"></a>  <span class="co"># リンクからメッシュコードを取得</span></span>
+<span id="cb12-165"><a href="#cb12-165" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
+<span id="cb12-166"><a href="#cb12-166" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb12-167"><a href="#cb12-167" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ダウンロードするファイルのパスを指定する</span></span>
+<span id="cb12-168"><a href="#cb12-168" aria-hidden="true" tabindex="-1"></a>  <span class="co"># 例: shpfiles/shpfile_3036.zip</span></span>
+<span id="cb12-169"><a href="#cb12-169" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
+<span id="cb12-170"><a href="#cb12-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-171"><a href="#cb12-171" aria-hidden="true" tabindex="-1"></a>  <span class="co"># ファイルをダウンロード</span></span>
+<span id="cb12-172"><a href="#cb12-172" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb12-173"><a href="#cb12-173" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb12-174"><a href="#cb12-174" aria-hidden="true" tabindex="-1"></a>  <span class="co"># アクセス間隔を空ける</span></span>
+<span id="cb12-175"><a href="#cb12-175" aria-hidden="true" tabindex="-1"></a>  <span class="co"># サーバー負荷を考慮</span></span>
+<span id="cb12-176"><a href="#cb12-176" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
+<span id="cb12-177"><a href="#cb12-177" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-178"><a href="#cb12-178" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-179"><a href="#cb12-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-180"><a href="#cb12-180" aria-hidden="true" tabindex="-1"></a>**ポイント：**</span>
+<span id="cb12-181"><a href="#cb12-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-182"><a href="#cb12-182" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`seq_along(full_urls)`</span>は<span class="in">`full_urls`</span>の要素の数を取得している</span>
+<span id="cb12-183"><a href="#cb12-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-184"><a href="#cb12-184" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>今回はURLが20個と分かっているが、数が多くて数えにくいような場合にも有用</span>
+<span id="cb12-185"><a href="#cb12-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-186"><a href="#cb12-186" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`sub(".*code=([0-9]+).*", "\1", shp_links[i])`</span>でメッシュコードを取得</span>
+<span id="cb12-187"><a href="#cb12-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-188"><a href="#cb12-188" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`sub(pattern, replacement, x)`</span>で<span class="in">`x`</span>の<span class="in">`pettern`</span>を<span class="in">`replacement`</span>に置換する</span>
+<span id="cb12-189"><a href="#cb12-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-190"><a href="#cb12-190" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`.*code=([0-9]+).*`</span>はざっくり言うと、前後が何であれ<span class="in">`code=(何らかの数字)`</span>というものを探してきて、括弧内の数字を取得しているということ</span>
+<span id="cb12-191"><a href="#cb12-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`\\1`</span>は今取得した数字を返すということ</span>
+<span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`x`</span>には<span class="in">`shp_links[i]`</span>が該当するので、<span class="in">`i`</span>番目のリンクで上で述べた置換をしているということ</span>
+<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`here("shpfiles", paste0("shpfile_", code, ".zip"))`</span>で保存する際のファイル名を作成</span>
+<span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>現在のワーキングディレクトリにある<span class="in">`shpfiles`</span>というフォルダの中に<span class="in">`shpfile_3036.zip`</span>というようなZipファイルを作成する</span>
+<span id="cb12-199"><a href="#cb12-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-200"><a href="#cb12-200" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ダウンロードはzipファイルで行われるので拡張子は<span class="in">`.zip`</span>としておく</span>
+<span id="cb12-201"><a href="#cb12-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-202"><a href="#cb12-202" aria-hidden="true" tabindex="-1"></a><span class="in">```         </span></span>
+<span id="cb12-203"><a href="#cb12-203" aria-hidden="true" tabindex="-1"></a><span class="in">my_project/</span></span>
+<span id="cb12-204"><a href="#cb12-204" aria-hidden="true" tabindex="-1"></a><span class="in">├── data/</span></span>
+<span id="cb12-205"><a href="#cb12-205" aria-hidden="true" tabindex="-1"></a><span class="in">├── shpfiles/  ← ここにダウンロードする</span></span>
+<span id="cb12-206"><a href="#cb12-206" aria-hidden="true" tabindex="-1"></a><span class="in">└── scripts/</span></span>
+<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a><span class="in">    ├── download_script.R</span></span>
+<span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a><span class="in">    ├── analysis.R</span></span>
+<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a><span class="in">    └── ...</span></span>
+<span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-212"><a href="#cb12-212" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`download.file(full_urls[i], destfile = file_path, mode = "wb")`</span>でダウンロード</span>
+<span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-214"><a href="#cb12-214" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`download.file(url, destfile, mode)`</span>で<span class="in">`url`</span>を<span class="in">`destfile`</span>に<span class="in">`mode`</span>で指定したモードでダウンロードする</span>
+<span id="cb12-215"><a href="#cb12-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-216"><a href="#cb12-216" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>詳細は省くが、Zipファイルに対しては<span class="in">`mode="wb`</span>を指定する</span>
+<span id="cb12-217"><a href="#cb12-217" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-218"><a href="#cb12-218" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span><span class="in">`Sys.sleep(2)`</span>でサーバー負荷を軽減する</span>
+<span id="cb12-219"><a href="#cb12-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-220"><a href="#cb12-220" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>作業ごとに2秒のインターバルを設けるということ</span>
+<span id="cb12-221"><a href="#cb12-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a>さすがに面倒すぎますね。最初は困ると思いますが、2回目以降大変便利に思えるはずです。</span>
+<span id="cb12-223"><a href="#cb12-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-224"><a href="#cb12-224" aria-hidden="true" tabindex="-1"></a>ひとまずこれでページ上のファイルをダウンロードすることができました！</span>
+<span id="cb12-225"><a href="#cb12-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-226"><a href="#cb12-226" aria-hidden="true" tabindex="-1"></a><span class="fu">## 今後について</span></span>
+<span id="cb12-227"><a href="#cb12-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-228"><a href="#cb12-228" aria-hidden="true" tabindex="-1"></a>今回は1つのページにある複数のファイルをダウンロードする方法をまとめてきたのですが、やはりしたいこととしては9ページ分のファイルをダウンロードすることです。</span>
+<span id="cb12-229"><a href="#cb12-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-230"><a href="#cb12-230" aria-hidden="true" tabindex="-1"></a>しかし現状の限界として、2ページ目を読み込む際にエラーが避けられないということがあります。一度読み込んだ状態で別のページを<span class="in">`read_html_live()`</span>しようとすると、以下のエラーが出ます。</span>
+<span id="cb12-231"><a href="#cb12-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-232"><a href="#cb12-232" aria-hidden="true" tabindex="-1"></a><span class="in">```         </span></span>
+<span id="cb12-233"><a href="#cb12-233" aria-hidden="true" tabindex="-1"></a><span class="in">Error in callback(...) : code: -32602</span></span>
+<span id="cb12-234"><a href="#cb12-234" aria-hidden="true" tabindex="-1"></a><span class="in">  message: Target position can only be set for new windows</span></span>
+<span id="cb12-235"><a href="#cb12-235" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-236"><a href="#cb12-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-237"><a href="#cb12-237" aria-hidden="true" tabindex="-1"></a>自分の理解では対処法がわからず、逐一Rのセッションを終了することが今の最善策となっています。ローカルのRStudioではアプリを一度閉じることで再び<span class="in">`read_html_live()`</span>が可能になります。RStudio Serverであれば右上の{{&lt; fa power-off &gt;}}で一度閉じ再度開くと可能になります。</span>
+<span id="cb12-238"><a href="#cb12-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-239"><a href="#cb12-239" aria-hidden="true" tabindex="-1"></a>URL内の<span class="in">`page=1`</span>の数字部分を変えながら進めていくのが現状の方法となります。</span>
+<span id="cb12-240"><a href="#cb12-240" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-241"><a href="#cb12-241" aria-hidden="true" tabindex="-1"></a><span class="fu">## コードまとめ</span></span>
+<span id="cb12-242"><a href="#cb12-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-243"><a href="#cb12-243" aria-hidden="true" tabindex="-1"></a>最後に今回のコードをまとめます。</span>
+<span id="cb12-244"><a href="#cb12-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-245"><a href="#cb12-245" aria-hidden="true" tabindex="-1"></a>::: callout-important</span>
+<span id="cb12-246"><a href="#cb12-246" aria-hidden="true" tabindex="-1"></a><span class="fu">## コードの実行について</span></span>
+<span id="cb12-247"><a href="#cb12-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-248"><a href="#cb12-248" aria-hidden="true" tabindex="-1"></a>今回は各コードを個別に紹介してきましたが、**ひとまとめにして回す場合、コードの実行間隔が短すぎて十分に取得できないまま次に進んでしまうことがあります**。そのため途中にコードを追加しています。ご確認ください。</span>
+<span id="cb12-249"><a href="#cb12-249" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-250"><a href="#cb12-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-251"><a href="#cb12-251" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb12-252"><a href="#cb12-252" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rvest)</span>
+<span id="cb12-253"><a href="#cb12-253" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb12-254"><a href="#cb12-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-255"><a href="#cb12-255" aria-hidden="true" tabindex="-1"></a>html <span class="ot">&lt;-</span> <span class="fu">read_html_live</span>(<span class="st">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span>
+<span id="cb12-256"><a href="#cb12-256" aria-hidden="true" tabindex="-1"></a>html<span class="sc">$</span><span class="fu">view</span>()</span>
+<span id="cb12-257"><a href="#cb12-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-258"><a href="#cb12-258" aria-hidden="true" tabindex="-1"></a><span class="co"># 一気に回すために追加</span></span>
+<span id="cb12-259"><a href="#cb12-259" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.sleep</span>(<span class="dv">3</span>)</span>
+<span id="cb12-260"><a href="#cb12-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-261"><a href="#cb12-261" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> html <span class="sc">|&gt;</span> </span>
+<span id="cb12-262"><a href="#cb12-262" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_elements</span>(<span class="st">"a"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb12-263"><a href="#cb12-263" aria-hidden="true" tabindex="-1"></a>  <span class="fu">html_attr</span>(<span class="st">"href"</span>)</span>
+<span id="cb12-264"><a href="#cb12-264" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a>shp_links <span class="ot">&lt;-</span> links[<span class="fu">grepl</span>(<span class="st">"data</span><span class="sc">\\</span><span class="st">?dlserveyId=S&amp;"</span>, links)]</span>
+<span id="cb12-266"><a href="#cb12-266" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"https://www.e-stat.go.jp"</span></span>
+<span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a>full_urls <span class="ot">&lt;-</span> <span class="fu">paste0</span>(base_url, shp_links)</span>
+<span id="cb12-269"><a href="#cb12-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-270"><a href="#cb12-270" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">dir.exists</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))) {</span>
+<span id="cb12-271"><a href="#cb12-271" aria-hidden="true" tabindex="-1"></a>  <span class="fu">dir.create</span>(<span class="fu">here</span>(<span class="st">"shpfiles"</span>))</span>
+<span id="cb12-272"><a href="#cb12-272" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-273"><a href="#cb12-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-274"><a href="#cb12-274" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(full_urls)) {</span>
+<span id="cb12-275"><a href="#cb12-275" aria-hidden="true" tabindex="-1"></a>  code <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">".*code=([0-9]+).*"</span>, <span class="st">"</span><span class="sc">\\</span><span class="st">1"</span>, shp_links[i])</span>
+<span id="cb12-276"><a href="#cb12-276" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb12-277"><a href="#cb12-277" aria-hidden="true" tabindex="-1"></a>  file_path <span class="ot">&lt;-</span> <span class="fu">here</span>(<span class="st">"shpfiles"</span>, <span class="fu">paste0</span>(<span class="st">"shpfile_"</span>, code, <span class="st">".zip"</span>))</span>
+<span id="cb12-278"><a href="#cb12-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-279"><a href="#cb12-279" aria-hidden="true" tabindex="-1"></a>  <span class="fu">download.file</span>(full_urls[i], <span class="at">destfile =</span> file_path, <span class="at">mode =</span> <span class="st">"wb"</span>)</span>
+<span id="cb12-280"><a href="#cb12-280" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb12-281"><a href="#cb12-281" aria-hidden="true" tabindex="-1"></a>  <span class="fu">Sys.sleep</span>(<span class="dv">2</span>)</span>
+<span id="cb12-282"><a href="#cb12-282" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb12-283"><a href="#cb12-283" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-284"><a href="#cb12-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-285"><a href="#cb12-285" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb12-286"><a href="#cb12-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-287"><a href="#cb12-287" aria-hidden="true" tabindex="-1"></a>今回はRでe-Statのシェープファイルを取得してきました。個人的にもずっとやりたいことだったので、不完全とはいえ、念願かなった感じです。</span>
+<span id="cb12-288"><a href="#cb12-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-289"><a href="#cb12-289" aria-hidden="true" tabindex="-1"></a>今後も調査して全ページを一つのループでダウンロードできるようなコードを書いていきたいと思います。</span>
 </code><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
