@@ -1,6 +1,6 @@
 # 個人ウェブサイト
 
-[R](https://www.r-project.org/) に関するTipsや開発したShinyアプリケーションなどについて発信しています。  
+[R](https://www.r-project.org/)に関するTipsや開発したShinyアプリケーションなどについて発信しています。  
 このリポジトリは、当サイトのソースコードを管理しています。
 
 ## 🔍 サイトの内容
@@ -23,7 +23,7 @@
   - Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
   - 自由に利用・改変・再配布可能ですが、出典表示と継承ライセンスが必要です。
 
-## ✍️ 作者
+## ✍️ 作成者
 
 - 阿部 洋輔（Yosuke Abe）
 - X: [@5uke_y](https://x.com/5uke_y)
