@@ -54,7 +54,7 @@ library(here)
 
 先ほどのURLを読み込んでみましょう。
 
-```{r}
+``` r
 html <- read_html_live("https://www.e-stat.go.jp/gis/statmap-search?page=1&type=2&aggregateUnitForBoundary=S&coordsys=2&format=shape")
 
 # ページを見る
@@ -95,7 +95,7 @@ html$view()
 
 ここでは`a`タグを探す→`href`を探し取得する、という手順を踏みます。
 
-```{r}
+``` r
 links <- html |> 
   html_elements("a") |> 
   html_attr("href")
@@ -109,7 +109,7 @@ links <- html |>
 
 とりあえず、数多のリンクの中からシェープファイルのリンクだけ抽出しておきましょう。`links`の中のリンクを確認すると、`data?dlserveyId=S&`という部分がシェープファイルのダウンロードリンクにのみ含まれていることがわかる、これを含むリンクを抽出すればよいことになります。
 
-```{r}
+``` r
 shp_links <- links[grepl("data\\?dlserveyId=S&", links)]
 ```
 
@@ -135,14 +135,12 @@ shp_links <- links[grepl("data\\?dlserveyId=S&", links)]
 
 以下では取得したリンクにベースリンクをくっつけていきます。
 
-```{r}
+``` r
 base_url <- "https://www.e-stat.go.jp"
 full_urls <- paste0(base_url, shp_links)
-
-print(full_urls)
 ```
 
-ご覧のようにページ内の20個のリンクを抽出することができました。次にこれらのリンクを使ってダウンロードしていきます。
+これでページ内の20個のリンクを抽出することができました。次にこれらのリンクを使ってダウンロードしていきます。
 
 ## ファイルをダウンロード
 
@@ -155,15 +153,6 @@ print(full_urls)
 if (!dir.exists(here("shpfiles"))) {
   dir.create(here("shpfiles"))
 }
-```
-
-```{r}
-#| include: false
-
-if (!dir.exists(here("data/shpfiles"))) {
-  dir.create(here("data/shpfiles"))
-}
-
 ```
 
 全てのリンクに対しダウンロードするコードを適用します。`for`の出番です。
@@ -184,21 +173,6 @@ for (i in seq_along(full_urls)) {
   # サーバー負荷を考慮
   Sys.sleep(2)
 }
-```
-
-```{r}
-#| include: false
-#| eval: false
-
-for (i in seq_along(full_urls)) {
-  code <- sub(".*code=([0-9]+).*", "\\1", shp_links[i])
-  file_path <- here("data/shpfiles", paste0("shpfile_", code, ".zip"))
-
-  download.file(full_urls[i], destfile = file_path, mode = "wb")
-  
-  Sys.sleep(2)
-}
-
 ```
 
 **ポイント：**
