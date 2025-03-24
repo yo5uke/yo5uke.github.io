@@ -1,8 +1,9 @@
 ---
-title: "【データハンドリング】pivot_longer()を使ってロング形式のパネルデータを作る"
+title: "【データハンドリング】pivot_longer()を使ってロング形式のパネルデータを作る【使い方】"
 description: |
   ワイドからロングへ、データを変換します。
 date: 2024-09-17
+date-modified: last-modified
 categories: 
   - R
   - データ処理
@@ -30,12 +31,12 @@ library(tidyverse)
 df <- tibble(
   Region_id = 1:2, 
   Region = c("Region1", "Region2"),
-  Income_2000 = c(40000, 35000),
-  Income_2005 = c(42000, 37000),
-  Income_2010 = c(45000, 39000),
-  Population_2000 = c(500000, 450000),
-  Population_2005 = c(520000, 460000),
-  Population_2010 = c(540000, 470000)
+  income_2000 = c(40000, 35000),
+  income_2005 = c(42000, 37000),
+  income_2010 = c(45000, 39000),
+  population_2000 = c(500000, 450000),
+  population_2005 = c(520000, 460000),
+  population_2010 = c(540000, 470000)
 )
 ```
 
@@ -59,17 +60,17 @@ tinytable::tt(df)
 ```{r}
 df_long <- df |> 
   pivot_longer(
-    cols = starts_with(c("Income_", "Population_")), 
-    names_to = c(".value", "Year"), 
+    cols = starts_with(c("income_", "population_")), 
+    names_to = c(".value", "year"), 
     names_sep = "_"
   )
 ```
 
-`cols`ではロング形式に変換したい変数を指定しています。`dplyr`の`starts_with()`を使えば、複数年分の変数を一括で指定することができます。今回は`Income_`と`Population_`で始まる変数という意味です。
+`cols`ではロング形式に変換したい変数を指定しています。`dplyr`の`starts_with()`を使えば、複数年分の変数を一括で指定することができます。今回は`income_`と`population_`で始まる変数という意味です。
 
 `names_to`は新しい列名をどうするかを指定しています。`names_sep`で分割の区切りを指定しているのですが（この場合はアンダースコア）、その区切り前なら`.value`（すなわち、もとの名前のまま[^1]）、区切り後は`Year`という列に格納するという意味です。
 
-[^1]: この場合なら`Income`や`Population`
+[^1]: この場合なら`income`や`population`
 
 できたデータフレームは次のようになります。
 
@@ -86,10 +87,99 @@ tinytable::tt(df_long)
 
 [^2]: 逆に言うと、ほかの変数はアンダースコアが用いられていない場合
 
+## もしくは
+
+今は具体的に`income_`などと指定しましたが、変数がたくさんあると手動で書くのも大変かと思います。もし何列目を変えたいのかわかっていれば、列の番号で指定することも可能です。
+
+```{r}
+df_long <- df |> 
+  pivot_longer(
+    cols = 3:8, 
+    names_to = c(".value", "year"), 
+    names_sep = "_"
+  )
+```
+
+```{r}
+#| echo: false
+
+tinytable::tt(df_long)
+
+```
+
+`cols = 3:8`で3～8列目を対象に変換するということが可能になっています。
+
+## アンダースコアが2つ以上ある場合
+
+```{r}
+df <- tibble(
+  id = 1, 
+  income_hoge_2020 = 100, 
+  income_hoge_2021 = 110, 
+  population_fuga_2020 = 1000, 
+  population_fuga_2021 = 1050
+)
+```
+
+```{r}
+#| echo: false
+
+tinytable::tt(df)
+
+```
+
+こんな感じでアンダースコアが2つ以上ある場合に先ほどのコードを使うと、意図せぬ分割が起きてしまう可能性があります。そうした場合は正規表現を用いて指定することで対処可能です。
+
+ここでは変数の末が`hoge_fuga_2025`のように`なんちゃら_年`のような形になっていることを仮定します。
+
+```{r}
+df_long <- df |> 
+  pivot_longer(
+    cols = 2:5, 
+    names_to = c(".value", "year"), 
+    names_pattern = "^(.*)_(\\d{4})$"
+  )
+```
+
+```{r}
+#| echo: false
+
+tinytable::tt(df_long)
+
+```
+
+このように`names_pattern = "^(.*)_(\d{4})$"`とすること1つ目のアンダースコアを残したまま変換することが可能です。正規表現はややこしいので、このおまじないで最後のアンダースコアを境に分離できるんだ、くらいの解釈でよいと思います。
+
+あまりないかもしれませんが、2つのアンダースコアで挟まれた部分が要らない場合は
+
+```{r}
+df_long <- df |> 
+  pivot_longer(
+    cols = 2:5, 
+    names_to = c(".value", "year"), 
+    names_pattern = "^(.*)_.*_(\\d{4})$"
+  )
+```
+
+```{r}
+#| echo: false
+
+tinytable::tt(df_long)
+
+```
+
+とすれば省くこともできます。正規表現が少し長くなってるのが違いです。
+
+## おまけ
+
+この方法でロング形式にしたデータは`year`がキャラクター型になっているので、`mutate(year = as.integer(year))`等でクラスを変えておくことをお忘れなく…。
+
+`income`などの値はnumeric型になっています。
+
 ## おわりに
 
 今回はワイド形式のデータフレームをロング形式に変換する方法をご紹介しました。
 
-僕自身`pivot_longer()`を使う時いつも何を指定すればいいんだっけ？となるので、備忘録的な意味合いが強いです😅
+僕自身`pivot_longer()`を使う時いつも何を指定すればいいんだっけ？となりがちです😅
 
 ご参考まで。
