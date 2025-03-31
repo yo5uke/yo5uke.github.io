@@ -4,7 +4,9 @@
   #block(inset: (left: 1.5em, top: 0.2em, bottom: 0.2em))[#body]
 ]
 
-#let horizontalrule = line(start: (25%,0%), end: (75%,0%))
+#let horizontalrule = [
+  #line(start: (25%,0%), end: (75%,0%))
+]
 
 #let endnote(num, contents) = [
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
@@ -35,17 +37,17 @@
   if fields.at("below", default: none) != none {
     // TODO: this is a hack because below is a "synthesized element"
     // according to the experts in the typst discord...
-    fields.below = fields.below.abs
+    fields.below = fields.below.amount
   }
   return block.with(..fields)(new_content)
 }
 
 #let empty(v) = {
-  if type(v) == str {
+  if type(v) == "string" {
     // two dollar signs here because we're technically inside
     // a Pandoc template :grimace:
     v.matches(regex("^\\s*$")).at(0, default: none) != none
-  } else if type(v) == content {
+  } else if type(v) == "content" {
     if v.at("text", default: none) != none {
       return empty(v.text)
     }
@@ -108,7 +110,7 @@
 // callout rendering
 // this is a figure show rule because callouts are crossreferenceable
 #show figure: it => {
-  if type(it.kind) != str {
+  if type(it.kind) != "string" {
     return it
   }
   let kind_match = it.kind.matches(regex("^quarto-callout-(.*)")).at(0, default: none)
@@ -183,17 +185,16 @@
   paper: "us-letter",
   lang: "en",
   region: "US",
-  font: "libertinus serif",
+  font: "linux libertine",
   fontsize: 11pt,
   title-size: 1.5em,
   subtitle-size: 1.25em,
-  heading-family: "libertinus serif",
+  heading-family: "linux libertine",
   heading-weight: "bold",
   heading-style: "normal",
   heading-color: black,
   heading-line-height: 0.65em,
   sectionnumbering: none,
-  pagenumbering: "1",
   toc: false,
   toc_title: none,
   toc_depth: none,
@@ -203,7 +204,7 @@
   set page(
     paper: paper,
     margin: margin,
-    numbering: pagenumbering,
+    numbering: "1",
   )
   set par(justify: true)
   set text(lang: lang,
@@ -301,7 +302,6 @@
 
 ],
   abstract-title: "Abstract",
-  pagenumbering: "1",
   toc_title: [Table of contents],
   toc_depth: 3,
   cols: 1,
@@ -312,7 +312,7 @@
 
 = Section 1
 <section-1>
-You can plot a figure like #ref(<fig-cars>, supplement: [Figure])
+You can plot a figure like @fig-cars
 
 ```r
 plot(cars)
@@ -336,6 +336,6 @@ supplement: "Figure",
 <section-2>
 == Subsection
 <subsection>
-You can also write mathematical expressions like #ref(<eq-panel>, supplement: [Equation]).
+You can also write mathematical expressions like @eq-panel.
 
-#math.equation(block: true, numbering: "(1)", [ $ Y_(i t) = delta D_(i t) + u_i + epsilon_(i t) \, quad t = 1 \, 2 \, dots.h \, T $ ])<eq-panel>
+#math.equation(block: true, numbering: "(1)", [ $ Y_(i t) = delta D_(i t) + u_i + epsilon_(i t) , quad t = 1 , 2 , dots.h , T $ ])<eq-panel>
