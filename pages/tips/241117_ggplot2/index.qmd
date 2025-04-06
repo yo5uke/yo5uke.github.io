@@ -1,5 +1,5 @@
 ---
-title: "`ggplot2`ガイド"
+title: "[ggplot2]{.fira-code}ガイド"
 description: |
   ggplotを使うのに役立つコマンドを紹介します。
 date: 2024-11-17
@@ -149,13 +149,51 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 もはや訳が分からない図ですが、このように体裁は変更可能です。要素は大体上と同じで、`axis.text.x`のようにどちらかだけ変更することも可能です。
 
+また、`axis.ticks`で目盛りを消去することも可能です。
+
+```{r}
+#| label: fig-delete-memori
+#| fig-cap: "目盛りが消えています"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme(
+    axis.text = element_text(family = "times", face = "bold", 
+                             color = "red", size = 20), 
+    axis.ticks = element_blank()
+  )
+
+```
+
+お判りいただけますか？軸の数字は残っていますが、目盛り線は消えています。@fig-scale-font と見比べてみてください。
+
+### 軸の範囲
+
+X軸とY軸の範囲を設定する方法です。これまでの図ではだいたい4から8あたりがXの範囲、2.0から4.5がYの範囲でした。`xlim(a, b)`と`ylim(a, b)`で設定できます。
+
+```{r}
+#| label: fig-change-range
+#| fig-cap: "範囲を変えました"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  xlim(5, 7) + 
+  ylim(3, 4) + 
+  theme(
+    axis.text = element_text(family = "times", face = "bold", 
+                             color = "red", size = 20), 
+    axis.ticks = element_blank()
+  )
+
+```
+
 ## 注釈
 
 ### 文字
 
-表の中に文字を入れたいとき、どうすればよいか悩んだことが僕には何回もあります。
+表の中に文字を入れることができます。
 
-R上ではできないものと思っていましたが、そんなことはありませんでした。
+`annotate()`内で`"text"`か`"segment"`を指定することで挿入可能です。
 
 ```{r}
 #| label: fig-annotate
@@ -178,7 +216,9 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 関数一つで意外と簡単にできます。
 
-さらに、棒線や矢印を付けることも可能です。
+### セグメント
+
+棒線や矢印を付けることも可能です。
 
 ```{r}
 #| label: fig-segment-1
