@@ -1,0 +1,62 @@
+---
+title: "【GIS】行政区域データを簡略化【ファイル有】"
+description: |
+  元データは重いので簡略化・軽量化しました。
+date: 2025-04-13
+categories:
+  - R
+  - GIS
+  - データ処理
+editor: visual
+---
+
+## はじめに
+
+[Software](../../software/index.qmd)のページで「[人口ヒートマップ](https://yo5uke.shinyapps.io/japan_population_heatmap/)」などいくつかのwebアプリケーションを公開していますが、これらを作るうえで地理データを軽量化することが課題でした。
+
+[国土数値情報ダウンロードサイト](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html)から行政区域データをとってきて使用しているのですが、データを読み込むだけでも時間がかかるため、`rmapshaper`パッケージを使用して軽量化することにしました。精度は落ちるのですがパッと見ただけでわかるような劣化ではなく、ファイルサイズも1/10以下になっているので、それを公開しておこうと思います。
+
+## 使用した関数
+
+`rmapshaper`パッケージの`ms_simplify()`でポリゴンの頂点の数を5％程度にまで削減しています。
+
+## ファイル
+
+以下のリンクからダウンロードできます。
+
+[geojsonファイル](/data/jpn_geojson/jp_muni_simplified.zip){download="jp_muni_simplified.zip"}
+
+## 利用規約・ライセンス情報
+
+本ウェブサイトで公開している行政区域データは、[国土交通省 国土数値情報ダウンロードサービス](https://nlftp.mlit.go.jp/ksj/) から取得した「[行政区域データ](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html)」をもとに加工・作成したものです。
+
+-   元データのライセンス： [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.ja)
+-   加工内容：行政区域ポリゴンの簡略化処理（`ms_simplify()` による座標点の間引き）
+
+データをご利用いただく場合は、以下の条件に従ってください：
+
+1.  本データの出典として、**「国土交通省『国土数値情報 行政区域データ』をもとに作成」**と明記してください。
+2.  本データは加工済みであり、正確性・完全性を保証するものではありません。
+3.  本ウェブサイト上のデータは非商用・商用を問わず利用可能ですが、**元データと同様にCC BY 4.0ライセンスが適用されます**。
+
+## 見てみる
+
+本データがどのようなものか見てみます。
+
+```{r}
+#| code-fold: true
+
+library(tidyverse)
+library(sf)
+
+d <- read_sf(here::here("data/jpn_geojson/jp_muni_simplified.geojson"))
+
+ggplot(d) + 
+  geom_sf() + 
+  theme_void()
+
+```
+
+このように、見た目では違和感なくプロットできていると思います。
+
+厳密な地理データを求めない場合は非常に有用だと思いますので、ぜひ使ってみてください。
