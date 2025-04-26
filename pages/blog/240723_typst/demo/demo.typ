@@ -4,9 +4,7 @@
   #block(inset: (left: 1.5em, top: 0.2em, bottom: 0.2em))[#body]
 ]
 
-#let horizontalrule = [
-  #line(start: (25%,0%), end: (75%,0%))
-]
+#let horizontalrule = line(start: (25%,0%), end: (75%,0%))
 
 #let endnote(num, contents) = [
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
@@ -37,17 +35,17 @@
   if fields.at("below", default: none) != none {
     // TODO: this is a hack because below is a "synthesized element"
     // according to the experts in the typst discord...
-    fields.below = fields.below.amount
+    fields.below = fields.below.abs
   }
   return block.with(..fields)(new_content)
 }
 
 #let empty(v) = {
-  if type(v) == "string" {
+  if type(v) == str {
     // two dollar signs here because we're technically inside
     // a Pandoc template :grimace:
     v.matches(regex("^\\s*$")).at(0, default: none) != none
-  } else if type(v) == "content" {
+  } else if type(v) == content {
     if v.at("text", default: none) != none {
       return empty(v.text)
     }
@@ -110,7 +108,7 @@
 // callout rendering
 // this is a figure show rule because callouts are crossreferenceable
 #show figure: it => {
-  if type(it.kind) != "string" {
+  if type(it.kind) != str {
     return it
   }
   let kind_match = it.kind.matches(regex("^quarto-callout-(.*)")).at(0, default: none)
@@ -147,7 +145,7 @@
 }
 
 // 2023-10-09: #fa-icon("fa-info") is not working, so we'll eval "#fa-info()" instead
-#let callout(body: [], title: "Callout", background_color: rgb("#dddddd"), icon: none, icon_color: black) = {
+#let callout(body: [], title: "Callout", background_color: rgb("#dddddd"), icon: none, icon_color: black, body_background_color: white) = {
   block(
     breakable: false, 
     fill: background_color, 
@@ -166,7 +164,7 @@
         block(
           inset: 1pt, 
           width: 100%, 
-          block(fill: white, width: 100%, inset: 8pt, body))
+          block(fill: body_background_color, width: 100%, inset: 8pt, body))
       }
     )
 }
@@ -185,16 +183,17 @@
   paper: "us-letter",
   lang: "en",
   region: "US",
-  font: "linux libertine",
+  font: "libertinus serif",
   fontsize: 11pt,
   title-size: 1.5em,
   subtitle-size: 1.25em,
-  heading-family: "linux libertine",
+  heading-family: "libertinus serif",
   heading-weight: "bold",
   heading-style: "normal",
   heading-color: black,
   heading-line-height: 0.65em,
   sectionnumbering: none,
+  pagenumbering: "1",
   toc: false,
   toc_title: none,
   toc_depth: none,
@@ -204,7 +203,7 @@
   set page(
     paper: paper,
     margin: margin,
-    numbering: "1",
+    numbering: pagenumbering,
   )
   set par(justify: true)
   set text(lang: lang,
@@ -302,6 +301,7 @@
 
 ],
   abstract-title: "Abstract",
+  pagenumbering: "1",
   toc_title: [Table of contents],
   toc_depth: 3,
   cols: 1,
@@ -312,7 +312,7 @@
 
 = Section 1
 <section-1>
-You can plot a figure like @fig-cars
+You can plot a figure like #ref(<fig-cars>, supplement: [Figure])
 
 ```r
 plot(cars)
@@ -336,6 +336,14 @@ supplement: "Figure",
 <section-2>
 == Subsection
 <subsection>
-You can also write mathematical expressions like @eq-panel.
+You can also write mathematical expressions like #ref(<eq-panel>, supplement: [Equation]).
 
-#math.equation(block: true, numbering: "(1)", [ $ Y_(i t) = delta D_(i t) + u_i + epsilon_(i t) , quad t = 1 , 2 , dots.h , T $ ])<eq-panel>
+#math.equation(block: true, numbering: "(1)", [ $ Y_(i t) = delta D_(i t) + u_i + epsilon_(i t) \, quad t = 1 \, 2 \, dots.h \, T $ ])<eq-panel>
+
+ 
+  
+#set bibliography(style: "../../../../styles/csl/chicago-author-date.csl") 
+
+
+#bibliography("../../../../references.bib")
+
