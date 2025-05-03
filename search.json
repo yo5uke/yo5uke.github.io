@@ -791,6 +791,13 @@
     "text": "Most studies have focused on the economic consequences of disaster shocks, but the broader impact on areas outside the disaster remains unclear. Using the shock of the Great East Japan Earthquake and cross-municipality variation in the locations of nuclear power plants unrelated to the earthquake, this paper shows the indirect impact of disasters on population dynamics. The earthquake triggered nuclear power plant accidents, which heightened residents’ risk perceptions of the plants. We find that population inflows to and outflows from municipalities with nuclear power plants decreased after the earthquake. The effects could also be driven by the residents’ risk perceptions and falling land prices. Our findings suggest that policymakers and researchers need to consider the broader extent of disaster effects more carefully.\nURL: https://www.tandfonline.com/doi/full/10.1080/13504851.2025.2493771"
   },
   {
+    "objectID": "pages/research/notsu_et_al_2025.html#bibtex",
+    "href": "pages/research/notsu_et_al_2025.html#bibtex",
+    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
+    "section": "BibTeX",
+    "text": "BibTeX\n@article{notsu_indirect_2025,\n    title = {The indirect effects of nuclear power plant accidents on population dynamics},\n    issn = {1350-4851},\n    url = {https://doi.org/10.1080/13504851.2025.2493771},\n    doi = {10.1080/13504851.2025.2493771},\n    journal = {Applied Economics Letters},\n    author = {Notsu, Naruki and Abe, Yosuke and Harada, Shuko},\n    year = {2025},\n    note = {Publisher: Routledge},\n    pages = {1--6},\n}"
+  },
+  {
     "objectID": "pages/blog/241125_cite_drive/index.html#はじめに",
     "href": "pages/blog/241125_cite_drive/index.html#はじめに",
     "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
@@ -2034,7 +2041,7 @@
     "href": "pages/tips/250413_municipality/index.html#ファイル",
     "title": "【GIS】行政区域データを簡略化【ファイル有】",
     "section": "ファイル",
-    "text": "ファイル\n以下のリンクからダウンロードできます。\ngeojsonファイル"
+    "text": "ファイル\n以下のリンクからダウンロードできます。Geopackageファイルと言って、シェープファイルほど普及していませんが、シェープファイルよりも高機能かつGeoJSONほどファイルサイズが大きくない形式で提供しています。\nGPKGファイル"
   },
   {
     "objectID": "pages/tips/250413_municipality/index.html#利用規約ライセンス情報",
@@ -2048,7 +2055,7 @@
     "href": "pages/tips/250413_municipality/index.html#見てみる",
     "title": "【GIS】行政区域データを簡略化【ファイル有】",
     "section": "見てみる",
-    "text": "見てみる\n本データがどのようなものか見てみます。\n\n\nコード\nlibrary(tidyverse)\nlibrary(sf)\n\nd &lt;- read_sf(here::here(\"data/jpn_geojson/jp_muni_simplified.geojson\"))\n\nggplot(d) + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n\n\nこのように、見た目では違和感なくプロットできていると思います。\n厳密な地理データを求めない場合は非常に有用だと思いますので、ぜひ使ってみてください。"
+    "text": "見てみる\n本データがどのようなものか見てみます。\n\n\nコード\nlibrary(tidyverse)\nlibrary(sf)\n\nd &lt;- read_sf(here::here(\"data/jpn_geojson/jp_muni_simplified.gpkg\"))\n\nggplot(d) + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n\n\nこのように、見た目では違和感なくプロットできていると思います。\n厳密な地理データを求めない場合は非常に有用だと思いますので、ぜひ使ってみてください。"
   },
   {
     "objectID": "pages/gis_in_r/1.5_handling_plot/index.html#はじめに",
@@ -2161,12 +2168,5 @@
     "title": "地図の調整",
     "section": "プロット",
     "text": "プロット\n\nベース\nでは、これをpref_no_hokkaidoと併せてプロットしてみましょう。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido)\n\n\n\n\n\n\n\n図 3\n\n\n\n\n\nいい感じですね。必要に応じて表示する範囲を絞りましょう。今回は東経127度から143度、北緯30度から上は自動調節にしましょう（外れた範囲の地域の方、申し訳ございません…）。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA)\n\n\n\n\n\n\n\n図 4\n\n\n\n\n\nうまい具合に絞ることができました。\nxlimとylimで調節ができます。上限や下限を特に指定しない場合はNAを設定すればよいです。\n\n\nセグメントの追加\n北海道と本州の間に線を引いて、区切りを入れていきます。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA) + \n  annotate(\"segment\", x = 128, xend = 133, \n           y = 37, color = \"gray50\") + \n  annotate(\"segment\", x = 133, xend = 139, \n           y = 37, yend = 41, color = \"gray50\")\n\n\n\n\n\n\n\n図 5\n\n\n\n\n\nannotate(\"segment\", ...)で線を追加できます。Xの開始点と終点、Yの開始点と終点をそれぞれ指定することができます。終点の方を指定しなければ、垂直線あるいは水平線になります。2本の線をつなげたい場合は、1本の終点が2本目の開始点になるように調節してください。\nannotate()については以下のページもご覧ください。\n\n\n\n\n\n\nggplot2ガイド\n\n\n\n\n\n調整\n最後に図の調整を行います。ここでは地図のテーマを変えたり、軸ラベルを消したりします。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA) + \n  annotate(\"segment\", x = 128, xend = 133, \n           y = 37, color = \"gray50\") + \n  annotate(\"segment\", x = 133, xend = 139, \n           y = 37, yend = 41, color = \"gray50\") + \n  labs(x = NULL, y = NULL) + \n  theme_bw() + \n  theme(\n    axis.text = element_blank(), \n    axis.ticks = element_blank(), \n    panel.grid = element_blank()\n  )\n\n\n\n\n\n\n\n図 6\n\n\n\n\n\nポイント：\n\nlabs(x = NULL, y = NULL)で各軸のラベルを消去\ntheme_bw()で白黒テーマの適用\ntheme()\n\naxis.textで軸のテキスト（今回は緯度経度）を消去\naxis.ticksで軸の目盛りを消去\npanel.gridで図内の罫線を消去\nelement_blank()は要素を消去する関数\n\n\nこれである程度きれいなプロットができました。\nもし地図の塗りつぶしの色を変えたければ、geom_sf()内でfill = \"white\"などを追加すれば変更することができます。"
-  },
-  {
-    "objectID": "pages/research/notsu_et_al_2025.html#bibtex",
-    "href": "pages/research/notsu_et_al_2025.html#bibtex",
-    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
-    "section": "BibTeX",
-    "text": "BibTeX\n@article{notsu_indirect_2025,\n    title = {The indirect effects of nuclear power plant accidents on population dynamics},\n    issn = {1350-4851},\n    url = {https://doi.org/10.1080/13504851.2025.2493771},\n    doi = {10.1080/13504851.2025.2493771},\n    journal = {Applied Economics Letters},\n    author = {Notsu, Naruki and , Yosuke, Abe and and Harada, Shuko},\n    year = {2025},\n    note = {Publisher: Routledge},\n    pages = {1--6},\n}"
   }
 ]
