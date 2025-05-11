@@ -9,7 +9,7 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.7.29</generator>
+<generator>quarto-1.7.30</generator>
 <lastBuildDate>Sat, 12 Apr 2025 15:00:00 GMT</lastBuildDate>
 <item>
   <title>【GIS】行政区域データを整理【ファイル有】</title>
@@ -2200,8 +2200,8 @@ font-style: inherit;">|</span></span>
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><code>fixes</code>パッケージがCRANに公開されました！</p>
-<p>開発版では共変量の追加をサポートしました。</p>
+<p><code>fixes</code>バージョン0.2.1がCRANに公開されました！</p>
+<p>共変量の追加をサポート、柔軟性・堅牢性が向上しました。</p>
 </div>
 </div>
 <section id="はじめに" class="level2">
@@ -2271,8 +2271,8 @@ font-style: inherit;">"yo5uke/fixes"</span>)</span></code></pre></div>
 <p>引数は次の通りです。</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
+<col style="width: 23%">
+<col style="width: 76%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -2287,11 +2287,11 @@ font-style: inherit;">"yo5uke/fixes"</span>)</span></code></pre></div>
 </tr>
 <tr class="even">
 <td><code>outcome</code></td>
-<td>アウトカム変数</td>
+<td>アウトカム変数（例：<code>y</code>や<code>log(y)</code>）</td>
 </tr>
 <tr class="odd">
 <td><code>treatment</code></td>
-<td>処置個体を示すダミー変数</td>
+<td>処置個体を示すダミー変数（<code>0/1</code>または<code>TRUE/FALSE</code>のいずれでも可）</td>
 </tr>
 <tr class="even">
 <td><code>time</code></td>
@@ -2299,36 +2299,40 @@ font-style: inherit;">"yo5uke/fixes"</span>)</span></code></pre></div>
 </tr>
 <tr class="odd">
 <td><code>timing</code></td>
-<td>処置タイミングを表す数値</td>
+<td>処置タイミングを表す数値（例：<code>2005</code>）</td>
 </tr>
 <tr class="even">
 <td><code>lead_range</code></td>
-<td>処置前の期間の長さ（処置年は除く）</td>
+<td>処置<strong>前</strong>の期間の長さ（例：3 → <code>lead3</code>, <code>lead2</code>, <code>lead1</code>が生成される）</td>
 </tr>
 <tr class="odd">
 <td><code>lag_range</code></td>
-<td>処置後の期間の長さ（処置年は除く）</td>
+<td>処置<strong>後</strong>の期間の長さ（例：2 → <code>lag0</code>, <code>lag1</code>, <code>lag2</code>が生成される）</td>
 </tr>
 <tr class="even">
+<td><code>covariates</code></td>
+<td>回帰に含める共変量（<strong>片側formula形式</strong>で指定。例：<code>~ x1 + x2</code>）</td>
+</tr>
+<tr class="odd">
 <td><code>fe</code></td>
-<td>固定効果</td>
-</tr>
-<tr class="odd">
-<td><code>cluster</code></td>
-<td>クラスタリングの単位（任意）</td>
+<td>固定効果（<strong>片側formula形式</strong>で指定。例：<code>~ id + year</code>）</td>
 </tr>
 <tr class="even">
-<td><code>baseline</code></td>
-<td>ベースラインとする時点（相対時間で指定、デフォルトでは-1）</td>
+<td><code>cluster</code></td>
+<td>クラスタリングの単位（<strong>文字ベクトル</strong>または<strong>片側formula形式</strong>で指定）</td>
 </tr>
 <tr class="odd">
+<td><code>baseline</code></td>
+<td>ベースラインとする相対時点（例：<code>-1</code>。このダミーは推定から除外され、推定結果に0として追加される）</td>
+</tr>
+<tr class="even">
 <td><code>interval</code></td>
-<td>時間変数の間隔（例：毎年のデータなら1、国勢調査なら5。デフォルトでは1）</td>
+<td>時間変数の間隔（例：毎年のデータなら<code>1</code>、5年ごとの調査なら<code>5</code>。デフォルトは<code>1</code>）</td>
 </tr>
 </tbody>
 </table>
-<p><code>cluster_var</code>以下は任意です。</p>
-<p>この関数の限界として、時間の変数として年を想定している点があります。そのため、月次データ等は時間に通し番号を追加しておくことを推奨します。</p>
+<p><code>cluster</code>以下は任意です。</p>
+<p>この関数はデフォルトで<code>interval = 1</code>を前提としていますが、任意の時間スケールに対応しています。月次データなどを扱う場合は、時系列順に通し番号を振った変数を<code>time</code>として使用することを推奨します。</p>
 <p>例えば、5つの個体に24カ月分の観測がある場合、</p>
 <div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">df <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -2359,55 +2363,57 @@ background-color: null;
 font-style: inherit;">run_es</span>(</span>
 <span id="cb5-2">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">data        =</span> df, </span>
+font-style: inherit;">data       =</span> df, </span>
 <span id="cb5-3">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">outcome_var =</span> y, </span>
+font-style: inherit;">outcome    =</span> y, </span>
 <span id="cb5-4">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">treated_var =</span> is_treated, </span>
+font-style: inherit;">treatment  =</span> is_treated, </span>
 <span id="cb5-5">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">time_var    =</span> year, </span>
+font-style: inherit;">time       =</span> year, </span>
 <span id="cb5-6">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">timing      =</span> <span class="dv" style="color: #AD0000;
+font-style: inherit;">timing     =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1998</span>, </span>
 <span id="cb5-7">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">lead_range  =</span> <span class="dv" style="color: #AD0000;
+font-style: inherit;">lead_range =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">5</span>, </span>
 <span id="cb5-8">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">lag_range   =</span> <span class="dv" style="color: #AD0000;
+font-style: inherit;">lag_range  =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">5</span>, </span>
 <span id="cb5-9">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">fe_var      =</span> firm_id <span class="sc" style="color: #5E5E5E;
+font-style: inherit;">fe         =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> firm_id <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> year, </span>
 <span id="cb5-10">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">cluster_var =</span> <span class="st" style="color: #20794D;
+font-style: inherit;">cluster    =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">"state_id"</span>, </span>
+font-style: inherit;">~</span> state_id, </span>
 <span id="cb5-11">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">baseline    =</span> <span class="sc" style="color: #5E5E5E;
+font-style: inherit;">baseline   =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>, </span>
 <span id="cb5-12">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">interval    =</span> <span class="dv" style="color: #AD0000;
+font-style: inherit;">interval   =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span></span>
 <span id="cb5-13">)</span></code></pre></div>
-<p>固定効果については、<code>feols()</code>と同様に和の形で記述することが可能です<sup>2</sup>。クラスタリングについては、ダブルクォーテーションで囲む必要があることに留意してください。また、リードとラグに処置年は含まれません。それぞれ5であれば、前5年＋処置年＋後5年で11年分の結果になります。</p>
+<p>固定効果は<code>~ id + year</code>のような <strong>片側のformula形式</strong> で指定します。これは<code>fixest::feols()</code>と同様に、複数の固定効果を和の形で記述できます（例：<code>~ firm_id + year</code>）<sup>2</sup>。クラスタリングは、文字ベクトル（例：<code>c("id", "year")</code>）としても、formula形式（例：<code>~ id + year</code>, <code>~ id^year</code>）としても指定できます。また、リードとラグに処置年は含まれません。それぞれ5であれば、前5年＋処置年＋後5年で11年分の結果になります。</p>
 <p>これを実行することにより、結果のデータフレームが返ってきます。</p>
 <p>この結果を使えば、<code>ggplot2</code>を用いて好きにプロットしていただけるのですが、<code>fixes</code>パッケージでは、1からコードを書かずとも<code>ggplot2</code>を用いたプロットのベースを作る関数を提供しています。</p>
 </section>
@@ -2417,8 +2423,8 @@ font-style: inherit;">1</span></span>
 <p>まず、引数は次の通りです。</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
+<col style="width: 23%">
+<col style="width: 76%">
 </colgroup>
 <thead>
 <tr class="header">
