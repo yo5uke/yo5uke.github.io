@@ -3,7 +3,7 @@ title: "【スクレイピング】[rvest]{.fira-code}を使ってe-Statから�
 description: |
   Rのrvestパッケージを使って、e-Statの境界データを取得していきます！
 date: 2025-03-19
-date-modified: today
+date-modified: last-modified
 categories:
   - R
   - データ処理
@@ -308,7 +308,7 @@ for (i in 1:9) {
 
 ## おまけ
 
-Zipファイルでダウンロードすることになりますが、エクスプローラーから直接展開したりファイルを削除するのは面倒だと思います。
+Zipファイルでダウンロードすることになりますが、今回の流れでエクスプローラーから直接展開したりファイルを削除するのは面倒だと思います。
 
 解凍し、使用済みのZipファイルを削除するには以下を実行します。
 
@@ -322,3 +322,177 @@ for (zip_path in zip_files) {
 ```
 
 `unzip()`でZipファイルを解凍して、`file.remove()`でZipファイルを削除します。
+
+## その他の実用例
+
+最近仕事の一環で時間がかかりそうな作業をスクレイピングでサクッと解決したので、地味な例ではありますがご参考までに紹介します。
+
+### シーン
+
+各省庁が出している白書のリストが載っている[ページ](https://www.e-gov.go.jp/about-government/white-papers.html)があるのですが、ここから白書名、省庁名、リンクをぱぱーっと取ってきたいという場面です。
+
+![こんな感じでずらーっと並んでいます](image/e-gov_list.png){fig-align="center" width="60%"}
+
+### 手順
+
+1.  `read_html()`でURLを読み込む（今回は`live`の方でなくてもできる例です）
+
+```{r}
+library(rvest)
+library(tidyverse)
+
+url <- "https://www.e-gov.go.jp/about-government/white-papers.html"
+html <- read_html(url)
+```
+
+2.  要素を確認する
+    -   `Ctrl` + `Shift` + `I`でデベロッパーツールを開き、白書名やリンクなどがどうなっているか確認します
+
+![水循環白書はこのようになっています](image/developer_tool_hakusho.png){#hakusho-html fig-align="center"}
+
+3.  要素を取得する
+
+``` r
+items <- html |> 
+  html_element("main") |> 
+  html_element("ul")
+
+hakusho <- items |> 
+  html_elements("span") |> 
+  html_text()
+
+ministry <- items |> 
+  html_elements("p") |> 
+  html_text()
+
+links <- items |> 
+  html_elements("a") |> 
+  html_attr("href")
+```
+
+4.  データフレームにまとめる
+
+``` r
+df <- tibble::tibble(
+  白書名 = hakusho, 
+  省庁名 = ministry, 
+  リンク = links
+)
+```
+
+### 詳細
+
+ブラウザ上でHTMLコードを下の方まで見てみるとわかるのですが、白書の情報は`<main role="main">`から`</main>`の間に含まれていることがわかります。さらに、[画像](#hakusho-html)をジーっと見てみると、欲しい要素は
+
+1.  `span`で囲まれている部分
+2.  `p`で囲まれている部分
+3.  `a`タグの中の`href`
+
+であることがわかります。試しにこれまで説明したコードを用いて取得してみると、
+
+```{r}
+hakusho <- html |> 
+  html_elements("span")
+```
+
+```{r}
+#| echo: false
+
+print(hakusho)
+
+```
+
+欲しいのは「水循環白書」みたいな白書名だけですが、`<span>`の文字など余計な要素も取れてしまいました。中身のテキストだけ抜きたい場合は`html_text()`を使います。
+
+```{r}
+hakusho <- html |> 
+  html_elements("span") |> 
+  html_text()
+```
+
+```{r}
+#| echo: false
+
+print(head(hakusho, n = 10))
+
+```
+
+表示しているのは一部ですが、それでも、そもそも余計なものが多いことがわかります。これは、欲しいのが`<main>`で囲まれている部分であるにもかかわらず、ページ全体から`span`を探して拾ってきているためです。
+
+さらに[画像](#hakusho-html)をよーく見ると、`main`の中でも`p`は「各行政機関が～」という文言も含んでしまっていることがわかります。`main`→`p`と指定すると、この文言も拾ってきてしまいます。そのため絞り込みとしては`main`、さらには`ul`にも絞った方が良いということが考えられます[^3]。すなわち`main`→`ul`→`p`という絞り方です。
+
+[^3]: 絞り込み方はこれ以外にもいろいろあると思います。
+
+まずは対象を`main`→`ul`に絞っておきます。
+
+```{r}
+items <- html |> 
+  html_element("main") |> 
+  html_element("ul")
+```
+
+`html_elements()`もありますが、これは複数形なので要素が多くあり、全部取りたいような場合に使います。今回は`main`が1つでその中の`ul`も1つとわかっているので単数形です。
+
+この上で`items`を用いて取得します。
+
+```{r}
+hakusho <- items |> 
+  html_elements("span") |> 
+  html_text()
+```
+
+```{r}
+#| echo: false
+
+print(head(hakusho, n = 10))
+
+```
+
+これも表示しているのは一部ですが、しっかりとれています。同様の手順で要素を確認しつつ取得を進めます。
+
+```{r}
+ministry <- items |> 
+  html_elements("p") |> 
+  html_text()
+
+links <- items |> 
+  html_elements("a") |> 
+  html_attr("href")
+```
+
+これで全53件分そろいました。最後にデータフレーム化して終了です。
+
+```{r}
+df <- tibble(
+  白書名 = hakusho, 
+  省庁名 = ministry, 
+  リンク = links
+)
+```
+
+```{r}
+#| echo: false
+
+tinytable::tt(head(df))
+
+```
+
+いい感じに整理できました。
+
+ウェブサイトからたくさんの情報を繰り返し同じ動作で集めなければならないとき、役に立ちそうですね！
+
+おまけもおまけで、もはや本題には関係ありませんが、厳密に白書と明記されているもののみをとりたいならデータフレームにフィルタリングしてしまいましょう。
+
+```{r}
+df_hakusho <- df |> 
+  filter(str_detect(hakusho, "白書"))
+```
+
+```{r}
+#| echo: false
+
+tinytable::tt(head(df_hakusho))
+
+```
+
+「年次報告書」などは抜くことができています。`str_detect(変数名, パターン)`で対応するものを抜き取ることができます。
