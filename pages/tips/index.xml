@@ -858,7 +858,7 @@ font-style: inherit;">2</span>)</span>
 </section>
 <section id="おまけ" class="level2">
 <h2 class="anchored" data-anchor-id="おまけ">おまけ</h2>
-<p>Zipファイルでダウンロードすることになりますが、エクスプローラーから直接展開したりファイルを削除するのは面倒だと思います。</p>
+<p>Zipファイルでダウンロードすることになりますが、今回の流れでエクスプローラーから直接展開したりファイルを削除するのは面倒だと思います。</p>
 <p>解凍し、使用済みのZipファイルを削除するには以下を実行します。</p>
 <div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">zip_files <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -895,10 +895,589 @@ background-color: null;
 font-style: inherit;">file.remove</span>(zip_path)</span>
 <span id="cb11-6">}</span></code></pre></div>
 <p><code>unzip()</code>でZipファイルを解凍して、<code>file.remove()</code>でZipファイルを削除します。</p>
+</section>
+<section id="その他の実用例" class="level2">
+<h2 class="anchored" data-anchor-id="その他の実用例">その他の実用例</h2>
+<p>最近仕事の一環で時間がかかりそうな作業をスクレイピングでサクッと解決したので、地味な例ではありますがご参考までに紹介します。</p>
+<section id="シーン" class="level3">
+<h3 class="anchored" data-anchor-id="シーン">シーン</h3>
+<p>各省庁が出している白書のリストが載っている<a href="https://www.e-gov.go.jp/about-government/white-papers.html">ページ</a>があるのですが、ここから白書名、省庁名、リンクをぱぱーっと取ってきたいという場面です。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250319_scraping/image/e-gov_list.png" class="img-fluid figure-img" style="width:60.0%"></p>
+<figcaption>こんな感じでずらーっと並んでいます</figcaption>
+</figure>
+</div>
+</section>
+<section id="手順" class="level3">
+<h3 class="anchored" data-anchor-id="手順">手順</h3>
+<ol type="1">
+<li><code>read_html()</code>でURLを読み込む（今回は<code>live</code>の方でなくてもできる例です）</li>
+</ol>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(rvest)</span>
+<span id="cb12-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb12-3"></span>
+<span id="cb12-4">url <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://www.e-gov.go.jp/about-government/white-papers.html"</span></span>
+<span id="cb12-5">html <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_html</span>(url)</span></code></pre></div>
+</div>
+<ol start="2" type="1">
+<li>要素を確認する
+<ul>
+<li><code>Ctrl</code> + <code>Shift</code> + <code>I</code>でデベロッパーツールを開き、白書名やリンクなどがどうなっているか確認します</li>
+</ul></li>
+</ol>
+<div id="hakusho-html" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250319_scraping/image/developer_tool_hakusho.png" class="img-fluid figure-img"></p>
+<figcaption>水循環白書はこのようになっています</figcaption>
+</figure>
+</div>
+<ol start="3" type="1">
+<li>要素を取得する</li>
+</ol>
+<div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1">items <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"main"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ul"</span>)</span>
+<span id="cb13-4"></span>
+<span id="cb13-5">hakusho <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"span"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_text</span>()</span>
+<span id="cb13-8"></span>
+<span id="cb13-9">ministry <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"p"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-11">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_text</span>()</span>
+<span id="cb13-12"></span>
+<span id="cb13-13">links <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-14">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb13-15">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"href"</span>)</span></code></pre></div>
+<ol start="4" type="1">
+<li>データフレームにまとめる</li>
+</ol>
+<div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> tibble<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb14-2">  白書名 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> hakusho, </span>
+<span id="cb14-3">  省庁名 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> ministry, </span>
+<span id="cb14-4">  リンク <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> links</span>
+<span id="cb14-5">)</span></code></pre></div>
+</section>
+<section id="詳細" class="level3">
+<h3 class="anchored" data-anchor-id="詳細">詳細</h3>
+<p>ブラウザ上でHTMLコードを下の方まで見てみるとわかるのですが、白書の情報は<code>&lt;main role="main"&gt;</code>から<code>&lt;/main&gt;</code>の間に含まれていることがわかります。さらに、画像をジーっと見てみると、欲しい要素は</p>
+<ol type="1">
+<li><code>span</code>で囲まれている部分</li>
+<li><code>p</code>で囲まれている部分</li>
+<li><code>a</code>タグの中の<code>href</code></li>
+</ol>
+<p>であることがわかります。試しにこれまで説明したコードを用いて取得してみると、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1">hakusho <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb15-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"span"</span>)</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>{xml_nodeset (61)}
+ [1] &lt;span class="egovui-title"&gt;\n        ポータル&lt;/span&gt;
+ [2] &lt;span class="egovui-english-link"&gt;&lt;a href="/en/" class="egovui-textlink- ...
+ [3] &lt;span class="egovui-label"&gt;サイト内検索&lt;/span&gt;
+ [4] &lt;span class="egovui-label"&gt;行政機関横断検索&lt;/span&gt;
+ [5] &lt;span class="egovui-search "&gt;\n          &lt;input type="text" name="q" cla ...
+ [6] &lt;span&gt;水循環白書&lt;/span&gt;
+ [7] &lt;span&gt;年次報告書&lt;/span&gt;
+ [8] &lt;span&gt;経済財政白書&lt;/span&gt;
+ [9] &lt;span&gt;原子力白書&lt;/span&gt;
+[10] &lt;span&gt;防災白書&lt;/span&gt;
+[11] &lt;span&gt;高齢社会白書&lt;/span&gt;
+[12] &lt;span&gt;障害者白書&lt;/span&gt;
+[13] &lt;span&gt;交通安全白書&lt;/span&gt;
+[14] &lt;span&gt;男女共同参画白書&lt;/span&gt;
+[15] &lt;span&gt;年次報告&lt;/span&gt;
+[16] &lt;span&gt;警察白書&lt;/span&gt;
+[17] &lt;span&gt;犯罪被害者白書&lt;/span&gt;
+[18] &lt;span&gt;年次報告&lt;/span&gt;
+[19] &lt;span&gt;金融庁の１年&lt;/span&gt;
+[20] &lt;span&gt;消費者白書&lt;/span&gt;
+...</code></pre>
+</div>
+</div>
+<p>欲しいのは「水循環白書」みたいな白書名だけですが、<code>&lt;span&gt;</code>の文字など余計な要素も取れてしまいました。中身のテキストだけ抜きたい場合は<code>html_text()</code>を使います。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1">hakusho <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb17-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"span"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb17-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_text</span>()</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "\n        ポータル"     "English"                "サイト内検索"          
+ [4] "行政機関横断検索"       "\n          \n        " "水循環白書"            
+ [7] "年次報告書"             "経済財政白書"           "原子力白書"            
+[10] "防災白書"              </code></pre>
+</div>
+</div>
+<p>表示しているのは一部ですが、それでも、そもそも余計なものが多いことがわかります。これは、欲しいのが<code>&lt;main&gt;</code>で囲まれている部分であるにもかかわらず、ページ全体から<code>span</code>を探して拾ってきているためです。</p>
+<p>さらに画像をよーく見ると、<code>main</code>の中でも<code>p</code>は「各行政機関が～」という文言も含んでしまっていることがわかります。<code>main</code>→<code>p</code>と指定すると、この文言も拾ってきてしまいます。そのため絞り込みとしては<code>main</code>、さらには<code>ul</code>にも絞った方が良いということが考えられます<sup>3</sup>。すなわち<code>main</code>→<code>ul</code>→<code>p</code>という絞り方です。</p>
+<p>まずは対象を<code>main</code>→<code>ul</code>に絞っておきます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1">items <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb19-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"main"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb19-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ul"</span>)</span></code></pre></div>
+</div>
+<p><code>html_elements()</code>もありますが、これは複数形なので要素が多くあり、全部取りたいような場合に使います。今回は<code>main</code>が1つでその中の<code>ul</code>も1つとわかっているので単数形です。</p>
+<p>この上で<code>items</code>を用いて取得します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">hakusho <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb20-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"span"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb20-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_text</span>()</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "水循環白書"       "年次報告書"       "経済財政白書"     "原子力白書"      
+ [5] "防災白書"         "高齢社会白書"     "障害者白書"       "交通安全白書"    
+ [9] "男女共同参画白書" "年次報告"        </code></pre>
+</div>
+</div>
+<p>これも表示しているのは一部ですが、しっかりとれています。同様の手順で要素を確認しつつ取得を進めます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1">ministry <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb22-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"p"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb22-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_text</span>()</span>
+<span id="cb22-4"></span>
+<span id="cb22-5">links <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb22-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb22-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"href"</span>)</span></code></pre></div>
+</div>
+<p>これで全53件分そろいました。最後にデータフレーム化して終了です。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb23-2">  白書名 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> hakusho, </span>
+<span id="cb23-3">  省庁名 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> ministry, </span>
+<span id="cb23-4">  リンク <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> links</span>
+<span id="cb23-5">)</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_bl8iueap0kb63u6oio1r(i, j, css_id) {
+          var table = document.getElementById("tinytable_bl8iueap0kb63u6oio1r");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_bl8iueap0kb63u6oio1r');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_bl8iueap0kb63u6oio1r(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_bl8iueap0kb63u6oio1r");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 },  ], css_id: 'tinytable_css_2ax639h89vxdhzg52ii2',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_w2hgak4afsramqb9smvl',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_bl8iueap0kb63u6oio1r(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_2ax639h89vxdhzg52ii2, .table th.tinytable_css_2ax639h89vxdhzg52ii2 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_w2hgak4afsramqb9smvl, .table th.tinytable_css_w2hgak4afsramqb9smvl { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_bl8iueap0kb63u6oio1r" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">白書名</th>
+                <th scope="col">省庁名</th>
+                <th scope="col">リンク</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>水循環白書</td>
+                  <td>内閣官房</td>
+                  <td>https://www.cas.go.jp/jp/seisaku/mizu_junkan/materials/materials/white_paper.html</td>
+                </tr>
+                <tr>
+                  <td>年次報告書</td>
+                  <td>人事院</td>
+                  <td>https://www.jinji.go.jp/hakusho/</td>
+                </tr>
+                <tr>
+                  <td>経済財政白書</td>
+                  <td>内閣府</td>
+                  <td>https://www5.cao.go.jp/keizai3/whitepaper.html#keizai</td>
+                </tr>
+                <tr>
+                  <td>原子力白書</td>
+                  <td>内閣府</td>
+                  <td>http://www.aec.go.jp/jicst/NC/about/hakusho/index.htm</td>
+                </tr>
+                <tr>
+                  <td>防災白書</td>
+                  <td>内閣府</td>
+                  <td>http://www.bousai.go.jp/kaigirep/hakusho/index.html</td>
+                </tr>
+                <tr>
+                  <td>高齢社会白書</td>
+                  <td>内閣府</td>
+                  <td>https://www8.cao.go.jp/kourei/whitepaper/index-w.html</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+<p>いい感じに整理できました。</p>
+<p>ウェブサイトからたくさんの情報を繰り返し同じ動作で集めなければならないとき、役に立ちそうですね！</p>
+<p>おまけもおまけで、もはや本題には関係ありませんが、厳密に白書と明記されているもののみをとりたいならデータフレームにフィルタリングしてしまいましょう。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1">df_hakusho <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb24-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">str_detect</span>(hakusho, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"白書"</span>))</span></code></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_pmaki2o1kcmdwf0efzaw(i, j, css_id) {
+          var table = document.getElementById("tinytable_pmaki2o1kcmdwf0efzaw");
+          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_pmaki2o1kcmdwf0efzaw');
+        var newRow = table.insertRow(i);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_pmaki2o1kcmdwf0efzaw(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_pmaki2o1kcmdwf0efzaw");
+        const targetRow = table.rows[i];
+        const targetCell = targetRow.cells[j];
+        for (let r = 0; r < rowspan; r++) {
+          // Only start deleting cells to the right for the first row (r == 0)
+          if (r === 0) {
+            // Delete cells to the right of the target cell in the first row
+            for (let c = colspan - 1; c > 0; c--) {
+              if (table.rows[i + r].cells[j + c]) {
+                table.rows[i + r].deleteCell(j + c);
+              }
+            }
+          }
+          // For rows below the first, delete starting from the target column
+          if (r > 0) {
+            for (let c = colspan - 1; c >= 0; c--) {
+              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
+                table.rows[i + r].deleteCell(j);
+              }
+            }
+          }
+        }
+        // Set rowspan and colspan of the target cell
+        targetCell.rowSpan = rowspan;
+        targetCell.colSpan = colspan;
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 },  ], css_id: 'tinytable_css_6kvxtmizszkn553wmv0n',}, 
+          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 },  ], css_id: 'tinytable_css_0wjk5lnf1lt0y47q8ums',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_pmaki2o1kcmdwf0efzaw(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_6kvxtmizszkn553wmv0n, .table th.tinytable_css_6kvxtmizszkn553wmv0n { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_0wjk5lnf1lt0y47q8ums, .table th.tinytable_css_0wjk5lnf1lt0y47q8ums { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_pmaki2o1kcmdwf0efzaw" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col">白書名</th>
+                <th scope="col">省庁名</th>
+                <th scope="col">リンク</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td>水循環白書</td>
+                  <td>内閣官房</td>
+                  <td>https://www.cas.go.jp/jp/seisaku/mizu_junkan/materials/materials/white_paper.html</td>
+                </tr>
+                <tr>
+                  <td>経済財政白書</td>
+                  <td>内閣府</td>
+                  <td>https://www5.cao.go.jp/keizai3/whitepaper.html#keizai</td>
+                </tr>
+                <tr>
+                  <td>原子力白書</td>
+                  <td>内閣府</td>
+                  <td>http://www.aec.go.jp/jicst/NC/about/hakusho/index.htm</td>
+                </tr>
+                <tr>
+                  <td>防災白書</td>
+                  <td>内閣府</td>
+                  <td>http://www.bousai.go.jp/kaigirep/hakusho/index.html</td>
+                </tr>
+                <tr>
+                  <td>高齢社会白書</td>
+                  <td>内閣府</td>
+                  <td>https://www8.cao.go.jp/kourei/whitepaper/index-w.html</td>
+                </tr>
+                <tr>
+                  <td>障害者白書</td>
+                  <td>内閣府</td>
+                  <td>https://www8.cao.go.jp/shougai/whitepaper/index-w.html</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+<p>「年次報告書」などは抜くことができています。<code>str_detect(変数名, パターン)</code>で対応するものを抜き取ることができます。</p>
 
 
 <!-- -->
 
+</section>
 </section>
 
 
@@ -907,6 +1486,7 @@ font-style: inherit;">file.remove</span>(zip_path)</span>
 <ol>
 <li id="fn1"><p>Chromeではサービスが終了したみたいです。Firefoxではまだあるようです。↩︎</p></li>
 <li id="fn2"><p>先述のJavaScriptが使われているページで実行できないという課題↩︎</p></li>
+<li id="fn3"><p>絞り込み方はこれ以外にもいろいろあると思います。↩︎</p></li>
 </ol>
 </section></div> ]]></description>
   <category>R</category>
@@ -9155,8 +9735,8 @@ font-style: inherit;">"id_muni2020"</span>)</span>
 <p>LaTeX環境でまず思い浮かぶのがTeX Liveを用いたローカル環境です。</p>
 <p>本記事では設定方法を解説します。</p>
 <p>なかなかややこしいと思いますが、これできっとローカルでもTeXファイルをコンパイル（PDF化）できるはずです！</p>
-<p>現段階ではWindowsに対応した記事になっています。Mac版は今後更新します。</p>
-<p>基本的な内容は以下のページを参考にしています。</p>
+<p>本記事はWindowsに対応しています。</p>
+<p>また、基本的な内容は以下のページを参考にしています。</p>
 <div class="callout callout-style-simple callout-tip no-icon">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
@@ -9219,8 +9799,8 @@ font-style: inherit;">"id_muni2020"</span>)</span>
 </figure>
 </div>
 </section>
-<section id="tex-live-managerを開く" class="level2">
-<h2 class="anchored" data-anchor-id="tex-live-managerを開く">TeX Live Managerを開く</h2>
+<section id="sec-tex-live-manager" class="level2">
+<h2 class="anchored" data-anchor-id="sec-tex-live-manager">TeX Live Managerを開く</h2>
 <p>アプリ一覧からTeX Live Managerを開いてください。</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -9242,12 +9822,12 @@ font-style: inherit;">"id_muni2020"</span>)</span>
 <h2 class="anchored" data-anchor-id="sumatra-pdfのダウンロード任意">Sumatra PDFのダウンロード（任意）</h2>
 <p><strong>推奨する方</strong>：既定のPDFビュワーがAdobeの方</p>
 <p>TeXファイルを一度コンパイルするとPDFビュワーで開くことになるのですが、AdobeではPDFを開いたまま再度コンパイルをすることができません。一度コンパイルた後に修正したい場合、PDFファイルを一度閉じて再度コンパイルする必要があります。</p>
-<p>この面倒さを回避するためには、Sumatra PDFのようなPDFビュワーをしようするのがよいです。このビュワーではPDFファイルを開いたまま追加のコンパイルをすることができます。</p>
+<p>この面倒さを回避するためには、Sumatra PDFのようなPDFビュワーを使用するのがよいです。このビュワーではPDFファイルを開いたまま追加のコンパイルをすることができます。</p>
 <p>以下のリンクからダウンロードページに行ってください。</p>
 <p><a href="https://www.sumatrapdfreader.org/download-free-pdf-viewer" class="uri">https://www.sumatrapdfreader.org/download-free-pdf-viewer</a></p>
-<p>自分の環境にあった（おそらくほとんどの人にとって一番上の）<code>.exe</code>ファイルをダウンロードします。</p>
+<p>自分の環境にあった（おそらくほとんどのWindowsユーザーにとって一番上の）<code>.exe</code>ファイルをダウンロードします。</p>
 <p>ダウンロードしたファイルを開くとカラフルなウィンドウが開きますので、インストールしてください。とりあえずこれでOKです。</p>
-<p>既定にするかどうかはお任せします（僕はしてないです笑）。</p>
+<p>既定にするかどうかはお任せします（コンパイル時以外はAdobeを使っているので僕はしてないです笑）。</p>
 </section>
 <section id="諸々の設定" class="level2">
 <h2 class="anchored" data-anchor-id="諸々の設定">諸々の設定</h2>
@@ -9273,7 +9853,7 @@ font-style: inherit;">"id_muni2020"</span>)</span>
 </div>
 <p>次に、エクスプローラーを開いてください。</p>
 <p>開いたら左にあるバーの下部から<code>PC</code>&gt;<code>Windows (C:)</code>と進み、さらに<code>ユーザー</code>&gt;<code>[自分のユーザー名]</code>と進みます<sup>1</sup>。</p>
-<p>左上の「新規作成」からテキストドキュメントを作成し、ファイル名は<code>.txt</code>もすべて消したうえで<code>.latexmkrc.</code>としてエンターを押します。最初と最後に<code>.</code>があるのを確認してください。</p>
+<p>左上の「新規作成」からテキストドキュメントを作成し、ファイル名は<code>.txt</code>もすべて消したうえで<code>.latexmkrc.</code>としてエンターを押します。<strong>最初と最後に<code>.</code>があるのを確認してください。</strong></p>
 <p>作成の際には最初と最後にドットを入れますが、作成されたファイルでは最後のドットは消えています。</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -10851,9 +11431,9 @@ font-style: inherit;">document</span>}</span></code></pre></div>
 <p><img src="https://yo5uke.com/pages/tips/240901_tex_live/image/compile_error.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:60.0%"></p>
 </figure>
 </div>
-<p>ログを少し上に遡ると、例えば次のような文言が目に入ります。</p>
+<p>ログは一見ややこしいのですが、少し上に遡ると、例えば次のような文言が目に入ります。</p>
 <pre><code>! LaTeX Error: File `type1cm.sty' not found.</code></pre>
-<p>これは<code>type1cmパッケージ</code>が足りていないことを指しています。</p>
+<p>これは<code>type1cm</code>パッケージが足りていないことを指しています。</p>
 <p>そしたら最初の方で開いたTeX Live Managerを開き、<code>latexmk</code>の時と同様に未インストールを選択したうえで検索窓に<code>type1cm</code>と入力します。</p>
 <p>出てきた項目にチェックを入れ、「選択項目をインストール」をクリックしてインストールしてください。</p>
 <p>これでパッケージを補い、コンパイルできるはずです。まだ足りなかったら、同様の方法でインストールすることで対処できます。</p>
