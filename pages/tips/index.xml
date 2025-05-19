@@ -2780,8 +2780,7 @@ font-style: inherit;">|</span></span>
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><code>fixes</code>バージョン0.2.1がCRANに公開されました！</p>
-<p>共変量の追加をサポート、柔軟性・堅牢性が向上しました。</p>
+<p><code>fixes</code>バージョン0.3.0がCRANに公開されました！</p>
 </div>
 </div>
 <section id="はじめに" class="level2">
@@ -2909,91 +2908,78 @@ font-style: inherit;">"yo5uke/fixes"</span>)</span></code></pre></div>
 <td><code>interval</code></td>
 <td>時間変数の間隔（例：毎年のデータなら<code>1</code>、5年ごとの調査なら<code>5</code>。デフォルトは<code>1</code>）</td>
 </tr>
+<tr class="odd">
+<td><code>time_transform</code></td>
+<td>単位ごとに時間変数を連番（1, 2, 3, …）に変換するかどうかを指定（例：<code>TRUE</code>）。<strong>非整数やDate型などの不規則な時間変数に対応</strong>するためのオプション。デフォルトは<code>FALSE</code></td>
+</tr>
+<tr class="even">
+<td><code>unit</code></td>
+<td><code>time_transform = TRUE</code>のときに必要。単位（個体）を識別する変数（例：<code>id</code>）。</td>
+</tr>
 </tbody>
 </table>
 <p><code>cluster</code>以下は任意です。</p>
-<p>この関数はデフォルトで<code>interval = 1</code>を前提としていますが、任意の時間スケールに対応しています。月次データなどを扱う場合は、時系列順に通し番号を振った変数を<code>time</code>として使用することを推奨します。</p>
-<p>例えば、5つの個体に24カ月分の観測がある場合、</p>
-<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb4-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time_var =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">24</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>))</span></code></pre></div>
-<p>としておくことで通し番号を追加できます。</p>
+<p><del>この関数はデフォルトで<code>interval = 1</code>を前提としていますが、任意の時間スケールに対応しています。月次データなどを扱う場合は、時系列順に通し番号を振った変数を<code>time</code>として使用することを推奨します。</del></p>
+<p>2025/5/19追記：年単位以外のデータにも対応できるように修正しました。例えば年単位（毎年）のデータは2024, 2025, …のように1ずつ増えていって、それをこれまでは想定していたのですが、それ以外の形式（月単位とか隔年とか）でも<code>time_transform</code>と<code>unit</code>を追加で指定すれば分析できるようにしました。内部処理で自動で通し番号を振り、相対期間を計算できるようになっています。</p>
 <p>肝心の関数の使い方は以下の通りです。</p>
-<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">event_study <span class="ot" style="color: #003B4F;
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">event_study <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">run_es</span>(</span>
-<span id="cb5-2">  <span class="at" style="color: #657422;
+<span id="cb4-2">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">data       =</span> df, </span>
-<span id="cb5-3">  <span class="at" style="color: #657422;
+<span id="cb4-3">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">outcome    =</span> y, </span>
-<span id="cb5-4">  <span class="at" style="color: #657422;
+<span id="cb4-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">treatment  =</span> is_treated, </span>
-<span id="cb5-5">  <span class="at" style="color: #657422;
+<span id="cb4-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">time       =</span> year, </span>
-<span id="cb5-6">  <span class="at" style="color: #657422;
+<span id="cb4-6">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">timing     =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1998</span>, </span>
-<span id="cb5-7">  <span class="at" style="color: #657422;
+<span id="cb4-7">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">lead_range =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">5</span>, </span>
-<span id="cb5-8">  <span class="at" style="color: #657422;
+<span id="cb4-8">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">lag_range  =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">5</span>, </span>
-<span id="cb5-9">  <span class="at" style="color: #657422;
+<span id="cb4-9">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">fe         =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> firm_id <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> year, </span>
-<span id="cb5-10">  <span class="at" style="color: #657422;
+<span id="cb4-10">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">cluster    =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> state_id, </span>
-<span id="cb5-11">  <span class="at" style="color: #657422;
+<span id="cb4-11">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">baseline   =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>, </span>
-<span id="cb5-12">  <span class="at" style="color: #657422;
+<span id="cb4-12">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">interval   =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span></span>
-<span id="cb5-13">)</span></code></pre></div>
-<p>固定効果は<code>~ id + year</code>のような <strong>片側のformula形式</strong> で指定します。これは<code>fixest::feols()</code>と同様に、複数の固定効果を和の形で記述できます（例：<code>~ firm_id + year</code>）<sup>2</sup>。クラスタリングは、文字ベクトル（例：<code>c("id", "year")</code>）としても、formula形式（例：<code>~ id + year</code>, <code>~ id^year</code>）としても指定できます。また、リードとラグに処置年は含まれません。それぞれ5であれば、前5年＋処置年＋後5年で11年分の結果になります。</p>
+<span id="cb4-13">)</span></code></pre></div>
+<p>固定効果は<code>~ id + year</code>のような形で指定します。これは<code>fixest::feols()</code>と同様に、複数の固定効果を和の形で記述できます（例：<code>~ firm_id + year</code>）<sup>2</sup>。クラスタリングは、文字ベクトル（例：<code>c("id", "year")</code>）としても、formula形式（例：<code>~ id + year</code>, <code>~ id^year</code>）としても指定できます。また、リードとラグに処置年は含まれません。それぞれ5であれば、前5年＋処置年＋後5年で11年分の結果になります。</p>
 <p>これを実行することにより、結果のデータフレームが返ってきます。</p>
 <p>この結果を使えば、<code>ggplot2</code>を用いて好きにプロットしていただけるのですが、<code>fixes</code>パッケージでは、1からコードを書かずとも<code>ggplot2</code>を用いたプロットのベースを作る関数を提供しています。</p>
 </section>
@@ -3065,7 +3051,7 @@ font-style: inherit;">1</span></span>
 </table>
 <p>プロットすると以下のように出力されます。</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">plot_es</span>(event_study)</span></code></pre></div>
 <div class="cell-output-display">
@@ -3078,7 +3064,7 @@ font-style: inherit;">plot_es</span>(event_study)</span></code></pre></div>
 </div>
 <p>エラーバーを用いれば、</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+<div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">plot_es</span>(event_study, <span class="at" style="color: #657422;
 background-color: null;
@@ -3094,6 +3080,43 @@ font-style: inherit;">"errorbar"</span>)</span></code></pre></div>
 </div>
 </div>
 <p>引数を指定すると、</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_es</span>(</span>
+<span id="cb7-2">  event_study, </span>
+<span id="cb7-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"errorbar"</span>, </span>
+<span id="cb7-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline_val =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, </span>
+<span id="cb7-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline_color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"darkred"</span>, </span>
+<span id="cb7-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"navy"</span></span>
+<span id="cb7-7">)</span></code></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/241230_fixes/index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><code>ggplot2</code>ベースで作られていますので、<code>+</code>で繋いで自在に編集できます。</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
 background-color: null;
@@ -3121,47 +3144,10 @@ background-color: null;
 font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"navy"</span></span>
-<span id="cb8-7">)</span></code></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/241230_fixes/index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p><code>ggplot2</code>ベースで作られていますので、<code>+</code>で繋いで自在に編集できます。</p>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(</span>
-<span id="cb9-2">  event_study, </span>
-<span id="cb9-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"errorbar"</span>, </span>
-<span id="cb9-4">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">vline_val =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, </span>
-<span id="cb9-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">vline_color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"darkred"</span>, </span>
-<span id="cb9-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"navy"</span></span>
-<span id="cb9-7">) <span class="sc" style="color: #5E5E5E;
+<span id="cb8-7">) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> </span>
-<span id="cb9-8">  ggplot2<span class="sc" style="color: #5E5E5E;
+<span id="cb8-8">  ggplot2<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
 background-color: null;
@@ -3182,7 +3168,7 @@ background-color: null;
 font-style: inherit;">1</span>)) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> </span>
-<span id="cb9-9">  ggplot2<span class="sc" style="color: #5E5E5E;
+<span id="cb8-9">  ggplot2<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
 background-color: null;
