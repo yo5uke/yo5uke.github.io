@@ -1,0 +1,330 @@
+---
+title: "【パッケージ開発】[fixes]{.fira-code}でイベントスタディを効率化"
+description: |
+  Staggered DiDにも対応しました。
+date: 2025-05-25
+categories:
+  - R
+---
+
+## はじめに
+
+本ページでは、two-way fixed effectsモデルのDiDにおけるイベントスタディを行うパッケージ、`fixes`について説明します。
+
+僕が今年の年始から地道に作成してきたパッケージで、一度tipsに書いたことがあるのですが、最近アップデートも重なってきたので再度書き直すことにしました。
+
+:::{.callout-note}
+## ご意見待ってます
+
+実戦経験が足りないパッケージなので、挙動がおかしかったり、こういう機能にも対応してほしいということがあれば、ページ下のコメントからどしどしお寄せください。こぢんまりしたページなので、いただいたものは余裕で全部対応できると思います。
+:::
+
+これまでは処置個体において処置タイミングが同一のDiDにのみ対応していましたが、直近のアップデートで**各個体で処置タイミングが異なる、いわゆるStaggered DiDにも対応しました**。
+
+果たしてあらゆるケースに対応できているか、個人開発のパッケージとしては不安ではありますが、いくつかのデータセットでテストした分には問題なかったので、そのテストコードと併せて解説していきます。
+
+## 使用するパッケージ
+
+使用するのは`fixes`です。インストールは以下のコマンドでできます。
+
+``` r
+pak::pak("fixes")
+```
+
+もしくは
+
+``` r
+install.packages("fixes")
+```
+
+です。開発版はGitHubからインストールできます。
+
+``` r
+pak::pak("yo5uke/fixes")
+```
+
+## 準備
+
+パッケージを読み込んで、デモに使うデータを準備します。
+
+```{r}
+library(fixes)
+library(tidyverse)
+```
+
+データは`fixest`パッケージで用意されているものと、MixtapeのStaggered DiDの章で使用されているものを使います。
+
+また、不足している変数を追加し、使わない変数もあるのであらかじめ除いておきます。
+
+`df_stagg`は未処置の個体の処置年、処置からの相対年をNAに変更し、`df_castle`に関してはMixtape内で行われている処理をしておきます^[参考：[Mixtape](https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of)]
+
+```{r}
+df_base <- fixest::base_did
+df_stagg <- fixest::base_stagg
+castle <- haven::read_dta("https://github.com/scunning1975/mixtape/raw/master/castle.dta")
+
+
+df_stagg <- df_stagg |> 
+  mutate(
+    year_treated = if_else(year_treated == 10000, NA_real_, year_treated), 
+    time_to_treatment = if_else(time_to_treatment == -1000, NA_real_, time_to_treatment)
+  )
+
+# 以下Mixtape参考
+dropped_vars <- c("r20004", "r20014",
+                  "r20024", "r20034",
+                  "r20044", "r20054",
+                  "r20064", "r20074",
+                  "r20084", "r20094",
+                  "r20101", "r20102", "r20103",
+                  "r20104", "trend_9", "trend_46",
+                  "trend_49", "trend_50", "trend_51"
+)
+
+region <- castle |> 
+  select(starts_with("r20")) |> 
+  names() |> 
+  setdiff(dropped_vars)
+
+df_castle <- castle |> 
+  select(state, sid, year, treatment_date, l_homicide, all_of(region), popwt) |> 
+  mutate(is_treated = if_else(!is.na(treatment_date), 1, 0), .after = treatment_date)
+
+```
+
+各データフレームは以下のような感じになっています。
+
+::: {.panel-tabset}
+
+## df_base
+
+```{r}
+#| echo: false
+tinytable::tt(head(df_base))
+```
+
+## df_stagg
+
+```{r}
+#| echo: false
+tinytable::tt(head(df_stagg))
+```
+
+## df_castle
+
+```{r}
+#| echo: false
+tinytable::tt(head(df_castle))
+```
+
+:::
+
+## パッケージの説明
+
+基本的な使い方と一緒にパッケージについて説明していきます。関数はイベントスタディを実行する`run_es()`関数とイベントスタディをggplotベースでプロットする`plot_es()`です。
+
+### `run_es()`
+
+ひとまず、`run_es()`の基本的な引数を説明します。
+
+``` r
+run_es(
+  data,
+  outcome,
+  treatment,
+  time,
+  staggered = FALSE,
+  timing,
+  lead_range = NULL,
+  lag_range = NULL,
+  covariates = NULL,
+  fe,
+  cluster = NULL,
+  weights = NULL,
+  baseline = -1,
+  interval = 1,
+  time_transform = FALSE,
+  unit = NULL
+)
+```
+
+- `data`：使用するデータフレーム
+- `outcome`：アウトカム変数
+- `treatment`：処置されていれば（時間によらず）1をとるダミー変数^[TRUE/FALSEでも可]
+- `time`：時間を示す変数（`year`など）
+- `staggered`：処置タイミングが個体ごとに異なるモデルの場合はTRUE（デフォルトはFALSE）
+- `timing`：処置タイミングを表す変数（`staggered`がFALSEの場合は数値、TRUEの場合は処置タイミングを示す変数）
+- `lead_range`：処置前の期間（処置年は含まず、デフォルトでは最大の期間をとる）
+- `lag_range`：処置後の期間（処置年は含まず、デフォルトでは最大の期間をとる）
+- `covariates`：共変量（`~ cov1 + cov2`のように書く）
+- `fe`：固定効果（`~ id + year`のように書く）
+- `cluster`：クラスタリングの単位（`~ id`のように書く）
+- `weights`：ウェイト（`~ weight`のように書く）
+- `baseline`：基準となる相対年（デフォルトでは処置の1期前）
+- `interval`：時間のインターバル（デフォルトでは1（1年ごとのデータ）、5にすれば国勢調査に対応（5年ごと））
+- `time_transform`：TRUEで時間変数に通し番号を振って処理。時間変数が文字列だったりイレギュラーな間隔の場合に対応（デフォルトはFALSE）
+- `unit`：`time_transform`がTRUEの場合に個体の単位を指定（`id`など）
+
+---
+
+文字で見てもわかりにくいと思うので、読み込んだデータを使って関数を回してみましょう。
+
+#### 通常のDiDにおけるイベントスタディ {#sec-basic-es}
+
+```{r}
+es <- run_es(
+  data = df_base, 
+  outcome = y, 
+  treatment = treat, 
+  time = period, 
+  timing = 6, 
+  fe = ~ id + period, 
+  cluster = ~ id
+)
+```
+
+基本的なケースであればこれくらいの指定で済みます。プロットは後のセクションでまとめて載せます。
+
+#### Staggered DiD 1
+
+```{r}
+es_stagg1 <- run_es(
+  data = df_stagg, 
+  outcome = y, 
+  treatment = treated, 
+  time = year, 
+  staggered = TRUE, 
+  timing = year_treated, 
+  fe = ~ id + year, 
+  cluster = ~ id
+)
+```
+
+[先ほど](#sec-basic-es)と違う点は、`staggered`がTRUEになっており、`timing`が具体的な数値ではなく、処置年を示す変数を指定しているところです。
+
+#### Staggered DiD 2
+
+```{r}
+# 共変量の変数を式の形にしておく
+covariates <- as.formula(paste("~", paste(region, collapse = "+")))
+
+es_stagg2 <- run_es(
+  data = df_castle, 
+  outcome = l_homicide, 
+  treatment = is_treated, 
+  time = year, 
+  staggered = TRUE, 
+  timing = treatment_date, 
+  covariates = covariates, 
+  fe = ~ state + year, 
+  cluster = ~ sid, 
+  weights = ~ popwt
+)
+```
+
+今回の例は共変量が多いので事前に`as.formula()`を使って処理してしまっていますが、関数内で`covariates = ~ cov1 + cov2`のような指定の仕方で問題ありません。
+
+### `plot_es()`
+
+こだわりがなければ、`plot_es(es)`の程度の書き方でプロットを出力することができます。引数の説明は後に回して、一旦先ほどのイベントスタディの結果をプロットしてみましょう。
+
+#### 通常のDiDにおけるイベントスタディ
+
+```{r}
+plot_es(es)
+```
+
+後の2つもそうですが、ベースラインがデフォルトのままなので、処置前年（-1）が抜けて値が0をとっています。
+
+#### Staggered DiD 1
+
+```{r}
+plot_es(es_stagg1)
+```
+
+#### Staggered DiD 2
+
+```{r}
+plot_es(es_stagg2)
+```
+
+Staggeredの方もいい感じにプロットできています。この図はMixtape内でlead変数とlag変数を手作業で作って実装しプロットされていますが、[その図](https://mixtape.scunning.com/09-difference_in_differences#fig-event-cheng2)と見比べても同じ推移が示されていることがわかります。
+
+#### 使い方
+
+基本的には上の使い方で十分ですが、ggplotベースで作ったこともあり、柔軟な対応も可能です。
+
+``` r
+plot_es(
+  data,
+  type = "ribbon",
+  vline_val = 0,
+  vline_color = "#000",
+  hline_val = 0,
+  hline_color = "#000",
+  linewidth = 1,
+  pointsize = 2,
+  alpha = 0.2,
+  barwidth = 0.2,
+  color = "#B25D91FF",
+  fill = "#B25D91FF"
+)
+```
+
+- `data`：`run_es()`で作成した結果のデータフレーム
+- `type`：`ribbon`と`errorbar`が指定可能
+- `vline_val`：縦の破線の位置（デフォルトは0）
+- `vline_color`：縦の破線の色（デフォルトは`#000`（黒））
+- `hline_val`：横の破線の位置（デフォルトは0）
+- `hline_color`：縦の破線の色（デフォルトは`#000`（黒））
+- `linewidth`：折れ線の太さ（デフォルトは1）
+- `pointsize`：点の大きさ（デフォルトは2）
+- `alpha`：リボンの透明度（デフォルトは0.2）
+- `color`：線と点の色（デフォルトは`#B25D91FF`（ピンク））
+- `fill`リボンの色（デフォルトは`#B25D91FF`（ピンク））
+
+---
+
+`plot_es()`関数内でもある程度自由度をもって設定できます。  
+例えばプロットをエラーバーのタイプにしてみましょう。
+
+```{r}
+plot_es(es_stagg2, type = "errorbar")
+```
+
+さらに色も変えてみます。
+
+```{r}
+plot_es(es_stagg2, type = "errorbar", color = "#000")
+```
+
+リボンタイプとエラーバータイプがあり、さらにそこからある程度の自由度もある点が他のパッケージに対する優位性にもなっています。
+
+ちなみに、ggplotベースということで、**ggplotの関数をつなげることも可能です**！
+
+```{r}
+plot_es(es_stagg2, type = "errorbar", color = "#000") + 
+  geom_hline(yintercept = .08, color = "red") + 
+  annotate("text", x = 3, y = -.1, label = "DD Coefficient = 0.08\n(s.e. = 0.03)")
+```
+
+Mixtape風に係数を示す水平線と注釈を追加してみました。このようにどんどん要素を追加していくことができます。
+
+## おわりに
+
+まだまだ開発途上ですが、staggeredまで対応できたので、これからしばらくはブラッシュアップを念頭にアップデートしていこうと思います。
+
+冒頭にも書きましたが、もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの[Issues](https://github.com/yo5uke/fixes/issues)までお願いします。
+
+## 🔗 データ出典
+
+データ出典：[Causal Inference: The Mixtape](https://mixtape.scunning.com/)（Scott Cunnningham, 2021）  
+データはGitHub上で公開されており、以下のリポジトリから入手可能です：
+
+> https://github.com/scunning1975/mixtape
+
+また、データはMITライセンスのもとで提供されています。
+
+
+
+
