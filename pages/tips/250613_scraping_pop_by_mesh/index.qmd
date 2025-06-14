@@ -1,0 +1,102 @@
+---
+title: "【スクレイピング】Rでe-Statのメッシュ人口データファイルを一気に取得する"
+description: |
+  今回はメッシュデータのCSVファイルを取得していきます。
+date: 2025-06-13
+categories:
+  - R
+  - データ処理
+  - 備忘録
+editor: visual
+---
+
+## はじめに
+
+[以前の記事](../250319_scraping/index.qmd)でe-Statから境界データ（シェープファイル）をスクレイピングで取得する方法をご紹介しました。
+
+今回は国勢調査をもとに公開しているメッシュごとの人口データを取得するコードの覚書です。時々実行することがあるので~~自分は忘れっぽいですし~~残しておくことにしました。
+
+詳細は前回とほぼ同じで、URL等が若干異なるくらいです。コードについては以下で詳しめに書いたので、不明点があればご覧下さい。
+
+::: {.callout-tip appearance="minimal"}
+[【スクレイピング】rvestを使ってe-Statからファイルを取得する](../250319_scraping/index.qmd)
+:::
+
+## コード
+
+``` r
+library(rvest)
+
+# データを保存したいフォルダを指定
+save_dir <- here::here("data/pop_by_mesh")
+
+# 保存したいフォルダがない場合に作成
+if (!dir.exists(save_dir)) {
+  dir.create(save_dir)
+}
+
+base_url <- "https://www.e-stat.go.jp"
+
+for (i in 1:8) {
+  url <- paste0(
+    "https://www.e-stat.go.jp/gis/statmap-search?page=",
+    i,
+    "&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H",
+    "&serveyId=H002005112020&statsId=T001141&datum=2011"
+  )
+
+  html <- read_html_live(url)
+  Sys.sleep(1)
+
+  links <- html |>
+    html_elements("a") |>
+    html_attr("href")
+
+  csv_links <- links[grepl("data\\?statsId=T001141", links)]
+  full_urls <- paste0(base_url, csv_links)
+
+  for (j in seq_along(full_urls)) {
+    code <- sub(".*code=([0-9]+).*", "\\1", csv_links[j])
+    zip_path <- file.path(save_dir, paste0("pop_mesh", code, ".zip"))
+    txt_path <- file.path(save_dir, paste0("pop_mesh", code, ".txt"))
+    
+    # 既にファイルがある場合は次のループへ
+    if (file.exists(txt_path)) next
+
+    tryCatch({
+      download.file(full_urls[j], destfile = zip_path, mode = "wb")
+      Sys.sleep(1)
+
+      unzip_files <- unzip(zip_path, list = TRUE)$Name
+      unzip(zip_path, exdir = save_dir)
+
+      for (original_name in unzip_files) {
+        if (grepl("\\.txt$", original_name, ignore.case = TRUE)) {
+          old_path <- file.path(save_dir, original_name)
+          new_path <- txt_path
+          file.rename(old_path, new_path)
+        }
+      }
+
+      file.remove(zip_path)
+
+    }, error = function(e) {
+      warning(paste("エラー：", full_urls[j]))
+    })
+
+    Sys.sleep(2)
+  }
+}
+```
+
+最初の
+
+``` r
+save_dir <- here::here("data/pop_by_mesh")
+```
+
+の部分だけ自分のディレクトリのパスに変えれば、あとはそっくりそのまま実行できると思います。次の`if`でもしディレクトリがない場合でも作成するようにしている[^1]ので、エクスプローラー上でフォルダを作らなくても使うことができます。
+
+[^1]: ある場合はスキップするので、わざわざ消さなくても問題ありません。
+
+ダウンロードにはまあまあ時間がかかりますが、手作業よりは圧倒的に速いので、機会があれば使ってみてください。
