@@ -1,4 +1,4 @@
-FROM rocker/geospatial:4.5.0
+FROM rocker/geospatial:4.5.1
 
 # R packages
 RUN R -e "install.packages(c('renv'))"
