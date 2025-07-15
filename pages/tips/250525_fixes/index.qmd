@@ -3,6 +3,7 @@ title: "【パッケージ開発】[fixes]{.fira-code}でイベントスタデ�
 description: |
   Staggered DiDにも対応しました。
 date: 2025-05-25
+date-modified: last-modified
 categories:
   - R
 ---
@@ -152,18 +153,19 @@ run_es(
 - `outcome`：アウトカム変数
 - `treatment`：処置されていれば（時間によらず）1をとるダミー変数^[TRUE/FALSEでも可]
 - `time`：時間を示す変数（`year`など）
-- `staggered`：処置タイミングが個体ごとに異なるモデルの場合はTRUE（デフォルトはFALSE）
 - `timing`：処置タイミングを表す変数（`staggered`がFALSEの場合は数値、TRUEの場合は処置タイミングを示す変数）
+- `fe`：固定効果（`~ id + year`のように書く）
 - `lead_range`：処置前の期間（処置年は含まず、デフォルトでは最大の期間をとる）
 - `lag_range`：処置後の期間（処置年は含まず、デフォルトでは最大の期間をとる）
 - `covariates`：共変量（`~ cov1 + cov2`のように書く）
-- `fe`：固定効果（`~ id + year`のように書く）
 - `cluster`：クラスタリングの単位（`~ id`のように書く）
 - `weights`：ウェイト（`~ weight`のように書く）
 - `baseline`：基準となる相対年（デフォルトでは処置の1期前）
 - `interval`：時間のインターバル（デフォルトでは1（1年ごとのデータ）、5にすれば国勢調査に対応（5年ごと））
 - `time_transform`：TRUEで時間変数に通し番号を振って処理。時間変数が文字列だったりイレギュラーな間隔の場合に対応（デフォルトはFALSE）
 - `unit`：`time_transform`がTRUEの場合に個体の単位を指定（`id`など）
+- `staggered`：処置タイミングが個体ごとに異なるモデルの場合はTRUE（デフォルトはFALSE）
+- `conf.level`：信頼区間を指定（0.90, 0.95, 0.99のいずれか。デフォルトは0.95）
 
 ---
 
@@ -193,10 +195,10 @@ es_stagg1 <- run_es(
   outcome = y, 
   treatment = treated, 
   time = year, 
-  staggered = TRUE, 
   timing = year_treated, 
   fe = ~ id + year, 
-  cluster = ~ id
+  cluster = ~ id, 
+  staggered = TRUE,
 )
 ```
 
@@ -213,12 +215,12 @@ es_stagg2 <- run_es(
   outcome = l_homicide, 
   treatment = is_treated, 
   time = year, 
-  staggered = TRUE, 
   timing = treatment_date, 
-  covariates = covariates, 
   fe = ~ state + year, 
+  covariates = covariates, 
   cluster = ~ sid, 
-  weights = ~ popwt
+  weights = ~ popwt, 
+  staggered = TRUE
 )
 ```
 
