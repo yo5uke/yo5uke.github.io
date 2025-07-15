@@ -9,8 +9,365 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.7.31</generator>
-<lastBuildDate>Thu, 12 Jun 2025 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.7.32</generator>
+<lastBuildDate>Mon, 14 Jul 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>RStudio Serverをインストールする【リモートデスクトップも】</title>
+  <link>https://yo5uke.com/pages/tips/250715_rstudio_server/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>RStudio Serverのインストール方法や使い方についてまとめます。</p>
+<p>RStudio Serverを使えば各OSの違いに左右されず、どの端末からでも同じ環境で作業を継続できるのが特徴です。複数人での分析や大規模データ処理にも適しており、環境構築の一元化と省力化が図れます。</p>
+<p>僕は最近仕事でRStudio Serverを使うかも…みたいな流れがあったので、改めてまとめてみることにしました。</p>
+</section>
+<section id="環境" class="level2">
+<h2 class="anchored" data-anchor-id="環境">環境</h2>
+<ul>
+<li><p>Windows 11</p></li>
+<li><p>PowerShell 7がインストール済み</p></li>
+</ul>
+<p>PowerShellは<a href="https://learn.microsoft.com/ja-jp/powershell/scripting/whats-new/migrating-from-windows-powershell-51-to-powershell-7?view=powershell-7.5">こちら</a>からインストールできますが、よくわからない場合は標準インストールされている「ターミナル」でも大丈夫です。</p>
+</section>
+<section id="インストール" class="level2">
+<h2 class="anchored" data-anchor-id="インストール">インストール</h2>
+<section id="wsl" class="level3">
+<h3 class="anchored" data-anchor-id="wsl">WSL</h3>
+<p>まずはWSLからインストールします。WSLはWindows Subsystem for Linuxの略であり、Windows上でネイティブにLinux環境を動作させる機能で、開発やデータ分析をLinux向けツールで行える柔軟な作業環境を提供してくれます。</p>
+<p>まずはPowerShellを管理者権限で開きます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250715_rstudio_server/image/powershell.png" class="img-fluid figure-img" style="width:60.0%"></p>
+<figcaption>管理者権限で開きます</figcaption>
+</figure>
+</div>
+<p>次に以下のコマンドを入力し、実行します。</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">wsl</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--install</span></span></code></pre></div>
+<p>インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます<sup>1</sup>。</p>
+<p>ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。パスワードは<strong>画面上には表示されませんが、ちゃんと入力されています</strong>。慌てて何回も入力しないようにしてください。</p>
+<p>また、ユーザー名とパスワードは後ほど使うので忘れないようにしてください。</p>
+</section>
+<section id="rとrstudio-server" class="level3">
+<h3 class="anchored" data-anchor-id="rとrstudio-server">RとRStudio Server</h3>
+<p>設定まで終わったら、アプリの一覧から<i class="fa-brands fa-ubuntu" aria-label="ubuntu"></i>Ubuntu（これがLinuxのディストリビューションです）を開いてください。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Ubuntuのバージョンについて
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>本ページではUbuntu 22を前提に進めています。もしインストールしたバージョンが他のバージョンであった場合は若干コードが変わる可能性がありますので、<a href="https://posit.co/download/rstudio-server/">このページ</a>でバージョンを該当するものに変更したうえで都度コードをコピーし、実行してみてください。</p>
+<p>バージョンを確認するためには以下をUbuntu上で実行してください。</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">lsb_release</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-a</span></span></code></pre></div>
+</div>
+</div>
+<p>するとコンソール画面が出てきますので、以下のコードを順々に入力、実行していきます。</p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt update</span>
+<span id="cb3-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt upgrade <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span></span></code></pre></div>
+<p>続いてRをインストールします。<a href="https://cran.rstudio.com/bin/linux/ubuntu/">こちら</a>のページからの転用です。</p>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># update indices</span></span>
+<span id="cb4-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt update <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-qq</span></span>
+<span id="cb4-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install two helper packages we need</span></span>
+<span id="cb4-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--no-install-recommends</span> software-properties-common dirmngr</span>
+<span id="cb4-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># add the signing key (by Michael Rutter) for these repos</span></span>
+<span id="cb4-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># To verify key, run gpg --show-keys /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc </span></span>
+<span id="cb4-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Fingerprint: E298A3A825C0D65DFD57CBB651716619E084DAB9</span></span>
+<span id="cb4-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">wget</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-qO-</span> https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> tee <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-a</span> /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc</span>
+<span id="cb4-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># add the repo from CRAN -- lsb_release adjusts to 'noble' or 'jammy' or ... as needed</span></span>
+<span id="cb4-10"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> add-apt-repository <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"deb https://cloud.r-project.org/bin/linux/ubuntu </span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$(</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">lsb_release</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-cs</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">)</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-cran40/"</span></span>
+<span id="cb4-11"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install R itself</span></span>
+<span id="cb4-12"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--no-install-recommends</span> r-base</span></code></pre></div>
+<p>次にRStudio Serverをインストールします。<a href="https://posit.co/download/rstudio-server/">Posit社のガイド</a>からの転用です。</p>
+<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt-get install gdebi-core</span>
+<span id="cb5-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">wget</span> https://download2.rstudio.org/server/focal/amd64/rstudio-server-2025.05.1-513-amd64.deb</span>
+<span id="cb5-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> gdebi rstudio-server-2025.05.1-513-amd64.deb</span></code></pre></div>
+<p>これでインストールは完了です。続いて次のコマンドを実行し、RStudio Serverを立ち上げます。</p>
+<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> rstudio-server start</span></code></pre></div>
+</section>
+</section>
+<section id="rstudio-serverを立ち上げる" class="level2">
+<h2 class="anchored" data-anchor-id="rstudio-serverを立ち上げる">RStudio Serverを立ち上げる</h2>
+<p>それではRStudio Serverを立ち上げていきましょう。上のコマンドで起動までできているので、ブラウザ上で立ち上げていきます。</p>
+<p>PC上の任意のブラウザを開き、アドレスバーに<code>localhost:8787</code>と入力し、開きます。</p>
+<p>すると以下のような画面が出てきます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250715_rstudio_server/image/rstudio_server_login.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<p>ユーザー名とパスワードを求められますので、先ほどUbuntuで設定したものを入力してください。</p>
+<p>そうしてサインインすることで、RStudioの画面に入ることができます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250715_rstudio_server/image/rstudio_server.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
+</figure>
+</div>
+<p>ここからは通常のRと同様に作業を進めることができます。</p>
+</section>
+<section id="ファイルの扱いについて" class="level2">
+<h2 class="anchored" data-anchor-id="ファイルの扱いについて">ファイルの扱いについて</h2>
+<p>どのようにしてデータを入れたりファイルを追加したりすればよいかについて説明します。</p>
+<p>RStudio上でできることはデスクトップ版とほとんど同じで、さらにエクスプローラー上の動作も通常と同じようにすることができます。</p>
+<p>エクスプローラーを開いて左のサイドバーを一番下までスクロールすると、Linuxが作成されていることがわかります。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250715_rstudio_server/image/explorer_linux.png" class="img-fluid figure-img" style="width:70.0%"></p>
+<figcaption>サイドバーの一番下です</figcaption>
+</figure>
+</div>
+<p>するとUbuntuが中に作成されていますので、ダブルクリックで入っていきます。<code>home/[設定したユーザー名]</code>があると思うので、その中に入ると、そこがWindowsでいうところの<code>C:\Users\ユーザー\</code>に該当します。ベースとなるディレクトリです。</p>
+<p>この中にプロジェクトのフォルダを作成していけば、RStudio Server上でも見ることができますし、入れたファイルを操作することが可能になります。</p>
+<p>まあまあ面倒なところにあるので、クイックアクセスにピン留めしたりデスクトップにショートカットを作ったりして置くのが便利だと思います。</p>
+<p>ここまでの操作で個人の作業はできるようになりました！続いては、ホストとなるPCで環境を作成し、それを別のデバイスからアクセスできるようにする方法についてまとめていきます！</p>
+</section>
+<section id="リモートデスクトップを活用する" class="level2">
+<h2 class="anchored" data-anchor-id="リモートデスクトップを活用する">リモートデスクトップを活用する</h2>
+<p>例えば扱うデータが大きすぎて個々のノートパソコンでは扱いきれず、1台高スペックのデスクトップを用意してそこにアクセスして作業をしたい、というようなケースを考えます。</p>
+<p>ここで個々のPCからデスクトップにアクセスして作業をするのですが、この作業はあくまでもデスクトップ上で行われるので、各PCがハイスペックである必要はありません。デスクトップの画面を自分のPCに投影しているようなイメージです。</p>
+<section id="環境-1" class="level3">
+<h3 class="anchored" data-anchor-id="環境-1">環境</h3>
+<ul>
+<li><p>無線LAN（Wi-Fi）を使用</p></li>
+<li><p>ホストと各PCは同じネットワーク（Wi-Fi）を使用</p></li>
+</ul>
+</section>
+<section id="デスクトップの環境構築" class="level3">
+<h3 class="anchored" data-anchor-id="デスクトップの環境構築">デスクトップの環境構築</h3>
+<p>まずすべきことは、上で書いたような環境構築を、デスクトップPC（ホスト）で実行することです。RStudio Serverを使えるようにしておいてください。</p>
+<section id="ipアドレスを確認" class="level4">
+<h4 class="anchored" data-anchor-id="ipアドレスを確認">IPアドレスを確認</h4>
+<p><strong>【ホストのPC】</strong></p>
+<p>他のPC（クライアント）からアクセスできるようにするには、まずホストのIPアドレスを確認しておく必要があります。PowerShellを開いたら、以下のコマンドを実行します。</p>
+<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">ipconfig</span></span></code></pre></div>
+<p>実行すると、なにやら長々と表示されるはずです。「Windows IP 構成」の下に例えば「イーサネット アダプター vEthernet (Default Switch):」や、「イーサネット アダプター vEthernet (WSL (Hyper-V firewall)):」などいろいろ出てきます。</p>
+<p>その中の下の方に「Wireless LAN adapter Wi-Fi:」があります。この中に「IPv4 アドレス」があり、その右に数字が書かれています（例：192.xxx.x.xx）。これを後ほど使うので、押さえておいてください。</p>
+<p>また、もう一度PowerShellは使うので、画面も開いておいてください。</p>
+<p><strong>【ホストPCのWSL】</strong></p>
+<p>次にWindowsのアプリ一覧からUbuntu <i class="fa-brands fa-ubuntu" aria-label="ubuntu"></i> を開きます。</p>
+<p>開けたら次のコマンドを実行してください。</p>
+<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">ip</span> addr</span></code></pre></div>
+<p>これも同様に2種類出てくると思いますが、下にある<strong>eth0</strong>が必要な方です。「inet 172.xxx.xx.xx」のような形で表示されていると思いますので、これを押さえておきます。スラッシュの前までで大丈夫です。</p>
+</section>
+<section id="ポートの設定" class="level4">
+<h4 class="anchored" data-anchor-id="ポートの設定">ポートの設定</h4>
+<p>今押さえた<strong>WSLの方</strong>のIPアドレスを使用します（後で確認した方です）。</p>
+<p>PowerShellに戻って次のコマンドを実行します。</p>
+<div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">netsh</span> interface portproxy add v4tov4 listenport=8787 listen address=0.0.0.0 connectport=8787 connectaddress=<span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">[</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">WSLのIPアドレス</span><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">]</span></span></code></pre></div>
+<p>最後の部分を四角括弧ごとWSLのIPアドレスに置き換えて下さい。</p>
+</section>
+<section id="ホストpcでファイアウォールの設定" class="level4">
+<h4 class="anchored" data-anchor-id="ホストpcでファイアウォールの設定"><strong>ホストPCでファイアウォールの設定</strong></h4>
+<p>次に引き続きホストのPC上で、ファイアウォールの設定を行います。</p>
+<p>設定を開き、検索窓から「ファイアウォール」と検索し、「Windows Defender ファイアウォール」をクリックして開きます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250715_rstudio_server/image/defender_setting.png" class="img-fluid figure-img" style="width:41.0%"></p>
+<figcaption>下から2番目のです</figcaption>
+</figure>
+</div>
+<p>開いたウィンドウの左側に「詳細設定」という項目があるのでクリックして進みます。</p>
+<p>「受信の規則」→右側から「新しい規則」→「ポート」を選択して次へ進み、TCP、特定のローカルポートに「8787」を入力して次へ進み、「接続を許可する」でさらに次へ進み、すべてのチェックボックスにチェックが入った状態で次へ進みます。</p>
+<p>名前を付ける必要がありますが、何でもよいと思います。RStudio Serverを使っていることがわかる名前が良いと思います。入力したら完了で終わりです。</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+コマンドで一発
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>以下のコマンドをPowerShellで入力すれば同じことができます。こっちの方が楽かもですね。</p>
+<div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">New-NetFirewallRule</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-DisplayName</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RStudio Server"</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-Direction</span> Inbound <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-LocalPort</span> 8787 <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-Protocol</span> TCP <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-Action</span> Allow</span></code></pre></div>
+</div>
+</div>
+</section>
+<section id="wsl側でrstudio-serverの動作を確認" class="level4">
+<h4 class="anchored" data-anchor-id="wsl側でrstudio-serverの動作を確認">WSL側でRStudio Serverの動作を確認</h4>
+<p>Ubuntuを再度開き、以下のコマンドを実行してRStudio Serverが起動しているかどうかを再確認します。</p>
+<div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> rstudio-server status</span></code></pre></div>
+<p><code>sudo</code>で始まるコマンドはパスワードを求められますので適宜入力して進んでください。</p>
+<p>ここで<code>active (running)</code>が記載されていればOKです。もし<code>inactive (dead)</code>となっていたら、以下のコマンドから起動してください。</p>
+<div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> rstudio-server start</span></code></pre></div>
+</section>
+<section id="ブラウザでアクセスを確認する" class="level4">
+<h4 class="anchored" data-anchor-id="ブラウザでアクセスを確認する">ブラウザでアクセスを確認する</h4>
+<p>それでは<strong>ホスト上で</strong>動作確認をしてみましょう。</p>
+<p>ブラウザを立ち上げ<code>localhost:8787</code>を入力し開きます。先ほどと同様のサインイン画面が出てくれば問題ありません。</p>
+</section>
+<section id="別端末クライアントからのアクセス確認" class="level4">
+<h4 class="anchored" data-anchor-id="別端末クライアントからのアクセス確認">別端末（クライアント）からのアクセス確認</h4>
+<p>クライアントからは先ほど確認したローカルのIPアドレスを<code>localhost</code>の代わりに使用します。例えば<code>192.xxx.x.xx:8787</code>といった具合です。</p>
+<p>これが開けてサインイン画面に移行できれば成功です。自分のPCのスペックに依存せず、ホストのPCにアクセスしてRStudioから作業を行うことができます。</p>
+<p>繰り返しになりますが、<strong>実行しているのはホストのデスクトップ</strong>です。ブラウザであれば何でもよいので、同じネットワークに接続しているのであればスマホのブラウザからアクセスすることもできます。</p>
+</section>
+</section>
+</section>
+<section id="終わり" class="level2">
+<h2 class="anchored" data-anchor-id="終わり">終わり！</h2>
+<p>特にリモートデスクトップの説明で長くなってしまいましたが、これでRStudio Serverを使えるようになるはずです。</p>
+<p>用途に合わせて、いろいろ試してみてください！</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>求められない場合は、続けて<code>wsl</code>とだけ入力して実行してください。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>RStudio</category>
+  <category>Windows</category>
+  <category>WSL</category>
+  <guid>https://yo5uke.com/pages/tips/250715_rstudio_server/</guid>
+  <pubDate>Mon, 14 Jul 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【スクレイピング】Rでe-Statのメッシュ人口データファイルを一気に取得する</title>
   <link>https://yo5uke.com/pages/tips/250613_scraping_pop_by_mesh/</link>
@@ -832,9 +1189,9 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
 
     <script>
 
-      function styleCell_9qz2sxbxur9dm7zr6q49(i, j, css_id) {
-          var table = document.getElementById("tinytable_9qz2sxbxur9dm7zr6q49");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+      function styleCell_zokj8uz7nlos8mecn8k0(i, j, css_id) {
+          var table = document.getElementById("tinytable_zokj8uz7nlos8mecn8k0");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
               cell.classList.add(css_id);
@@ -843,53 +1200,58 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
           }
       }
       function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_9qz2sxbxur9dm7zr6q49');
-        var newRow = table.insertRow(i);
+        var table = document.getElementById('tinytable_zokj8uz7nlos8mecn8k0');
+        // Find the row with data-row attribute matching i
+        var targetRow = table.querySelector(`tr [data-row="${i}"]`).closest('tr');
+        var newRow = table.insertRow(targetRow.rowIndex);
         var newCell = newRow.insertCell(0);
         newCell.setAttribute("colspan", colspan);
+        newCell.setAttribute("data-col", "0");
+        newCell.setAttribute("data-row", i - 1);
         // newCell.innerText = content;
         // this may be unsafe, but innerText does not interpret <br>
         newCell.innerHTML = content;
       }
-      function spanCell_9qz2sxbxur9dm7zr6q49(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_9qz2sxbxur9dm7zr6q49");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
+      function spanCell_zokj8uz7nlos8mecn8k0(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_zokj8uz7nlos8mecn8k0");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
         for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
             }
           }
         }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
       }
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 }, { i: 6, j: 5 },  ], css_id: 'tinytable_css_qriv0adgen4vfzn7ew9y',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 }, { i: 0, j: 5 },  ], css_id: 'tinytable_css_q2a73dc544680i5gaaro',}, 
+          { positions: [ { i: '6', j: 0 }, { i: '6', j: 1 }, { i: '6', j: 2 }, { i: '6', j: 3 }, { i: '6', j: 4 }, { i: '6', j: 5 },  ], css_id: 'tinytable_css_qv61i8j9t4vv0rj45nsm',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 },  ], css_id: 'tinytable_css_ggtsjdqyjageqqresqhd',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_9qz2sxbxur9dm7zr6q49(cell.i, cell.j, group.css_id);
+                  styleCell_zokj8uz7nlos8mecn8k0(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -897,71 +1259,71 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_qriv0adgen4vfzn7ew9y, .table th.tinytable_css_qriv0adgen4vfzn7ew9y { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_q2a73dc544680i5gaaro, .table th.tinytable_css_q2a73dc544680i5gaaro { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_qv61i8j9t4vv0rj45nsm, .table th.tinytable_css_qv61i8j9t4vv0rj45nsm { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_ggtsjdqyjageqqresqhd, .table th.tinytable_css_ggtsjdqyjageqqresqhd { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_9qz2sxbxur9dm7zr6q49" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_zokj8uz7nlos8mecn8k0" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>
-                <th scope="col">y</th>
-                <th scope="col">x1</th>
-                <th scope="col">id</th>
-                <th scope="col">period</th>
-                <th scope="col">post</th>
-                <th scope="col">treat</th>
+                <th scope="col" data-row="0" data-col="0">y</th>
+                <th scope="col" data-row="0" data-col="1">x1</th>
+                <th scope="col" data-row="0" data-col="2">id</th>
+                <th scope="col" data-row="0" data-col="3">period</th>
+                <th scope="col" data-row="0" data-col="4">post</th>
+                <th scope="col" data-row="0" data-col="5">treat</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>2.87530627</td>
-                  <td>0.5365377</td>
-                  <td>1</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>1</td>
+                  <td data-row="1" data-col="0">2.87530627</td>
+                  <td data-row="1" data-col="1">0.5365377</td>
+                  <td data-row="1" data-col="2">1</td>
+                  <td data-row="1" data-col="3">1</td>
+                  <td data-row="1" data-col="4">0</td>
+                  <td data-row="1" data-col="5">1</td>
                 </tr>
                 <tr>
-                  <td>1.86065272</td>
-                  <td>-3.0431894</td>
-                  <td>1</td>
-                  <td>2</td>
-                  <td>0</td>
-                  <td>1</td>
+                  <td data-row="2" data-col="0">1.86065272</td>
+                  <td data-row="2" data-col="1">-3.0431894</td>
+                  <td data-row="2" data-col="2">1</td>
+                  <td data-row="2" data-col="3">2</td>
+                  <td data-row="2" data-col="4">0</td>
+                  <td data-row="2" data-col="5">1</td>
                 </tr>
                 <tr>
-                  <td>0.09416524</td>
-                  <td>5.5768439</td>
-                  <td>1</td>
-                  <td>3</td>
-                  <td>0</td>
-                  <td>1</td>
+                  <td data-row="3" data-col="0">0.09416524</td>
+                  <td data-row="3" data-col="1">5.5768439</td>
+                  <td data-row="3" data-col="2">1</td>
+                  <td data-row="3" data-col="3">3</td>
+                  <td data-row="3" data-col="4">0</td>
+                  <td data-row="3" data-col="5">1</td>
                 </tr>
                 <tr>
-                  <td>3.78147485</td>
-                  <td>-2.8300587</td>
-                  <td>1</td>
-                  <td>4</td>
-                  <td>0</td>
-                  <td>1</td>
+                  <td data-row="4" data-col="0">3.78147485</td>
+                  <td data-row="4" data-col="1">-2.8300587</td>
+                  <td data-row="4" data-col="2">1</td>
+                  <td data-row="4" data-col="3">4</td>
+                  <td data-row="4" data-col="4">0</td>
+                  <td data-row="4" data-col="5">1</td>
                 </tr>
                 <tr>
-                  <td>-2.55819959</td>
-                  <td>-5.0443544</td>
-                  <td>1</td>
-                  <td>5</td>
-                  <td>0</td>
-                  <td>1</td>
+                  <td data-row="5" data-col="0">-2.55819959</td>
+                  <td data-row="5" data-col="1">-5.0443544</td>
+                  <td data-row="5" data-col="2">1</td>
+                  <td data-row="5" data-col="3">5</td>
+                  <td data-row="5" data-col="4">0</td>
+                  <td data-row="5" data-col="5">1</td>
                 </tr>
                 <tr>
-                  <td>1.72873240</td>
-                  <td>-0.6363849</td>
-                  <td>1</td>
-                  <td>6</td>
-                  <td>1</td>
-                  <td>1</td>
+                  <td data-row="6" data-col="0">1.72873240</td>
+                  <td data-row="6" data-col="1">-0.6363849</td>
+                  <td data-row="6" data-col="2">1</td>
+                  <td data-row="6" data-col="3">6</td>
+                  <td data-row="6" data-col="4">1</td>
+                  <td data-row="6" data-col="5">1</td>
                 </tr>
         </tbody>
       </table>
@@ -977,9 +1339,9 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
 
     <script>
 
-      function styleCell_be78uxgq7a2b9pns9lk0(i, j, css_id) {
-          var table = document.getElementById("tinytable_be78uxgq7a2b9pns9lk0");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+      function styleCell_9qj7wkw7cp0pxx1bw2v5(i, j, css_id) {
+          var table = document.getElementById("tinytable_9qj7wkw7cp0pxx1bw2v5");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
               cell.classList.add(css_id);
@@ -988,53 +1350,58 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
           }
       }
       function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_be78uxgq7a2b9pns9lk0');
-        var newRow = table.insertRow(i);
+        var table = document.getElementById('tinytable_9qj7wkw7cp0pxx1bw2v5');
+        // Find the row with data-row attribute matching i
+        var targetRow = table.querySelector(`tr [data-row="${i}"]`).closest('tr');
+        var newRow = table.insertRow(targetRow.rowIndex);
         var newCell = newRow.insertCell(0);
         newCell.setAttribute("colspan", colspan);
+        newCell.setAttribute("data-col", "0");
+        newCell.setAttribute("data-row", i - 1);
         // newCell.innerText = content;
         // this may be unsafe, but innerText does not interpret <br>
         newCell.innerHTML = content;
       }
-      function spanCell_be78uxgq7a2b9pns9lk0(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_be78uxgq7a2b9pns9lk0");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
+      function spanCell_9qj7wkw7cp0pxx1bw2v5(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_9qj7wkw7cp0pxx1bw2v5");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
         for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
             }
           }
         }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
       }
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 }, { i: 6, j: 5 }, { i: 6, j: 6 }, { i: 6, j: 7 },  ], css_id: 'tinytable_css_q5tg22zw5hm4bpfvlsde',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 }, { i: 0, j: 5 }, { i: 0, j: 6 }, { i: 0, j: 7 },  ], css_id: 'tinytable_css_y200jfsdqpa1cv65ifon',}, 
+          { positions: [ { i: '6', j: 0 }, { i: '6', j: 1 }, { i: '6', j: 2 }, { i: '6', j: 3 }, { i: '6', j: 4 }, { i: '6', j: 5 }, { i: '6', j: 6 }, { i: '6', j: 7 },  ], css_id: 'tinytable_css_1zgceg1yvfhxws9wcb8k',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 }, { i: '0', j: 7 },  ], css_id: 'tinytable_css_cpw46hyzy5t32s39wu8j',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_be78uxgq7a2b9pns9lk0(cell.i, cell.j, group.css_id);
+                  styleCell_9qj7wkw7cp0pxx1bw2v5(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -1042,85 +1409,85 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_q5tg22zw5hm4bpfvlsde, .table th.tinytable_css_q5tg22zw5hm4bpfvlsde { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_y200jfsdqpa1cv65ifon, .table th.tinytable_css_y200jfsdqpa1cv65ifon { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_1zgceg1yvfhxws9wcb8k, .table th.tinytable_css_1zgceg1yvfhxws9wcb8k { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_cpw46hyzy5t32s39wu8j, .table th.tinytable_css_cpw46hyzy5t32s39wu8j { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_be78uxgq7a2b9pns9lk0" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_9qj7wkw7cp0pxx1bw2v5" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>
-                <th scope="col">id</th>
-                <th scope="col">year</th>
-                <th scope="col">year_treated</th>
-                <th scope="col">time_to_treatment</th>
-                <th scope="col">treated</th>
-                <th scope="col">treatment_effect_true</th>
-                <th scope="col">x1</th>
-                <th scope="col">y</th>
+                <th scope="col" data-row="0" data-col="0">id</th>
+                <th scope="col" data-row="0" data-col="1">year</th>
+                <th scope="col" data-row="0" data-col="2">year_treated</th>
+                <th scope="col" data-row="0" data-col="3">time_to_treatment</th>
+                <th scope="col" data-row="0" data-col="4">treated</th>
+                <th scope="col" data-row="0" data-col="5">treatment_effect_true</th>
+                <th scope="col" data-row="0" data-col="6">x1</th>
+                <th scope="col" data-row="0" data-col="7">y</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>90</td>
-                  <td>1</td>
-                  <td>2</td>
-                  <td>-1</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>-1.0947021</td>
-                  <td>0.01722971</td>
+                  <td data-row="1" data-col="0">90</td>
+                  <td data-row="1" data-col="1">1</td>
+                  <td data-row="1" data-col="2">2</td>
+                  <td data-row="1" data-col="3">-1</td>
+                  <td data-row="1" data-col="4">1</td>
+                  <td data-row="1" data-col="5">0</td>
+                  <td data-row="1" data-col="6">-1.0947021</td>
+                  <td data-row="1" data-col="7">0.01722971</td>
                 </tr>
                 <tr>
-                  <td>89</td>
-                  <td>1</td>
-                  <td>3</td>
-                  <td>-2</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>-3.7100676</td>
-                  <td>-4.58084528</td>
+                  <td data-row="2" data-col="0">89</td>
+                  <td data-row="2" data-col="1">1</td>
+                  <td data-row="2" data-col="2">3</td>
+                  <td data-row="2" data-col="3">-2</td>
+                  <td data-row="2" data-col="4">1</td>
+                  <td data-row="2" data-col="5">0</td>
+                  <td data-row="2" data-col="6">-3.7100676</td>
+                  <td data-row="2" data-col="7">-4.58084528</td>
                 </tr>
                 <tr>
-                  <td>88</td>
-                  <td>1</td>
-                  <td>4</td>
-                  <td>-3</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>2.5274402</td>
-                  <td>2.73817174</td>
+                  <td data-row="3" data-col="0">88</td>
+                  <td data-row="3" data-col="1">1</td>
+                  <td data-row="3" data-col="2">4</td>
+                  <td data-row="3" data-col="3">-3</td>
+                  <td data-row="3" data-col="4">1</td>
+                  <td data-row="3" data-col="5">0</td>
+                  <td data-row="3" data-col="6">2.5274402</td>
+                  <td data-row="3" data-col="7">2.73817174</td>
                 </tr>
                 <tr>
-                  <td>87</td>
-                  <td>1</td>
-                  <td>5</td>
-                  <td>-4</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>-0.7204263</td>
-                  <td>-0.65103066</td>
+                  <td data-row="4" data-col="0">87</td>
+                  <td data-row="4" data-col="1">1</td>
+                  <td data-row="4" data-col="2">5</td>
+                  <td data-row="4" data-col="3">-4</td>
+                  <td data-row="4" data-col="4">1</td>
+                  <td data-row="4" data-col="5">0</td>
+                  <td data-row="4" data-col="6">-0.7204263</td>
+                  <td data-row="4" data-col="7">-0.65103066</td>
                 </tr>
                 <tr>
-                  <td>86</td>
-                  <td>1</td>
-                  <td>6</td>
-                  <td>-5</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>-3.6711678</td>
-                  <td>-5.33381664</td>
+                  <td data-row="5" data-col="0">86</td>
+                  <td data-row="5" data-col="1">1</td>
+                  <td data-row="5" data-col="2">6</td>
+                  <td data-row="5" data-col="3">-5</td>
+                  <td data-row="5" data-col="4">1</td>
+                  <td data-row="5" data-col="5">0</td>
+                  <td data-row="5" data-col="6">-3.6711678</td>
+                  <td data-row="5" data-col="7">-5.33381664</td>
                 </tr>
                 <tr>
-                  <td>85</td>
-                  <td>1</td>
-                  <td>7</td>
-                  <td>-6</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>-0.3152137</td>
-                  <td>0.49562631</td>
+                  <td data-row="6" data-col="0">85</td>
+                  <td data-row="6" data-col="1">1</td>
+                  <td data-row="6" data-col="2">7</td>
+                  <td data-row="6" data-col="3">-6</td>
+                  <td data-row="6" data-col="4">1</td>
+                  <td data-row="6" data-col="5">0</td>
+                  <td data-row="6" data-col="6">-0.3152137</td>
+                  <td data-row="6" data-col="7">0.49562631</td>
                 </tr>
         </tbody>
       </table>
@@ -1136,9 +1503,9 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
 
     <script>
 
-      function styleCell_4izgg7utwi96mp1q4ief(i, j, css_id) {
-          var table = document.getElementById("tinytable_4izgg7utwi96mp1q4ief");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
+      function styleCell_jtnt5p3u02tqrslr5rjd(i, j, css_id) {
+          var table = document.getElementById("tinytable_jtnt5p3u02tqrslr5rjd");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
           if (cell) {
               console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
               cell.classList.add(css_id);
@@ -1147,53 +1514,58 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
           }
       }
       function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_4izgg7utwi96mp1q4ief');
-        var newRow = table.insertRow(i);
+        var table = document.getElementById('tinytable_jtnt5p3u02tqrslr5rjd');
+        // Find the row with data-row attribute matching i
+        var targetRow = table.querySelector(`tr [data-row="${i}"]`).closest('tr');
+        var newRow = table.insertRow(targetRow.rowIndex);
         var newCell = newRow.insertCell(0);
         newCell.setAttribute("colspan", colspan);
+        newCell.setAttribute("data-col", "0");
+        newCell.setAttribute("data-row", i - 1);
         // newCell.innerText = content;
         // this may be unsafe, but innerText does not interpret <br>
         newCell.innerHTML = content;
       }
-      function spanCell_4izgg7utwi96mp1q4ief(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_4izgg7utwi96mp1q4ief");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
+      function spanCell_jtnt5p3u02tqrslr5rjd(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_jtnt5p3u02tqrslr5rjd");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
         for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
             }
           }
         }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
       }
       // tinytable span after
       window.addEventListener('load', function () {
           var cellsToStyle = [
             // tinytable style arrays after
-          { positions: [ { i: 6, j: 4 }, { i: 6, j: 5 }, { i: 6, j: 6 }, { i: 6, j: 0 }, { i: 6, j: 7 }, { i: 6, j: 1 }, { i: 6, j: 8 }, { i: 6, j: 2 }, { i: 6, j: 9 }, { i: 6, j: 3 }, { i: 6, j: 10 }, { i: 6, j: 17 }, { i: 6, j: 11 }, { i: 6, j: 18 }, { i: 6, j: 12 }, { i: 6, j: 19 }, { i: 6, j: 13 }, { i: 6, j: 20 }, { i: 6, j: 14 }, { i: 6, j: 21 }, { i: 6, j: 15 }, { i: 6, j: 22 }, { i: 6, j: 16 }, { i: 6, j: 23 }, { i: 6, j: 30 }, { i: 6, j: 24 }, { i: 6, j: 31 }, { i: 6, j: 25 }, { i: 6, j: 32 }, { i: 6, j: 26 }, { i: 6, j: 33 }, { i: 6, j: 27 }, { i: 6, j: 34 }, { i: 6, j: 28 }, { i: 6, j: 35 }, { i: 6, j: 29 }, { i: 6, j: 36 },  ], css_id: 'tinytable_css_79fjewf5syt6fzd0hxou',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 7 }, { i: 0, j: 1 }, { i: 0, j: 8 }, { i: 0, j: 2 }, { i: 0, j: 9 }, { i: 0, j: 3 }, { i: 0, j: 10 }, { i: 0, j: 4 }, { i: 0, j: 11 }, { i: 0, j: 5 }, { i: 0, j: 12 }, { i: 0, j: 6 }, { i: 0, j: 13 }, { i: 0, j: 20 }, { i: 0, j: 14 }, { i: 0, j: 21 }, { i: 0, j: 15 }, { i: 0, j: 22 }, { i: 0, j: 16 }, { i: 0, j: 23 }, { i: 0, j: 17 }, { i: 0, j: 24 }, { i: 0, j: 18 }, { i: 0, j: 25 }, { i: 0, j: 19 }, { i: 0, j: 26 }, { i: 0, j: 33 }, { i: 0, j: 27 }, { i: 0, j: 34 }, { i: 0, j: 28 }, { i: 0, j: 35 }, { i: 0, j: 29 }, { i: 0, j: 36 }, { i: 0, j: 30 }, { i: 0, j: 31 }, { i: 0, j: 32 },  ], css_id: 'tinytable_css_guxzm9l1g4ocwrpt5vo2',}, 
+          { positions: [ { i: '6', j: 4 }, { i: '6', j: 5 }, { i: '6', j: 6 }, { i: '6', j: 0 }, { i: '6', j: 7 }, { i: '6', j: 1 }, { i: '6', j: 8 }, { i: '6', j: 2 }, { i: '6', j: 9 }, { i: '6', j: 3 }, { i: '6', j: 10 }, { i: '6', j: 17 }, { i: '6', j: 11 }, { i: '6', j: 18 }, { i: '6', j: 12 }, { i: '6', j: 19 }, { i: '6', j: 13 }, { i: '6', j: 20 }, { i: '6', j: 14 }, { i: '6', j: 21 }, { i: '6', j: 15 }, { i: '6', j: 22 }, { i: '6', j: 16 }, { i: '6', j: 23 }, { i: '6', j: 30 }, { i: '6', j: 24 }, { i: '6', j: 31 }, { i: '6', j: 25 }, { i: '6', j: 32 }, { i: '6', j: 26 }, { i: '6', j: 33 }, { i: '6', j: 27 }, { i: '6', j: 34 }, { i: '6', j: 28 }, { i: '6', j: 35 }, { i: '6', j: 29 }, { i: '6', j: 36 },  ], css_id: 'tinytable_css_z09281vnfxxh7z4n7ajw',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 7 }, { i: '0', j: 1 }, { i: '0', j: 8 }, { i: '0', j: 2 }, { i: '0', j: 9 }, { i: '0', j: 3 }, { i: '0', j: 10 }, { i: '0', j: 4 }, { i: '0', j: 11 }, { i: '0', j: 5 }, { i: '0', j: 12 }, { i: '0', j: 6 }, { i: '0', j: 13 }, { i: '0', j: 20 }, { i: '0', j: 14 }, { i: '0', j: 21 }, { i: '0', j: 15 }, { i: '0', j: 22 }, { i: '0', j: 16 }, { i: '0', j: 23 }, { i: '0', j: 17 }, { i: '0', j: 24 }, { i: '0', j: 18 }, { i: '0', j: 25 }, { i: '0', j: 19 }, { i: '0', j: 26 }, { i: '0', j: 33 }, { i: '0', j: 27 }, { i: '0', j: 34 }, { i: '0', j: 28 }, { i: '0', j: 35 }, { i: '0', j: 29 }, { i: '0', j: 36 }, { i: '0', j: 30 }, { i: '0', j: 31 }, { i: '0', j: 32 },  ], css_id: 'tinytable_css_wdujpck5nibduikdx8yq',}, 
           ];
 
           // Loop over the arrays to style the cells
           cellsToStyle.forEach(function (group) {
               group.positions.forEach(function (cell) {
-                  styleCell_4izgg7utwi96mp1q4ief(cell.i, cell.j, group.css_id);
+                  styleCell_jtnt5p3u02tqrslr5rjd(cell.i, cell.j, group.css_id);
               });
           });
       });
@@ -1201,288 +1573,288 @@ font-style: inherit;">.after =</span> treatment_date)</span></code></pre></div>
 
     <style>
       /* tinytable css entries after */
-      .table td.tinytable_css_79fjewf5syt6fzd0hxou, .table th.tinytable_css_79fjewf5syt6fzd0hxou { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_guxzm9l1g4ocwrpt5vo2, .table th.tinytable_css_guxzm9l1g4ocwrpt5vo2 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+      .table td.tinytable_css_z09281vnfxxh7z4n7ajw, .table th.tinytable_css_z09281vnfxxh7z4n7ajw { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_wdujpck5nibduikdx8yq, .table th.tinytable_css_wdujpck5nibduikdx8yq { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
     </style>
     <div class="container">
-      <table class="table table-borderless" id="tinytable_4izgg7utwi96mp1q4ief" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+      <table class="table table-borderless" id="tinytable_jtnt5p3u02tqrslr5rjd" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
         <thead>
         
               <tr>
-                <th scope="col">state</th>
-                <th scope="col">sid</th>
-                <th scope="col">year</th>
-                <th scope="col">treatment_date</th>
-                <th scope="col">is_treated</th>
-                <th scope="col">l_homicide</th>
-                <th scope="col">r20001</th>
-                <th scope="col">r20002</th>
-                <th scope="col">r20003</th>
-                <th scope="col">r20011</th>
-                <th scope="col">r20012</th>
-                <th scope="col">r20013</th>
-                <th scope="col">r20021</th>
-                <th scope="col">r20022</th>
-                <th scope="col">r20023</th>
-                <th scope="col">r20031</th>
-                <th scope="col">r20032</th>
-                <th scope="col">r20033</th>
-                <th scope="col">r20041</th>
-                <th scope="col">r20042</th>
-                <th scope="col">r20043</th>
-                <th scope="col">r20051</th>
-                <th scope="col">r20052</th>
-                <th scope="col">r20053</th>
-                <th scope="col">r20061</th>
-                <th scope="col">r20062</th>
-                <th scope="col">r20063</th>
-                <th scope="col">r20071</th>
-                <th scope="col">r20072</th>
-                <th scope="col">r20073</th>
-                <th scope="col">r20081</th>
-                <th scope="col">r20082</th>
-                <th scope="col">r20083</th>
-                <th scope="col">r20091</th>
-                <th scope="col">r20092</th>
-                <th scope="col">r20093</th>
-                <th scope="col">popwt</th>
+                <th scope="col" data-row="0" data-col="0">state</th>
+                <th scope="col" data-row="0" data-col="1">sid</th>
+                <th scope="col" data-row="0" data-col="2">year</th>
+                <th scope="col" data-row="0" data-col="3">treatment_date</th>
+                <th scope="col" data-row="0" data-col="4">is_treated</th>
+                <th scope="col" data-row="0" data-col="5">l_homicide</th>
+                <th scope="col" data-row="0" data-col="6">r20001</th>
+                <th scope="col" data-row="0" data-col="7">r20002</th>
+                <th scope="col" data-row="0" data-col="8">r20003</th>
+                <th scope="col" data-row="0" data-col="9">r20011</th>
+                <th scope="col" data-row="0" data-col="10">r20012</th>
+                <th scope="col" data-row="0" data-col="11">r20013</th>
+                <th scope="col" data-row="0" data-col="12">r20021</th>
+                <th scope="col" data-row="0" data-col="13">r20022</th>
+                <th scope="col" data-row="0" data-col="14">r20023</th>
+                <th scope="col" data-row="0" data-col="15">r20031</th>
+                <th scope="col" data-row="0" data-col="16">r20032</th>
+                <th scope="col" data-row="0" data-col="17">r20033</th>
+                <th scope="col" data-row="0" data-col="18">r20041</th>
+                <th scope="col" data-row="0" data-col="19">r20042</th>
+                <th scope="col" data-row="0" data-col="20">r20043</th>
+                <th scope="col" data-row="0" data-col="21">r20051</th>
+                <th scope="col" data-row="0" data-col="22">r20052</th>
+                <th scope="col" data-row="0" data-col="23">r20053</th>
+                <th scope="col" data-row="0" data-col="24">r20061</th>
+                <th scope="col" data-row="0" data-col="25">r20062</th>
+                <th scope="col" data-row="0" data-col="26">r20063</th>
+                <th scope="col" data-row="0" data-col="27">r20071</th>
+                <th scope="col" data-row="0" data-col="28">r20072</th>
+                <th scope="col" data-row="0" data-col="29">r20073</th>
+                <th scope="col" data-row="0" data-col="30">r20081</th>
+                <th scope="col" data-row="0" data-col="31">r20082</th>
+                <th scope="col" data-row="0" data-col="32">r20083</th>
+                <th scope="col" data-row="0" data-col="33">r20091</th>
+                <th scope="col" data-row="0" data-col="34">r20092</th>
+                <th scope="col" data-row="0" data-col="35">r20093</th>
+                <th scope="col" data-row="0" data-col="36">popwt</th>
               </tr>
         </thead>
         
         <tbody>
                 <tr>
-                  <td>Alabama</td>
-                  <td>1</td>
-                  <td>2000</td>
-                  <td>2006</td>
-                  <td>1</td>
-                  <td>2.027356</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>4499293</td>
+                  <td data-row="1" data-col="0">Alabama</td>
+                  <td data-row="1" data-col="1">1</td>
+                  <td data-row="1" data-col="2">2000</td>
+                  <td data-row="1" data-col="3">2006</td>
+                  <td data-row="1" data-col="4">1</td>
+                  <td data-row="1" data-col="5">2.027356</td>
+                  <td data-row="1" data-col="6">0</td>
+                  <td data-row="1" data-col="7">0</td>
+                  <td data-row="1" data-col="8">1</td>
+                  <td data-row="1" data-col="9">0</td>
+                  <td data-row="1" data-col="10">0</td>
+                  <td data-row="1" data-col="11">0</td>
+                  <td data-row="1" data-col="12">0</td>
+                  <td data-row="1" data-col="13">0</td>
+                  <td data-row="1" data-col="14">0</td>
+                  <td data-row="1" data-col="15">0</td>
+                  <td data-row="1" data-col="16">0</td>
+                  <td data-row="1" data-col="17">0</td>
+                  <td data-row="1" data-col="18">0</td>
+                  <td data-row="1" data-col="19">0</td>
+                  <td data-row="1" data-col="20">0</td>
+                  <td data-row="1" data-col="21">0</td>
+                  <td data-row="1" data-col="22">0</td>
+                  <td data-row="1" data-col="23">0</td>
+                  <td data-row="1" data-col="24">0</td>
+                  <td data-row="1" data-col="25">0</td>
+                  <td data-row="1" data-col="26">0</td>
+                  <td data-row="1" data-col="27">0</td>
+                  <td data-row="1" data-col="28">0</td>
+                  <td data-row="1" data-col="29">0</td>
+                  <td data-row="1" data-col="30">0</td>
+                  <td data-row="1" data-col="31">0</td>
+                  <td data-row="1" data-col="32">0</td>
+                  <td data-row="1" data-col="33">0</td>
+                  <td data-row="1" data-col="34">0</td>
+                  <td data-row="1" data-col="35">0</td>
+                  <td data-row="1" data-col="36">4499293</td>
                 </tr>
                 <tr>
-                  <td>Alabama</td>
-                  <td>1</td>
-                  <td>2001</td>
-                  <td>2006</td>
-                  <td>1</td>
-                  <td>2.164867</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>4499293</td>
+                  <td data-row="2" data-col="0">Alabama</td>
+                  <td data-row="2" data-col="1">1</td>
+                  <td data-row="2" data-col="2">2001</td>
+                  <td data-row="2" data-col="3">2006</td>
+                  <td data-row="2" data-col="4">1</td>
+                  <td data-row="2" data-col="5">2.164867</td>
+                  <td data-row="2" data-col="6">0</td>
+                  <td data-row="2" data-col="7">0</td>
+                  <td data-row="2" data-col="8">0</td>
+                  <td data-row="2" data-col="9">0</td>
+                  <td data-row="2" data-col="10">0</td>
+                  <td data-row="2" data-col="11">1</td>
+                  <td data-row="2" data-col="12">0</td>
+                  <td data-row="2" data-col="13">0</td>
+                  <td data-row="2" data-col="14">0</td>
+                  <td data-row="2" data-col="15">0</td>
+                  <td data-row="2" data-col="16">0</td>
+                  <td data-row="2" data-col="17">0</td>
+                  <td data-row="2" data-col="18">0</td>
+                  <td data-row="2" data-col="19">0</td>
+                  <td data-row="2" data-col="20">0</td>
+                  <td data-row="2" data-col="21">0</td>
+                  <td data-row="2" data-col="22">0</td>
+                  <td data-row="2" data-col="23">0</td>
+                  <td data-row="2" data-col="24">0</td>
+                  <td data-row="2" data-col="25">0</td>
+                  <td data-row="2" data-col="26">0</td>
+                  <td data-row="2" data-col="27">0</td>
+                  <td data-row="2" data-col="28">0</td>
+                  <td data-row="2" data-col="29">0</td>
+                  <td data-row="2" data-col="30">0</td>
+                  <td data-row="2" data-col="31">0</td>
+                  <td data-row="2" data-col="32">0</td>
+                  <td data-row="2" data-col="33">0</td>
+                  <td data-row="2" data-col="34">0</td>
+                  <td data-row="2" data-col="35">0</td>
+                  <td data-row="2" data-col="36">4499293</td>
                 </tr>
                 <tr>
-                  <td>Alabama</td>
-                  <td>1</td>
-                  <td>2002</td>
-                  <td>2006</td>
-                  <td>1</td>
-                  <td>1.936334</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>4499293</td>
+                  <td data-row="3" data-col="0">Alabama</td>
+                  <td data-row="3" data-col="1">1</td>
+                  <td data-row="3" data-col="2">2002</td>
+                  <td data-row="3" data-col="3">2006</td>
+                  <td data-row="3" data-col="4">1</td>
+                  <td data-row="3" data-col="5">1.936334</td>
+                  <td data-row="3" data-col="6">0</td>
+                  <td data-row="3" data-col="7">0</td>
+                  <td data-row="3" data-col="8">0</td>
+                  <td data-row="3" data-col="9">0</td>
+                  <td data-row="3" data-col="10">0</td>
+                  <td data-row="3" data-col="11">0</td>
+                  <td data-row="3" data-col="12">0</td>
+                  <td data-row="3" data-col="13">0</td>
+                  <td data-row="3" data-col="14">1</td>
+                  <td data-row="3" data-col="15">0</td>
+                  <td data-row="3" data-col="16">0</td>
+                  <td data-row="3" data-col="17">0</td>
+                  <td data-row="3" data-col="18">0</td>
+                  <td data-row="3" data-col="19">0</td>
+                  <td data-row="3" data-col="20">0</td>
+                  <td data-row="3" data-col="21">0</td>
+                  <td data-row="3" data-col="22">0</td>
+                  <td data-row="3" data-col="23">0</td>
+                  <td data-row="3" data-col="24">0</td>
+                  <td data-row="3" data-col="25">0</td>
+                  <td data-row="3" data-col="26">0</td>
+                  <td data-row="3" data-col="27">0</td>
+                  <td data-row="3" data-col="28">0</td>
+                  <td data-row="3" data-col="29">0</td>
+                  <td data-row="3" data-col="30">0</td>
+                  <td data-row="3" data-col="31">0</td>
+                  <td data-row="3" data-col="32">0</td>
+                  <td data-row="3" data-col="33">0</td>
+                  <td data-row="3" data-col="34">0</td>
+                  <td data-row="3" data-col="35">0</td>
+                  <td data-row="3" data-col="36">4499293</td>
                 </tr>
                 <tr>
-                  <td>Alabama</td>
-                  <td>1</td>
-                  <td>2003</td>
-                  <td>2006</td>
-                  <td>1</td>
-                  <td>1.919567</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>4499293</td>
+                  <td data-row="4" data-col="0">Alabama</td>
+                  <td data-row="4" data-col="1">1</td>
+                  <td data-row="4" data-col="2">2003</td>
+                  <td data-row="4" data-col="3">2006</td>
+                  <td data-row="4" data-col="4">1</td>
+                  <td data-row="4" data-col="5">1.919567</td>
+                  <td data-row="4" data-col="6">0</td>
+                  <td data-row="4" data-col="7">0</td>
+                  <td data-row="4" data-col="8">0</td>
+                  <td data-row="4" data-col="9">0</td>
+                  <td data-row="4" data-col="10">0</td>
+                  <td data-row="4" data-col="11">0</td>
+                  <td data-row="4" data-col="12">0</td>
+                  <td data-row="4" data-col="13">0</td>
+                  <td data-row="4" data-col="14">0</td>
+                  <td data-row="4" data-col="15">0</td>
+                  <td data-row="4" data-col="16">0</td>
+                  <td data-row="4" data-col="17">1</td>
+                  <td data-row="4" data-col="18">0</td>
+                  <td data-row="4" data-col="19">0</td>
+                  <td data-row="4" data-col="20">0</td>
+                  <td data-row="4" data-col="21">0</td>
+                  <td data-row="4" data-col="22">0</td>
+                  <td data-row="4" data-col="23">0</td>
+                  <td data-row="4" data-col="24">0</td>
+                  <td data-row="4" data-col="25">0</td>
+                  <td data-row="4" data-col="26">0</td>
+                  <td data-row="4" data-col="27">0</td>
+                  <td data-row="4" data-col="28">0</td>
+                  <td data-row="4" data-col="29">0</td>
+                  <td data-row="4" data-col="30">0</td>
+                  <td data-row="4" data-col="31">0</td>
+                  <td data-row="4" data-col="32">0</td>
+                  <td data-row="4" data-col="33">0</td>
+                  <td data-row="4" data-col="34">0</td>
+                  <td data-row="4" data-col="35">0</td>
+                  <td data-row="4" data-col="36">4499293</td>
                 </tr>
                 <tr>
-                  <td>Alabama</td>
-                  <td>1</td>
-                  <td>2004</td>
-                  <td>2006</td>
-                  <td>1</td>
-                  <td>1.749841</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>4499293</td>
+                  <td data-row="5" data-col="0">Alabama</td>
+                  <td data-row="5" data-col="1">1</td>
+                  <td data-row="5" data-col="2">2004</td>
+                  <td data-row="5" data-col="3">2006</td>
+                  <td data-row="5" data-col="4">1</td>
+                  <td data-row="5" data-col="5">1.749841</td>
+                  <td data-row="5" data-col="6">0</td>
+                  <td data-row="5" data-col="7">0</td>
+                  <td data-row="5" data-col="8">0</td>
+                  <td data-row="5" data-col="9">0</td>
+                  <td data-row="5" data-col="10">0</td>
+                  <td data-row="5" data-col="11">0</td>
+                  <td data-row="5" data-col="12">0</td>
+                  <td data-row="5" data-col="13">0</td>
+                  <td data-row="5" data-col="14">0</td>
+                  <td data-row="5" data-col="15">0</td>
+                  <td data-row="5" data-col="16">0</td>
+                  <td data-row="5" data-col="17">0</td>
+                  <td data-row="5" data-col="18">0</td>
+                  <td data-row="5" data-col="19">0</td>
+                  <td data-row="5" data-col="20">1</td>
+                  <td data-row="5" data-col="21">0</td>
+                  <td data-row="5" data-col="22">0</td>
+                  <td data-row="5" data-col="23">0</td>
+                  <td data-row="5" data-col="24">0</td>
+                  <td data-row="5" data-col="25">0</td>
+                  <td data-row="5" data-col="26">0</td>
+                  <td data-row="5" data-col="27">0</td>
+                  <td data-row="5" data-col="28">0</td>
+                  <td data-row="5" data-col="29">0</td>
+                  <td data-row="5" data-col="30">0</td>
+                  <td data-row="5" data-col="31">0</td>
+                  <td data-row="5" data-col="32">0</td>
+                  <td data-row="5" data-col="33">0</td>
+                  <td data-row="5" data-col="34">0</td>
+                  <td data-row="5" data-col="35">0</td>
+                  <td data-row="5" data-col="36">4499293</td>
                 </tr>
                 <tr>
-                  <td>Alabama</td>
-                  <td>1</td>
-                  <td>2005</td>
-                  <td>2006</td>
-                  <td>1</td>
-                  <td>2.130440</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>1</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>0</td>
-                  <td>4499293</td>
+                  <td data-row="6" data-col="0">Alabama</td>
+                  <td data-row="6" data-col="1">1</td>
+                  <td data-row="6" data-col="2">2005</td>
+                  <td data-row="6" data-col="3">2006</td>
+                  <td data-row="6" data-col="4">1</td>
+                  <td data-row="6" data-col="5">2.130440</td>
+                  <td data-row="6" data-col="6">0</td>
+                  <td data-row="6" data-col="7">0</td>
+                  <td data-row="6" data-col="8">0</td>
+                  <td data-row="6" data-col="9">0</td>
+                  <td data-row="6" data-col="10">0</td>
+                  <td data-row="6" data-col="11">0</td>
+                  <td data-row="6" data-col="12">0</td>
+                  <td data-row="6" data-col="13">0</td>
+                  <td data-row="6" data-col="14">0</td>
+                  <td data-row="6" data-col="15">0</td>
+                  <td data-row="6" data-col="16">0</td>
+                  <td data-row="6" data-col="17">0</td>
+                  <td data-row="6" data-col="18">0</td>
+                  <td data-row="6" data-col="19">0</td>
+                  <td data-row="6" data-col="20">0</td>
+                  <td data-row="6" data-col="21">0</td>
+                  <td data-row="6" data-col="22">0</td>
+                  <td data-row="6" data-col="23">1</td>
+                  <td data-row="6" data-col="24">0</td>
+                  <td data-row="6" data-col="25">0</td>
+                  <td data-row="6" data-col="26">0</td>
+                  <td data-row="6" data-col="27">0</td>
+                  <td data-row="6" data-col="28">0</td>
+                  <td data-row="6" data-col="29">0</td>
+                  <td data-row="6" data-col="30">0</td>
+                  <td data-row="6" data-col="31">0</td>
+                  <td data-row="6" data-col="32">0</td>
+                  <td data-row="6" data-col="33">0</td>
+                  <td data-row="6" data-col="34">0</td>
+                  <td data-row="6" data-col="35">0</td>
+                  <td data-row="6" data-col="36">4499293</td>
                 </tr>
         </tbody>
       </table>
@@ -1567,18 +1939,19 @@ font-style: inherit;">NULL</span></span>
 <li><code>outcome</code>：アウトカム変数</li>
 <li><code>treatment</code>：処置されていれば（時間によらず）1をとるダミー変数<sup>2</sup></li>
 <li><code>time</code>：時間を示す変数（<code>year</code>など）</li>
-<li><code>staggered</code>：処置タイミングが個体ごとに異なるモデルの場合はTRUE（デフォルトはFALSE）</li>
 <li><code>timing</code>：処置タイミングを表す変数（<code>staggered</code>がFALSEの場合は数値、TRUEの場合は処置タイミングを示す変数）</li>
+<li><code>fe</code>：固定効果（<code>~ id + year</code>のように書く）</li>
 <li><code>lead_range</code>：処置前の期間（処置年は含まず、デフォルトでは最大の期間をとる）</li>
 <li><code>lag_range</code>：処置後の期間（処置年は含まず、デフォルトでは最大の期間をとる）</li>
 <li><code>covariates</code>：共変量（<code>~ cov1 + cov2</code>のように書く）</li>
-<li><code>fe</code>：固定効果（<code>~ id + year</code>のように書く）</li>
 <li><code>cluster</code>：クラスタリングの単位（<code>~ id</code>のように書く）</li>
 <li><code>weights</code>：ウェイト（<code>~ weight</code>のように書く）</li>
 <li><code>baseline</code>：基準となる相対年（デフォルトでは処置の1期前）</li>
 <li><code>interval</code>：時間のインターバル（デフォルトでは1（1年ごとのデータ）、5にすれば国勢調査に対応（5年ごと））</li>
 <li><code>time_transform</code>：TRUEで時間変数に通し番号を振って処理。時間変数が文字列だったりイレギュラーな間隔の場合に対応（デフォルトはFALSE）</li>
 <li><code>unit</code>：<code>time_transform</code>がTRUEの場合に個体の単位を指定（<code>id</code>など）</li>
+<li><code>staggered</code>：処置タイミングが個体ごとに異なるモデルの場合はTRUE（デフォルトはFALSE）</li>
+<li><code>conf.level</code>：信頼区間を指定（0.90, 0.95, 0.99のいずれか。デフォルトは0.95）</li>
 </ul>
 <hr>
 <p>文字で見てもわかりにくいと思うので、読み込んだデータを使って関数を回してみましょう。</p>
@@ -1645,24 +2018,24 @@ background-color: null;
 font-style: inherit;">time =</span> year, </span>
 <span id="cb8-6">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">staggered =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>, </span>
-<span id="cb8-7">  <span class="at" style="color: #657422;
-background-color: null;
 font-style: inherit;">timing =</span> year_treated, </span>
-<span id="cb8-8">  <span class="at" style="color: #657422;
+<span id="cb8-7">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">fe =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> id <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> year, </span>
-<span id="cb8-9">  <span class="at" style="color: #657422;
+<span id="cb8-8">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">cluster =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">~</span> id</span>
+font-style: inherit;">~</span> id, </span>
+<span id="cb8-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">staggered =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
 <span id="cb8-10">)</span></code></pre></div>
 </div>
 <p>先ほどと違う点は、<code>staggered</code>がTRUEになっており、<code>timing</code>が具体的な数値ではなく、処置年を示す変数を指定しているところです。</p>
@@ -1708,32 +2081,32 @@ background-color: null;
 font-style: inherit;">time =</span> year, </span>
 <span id="cb9-9">  <span class="at" style="color: #657422;
 background-color: null;
-font-style: inherit;">staggered =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>, </span>
-<span id="cb9-10">  <span class="at" style="color: #657422;
-background-color: null;
 font-style: inherit;">timing =</span> treatment_date, </span>
-<span id="cb9-11">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">covariates =</span> covariates, </span>
-<span id="cb9-12">  <span class="at" style="color: #657422;
+<span id="cb9-10">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">fe =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> state <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> year, </span>
-<span id="cb9-13">  <span class="at" style="color: #657422;
+<span id="cb9-11">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">covariates =</span> covariates, </span>
+<span id="cb9-12">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">cluster =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> sid, </span>
-<span id="cb9-14">  <span class="at" style="color: #657422;
+<span id="cb9-13">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">weights =</span> <span class="sc" style="color: #5E5E5E;
 background-color: null;
-font-style: inherit;">~</span> popwt</span>
+font-style: inherit;">~</span> popwt, </span>
+<span id="cb9-14">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">staggered =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span></span>
 <span id="cb9-15">)</span></code></pre></div>
 </div>
 <p>今回の例は共変量が多いので事前に<code>as.formula()</code>を使って処理してしまっていますが、関数内で<code>covariates = ~ cov1 + cov2</code>のような指定の仕方で問題ありません。</p>
@@ -13724,403 +14097,6 @@ font-style: inherit;">volume</span>={2}</span>
   <category>Quarto</category>
   <guid>https://yo5uke.com/pages/tips/240802_quarto_markdown/</guid>
   <pubDate>Thu, 01 Aug 2024 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【Quarto】論文の体裁を整える</title>
-  <link>https://yo5uke.com/pages/tips/240722_quarto_latex_setting/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>以下の記事で、Quarto × <img src="https://latex.codecogs.com/png.latex?%5CLaTeX"> で論文を書く方法についてまとめました。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="../240629_write_thesis/index.html">【PDF】Quarto で論文を書く</a></p>
-</div>
-</div>
-</div>
-<p>今回はもう少し踏み込んで、論文の体裁を整える設定について考えます<sup>1</sup>。</p>
-</section>
-<section id="yaml-ヘッダーをいじる" class="level2">
-<h2 class="anchored" data-anchor-id="yaml-ヘッダーをいじる">YAML ヘッダーをいじる</h2>
-<p>Quarto や R Markdown でお馴染みの YAML ヘッダーですが、以前の記事での設定は以下の通りでした。</p>
-<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"【PDF】Quarto で論文を書く"</span></span>
-<span id="cb1-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">author</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"阿部洋輔"</span></span>
-<span id="cb1-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">date</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> 2024-07-08</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  # todayで今日の日付にできます</span></span>
-<span id="cb1-5"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">date-format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"YYYY年M月D日"</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb1-6"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb1-7"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">pdf</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb1-8"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">documentclass</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> article</span></span>
-<span id="cb1-9"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">number-sections</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">true</span></span>
-<span id="cb1-10"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">include-in-header</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb1-11"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">      - </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">text</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">|</span></span>
-<span id="cb1-12">          \usepackage{zxjatype}</span>
-<span id="cb1-13">          \usepackage[ipaex]{zxjafont} </span>
-<span id="cb1-14">          # これらは日本語フォントの設定のために記述しています</span>
-<span id="cb1-15"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">execute</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb1-16"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">echo</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">false</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  # コードを表示しない</span></span>
-<span id="cb1-17"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">warning</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">false</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> # 警告とメッセージを表示しない</span></span>
-<span id="cb1-18"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">language</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb1-19"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">crossref-fig-title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"図"</span></span>
-<span id="cb1-20"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">crossref-tbl-title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"表"</span></span>
-<span id="cb1-21"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">crossref-eq-prefix</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"式"</span></span>
-<span id="cb1-22"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-<p>今回は簡単化のため英語で設定していきますが、さっそく今回の結論は次の通りです。</p>
-<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb2-2"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">title:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> "Title"</span></span>
-<span id="cb2-3"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">author:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb2-4"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  - "Yosuke Abe\\thanks{Osaka School of International Public Policy}"</span></span>
-<span id="cb2-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  - "Author 2\\thanks{Osaka School of International Public Policy}"</span></span>
-<span id="cb2-6"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">date:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> 2024-07-22</span></span>
-<span id="cb2-7"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">date-format:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> long</span></span>
-<span id="cb2-8"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">lang:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> en</span></span>
-<span id="cb2-9"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">abstract:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> &gt;</span></span>
-<span id="cb2-10"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  Here is the abstract.</span></span>
-<span id="cb2-11"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">format:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb2-12"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">  pdf: </span></span>
-<span id="cb2-13"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    documentclass: article</span></span>
-<span id="cb2-14"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    papersize: a4paper</span></span>
-<span id="cb2-15"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    geometry: </span></span>
-<span id="cb2-16"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">      - top=2.5cm</span></span>
-<span id="cb2-17"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">      - bottom=2.5cm</span></span>
-<span id="cb2-18"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">      - left=2.5cm</span></span>
-<span id="cb2-19"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">      - right=2.5cm</span></span>
-<span id="cb2-20"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">    keep-tex: true</span></span>
-<span id="cb2-21"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># bibliography: bibliography.bib</span></span>
-<span id="cb2-22"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 必要に応じて入れる</span></span>
-<span id="cb2-23"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb2-24"></span>
-<span id="cb2-25">**JEL classification:** C12, D24, E31</span>
-<span id="cb2-26"></span>
-<span id="cb2-27">**keywords:** Keyword 1, Keyword 2...</span>
-<span id="cb2-28"></span>
-<span id="cb2-29">\newpage</span>
-<span id="cb2-30"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;"># Section 1</span></span>
-<span id="cb2-31"></span>
-<span id="cb2-32">Write the text here.</span>
-<span id="cb2-33"></span>
-<span id="cb2-34"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;"># Section 2</span></span>
-<span id="cb2-35"></span>
-<span id="cb2-36">@fig-cars is a plot of CARS data.</span></code></pre></div>
-<p>今回発見したのは、<code>abstract</code> が書けるところです。これは助かります。</p>
-<p>keyword と JEL classification の部分はもう少し工夫が必要そうです。</p>
-<p>出力すると<a href="../../../pages/tips/240722_quarto_latex_setting/demo/demo.html">このような感じ</a>になります。</p>
-<p>とりあえず、ポイントとしては</p>
-<ol type="1">
-<li><code>author</code> に <code>\\thanks{}</code> を使って所属を書くことができる</li>
-<li><code>abstract</code> が書ける
-<ul>
-<li><code>&gt;</code> で改行を入れ、2スペース分インデントして書き始めるとよい。</li>
-</ul></li>
-<li><code>format</code> で <code>pdf</code> の設定を変更できる
-<ul>
-<li><code>documentclass</code> で文書クラスを指定できる。<code>article</code> で十分だと思う。</li>
-<li><code>papersize</code> で用紙サイズを指定できる。</li>
-<li><code>geometry</code> で余白を設定できる。</li>
-<li><code>keep-tex: true</code> で <code>.tex</code> ファイルを残すことができる。</li>
-</ul></li>
-<li><code>bibliography</code> で参考文献を指定できる
-<ul>
-<li>Zotero など使用して文献管理をしましょう。</li>
-</ul></li>
-</ol>
-<p>といったところでしょうか。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>Quarto で論文を書く際の体裁について考えてみました。</p>
-<p>自分でも論文を書いていくうちに、また新しい発見があれば追記していきたいと思います。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>僕自身も試行錯誤中です。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>Quarto</category>
-  <category>LaTeX</category>
-  <guid>https://yo5uke.com/pages/tips/240722_quarto_latex_setting/</guid>
-  <pubDate>Sun, 21 Jul 2024 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.com/pages/tips/240722_quarto_latex_setting/image/LaTeX_logo.png" medium="image" type="image/png" height="63" width="144"/>
 </item>
 </channel>
 </rss>
