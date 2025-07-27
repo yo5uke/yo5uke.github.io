@@ -10,7 +10,613 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.7.32</generator>
-<lastBuildDate>Mon, 14 Jul 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sat, 26 Jul 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>recode関数でデータフレームの中身を置き換える</title>
+  <link>https://yo5uke.com/pages/tips/250727_recode/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>今回は<code>dplyr</code>パッケージの<code>recode()</code>関数を紹介します。</p>
+<p>例えばデータフレーム内の変数がカテゴリ変数で、便宜的に数値で表されているような場合、そのまま表に出すことはできないかもしれません。</p>
+<p>そんなときに中身を置き換える手段として使えるのが<code>recode()</code>関数で、イメージとしては<code>case_when()</code>と似ているかもしれません<sup>1</sup>。</p>
+<p>1度きりの変換であればcase_whenでもあまり労力は変わらないかもしれませんが、何回も繰り返し置き換えたいときは、シンプルで強みを発揮します。</p>
+</section>
+<section id="使い方" class="level2">
+<h2 class="anchored" data-anchor-id="使い方">使い方</h2>
+<section id="パッケージ" class="level3">
+<h3 class="anchored" data-anchor-id="パッケージ">パッケージ</h3>
+<p><code>dplyr</code>に入っているので、Tidyverseを読み込んでいれば使えます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb1-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># あるいは</span></span>
+<span id="cb1-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># library(dplyr)</span></span></code></pre></div>
+</div>
+</section>
+<section id="データフレーム" class="level3">
+<h3 class="anchored" data-anchor-id="データフレーム">データフレーム</h3>
+<p>今回は以下のようなデータフレームを想定します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb2-2">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">id =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, </span>
+<span id="cb2-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sex =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rep</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">times =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)</span>
+<span id="cb2-4">)</span></code></pre></div>
+</div>
+<div class="cell">
+<div id="tbl-example" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: テーブルの例
+</figcaption>
+<div aria-describedby="tbl-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_1k27pz2wyqsc47uajsm8(i, j, css_id) {
+          var table = document.getElementById("tinytable_1k27pz2wyqsc47uajsm8");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_1k27pz2wyqsc47uajsm8');
+        // Find the row with data-row attribute matching i
+        var targetRow = table.querySelector(`tr [data-row="${i}"]`).closest('tr');
+        var newRow = table.insertRow(targetRow.rowIndex);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        newCell.setAttribute("data-col", "0");
+        newCell.setAttribute("data-row", i - 1);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_1k27pz2wyqsc47uajsm8(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_1k27pz2wyqsc47uajsm8");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '4', j: 0 }, { i: '4', j: 1 },  ], css_id: 'tinytable_css_z2cik9hn06gcorgx97oj',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 },  ], css_id: 'tinytable_css_imyly6i9fc45prdvqb34',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_1k27pz2wyqsc47uajsm8(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_z2cik9hn06gcorgx97oj, .table th.tinytable_css_z2cik9hn06gcorgx97oj { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_imyly6i9fc45prdvqb34, .table th.tinytable_css_imyly6i9fc45prdvqb34 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_1k27pz2wyqsc47uajsm8" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">id</th>
+                <th scope="col" data-row="0" data-col="1">sex</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">1</td>
+                  <td data-row="1" data-col="1">1</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">2</td>
+                  <td data-row="2" data-col="1">2</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="0">3</td>
+                  <td data-row="3" data-col="1">1</td>
+                </tr>
+                <tr>
+                  <td data-row="4" data-col="0">4</td>
+                  <td data-row="4" data-col="1">2</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>超絶簡単なデータフレームです。4人のIDと性別が1, 2の表記で含まれているだけです。ここで1を男性、2を女性とします。</p>
+</section>
+<section id="対応表を作る" class="level3">
+<h3 class="anchored" data-anchor-id="対応表を作る">対応表を作る</h3>
+<p>これを表に起こしたいとき、たとえばそのまま<code>tinytable::tt()</code>で表示したとしたら、 表&nbsp;1 がそのまま出てきてしまい、数字が誰を、何を表しているのかがわかりませんよね。</p>
+<p>そこで、あらかじめ対応表を作って置きます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">id_map <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(</span>
+<span id="cb3-2">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Michael"</span>, </span>
+<span id="cb3-3">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Emily"</span>, </span>
+<span id="cb3-4">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"3"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"John"</span>, </span>
+<span id="cb3-5">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"4"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Jessica"</span></span>
+<span id="cb3-6">)</span>
+<span id="cb3-7"></span>
+<span id="cb3-8">sex_map <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(</span>
+<span id="cb3-9">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Male"</span>, </span>
+<span id="cb3-10">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"2"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Female"</span></span>
+<span id="cb3-11">)</span></code></pre></div>
+</div>
+<p><code>c()</code>の中に、<code>=</code>の左にデータフレーム内の表記を、右に表示したい表記を書いていきます。</p>
+<p>今回はIDと性別を両方書き換えたいので、2種類の対応関係を示したベクトルを作成しています。</p>
+</section>
+<section id="recodeを使う" class="level3">
+<h3 class="anchored" data-anchor-id="recodeを使う"><code>recode()</code>を使う</h3>
+<p>この対応表をもとに、<code>recode()</code>関数を使っていきます。使う際は、<code>mutate()</code>と組み合わせます。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">df_recode <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb4-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb4-3">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">id  =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">recode</span>(id, <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!!!</span>id_map), </span>
+<span id="cb4-4">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sex =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">recode</span>(sex, <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!!!</span>sex_map)</span>
+<span id="cb4-5">  )</span></code></pre></div>
+</div>
+<div class="cell">
+<div id="tbl-recode" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-recode-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;2: <code>recode()</code>を使用した表
+</figcaption>
+<div aria-describedby="tbl-recode-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_glytohrcdfmuuy3ja7vk(i, j, css_id) {
+          var table = document.getElementById("tinytable_glytohrcdfmuuy3ja7vk");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_glytohrcdfmuuy3ja7vk');
+        // Find the row with data-row attribute matching i
+        var targetRow = table.querySelector(`tr [data-row="${i}"]`).closest('tr');
+        var newRow = table.insertRow(targetRow.rowIndex);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        newCell.setAttribute("data-col", "0");
+        newCell.setAttribute("data-row", i - 1);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_glytohrcdfmuuy3ja7vk(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_glytohrcdfmuuy3ja7vk");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '4', j: 0 }, { i: '4', j: 1 },  ], css_id: 'tinytable_css_a03qk22c2jk3kqlvb73a',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 },  ], css_id: 'tinytable_css_3kapwvvfhvkzdm063w4f',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_glytohrcdfmuuy3ja7vk(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_a03qk22c2jk3kqlvb73a, .table th.tinytable_css_a03qk22c2jk3kqlvb73a { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_3kapwvvfhvkzdm063w4f, .table th.tinytable_css_3kapwvvfhvkzdm063w4f { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_glytohrcdfmuuy3ja7vk" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">id</th>
+                <th scope="col" data-row="0" data-col="1">sex</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">Michael</td>
+                  <td data-row="1" data-col="1">Male</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">Emily</td>
+                  <td data-row="2" data-col="1">Female</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="0">John</td>
+                  <td data-row="3" data-col="1">Male</td>
+                </tr>
+                <tr>
+                  <td data-row="4" data-col="0">Jessica</td>
+                  <td data-row="4" data-col="1">Female</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>しっかり置き換えられていますね。</p>
+<p><code>!!!</code>という表記は見慣れないと思いますが、<code>id_map</code>や<code>sex_map</code>で作成したベクトルをバラバラにして渡すということです<sup>2</sup>。<code>recode(sex, "1" = "Male", "2" = "Female")</code>と同じ働きをします。</p>
+<p>あらかじめ対応関係を表すベクトルを作って置くことで、使いまわすことができ、特に何回も表を作る際に効率化が図れます。</p>
+</section>
+</section>
+<section id="おまけ" class="level2">
+<h2 class="anchored" data-anchor-id="おまけ">おまけ</h2>
+<p>表にするなら、列名も変えたいですよね。そんなときは<code>purrr</code>パッケージの<code>set_names()</code>関数を使います。これもTidyverseに入っていますので、特に追加でライブラリを読み込む必要はありません。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">col_names <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"名前"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"性別"</span>)</span>
+<span id="cb5-2"></span>
+<span id="cb5-3">df_set_names <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df_recode <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb5-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">set_names</span>(col_names)</span></code></pre></div>
+</div>
+<div class="cell">
+<div id="tbl-set-names" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-set-names-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;3: 列名を変更
+</figcaption>
+<div aria-describedby="tbl-set-names-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_s4npkmrt6co1isnj9wan(i, j, css_id) {
+          var table = document.getElementById("tinytable_s4npkmrt6co1isnj9wan");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function insertSpanRow(i, colspan, content) {
+        var table = document.getElementById('tinytable_s4npkmrt6co1isnj9wan');
+        // Find the row with data-row attribute matching i
+        var targetRow = table.querySelector(`tr [data-row="${i}"]`).closest('tr');
+        var newRow = table.insertRow(targetRow.rowIndex);
+        var newCell = newRow.insertCell(0);
+        newCell.setAttribute("colspan", colspan);
+        newCell.setAttribute("data-col", "0");
+        newCell.setAttribute("data-row", i - 1);
+        // newCell.innerText = content;
+        // this may be unsafe, but innerText does not interpret <br>
+        newCell.innerHTML = content;
+      }
+      function spanCell_s4npkmrt6co1isnj9wan(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_s4npkmrt6co1isnj9wan");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '4', j: 0 }, { i: '4', j: 1 },  ], css_id: 'tinytable_css_2dlvy524ugye6wnh04rs',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 },  ], css_id: 'tinytable_css_bft4w9p45d4eg5z5n6xq',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_s4npkmrt6co1isnj9wan(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_2dlvy524ugye6wnh04rs, .table th.tinytable_css_2dlvy524ugye6wnh04rs { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_bft4w9p45d4eg5z5n6xq, .table th.tinytable_css_bft4w9p45d4eg5z5n6xq { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_s4npkmrt6co1isnj9wan" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">名前</th>
+                <th scope="col" data-row="0" data-col="1">性別</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">Michael</td>
+                  <td data-row="1" data-col="1">Male</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">Emily</td>
+                  <td data-row="2" data-col="1">Female</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="0">John</td>
+                  <td data-row="3" data-col="1">Male</td>
+                </tr>
+                <tr>
+                  <td data-row="4" data-col="0">Jessica</td>
+                  <td data-row="4" data-col="1">Female</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>あらかじめ<code>col_names</code>を作成しておきましたが、ここは任意です。<code>set_names()</code>の中に直接書くのも可能です。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回は表を整えるための<code>recode()</code>関数とおまけの<code>set_names()</code>関数をまとめました。</p>
+<p>以前<a href="../../../pages/tips/240629_write_thesis/index.html">Quartoで論文を書くという記事</a>を書きましたが、論文はLaTeXで書きたい！という方には表だけLaTeXコードにして出力するという方法もありますので、それもまたまとめようかと思います。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>ただし、<code>case_when()</code>だと「○○以上○○以下」みたいな条件分岐に対応できるという強みがありますが、今回は想定しません。あくまでもデータフレーム内の値をある別の表記に値 = 値で置き換えるということを想定します。↩︎</p></li>
+<li id="fn2"><p>ややこしいですが、<code>id_map</code>自体はベクトルなので、ベクトルを渡すのではなく、中身を展開して渡したいということです。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/250727_recode/</guid>
+  <pubDate>Sat, 26 Jul 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>RStudio Serverをインストールする【リモートデスクトップも】</title>
   <link>https://yo5uke.com/pages/tips/250715_rstudio_server/</link>
@@ -13751,353 +14357,6 @@ font-style: inherit;">--local</span> myremote gdrive_user_credentials_file ~/.ca
   <guid>https://yo5uke.com/pages/tips/240829_local_r/</guid>
   <pubDate>Wed, 28 Aug 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/240829_local_r/image/Rlogo.png" medium="image" type="image/png" height="112" width="144"/>
-</item>
-<item>
-  <title>【Quarto】マークダウンでできること！</title>
-  <link>https://yo5uke.com/pages/tips/240802_quarto_markdown/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>Quarto（別にR Markdownでも同じですが）ではマークダウン記法を使います。</p>
-<p>僕もRAブートキャンプでR Markdownと衝撃の出会い()を果たしてから早1年、途中Quartoに浮気しながらマークダウンについて勉強してきました（経済の勉強をしろ）。</p>
-<p>そこで、今回はマークダウンについてまとめます。これまでちょこちょこと紹介を挟みながらやってきましたが、今回は論文とかHTMLとか出力にこだわらず、ひたすらマークダウンについてまとめます。</p>
-<p>基本は<a href="https://quarto.org/docs/guide/">Quarto公式ガイド</a>に沿っていますが、なるべく使う順にまとめます。</p>
-<p>大前提として、改行したいときは1行空行を入れます。コード上で改行しても出力には反映されません。</p>
-</section>
-<section id="見出し" class="level2">
-<h2 class="anchored" data-anchor-id="見出し">見出し</h2>
-<p><strong>コード</strong></p>
-<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;"># Heading 1</span></span>
-<span id="cb1-2"></span>
-<span id="cb1-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">## Heading 2</span></span>
-<span id="cb1-4"></span>
-<span id="cb1-5"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">### Heading 3</span></span></code></pre></div>
-<p><code>#</code>の数によって見出しのレベルが決まります。基本は3段くらい使えば事足りると思いますが、それ以降もいけます。</p>
-</section>
-<section id="箇条書き" class="level2">
-<h2 class="anchored" data-anchor-id="箇条書き">箇条書き</h2>
-<p>2種類あります。順序なしリストと順序付きリストです。基本的には以下の書き方です。</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 49%">
-<col style="width: 50%">
-</colgroup>
-<thead>
-<tr class="header">
-<th>コード</th>
-<th>出力</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>順序なし1</span>
-<span id="cb2-2"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">    - </span>スペース4つで2段目</span>
-<span id="cb2-3"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">- </span>順序なし2</span>
-<span id="cb2-4"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">    1. </span>2段目に順序付きを入れることも可</span></code></pre></div></td>
-<td><ul>
-<li>順序なし1
-<ul>
-<li>スペース4つで2段目</li>
-</ul></li>
-<li>順序なし2
-<ol type="1">
-<li>2段目に順序付きを入れることも可</li>
-</ol></li>
-</ul></td>
-</tr>
-<tr class="even">
-<td><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">1. </span>順序付き1</span>
-<span id="cb3-2"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">    1. </span>同様にスペース4つで2段目</span>
-<span id="cb3-3"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">1. </span>順序付き2</span>
-<span id="cb3-4"><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">    - </span>2段目に順序なしを入れることも可</span></code></pre></div></td>
-<td><ol type="1">
-<li>順序付き1
-<ol type="1">
-<li>同様にスペース4つで2段目</li>
-</ol></li>
-<li>順序付き2
-<ul>
-<li>2段目に順序なしを入れることも可</li>
-</ul></li>
-</ol></td>
-</tr>
-</tbody>
-</table>
-<p>本文では改行するのに空行が必要でしたが、<strong>箇条書きの場合空行は要りません</strong><sup>1</sup>。順序付きリストの場合、全ての行頭を<code>1.</code>で揃えることで、自動的に番号を振ってくれます。0から始めたければ全て<code>0.</code>で書けば大丈夫です。</p>
-<p>間にコード等を挟む場合は空行を入れた方が見やすいかもですね。また、間にコードや図などを挟むと<strong>連続番号がリセット</strong>されるので、その場合は手動で振る方が簡単かもしれません。</p>
-</section>
-<section id="図" class="level2">
-<h2 class="anchored" data-anchor-id="図">図</h2>
-<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><span class="al" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">![パソコンを笑顔でいじっている人](computer_man4_laugh.png)</span></span></code></pre></div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240802_quarto_markdown/image/computer_man4_laugh.png" class="img-fluid figure-img" style="width:30.0%"></p>
-<figcaption>パソコンを笑顔でいじっている人</figcaption>
-</figure>
-</div>
-<p>ご覧の通り、<code>[ ]</code>の中は図のキャプションで、<code>( )</code>の中はファイル名です。ファイル名のところは、必要に応じてパスを追加してください<sup>2</sup>。例えば、今コードがあるところに<code>image</code>というフォルダがあって、その中に<code>computer_man4_laugh.png</code>がある場合は、<code>(image/computer_man4_laugh.png)</code>とする必要があります。</p>
-</section>
-<section id="数式" class="level2">
-<h2 class="anchored" data-anchor-id="数式">数式</h2>
-<p>基本的には<img src="https://latex.codecogs.com/png.latex?%5CLaTeX">表記です。<code>$$</code>で数式を挟むことで数式を挿入できます。</p>
-<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1">$$</span>
-<span id="cb5-2">Y_{it} = \beta (Treat \times Post)_{it} + \gamma_i + \delta_t + \varepsilon_{it}</span>
-<span id="cb5-3">$$</span></code></pre></div>
-<p><img src="https://latex.codecogs.com/png.latex?%0AY_%7Bit%7D%20=%20%5Cbeta%20(Treat%20%5Ctimes%20Post)_%7Bit%7D%20+%20%5Cgamma_i%20+%20%5Cdelta_t%20+%20%5Cvarepsilon_%7Bit%7D%0A"></p>
-<p>文中に<img src="https://latex.codecogs.com/png.latex?Y%20=%205X">のように式を入れたい場合は、ドルマーク1つで<code>$Y = 5X$</code>とすればOKです。</p>
-</section>
-<section id="リンク" class="level2">
-<h2 class="anchored" data-anchor-id="リンク">リンク</h2>
-<div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb6-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">[</span><span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">Yosuke Abe</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">](https://yo5uke.github.io/)</span></span></code></pre></div>
-<p><a href="../../index.html">Yosuke Abe</a></p>
-<p><code>[ ]</code>でタイトルを囲んで<code>( )</code>内にリンクを記述します。</p>
-<p>URLをそのまま表示したいときは次のようにします。</p>
-<div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;https://yo5uke.github.io/&gt;</span></span></code></pre></div>
-<p>https://yo5uke.github.io/</p>
-</section>
-<section id="脚注" class="level2">
-<h2 class="anchored" data-anchor-id="脚注">脚注</h2>
-<div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1">これは本文^<span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">[</span><span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">これは脚注</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">]</span></span></code></pre></div>
-<p>これは本文<sup>3</sup></p>
-<p>脚注にもいろいろな書き方はあるのですが、これは脚注番号を自動で振ってくれるので、番号を気にせず書けておすすめです。</p>
-</section>
-<section id="コード" class="level2">
-<h2 class="anchored" data-anchor-id="コード">コード</h2>
-<p>普通に実行する場合は通常のチャンクで問題ありませんが、実行はせずコードだけ示したいこともあるかと思います。その場合は次の書き方でできます。</p>
-<div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">``` r</span></span>
-<span id="cb9-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot</span>(cars)</span>
-<span id="cb9-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
-<p>通常のチャンクでは<code>r</code>の部分は<code>{r}</code>となっていると思いますが、<code>{ }</code>を外すことで言語を指定しつつコードのみを提示できます。また、</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>ここがfilename</strong></pre>
-</div>
-<div class="sourceCode" id="cb10" data-filename="ここがfilename" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot</span>(cars)</span></code></pre></div>
-</div>
-<p>このようにfilenameを付けたい場合は、</p>
-<div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb11-1"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">``` {.r filename="ここがfilename"}</span></span>
-<span id="cb11-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot</span>(cars)</span>
-<span id="cb11-3"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">```</span></span></code></pre></div>
-<p>とすることで可能です。<code>{.r}</code>は<code>r</code>と同じです。コードのみを表示します。</p>
-<p>文中にコードを入れる場合は、<code>`</code>で挟むとできます。<code>`plot(cars)`</code>のように書きます。</p>
-</section>
-<section id="改ページ" class="level2">
-<h2 class="anchored" data-anchor-id="改ページ">改ページ</h2>
-<div class="sourceCode" id="cb12" data-shortcodes="false" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1">ページ1</span>
-<span id="cb12-2"></span>
-<span id="cb12-3">{{&lt; pagebreak &gt;}}</span>
-<span id="cb12-4"></span>
-<span id="cb12-5">ページ2</span></code></pre></div>
-<p>または、<img src="https://latex.codecogs.com/png.latex?%5CLaTeX">を使っている場合は<code>\newpage</code>でもできます。<code>\pagebreak</code>でもできます。二つは微妙に異なるので、違いはググってみてください。</p>
-</section>
-<section id="calloutブロック" class="level2">
-<h2 class="anchored" data-anchor-id="calloutブロック">Calloutブロック</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-これがcalloutブロック
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>これを入れるためには、以下のように書きます。</p>
-</div>
-</div>
-<div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb13-1">::: {.callout-note}</span>
-<span id="cb13-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">## ここがキャプションです。</span></span>
-<span id="cb13-3"></span>
-<span id="cb13-4"><span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">`note`</span>の他に、<span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">`tip`</span>、<span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">`warning`</span>、<span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">`caution`</span>、そして<span class="in" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">`important`</span>があります。</span>
-<span id="cb13-5">:::</span></code></pre></div>
-<p><code>{.callout-note}</code>の部分を<code>{.callout-note collapse=true}</code>にすると折りたたみ可能なブロックになります。</p>
-</section>
-<section id="参考文献" class="level2">
-<h2 class="anchored" data-anchor-id="参考文献">参考文献</h2>
-<p>Zotero等を使って<code>references.bib</code>ファイル<sup>4</sup>を作成し、コードと同じディレクトリに置いてあるとします。</p>
-<p>YAMLヘッダーで次のように設定します。</p>
-<div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb14-2"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">title:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> "Title"</span></span>
-<span id="cb14-3"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">author:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> "Author"</span></span>
-<span id="cb14-4"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">format:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> pdf</span></span>
-<span id="cb14-5"><span class="an" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">bibliography:</span><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"> references.bib</span></span>
-<span id="cb14-6"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div>
-<p><code>.bib</code>ファイルの中身は次のようになっているので、本文中で<code>@lamport1994latex</code>と書けば本文内で参照できます。</p>
-<div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode bibtex code-with-copy"><code class="sourceCode bibtex"><span id="cb15-1"><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">@article</span>{<span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">lamport1994latex</span>,</span>
-<span id="cb15-2">  <span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">title</span>={LaTeX: A Document Preparation System},</span>
-<span id="cb15-3">  <span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">author</span>={Lamport, Leslie},</span>
-<span id="cb15-4">  <span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">journal</span>={Addison-Wesley},</span>
-<span id="cb15-5">  <span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">year</span>={1994},</span>
-<span id="cb15-6">  <span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">volume</span>={2}</span>
-<span id="cb15-7">}</span></code></pre></div>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>ここまで個人的によく使うマークダウン記法についてまとめました。</p>
-<p>僕自身もいろいろ書いていく中で使うものが出てくると思うので、適宜追記していきます。</p>
-</section>
-<section id="参考" class="level2">
-<h2 class="anchored" data-anchor-id="参考">参考</h2>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://quarto.org/docs/guide/">Quarto公式ガイド</a></p>
-</div>
-</div>
-</div>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>もちろん入れても大丈夫です。↩︎</p></li>
-<li id="fn2"><p>パスの説明は文面で書くにはやや長くなりそうなので、<a href="https://webliker.info/html/78726/">こちら</a>などを参考にしてください。↩︎</p></li>
-<li id="fn3"><p>これは脚注↩︎</p></li>
-<li id="fn4"><p>ファイル名は何でも大丈夫ですよ。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>Quarto</category>
-  <guid>https://yo5uke.com/pages/tips/240802_quarto_markdown/</guid>
-  <pubDate>Thu, 01 Aug 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
