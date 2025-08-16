@@ -9,8 +9,1438 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.7.32</generator>
-<lastBuildDate>Sat, 26 Jul 2025 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.7.33</generator>
+<lastBuildDate>Fri, 15 Aug 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【Python】高速スクレイピングを実装する【並列化】</title>
+  <link>https://yo5uke.com/pages/tips/250816_scraping_python/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>Pythonでスクレイピングを実行したくて、ChatGPTに頼んでコードを書いてもらったということを以下の記事に書きました。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../pages/blog/250812_python_scraping/index.html">Pythonでスクレイピングをやってみる</a></p>
+</div>
+</div>
+</div>
+<p>また、これまでRでスクレイピングを実行する方法についていくつか記事を書いてきましたが、1つずつファイルをダウンロード、ZIPファイルを解凍、みたいな流れで実行していたところ、今回は複数のファイルを並列してダウンロードできる方法を学ぶことができました。</p>
+<p>そのコード、手順についてまとめていきたいと思います。</p>
+</section>
+<section id="環境" class="level2">
+<h2 class="anchored" data-anchor-id="環境">環境</h2>
+<ul>
+<li><p>Windows 11</p></li>
+<li><p>Python 3.12.3</p></li>
+</ul>
+</section>
+<section id="ダウンロードするページ" class="level2">
+<h2 class="anchored" data-anchor-id="ダウンロードするページ">ダウンロードするページ</h2>
+<p><a href="../../../pages/tips/250613_scraping_pop_by_mesh/index.html">Rのコードを紹介したページ</a>と同じで、国勢調査をもとに公開しているメッシュごとの人口データをダウンロードします。URLは以下です。</p>
+<p><a href="https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=1&amp;toukeiCode=00200521&amp;toukeiYear=2020&amp;aggregateUnit=H&amp;serveyId=H002005112020&amp;statsId=T001141&amp;datum=2011" class="uri">https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=1&amp;toukeiCode=00200521&amp;toukeiYear=2020&amp;aggregateUnit=H&amp;serveyId=H002005112020&amp;statsId=T001141&amp;datum=2011</a></p>
+</section>
+<section id="コード" class="level2">
+<h2 class="anchored" data-anchor-id="コード">コード</h2>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ====== Standard library ======</span></span>
+<span id="cb1-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> re</span>
+<span id="cb1-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> shutil</span>
+<span id="cb1-4"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> threading</span>
+<span id="cb1-5"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> zipfile</span>
+<span id="cb1-6"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> pathlib <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Path</span>
+<span id="cb1-7"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> typing <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Optional, Tuple</span>
+<span id="cb1-8"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> urllib.parse <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> urljoin</span>
+<span id="cb1-9"></span>
+<span id="cb1-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ====== Third-party ======</span></span>
+<span id="cb1-11"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> requests</span>
+<span id="cb1-12"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> bs4 <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> BeautifulSoup</span>
+<span id="cb1-13"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> requests.adapters <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> HTTPAdapter</span>
+<span id="cb1-14"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> tqdm <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> tqdm</span>
+<span id="cb1-15"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> urllib3.util.retry <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Retry</span>
+<span id="cb1-16"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> concurrent.futures <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> ThreadPoolExecutor, as_completed</span>
+<span id="cb1-17"></span>
+<span id="cb1-18"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> selenium <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> webdriver</span>
+<span id="cb1-19"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> selenium.webdriver.chrome.options <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> Options</span>
+<span id="cb1-20"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> selenium.webdriver.common.by <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> By</span>
+<span id="cb1-21"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> selenium.webdriver.support <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> expected_conditions <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> EC</span>
+<span id="cb1-22"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> selenium.webdriver.support.ui <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> WebDriverWait</span>
+<span id="cb1-23"></span>
+<span id="cb1-24"></span>
+<span id="cb1-25"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-26"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Settings</span></span>
+<span id="cb1-27"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-28"></span>
+<span id="cb1-29"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 保存先ディレクトリのパス（存在しない場合は作成）</span></span>
+<span id="cb1-30">OUTPUT_DIR <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Path(<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">r"data</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\250</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">813_scraping_python"</span>)</span>
+<span id="cb1-31">OUTPUT_DIR.mkdir(parents<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, exist_ok<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb1-32"></span>
+<span id="cb1-33"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ベースURL（相対パスを補完するために使用）</span></span>
+<span id="cb1-34">BASE_URL <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://www.e-stat.go.jp"</span></span>
+<span id="cb1-35"></span>
+<span id="cb1-36"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 並列処理設定</span></span>
+<span id="cb1-37">MAX_WORKERS <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>          <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 同時DL数（回線速度・先方負荷に応じて調整）</span></span>
+<span id="cb1-38">REQUEST_TIMEOUT <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">60</span>     <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># タイムアウト時間（秒）</span></span>
+<span id="cb1-39"></span>
+<span id="cb1-40"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># HTTPリクエスト時のUser-Agent（アクセス元をブラウザっぽく偽装）</span></span>
+<span id="cb1-41">USER_AGENT <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (</span>
+<span id="cb1-42">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Mozilla/5.0 (Windows NT 10.0; Win64; x64) "</span></span>
+<span id="cb1-43">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"AppleWebKit/537.36 (KHTML, like Gecko) "</span></span>
+<span id="cb1-44">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Chrome/126 Safari/537.36"</span></span>
+<span id="cb1-45">)</span>
+<span id="cb1-46"></span>
+<span id="cb1-47"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-48"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Selenium setup</span></span>
+<span id="cb1-49"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-50"></span>
+<span id="cb1-51"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> create_chrome_driver() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> webdriver.Chrome:</span>
+<span id="cb1-52">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""Headless Chromeのドライバーを作成"""</span></span>
+<span id="cb1-53">    options <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Options()</span>
+<span id="cb1-54">    </span>
+<span id="cb1-55">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ヘッドレスモード（ブラウザ画面を表示せずにバックグラウンドで動作）</span></span>
+<span id="cb1-56">    options.add_argument(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"--headless=new"</span>)</span>
+<span id="cb1-57">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># GPU無効化（描画関連の不要な処理を省く）</span></span>
+<span id="cb1-58">    options.add_argument(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"--disable-gpu"</span>)</span>
+<span id="cb1-59">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ウィンドウサイズ指定（幅×高さ）</span></span>
+<span id="cb1-60">    options.add_argument(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"--window-size=1280,1800"</span>)</span>
+<span id="cb1-61">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 自動化検知を回避（アクセスブロック対策）</span></span>
+<span id="cb1-62">    options.add_argument(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"--disable-blink-features=AutomationControlled"</span>)</span>
+<span id="cb1-63">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># User-Agentを上書き（アクセス元をブラウザっぽく偽装）</span></span>
+<span id="cb1-64">    options.add_argument(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"user-agent=</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>USER_AGENT<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb1-65"></span>
+<span id="cb1-66">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Chromeドライバーを生成</span></span>
+<span id="cb1-67">    driver <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> webdriver.Chrome(options<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>options)</span>
+<span id="cb1-68">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ページ読み込みのタイムアウト（秒）</span></span>
+<span id="cb1-69">    driver.set_page_load_timeout(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">60</span>)</span>
+<span id="cb1-70">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># JavaScript実行のタイムアウト（秒）</span></span>
+<span id="cb1-71">    driver.set_script_timeout(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">60</span>)</span>
+<span id="cb1-72"></span>
+<span id="cb1-73">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> driver</span>
+<span id="cb1-74"></span>
+<span id="cb1-75"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-76"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Dynamic page loader</span></span>
+<span id="cb1-77"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-78"></span>
+<span id="cb1-79"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> fetch_rendered_html(</span>
+<span id="cb1-80">    url: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>,</span>
+<span id="cb1-81">    driver: webdriver.Chrome,</span>
+<span id="cb1-82">    wait_for_css: Optional[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>,</span>
+<span id="cb1-83">    timeout: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">int</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>,</span>
+<span id="cb1-84">) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>:</span>
+<span id="cb1-85">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb1-86"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    JavaScript実行後のHTMLを取得する関数</span></span>
+<span id="cb1-87"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    必要に応じて、特定のCSSセレクタがDOMに出現するまで待機</span></span>
+<span id="cb1-88"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb1-89">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 指定したURLにアクセス</span></span>
+<span id="cb1-90">    driver.get(url)</span>
+<span id="cb1-91"></span>
+<span id="cb1-92">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ページの読み込み完了まで待機</span></span>
+<span id="cb1-93">    WebDriverWait(driver, timeout).until(</span>
+<span id="cb1-94">        <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">lambda</span> d: d.execute_script(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"return document.readyState"</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"complete"</span></span>
+<span id="cb1-95">    )</span>
+<span id="cb1-96"></span>
+<span id="cb1-97">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># もしCSSセレクタが指定されていれば、その要素が表示されるまで待機</span></span>
+<span id="cb1-98">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># （JSによる非同期描画の完了を保証するため）</span></span>
+<span id="cb1-99">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> wait_for_css:</span>
+<span id="cb1-100">        WebDriverWait(driver, timeout).until(</span>
+<span id="cb1-101">            EC.presence_of_all_elements_located((By.CSS_SELECTOR, wait_for_css))</span>
+<span id="cb1-102">        )</span>
+<span id="cb1-103"></span>
+<span id="cb1-104">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 最終的なページのHTMLソースを返す</span></span>
+<span id="cb1-105">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> driver.page_source</span>
+<span id="cb1-106"></span>
+<span id="cb1-107"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-108"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Link extraction</span></span>
+<span id="cb1-109"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-110"></span>
+<span id="cb1-111"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> find_csv_links(html: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>, pattern: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">r"data</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\?</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">statsId=T001141"</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>]:</span>
+<span id="cb1-112">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb1-113"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    HTMLから指定パターンに合致するリンク（href属性）を抽出する関数。</span></span>
+<span id="cb1-114"></span>
+<span id="cb1-115"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Parameters</span></span>
+<span id="cb1-116"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    ----------</span></span>
+<span id="cb1-117"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    html : str</span></span>
+<span id="cb1-118"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        取得済みのHTML文字列</span></span>
+<span id="cb1-119"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    pattern : str</span></span>
+<span id="cb1-120"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        hrefがこのパターンにマッチするリンクだけを抽出</span></span>
+<span id="cb1-121"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        デフォルトは 'data?statsId=T001141' を含むリンク。</span></span>
+<span id="cb1-122"></span>
+<span id="cb1-123"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    Returns</span></span>
+<span id="cb1-124"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    -------</span></span>
+<span id="cb1-125"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    list[str]</span></span>
+<span id="cb1-126"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        マッチしたhrefのリスト。</span></span>
+<span id="cb1-127"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb1-128">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># HTML文字列をBeautifulSoupでパース</span></span>
+<span id="cb1-129">    soup <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> BeautifulSoup(html, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"html.parser"</span>)</span>
+<span id="cb1-130"></span>
+<span id="cb1-131">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># &lt;a&gt;タグの中でhref属性を持つものをすべて取得し、</span></span>
+<span id="cb1-132">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># さらにhrefが正規表現patternに一致するものだけを抽出</span></span>
+<span id="cb1-133">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> [</span>
+<span id="cb1-134">        a[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"href"</span>]</span>
+<span id="cb1-135">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> a <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> soup.find_all(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a"</span>, href<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb1-136">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> re.search(pattern, a[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"href"</span>])</span>
+<span id="cb1-137">    ]</span>
+<span id="cb1-138"></span>
+<span id="cb1-139"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-140"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Thread-local requests.Session</span></span>
+<span id="cb1-141"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-142"></span>
+<span id="cb1-143"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># スレッドごとに独立したデータを持てる入れ物を作成</span></span>
+<span id="cb1-144">_thread_local <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> threading.local()</span>
+<span id="cb1-145"></span>
+<span id="cb1-146"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> get_session() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> requests.Session:</span>
+<span id="cb1-147">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb1-148"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    スレッドローカルに保持されるHTTPセッションを取得する関数。</span></span>
+<span id="cb1-149"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    接続プーリング、リトライ設定、統一User-Agentを適用。</span></span>
+<span id="cb1-150"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    </span></span>
+<span id="cb1-151"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    - スレッドローカル: 各スレッドで独立したセッションを保持するための仕組み。</span></span>
+<span id="cb1-152"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    - 接続プーリング: 同じホストへの接続を再利用して効率化。</span></span>
+<span id="cb1-153"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    - リトライ設定: 一時的なエラー（429, 500, 502, 503, 504）に対して最大3回まで再試行。</span></span>
+<span id="cb1-154"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    - User-Agent統一: リクエストの送信元情報を統一してサーバー側の認識を安定化。</span></span>
+<span id="cb1-155"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb1-156">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">getattr</span>(_thread_local, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"session"</span>, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>) <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">is</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>:</span>
+<span id="cb1-157">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 新規セッション作成</span></span>
+<span id="cb1-158">        s <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> requests.Session()</span>
+<span id="cb1-159">        s.headers.update({<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"User-Agent"</span>: USER_AGENT})</span>
+<span id="cb1-160"></span>
+<span id="cb1-161">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># リトライ戦略の設定</span></span>
+<span id="cb1-162">        retries <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> Retry(</span>
+<span id="cb1-163">            total<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>,                   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 最大リトライ回数</span></span>
+<span id="cb1-164">            backoff_factor<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.8</span>,        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># リトライ間隔の指数的増加係数</span></span>
+<span id="cb1-165">            status_forcelist<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">429</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">500</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">502</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">503</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">504</span>),  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 再試行対象のHTTPステータスコード</span></span>
+<span id="cb1-166">            allowed_methods<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"GET"</span>,),  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># リトライ対象HTTPメソッド</span></span>
+<span id="cb1-167">        )</span>
+<span id="cb1-168"></span>
+<span id="cb1-169">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 接続アダプタの設定（プーリングとリトライ）</span></span>
+<span id="cb1-170">        adapter <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> HTTPAdapter(</span>
+<span id="cb1-171">            pool_connections<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>MAX_WORKERS,  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 同時接続プール数</span></span>
+<span id="cb1-172">            pool_maxsize<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>MAX_WORKERS,      <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># プールの最大接続数</span></span>
+<span id="cb1-173">            max_retries<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>retries,           <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 上記リトライ戦略を適用</span></span>
+<span id="cb1-174">        )</span>
+<span id="cb1-175">        s.mount(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"http://"</span>, adapter)</span>
+<span id="cb1-176">        s.mount(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://"</span>, adapter)</span>
+<span id="cb1-177"></span>
+<span id="cb1-178">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># スレッドローカルに保存</span></span>
+<span id="cb1-179">        _thread_local.session <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> s</span>
+<span id="cb1-180"></span>
+<span id="cb1-181">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> _thread_local.session</span>
+<span id="cb1-182"></span>
+<span id="cb1-183"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-184"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ZIP download &amp; extract (worker)</span></span>
+<span id="cb1-185"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-186"></span>
+<span id="cb1-187"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> fetch_zip_and_extract_txt(task: Tuple[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>]) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">tuple</span>[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">bool</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>]:</span>
+<span id="cb1-188">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""</span></span>
+<span id="cb1-189"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    指定URLからZIPをダウンロードし、中の最初の'.txt'ファイルを</span></span>
+<span id="cb1-190"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    'pop_mesh{code}.txt' という名前で保存する関数。</span></span>
+<span id="cb1-191"></span>
+<span id="cb1-192"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    戻り値:</span></span>
+<span id="cb1-193"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        (url, success, message)</span></span>
+<span id="cb1-194"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        url     : ダウンロード元のURL</span></span>
+<span id="cb1-195"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        success : 成功した場合はTrue、失敗はFalse</span></span>
+<span id="cb1-196"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">        message : 実行結果の簡易説明</span></span>
+<span id="cb1-197"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    """</span></span>
+<span id="cb1-198">    full_url, code <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> task</span>
+<span id="cb1-199">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 一時保存用のZIPファイルパス</span></span>
+<span id="cb1-200">    zip_path <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> OUTPUT_DIR <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"pop_mesh</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>code<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">.zip"</span></span>
+<span id="cb1-201">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 最終的に保存するテキストファイルパス</span></span>
+<span id="cb1-202">    txt_path <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> OUTPUT_DIR <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"pop_mesh</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>code<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">.txt"</span></span>
+<span id="cb1-203"></span>
+<span id="cb1-204">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># すでにtxtが存在する場合はスキップ</span></span>
+<span id="cb1-205">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> txt_path.exists():</span>
+<span id="cb1-206">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> full_url, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"skipped (exists)"</span></span>
+<span id="cb1-207"></span>
+<span id="cb1-208">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">try</span>:</span>
+<span id="cb1-209">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># セッションを取得（接続の再利用などを行う）</span></span>
+<span id="cb1-210">        session <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> get_session()</span>
+<span id="cb1-211"></span>
+<span id="cb1-212">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ZIPをダウンロード（ストリーミングで少しずつ書き込み）</span></span>
+<span id="cb1-213">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> session.get(full_url, stream<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, timeout<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>REQUEST_TIMEOUT) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> resp:</span>
+<span id="cb1-214">            resp.raise_for_status()</span>
+<span id="cb1-215">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">open</span>(zip_path, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"wb"</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> f:</span>
+<span id="cb1-216">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> chunk <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> resp.iter_content(chunk_size<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8192</span>):</span>
+<span id="cb1-217">                    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> chunk:</span>
+<span id="cb1-218">                        f.write(chunk)</span>
+<span id="cb1-219"></span>
+<span id="cb1-220">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ZIPファイルでなければ削除して終了</span></span>
+<span id="cb1-221">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> zipfile.is_zipfile(zip_path):</span>
+<span id="cb1-222">            zip_path.unlink(missing_ok<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb1-223">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> full_url, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"not a zip file"</span></span>
+<span id="cb1-224"></span>
+<span id="cb1-225">        found_txt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span></span>
+<span id="cb1-226">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> zipfile.ZipFile(zip_path, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"r"</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> zf:</span>
+<span id="cb1-227">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> info <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> zf.infolist():</span>
+<span id="cb1-228">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> info.is_dir():  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ディレクトリはスキップ</span></span>
+<span id="cb1-229">                    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">continue</span></span>
+<span id="cb1-230">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> info.filename.lower().endswith(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">".txt"</span>):</span>
+<span id="cb1-231">                    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 直接上書きせず一時ファイルに保存 → 後でリネーム（競合回避）</span></span>
+<span id="cb1-232">                    tmp_path <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> txt_path.with_suffix(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">".txt.part"</span>)</span>
+<span id="cb1-233">                    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> zf.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">open</span>(info) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> src, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">open</span>(tmp_path, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"wb"</span>) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> dst:</span>
+<span id="cb1-234">                        shutil.copyfileobj(src, dst)</span>
+<span id="cb1-235">                    tmp_path.replace(txt_path)</span>
+<span id="cb1-236">                    found_txt <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span></span>
+<span id="cb1-237">                    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">break</span></span>
+<span id="cb1-238"></span>
+<span id="cb1-239">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ZIPは不要になったので削除</span></span>
+<span id="cb1-240">        zip_path.unlink(missing_ok<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb1-241"></span>
+<span id="cb1-242">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># TXTが見つからなかった場合</span></span>
+<span id="cb1-243">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">not</span> found_txt:</span>
+<span id="cb1-244">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> full_url, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"no .txt in zip"</span></span>
+<span id="cb1-245">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> full_url, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ok"</span></span>
+<span id="cb1-246"></span>
+<span id="cb1-247">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">except</span> <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Exception</span> <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> e:</span>
+<span id="cb1-248">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># エラー時はZIPを削除</span></span>
+<span id="cb1-249">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">try</span>:</span>
+<span id="cb1-250">            zip_path.unlink(missing_ok<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb1-251">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">except</span> <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">Exception</span>:</span>
+<span id="cb1-252">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">pass</span></span>
+<span id="cb1-253">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">return</span> full_url, <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">False</span>, <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"error: </span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>e<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb1-254"></span>
+<span id="cb1-255"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-256"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Main</span></span>
+<span id="cb1-257"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ==============================</span></span>
+<span id="cb1-258"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">def</span> main() <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-&gt;</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">None</span>:</span>
+<span id="cb1-259">    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">"""一覧ページを巡回→リンク収集→並列ダウンロード。"""</span></span>
+<span id="cb1-260">    driver <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> create_chrome_driver()  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Chromeドライバー生成</span></span>
+<span id="cb1-261">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">try</span>:</span>
+<span id="cb1-262">        tasks: <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">list</span>[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">tuple</span>[<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>, <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">str</span>]] <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> []  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ダウンロード対象の (URL, code) タプルを格納</span></span>
+<span id="cb1-263"></span>
+<span id="cb1-264">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ページ番号 1〜8 を巡回してリンクを収集</span></span>
+<span id="cb1-265">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> i <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> tqdm(<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">range</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">9</span>), desc<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ページ巡回"</span>):</span>
+<span id="cb1-266">            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ページごとのURL生成</span></span>
+<span id="cb1-267">            url <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> (</span>
+<span id="cb1-268">                <span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"https://www.e-stat.go.jp/gis/statmap-search?page=</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>i<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb1-269">                <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"&amp;type=1&amp;toukeiCode=00200521&amp;toukeiYear=2020&amp;aggregateUnit=H"</span></span>
+<span id="cb1-270">                <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"&amp;serveyId=H002005112020&amp;statsId=T001141&amp;datum=2011"</span></span>
+<span id="cb1-271">            )</span>
+<span id="cb1-272">            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># JavaScriptレンダリング後のHTMLを取得</span></span>
+<span id="cb1-273">            html <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> fetch_rendered_html(</span>
+<span id="cb1-274">                url,</span>
+<span id="cb1-275">                driver,</span>
+<span id="cb1-276">                wait_for_css<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a[href*='data?statsId=T001141']"</span>,  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># このCSSが出現するまで待機</span></span>
+<span id="cb1-277">                timeout<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">25</span>,</span>
+<span id="cb1-278">            )</span>
+<span id="cb1-279">            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># CSVリンク抽出</span></span>
+<span id="cb1-280">            csv_links <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> find_csv_links(html)</span>
+<span id="cb1-281">            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 相対パスを絶対URLへ変換</span></span>
+<span id="cb1-282">            full_urls <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [urljoin(BASE_URL, link) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> link <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> csv_links]</span>
+<span id="cb1-283"></span>
+<span id="cb1-284">            <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># URLとcodeをセットで保存</span></span>
+<span id="cb1-285">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> full_url, csv_link <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">zip</span>(full_urls, csv_links):</span>
+<span id="cb1-286">                m <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> re.search(<span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">r"code=</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">(</span><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">[0-9]</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="vs" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>, csv_link)</span>
+<span id="cb1-287">                code <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> m.group(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> m <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"unknown"</span></span>
+<span id="cb1-288">                tasks.append((full_url, code))</span>
+<span id="cb1-289"></span>
+<span id="cb1-290">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 成功・失敗・スキップ件数カウンタ</span></span>
+<span id="cb1-291">        successes <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb1-292">        failures <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb1-293">        skipped <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span></span>
+<span id="cb1-294"></span>
+<span id="cb1-295">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 並列ダウンロード処理</span></span>
+<span id="cb1-296">        <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">with</span> ThreadPoolExecutor(max_workers<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>MAX_WORKERS) <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> ex:</span>
+<span id="cb1-297">            futures <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> [ex.submit(fetch_zip_and_extract_txt, t) <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> t <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> tasks]</span>
+<span id="cb1-298">            <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> fut <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> tqdm(as_completed(futures), total<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">len</span>(futures), desc<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ダウンロード"</span>):</span>
+<span id="cb1-299">                url, ok, msg <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> fut.result()</span>
+<span id="cb1-300">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> ok <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">and</span> msg.startswith(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ok"</span>):</span>
+<span id="cb1-301">                    successes <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb1-302">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">elif</span> ok <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">and</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"skipped"</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> msg:</span>
+<span id="cb1-303">                    skipped <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb1-304">                <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">else</span>:</span>
+<span id="cb1-305">                    failures <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb1-306"></span>
+<span id="cb1-307">        <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 処理結果を表示</span></span>
+<span id="cb1-308">        <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(<span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">f"</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">Done. ok=</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>successes<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, skipped=</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>skipped<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">, failed=</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">{</span>failures<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">}</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb1-309"></span>
+<span id="cb1-310">    <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">finally</span>:</span>
+<span id="cb1-311">        driver.quit()  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ブラウザを閉じる</span></span>
+<span id="cb1-312"></span>
+<span id="cb1-313"></span>
+<span id="cb1-314"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">if</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">__name__</span> <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"__main__"</span>:</span>
+<span id="cb1-315">    main()</span></code></pre></div>
+</section>
+<section id="ざっくり解説" class="level2">
+<h2 class="anchored" data-anchor-id="ざっくり解説">ざっくり解説</h2>
+<p>Setting, Selenium setupなど、いくつかのブロックに分かれているので、各ブロックでどのようなことをしているのか、ざっくり確認していきます。</p>
+<section id="settings" class="level3">
+<h3 class="anchored" data-anchor-id="settings">Settings</h3>
+<p>スクレイピングに必要な設定をしています。URLは場合に合わせて変える必要があります。</p>
+<p><code>MAX_WORKERS</code>の部分でいくつ並列でダウンロードするかを設定しているのが今回のミソだと思います。6つ平行することで高速化を図っています。</p>
+<p><code>USER_AGENT</code>では、どのブラウザ、環境からアクセスしているのかを設定するもので、デフォルトだと自動化ツールからのアクセスと判断され、アクセスが拒否される可能性があるので、それを防ぐために設定をしています。</p>
+</section>
+<section id="selenium-setup" class="level3">
+<h3 class="anchored" data-anchor-id="selenium-setup">Selenium setup</h3>
+<p>細かい設定はコメントで書いている通りではあるのですが、ブラウザを自動操作できる環境を整えている部分です。</p>
+<p>ブラウザをバックグラウンドで動かしたり、無駄な描画はなくしたりと、効率的な設定をここで指定しています。</p>
+</section>
+<section id="dynamic-page-loader" class="level3">
+<h3 class="anchored" data-anchor-id="dynamic-page-loader">Dynamic page loader</h3>
+<p>ここがRでいうところの<code>read_html_live()</code>に当たる部分です。</p>
+<p>指定されたURLにアクセスして、HTMLソースを返すといった作業をしています。</p>
+<p>コメントを読んでいただくと、JavaScriptにも対応しているのがお分かりになるかと思います。</p>
+</section>
+<section id="link-extraction" class="level3">
+<h3 class="anchored" data-anchor-id="link-extraction">Link extraction</h3>
+<p>これはRでいうところの<code>html_attrs()</code>や<code>html_elements()</code>に該当するようなことをしています。</p>
+<p><code>a</code>タグを探してきて、その中に含まれる<code>href</code>を引っ張ってくるということをしています。<code>href</code>にはダウンロードのためのリンクが含まれています。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+リンクの探し方について
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>a</code>タグの探し方などについては、<a href="../../../pages/tips/250319_scraping/index.html#ファイルのリンクを取得">こちら</a>で簡単に説明しています。</p>
+</div>
+</div>
+</section>
+<section id="thread-local-requests.session" class="level3">
+<h3 class="anchored" data-anchor-id="thread-local-requests.session">Thread-local requests.Session</h3>
+<p>ここでは、各スレッドごとに独立したHTTPセッションを用意しています。</p>
+<p>これにより、並列ダウンロード時に接続が混線せず安全に動作し、さらにセッションの接続再利用（コネクションプール）によって通信が効率化されます。</p>
+<p>またリトライ設定やUser-Agentの統一もここでまとめて適用しているので、安定性と速度の両立ができます。</p>
+</section>
+<section id="zip-download-extract-worker" class="level3">
+<h3 class="anchored" data-anchor-id="zip-download-extract-worker">ZIP download &amp; extract (worker)</h3>
+<p>ここではZIPファイルのダウンロードと解凍の設定をしています。</p>
+<p>今回はダウンロードするものの中身はテキストファイルなので<code>.txt</code>として解凍するように設定していますが、ここはダウンロードするものに合わせて変更する必要があります。</p>
+<p>変なものをダウンロードしてしまった場合の対処や、既にファイルが存在する場合の対処もしているので、ミスにもある程度対応できるようになっています。エラーメッセージも表示されるようにしているので、何のエラーが起きたのかはわかるようになっています。</p>
+</section>
+<section id="main" class="level3">
+<h3 class="anchored" data-anchor-id="main">Main</h3>
+<p>その名の通りメインのコードです。</p>
+<p>今回はページ数が1～8まであるとわかっていますので、<code>range(1, 9)</code>と書かれています。Rと違うので戸惑ったのですが、Pythonでは開始値は含み、終了値は含まないようです。なので1と9が記されています。</p>
+<p>流れとしては、ページを巡回してダウンロード先のURLを保存し、巡回し終わったら並列でそれらをダウンロードしていきます。ここが並列になっているので、ダウンロードの速度が向上しているというわけです。</p>
+<p>ダウンロード後にはダウンロードに成功したもの、既に存在してスキップしたもの、失敗したものの件数を出力するようにしています。</p>
+<p>最後には<code>driver.quit()</code>でブラウザを終了させ、プロセスやメモリが残らないようになっています。</p>
+</section>
+<section id="最後のif文" class="level3">
+<h3 class="anchored" data-anchor-id="最後のif文">最後の<code>if</code>文</h3>
+<p>1番最後の行は「このファイルを直接実行したときだけ<code>main()</code>を動かす」という役割を持っています。<br>
+</p>
+<p>Pythonでは同じファイルをスクリプトとして実行することも、ライブラリとして他のプログラムから読み込むこともできますが、この仕組みによって「直接実行した場合だけスクレイピング処理を走らせ、importされた場合には余計な処理をしない」ようにしています。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はChatGPTに手伝ってもらいながら、RでのスクレイピングコードをPythonに書き換え、簡単にまとめました。</p>
+<p>自分もPythonは勉強を始めたばかりではあるので認識の誤り等あるかもしれませんが、コメントからお寄せいただければ幸いです。</p>
+<p>個人的には業務の効率化を図るうえでPythonでのスクレイピングを活用していきたいと思っているので、引き続きアップデートなどあればまた記事にしていきたいと思います。</p>
+
+
+<!-- -->
+
+</section>
+
+ ]]></description>
+  <category>Python</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/250816_scraping_python/</guid>
+  <pubDate>Fri, 15 Aug 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>recode関数でデータフレームの中身を置き換える</title>
   <link>https://yo5uke.com/pages/tips/250727_recode/</link>
@@ -14167,196 +15597,6 @@ font-style: inherit;">--local</span> myremote gdrive_user_credentials_file ~/.ca
   <category>備忘録</category>
   <guid>https://yo5uke.com/pages/tips/240831_google_cloud_project/</guid>
   <pubDate>Fri, 30 Aug 2024 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【RStudio】ローカルへのインストールまとめ</title>
-  <link>https://yo5uke.com/pages/tips/240829_local_r/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>ローカルへのRのインストール方法についてまとめます。これまでの記事でご紹介した開発コンテナとは違い、特に事前準備はいりません。</p>
-<p>こんなニッチなサイトを見てくれている方には必要ない気もしますが、Stata出身の方々や実証が初めての方々に向けて…</p>
-<p>あと、シンプルにリンク探すの面倒ですよね、まとめます。</p>
-</section>
-<section id="結論" class="level2">
-<h2 class="anchored" data-anchor-id="結論">結論</h2>
-<p>以下のリンクに書いてあるものがすべてです。</p>
-<p><a href="https://posit.co/download/rstudio-desktop/" class="uri">https://posit.co/download/rstudio-desktop/</a></p>
-</section>
-<section id="さすがに" class="level2">
-<h2 class="anchored" data-anchor-id="さすがに">さすがに…</h2>
-<p>こんなんで説明になるわけがないので、設定なども含めてもう少し説明します。</p>
-<p>まず、Rを使うには、「R」と、「RStudio」が必要です<sup>1</sup>。</p>
-<p>Rは調理用具で、RStudioはキッチンだと思ってもらえればよいのではないでしょうか。Rという用具だけでも料理はできるけど、RStudioという環境が整っているほうが料理が効率的にスムーズに行えると思います。</p>
-<p>この観点からすれば、RStudioは必ずしも要るわけではないのかもしれませんが、わざわざキッチン以外で料理する人はいませんよね…笑</p>
-</section>
-<section id="rをインストール" class="level2">
-<h2 class="anchored" data-anchor-id="rをインストール">1. Rをインストール</h2>
-<p>以下のリンクを開き、自分の環境に合わせて「Download R for…」を選びます。</p>
-<p><a href="https://cran.rstudio.com/" class="uri">https://cran.rstudio.com/</a></p>
-<p>進んだら、上部に出てくる「base」をクリックして次に行きます。</p>
-<p>次に「Download R-4.4.1 for Windows」のように出てくるので、そこをクリックするとインストーラーがダウンロードできます。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240829_local_r/image/download_r.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:90.0%"></p>
-</figure>
-</div>
-<p>ダウンロードできたらそのファイルを開き、インストールを開始します。</p>
-<ol type="1">
-<li>言語を決めて次へ</li>
-<li>情報を読んで次へ</li>
-<li>インストール先はデフォルトのまま次へ</li>
-<li>コンポーネントもデフォルトのまま次へ</li>
-<li>起動時オプションもデフォルトのまま次へ</li>
-<li>スタートメニューフォルダーもデフォルトのまま次へ</li>
-<li>追加タスクもデフォルトのまま次へ
-<ul>
-<li>先ほども言った通り作業はRStudioでするので、デスクトップにアイコンを置いたところで使うことはないため、必要なければそのチェックを外してください。</li>
-</ul></li>
-<li>インストール完了</li>
-</ol>
-<p>以上でインストールができました。</p>
-</section>
-<section id="rstudioのインストール" class="level2">
-<h2 class="anchored" data-anchor-id="rstudioのインストール">2. RStudioのインストール</h2>
-<p>次にキッチンであるRStudioをインストールします。</p>
-<p>以下のリンクの「DOWNLOAD RSTUDIO DESKTOP FOR…」をクリックするとインストーラーをダウンロードできます。</p>
-<p><a href="https://posit.co/download/rstudio-desktop/" class="uri">https://posit.co/download/rstudio-desktop/</a></p>
-<p>先ほどと同様ダウンロードできたファイルを開いてインストールを開始します。</p>
-<p>Rほどいろいろ考えることはなく、デフォルトのまま進んでインストールすれば完了です。</p>
-<p>これでRStudioをインストールできました。開いて作業を進めましょう！</p>
-</section>
-<section id="rstudioの設定" class="level2">
-<h2 class="anchored" data-anchor-id="rstudioの設定">3. RStudioの設定</h2>
-<p>そのまま作業を始めてもよいのですが、少し設定を覗いてみましょう。</p>
-<p>画面上部のToolsからGlobal Options…へ進みます。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240829_local_r/image/rstudio-setting1.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
-</figure>
-</div>
-<p>いろいろな項目がありますが、ここでは簡潔に関係ありそうなところを説明します。</p>
-<section id="デフォルトのワーキングディレクトリ" class="level3">
-<h3 class="anchored" data-anchor-id="デフォルトのワーキングディレクトリ">デフォルトのワーキングディレクトリ</h3>
-<p>1番上のGeneralの中にDefault working directoryという項目があります。ワーキングディレクトリの説明は長くなるので端折りますが、ここで設定が可能です。</p>
-<p>デフォルトでは「~」ですが<sup>2</sup>、必要に応じて変えてください。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240829_local_r/image/rstudio-setting2.png" class="img-fluid figure-img" style="width:70.0%"></p>
-<figcaption>C:/Users/yo5ukにデフォルトを変更しました。</figcaption>
-</figure>
-</div>
-</section>
-<section id="パイプ演算子" class="level3">
-<h3 class="anchored" data-anchor-id="パイプ演算子">パイプ演算子</h3>
-<p>もはやRユーザーにはおなじみのパイプ演算子ですが、Tidyverseが提供する<code>%&gt;%</code>と、base Rが提供する<code>|&gt;</code><sup>3</sup>の2種類があり、キーボードショートカットでどちらを使うか決められます。デフォルトは<code>%&gt;%</code>です。</p>
-<p>正直どちらを使うのかはお好みというか、厳密に違いはあるのですが、普段使っていてどちらかでないと困るようなことには遭遇しませんので、変えても変えなくても問題ありません。</p>
-<p>上から2番目のCodeの中にある「Use native pipe operator, |&gt;」にチェックを入れるとショートカットで<code>|&gt;</code>が出るようになります。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240829_local_r/image/rstudio-setting3.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
-</figure>
-</div>
-<p>ちなみに、ショートカットは<code>Ctrl</code> (Macなら⌘) + <code>Shift</code> + <code>M</code>です。</p>
-</section>
-<section id="テーマやフォント" class="level3">
-<h3 class="anchored" data-anchor-id="テーマやフォント">テーマやフォント</h3>
-<p>上から4番目のAppearanceではRStudioのテーマやフォントを変更できます。</p>
-<p>特にEditor fontとEditor themeが主な変更点になると思います。</p>
-<p>いろいろ試してみるとよいと思います。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240829_local_r/image/rstudio-setting4.png" class="img-fluid figure-img" style="width:70.0%"></p>
-<figcaption>フォントをCascadia Code Lightに、テーマをTomorrow Nightに変更しました。</figcaption>
-</figure>
-</div>
-</section>
-<section id="レイアウトの変更" class="level3">
-<h3 class="anchored" data-anchor-id="レイアウトの変更">レイアウトの変更</h3>
-<p>RStudioのデフォルトでは左上にスクリプト、左下にコンソール、右上に変数等、右下にファイル等が表示されるようになっています。</p>
-<p>例えば僕は、スクリプトの表示割合を増やしたく、さらにコンソールも並べて見たいと思っているので、パネルの配置を変更しています。</p>
-<p>上から5番目のPane Layoutで変更します。</p>
-<p>僕の変更後の配置は次の通りです。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240829_local_r/image/rstudio-setting5.png" class="img-fluid figure-img" style="width:70.0%"></p>
-<figcaption>Source（スクリプト）とConsoleが横に並ぶように設定を変えています。</figcaption>
-</figure>
-</div>
-<p>確認時以外は変数は表示しなくてよいので、Sourceパネル右上にある<img src="https://yo5uke.com/pages/tips/240829_local_r/data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAYAAAByDd+UAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA4ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDplYmFhMjY0ZC05Y2NiLTQ0OGQtYmQ3Zi0yYjEzY2U1NzM3ZTYiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6Q0MxRThDMDhGOUI5MTFFNkI1MjA5MzExNzcwNUREOTYiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6Q0MxRThDMDdGOUI5MTFFNkI1MjA5MzExNzcwNUREOTYiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTcgKE1hY2ludG9zaCkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDplYThlMzQ1YS0xZTZlLTQ5MTQtODViNC1lOGJmYTI3ZmFkOTQiIHN0UmVmOmRvY3VtZW50SUQ9ImFkb2JlOmRvY2lkOnBob3Rvc2hvcDozMjBjMGFiZS00MGQzLTExN2EtYjhmOS1kMTcyMzliNGI4YjAiLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7BBzUcAAAAe0lEQVR42mJsnziNgZ6AiYHOAGahKhCvBeKPQPyfyvgj1GyQHQwsQKwOxCeAWIBGnuID4iAgdgJiC5AP22hoGTIA2dEGstCFjlHoxgT1Mr0AD91TKQsSm5HGdv0f0Hw4auGohaMWjlo4auGohcTVh/+HrQ8Zh3UcAgQYAL+OHwm1Mu46AAAAAElFTkSuQmCC" class="img-fluid">で左半分をスクリプトにしています。</p>
-</section>
-<section id="sweaveの設定" class="level3">
-<h3 class="anchored" data-anchor-id="sweaveの設定">Sweaveの設定</h3>
-<p>そのうちTinyTeXを使ってRStudio上で文書作成などをすることになることもあるかと思います。そんなときのための設定です。</p>
-<p>中央下あたりのSweaveから「Typeset LaTeX into PDF using: 」をXeLaTeXに設定、その下の「Use tinytex when compiling .tex files」にチェックを入れます。</p>
-<p>これでいつしかTinyTeXを使う時でも問題なしです。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240829_local_r/image/rstudio-setting6.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
-</figure>
-</div>
-<p>設定はこんなところではないでしょうか。</p>
-<p>1番下のCopilot、これはGitHub Copilotでめんどくさい申請をしてでも使うべきだと思っているのですが、RStudioとは相性最悪なのでおすすめしません。VSCodeのために申請するのはとても良いと思います。</p>
-</section>
-</section>
-<section id="最後に" class="level2">
-<h2 class="anchored" data-anchor-id="最後に">最後に</h2>
-<p>最近はリモート環境について学んでいたので、記事もそちらに偏りがちだったのですが、些細な業務はやっぱりローカルの方が楽でいいですね。</p>
-<p>うまく使い分けていきたいなと思っているところです。</p>
-<p>これからRを使っていく方の少しでも役に立てれば幸いです。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>最近はPositronなどもあるようですね。今はまだプレリリース状態なので、RStudioを推奨します。↩︎</p></li>
-<li id="fn2"><p>WindowsだとOneDriveのフォルダとかになっているかもしれません。↩︎</p></li>
-<li id="fn3"><p>ページのフォントの問題で大変恐縮なのですが、<code>|&gt;</code> は<code>|</code> と<code>&gt;</code> で構成されています。右向きの三角形ではございません。笑↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>RStudio</category>
-  <guid>https://yo5uke.com/pages/tips/240829_local_r/</guid>
-  <pubDate>Wed, 28 Aug 2024 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.com/pages/tips/240829_local_r/image/Rlogo.png" medium="image" type="image/png" height="112" width="144"/>
 </item>
 </channel>
 </rss>
