@@ -10,7 +10,751 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.7.33</generator>
-<lastBuildDate>Fri, 15 Aug 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 25 Aug 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>XMLファイルから情報を抽出する</title>
+  <link>https://yo5uke.com/pages/tips/250826_xml/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>今度は仕事でXMLファイルを扱う機会がやってきました。</p>
+<p>XMLファイルは、データを「タグ」で階層的に記述するテキスト形式のファイルで、構造化された情報を表現・交換するための標準仕様であり、システム間でデータ連携や保存に広く利用されています。</p>
+<p>見たことがない方にはとんとイメージがわかないと思うのですが、XMLは以下のような構造をしています。</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode xml code-with-copy"><code class="sourceCode xml"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">&lt;?xml</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> version=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1.0"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> encoding=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"UTF-8"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">?&gt;</span></span>
+<span id="cb1-2">&lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Library</span>&gt;</span>
+<span id="cb1-3">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Book</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B001"</span>&gt;</span>
+<span id="cb1-4">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Title</span>&gt;データ分析入門&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Title</span>&gt;</span>
+<span id="cb1-5">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Author</span>&gt;山田太郎&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Author</span>&gt;</span>
+<span id="cb1-6">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Year</span>&gt;2021&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Year</span>&gt;</span>
+<span id="cb1-7">  &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Book</span>&gt;</span>
+<span id="cb1-8">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Book</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B002"</span>&gt;</span>
+<span id="cb1-9">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Title</span>&gt;XML活用ガイド&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Title</span>&gt;</span>
+<span id="cb1-10">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Author</span>&gt;佐藤花子&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Author</span>&gt;</span>
+<span id="cb1-11">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Year</span>&gt;2023&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Year</span>&gt;</span>
+<span id="cb1-12">  &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Book</span>&gt;</span>
+<span id="cb1-13">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Magazine</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"M001"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> category=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Technology"</span>&gt;</span>
+<span id="cb1-14">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Title</span>&gt;Tech Monthly&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Title</span>&gt;</span>
+<span id="cb1-15">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Issue</span>&gt;2024-08&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Issue</span>&gt;</span>
+<span id="cb1-16">  &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Magazine</span>&gt;</span>
+<span id="cb1-17">&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Library</span>&gt;</span></code></pre></div>
+<p><code>Library</code>の中に<code>Book</code>や<code>Magazine</code>が入っていることがわかります。インデントされているので少しはわかりやすいのではないでしょうか。</p>
+<p>さらにその中にはタイトルや著者等の情報が含まれています。</p>
+<p>これが簡単なXMLの例です。</p>
+<p>これがもっと長くずらーっと書かれているものの中から情報を取ってくる作業が仕事で必要になったので、その方法についてまとめたいと思います。</p>
+</section>
+<section id="準備" class="level2">
+<h2 class="anchored" data-anchor-id="準備">準備</h2>
+<p>必要なパッケージは<code>xml2</code>です。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(xml2)</span></code></pre></div>
+</div>
+<p>また、解析に使用するXMLは以下です。著作権の問題で、データはいかにもそれっぽいですが、中身は架空のものに置き換えています。</p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode xml code-with-copy"><code class="sourceCode xml"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">&lt;?xml</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> version=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1.0"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> encoding=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"UTF-8"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">?&gt;</span></span>
+<span id="cb3-2">&lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Mdevices</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> xmlns=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"http://info.pmda.go.jp/namespace/medical_devices/package_insert"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> version=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1.0"</span>&gt;</span>
+<span id="cb3-3">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PackageInsertNo</span>&gt;99Z9Z99999999999_1_00_01&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PackageInsertNo</span>&gt;</span>
+<span id="cb3-4">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">CompanyIdentifier</span>&gt;999999&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">CompanyIdentifier</span>&gt;</span>
+<span id="cb3-5">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DateOfPreparationOrRevisionArray</span>&gt;</span>
+<span id="cb3-6">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DateOfPreparationOrRevisionDetail</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"初版"</span>&gt;</span>
+<span id="cb3-7">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">YearMonth</span>&gt;2025-08&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">YearMonth</span>&gt;</span>
+<span id="cb3-8">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Version</span>&gt;1.0&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Version</span>&gt;</span>
+<span id="cb3-9">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ReasonForRevision</span>&gt;新規作成&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ReasonForRevision</span>&gt;</span>
+<span id="cb3-10">    &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DateOfPreparationOrRevisionDetail</span>&gt;</span>
+<span id="cb3-11">  &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DateOfPreparationOrRevisionArray</span>&gt;</span>
+<span id="cb3-12">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalEtcArray</span>&gt;</span>
+<span id="cb3-13">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalEtcDetail</span>&gt;</span>
+<span id="cb3-14">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalAndLicenseNo</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> approvalType=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1"</span>&gt;99Z9Z99999999999&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalAndLicenseNo</span>&gt;</span>
+<span id="cb3-15">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalBrandNameDetail</span>&gt;</span>
+<span id="cb3-16">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalBrandName</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"BRD_ApprovalBrandName_01"</span>&gt;サンプルデバイスα&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalBrandName</span>&gt;</span>
+<span id="cb3-17">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">AccessoriesOrCompositionArticle</span>&gt;架空データ&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">AccessoriesOrCompositionArticle</span>&gt;</span>
+<span id="cb3-18">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalBrandNameReading</span>&gt;さんぷるでばいすあるふぁ&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalBrandNameReading</span>&gt;</span>
+<span id="cb3-19">      &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalBrandNameDetail</span>&gt;</span>
+<span id="cb3-20">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DoNotReuse</span>&gt;No&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DoNotReuse</span>&gt;</span>
+<span id="cb3-21">    &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalEtcDetail</span>&gt;</span>
+<span id="cb3-22">  &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ApprovalEtcArray</span>&gt;</span>
+<span id="cb3-23">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">CategoryAndGeneralName</span>&gt;</span>
+<span id="cb3-24">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Category</span>&gt;A9999&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Category</span>&gt;</span>
+<span id="cb3-25">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">GeneralName</span>&gt;</span>
+<span id="cb3-26">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PrimaryGeneralNameDetail</span>&gt;</span>
+<span id="cb3-27">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PrimaryGeneralName</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"GNN_Main_PrimaryGeneralName"</span>&gt;架空一般医療機器&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PrimaryGeneralName</span>&gt;</span>
+<span id="cb3-28">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">JMDNCode</span>&gt;99999999&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">JMDNCode</span>&gt;</span>
+<span id="cb3-29">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Classification</span>&gt;2&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Classification</span>&gt;</span>
+<span id="cb3-30">      &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PrimaryGeneralNameDetail</span>&gt;</span>
+<span id="cb3-31">    &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">GeneralName</span>&gt;</span>
+<span id="cb3-32">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DiscernmentOfMaintenanceInstallation</span>&gt;None&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DiscernmentOfMaintenanceInstallation</span>&gt;</span>
+<span id="cb3-33">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DiscernmentOfTheLivingThingOriginEtc</span>&gt;None&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">DiscernmentOfTheLivingThingOriginEtc</span>&gt;</span>
+<span id="cb3-34">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">TransgenicsMaterial</span>&gt;None&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">TransgenicsMaterial</span>&gt;</span>
+<span id="cb3-35">  &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">CategoryAndGeneralName</span>&gt;</span>
+<span id="cb3-36">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">FormAndStructureDetail</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"HDR_FormAndStructure"</span>/&gt;</span>
+<span id="cb3-37">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">InfoIndicationsOrEfficacy</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"HDR_InfoIndicationsOrEfficacy"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> wordingPatternOfInfoIndicationsOrEfficacy=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1"</span>/&gt;</span>
+<span id="cb3-38">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PrecautionsForUseDetail</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"HDR_PrecautionsForUse"</span>/&gt;</span>
+<span id="cb3-39">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameEtc</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"HDR_AManufacturingAndSellingContractorsNameOrANameEtc"</span>&gt;</span>
+<span id="cb3-40">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameDetail</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"HDR_AManufacturingAndSellingContractorsNameOrAName"</span>&gt;</span>
+<span id="cb3-41">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOfManufacturerEtc</span>&gt;株式会社サンプル医療&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOfManufacturerEtc</span>&gt;</span>
+<span id="cb3-42">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Phonenumber</span>&gt;000-0000-0000&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Phonenumber</span>&gt;</span>
+<span id="cb3-43">    &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameDetail</span>&gt;</span>
+<span id="cb3-44">    &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryArray</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;"> id=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"HDR_ANameOrAnOverseasNameEtcOfAFactory"</span>&gt;</span>
+<span id="cb3-45">      &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
+<span id="cb3-46">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOfManufacturerEtc</span>&gt;サンプル工場&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOfManufacturerEtc</span>&gt;</span>
+<span id="cb3-47">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Phonenumber</span>&gt;000-1111-2222&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Phonenumber</span>&gt;</span>
+<span id="cb3-48">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;Sample Factory Inc.&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;</span>
+<span id="cb3-49">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">TheCountryCode</span>&gt;888&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">TheCountryCode</span>&gt;</span>
+<span id="cb3-50">        &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">NameOfACountry</span>&gt;架空国&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">NameOfACountry</span>&gt;</span>
+<span id="cb3-51">      &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
+<span id="cb3-52">    &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryArray</span>&gt;</span>
+<span id="cb3-53">  &lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameEtc</span>&gt;</span>
+<span id="cb3-54">  &lt;<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PleaseSeeTechnicalManual</span>&gt;False&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PleaseSeeTechnicalManual</span>&gt;</span>
+<span id="cb3-55">&lt;/<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">Mdevices</span>&gt;</span></code></pre></div>
+<p>これを<code>sample.xml</code>とします。人によってファイルへのパスは異なるかと思いますが、今回は<code>here::here("data/xml_sample/sample.xml</code>に格納されているとして進めます。</p>
+<p>一応サンプルファイルを以下からダウンロードできるようにしておきました。</p>
+<p><a href="../../../data/xml_sample/sample.zip" download="sample.zip">XMLファイル</a></p>
+</section>
+<section id="データの取得" class="level2">
+<h2 class="anchored" data-anchor-id="データの取得">データの取得</h2>
+<p>それでは早速XMLファイルを読み込んで、必要な情報を抽出したいと思います。</p>
+<p>抽出したい情報は、</p>
+<ul>
+<li><p>承認番号（<code>&lt;ApprovalAndLicenseNo&gt;</code>）</p></li>
+<li><p>一般名称（<code>&lt;PrimaryGeneralName&gt;</code>）</p></li>
+<li><p>日本医療機器名コード（<code>&lt;JMDNCode&gt;</code>）</p></li>
+</ul>
+<p>とします。他のタグについても同様の方法で取得できるので、一旦この3つに絞ります。</p>
+<p>まずはファイルを読み込みましょう。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ファイルのパスは適宜変更</span></span>
+<span id="cb4-2">xml_sample <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_xml</span>(here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/xml_sample/sample.xml"</span>))</span></code></pre></div>
+</div>
+<p>次に、タグを検索し、該当するものを引っ張ってきます。タグは上の括弧内で記したとおりです。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">xml_sample <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb5-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_all</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//*[local-name()='ApprovalAndLicenseNo']"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb5-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>()</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "99Z9Z99999999999"</code></pre>
+</div>
+</div>
+<p><code>xml_find_all()</code>はXML内の要素を探してくるための関数です。複数ヒットすればすべて返してきますが、<code>xml_find_first()</code>であれば最初の一つを返します。今回はタグは重複がないのでどちらでも同じ結果が返ってきます。</p>
+<p>ところで見慣れない書き方が出てきています。<code>//</code>も<code>local-name</code>などです。これらについて1つずつまとめます。</p>
+<ol type="1">
+<li><code>//</code>
+<ul>
+<li>これはXMLのタグがどの階層にあっても探す、ということです。</li>
+<li>特定の階層のみを探すこともできるのですが、今回は全体から探してきたいのでこれを使います。</li>
+</ul></li>
+<li><code>*</code>
+<ul>
+<li>これはワイルドカードと呼ばれ、どんな要素でも問わない、ということを示します。</li>
+<li>この後に条件を指定しているのですが、その条件を満たすあらゆる要素、ということを示すイメージです。</li>
+</ul></li>
+<li><code>[local-name()=]</code>
+<ul>
+<li>ここがややこしいのですが、XMLの冒頭2行目に<code>xmlns="http://info.pmda.go.jp/namespace/medical_devices/package_insert"</code>という表記があります。</li>
+<li>これがあるとこの後に出てくるタグはこれの後に続くことになる、ということを意味します。</li>
+<li>例：<code>http://info.pmda.go.jp/namespace/medical_devices/package_insert/ApprovalAndLicenseNo</code></li>
+<li>すなわち、一見<code>ApprovalAndLicenseNo</code>でヒットしそうですが、実際はこの例のように長い表記が正しいので、<code>ApprovalAndLicenseNo</code>単体だとヒットしません。</li>
+<li><code>xmlns</code>の部分を「名前空間」というのですが、名前空間がない場合でもこの書き方でヒットしますので、これを書いておけば間違いないといった感じです<sup>1</sup>。</li>
+</ul></li>
+</ol>
+<p>ややこしい書き方でしたが、これで注目しているタグを引っ張ってこれます。</p>
+<p>最後に<code>xml_text()</code>で、タグの中身のテキストを取得でき、今回であれば<code>99Z9Z99999999999</code>が表示できています。</p>
+<p>XMLファイルから情報を取得する方法については以上です。</p>
+</section>
+<section id="ファイルを巡回してデータフレームを作る" class="level2">
+<h2 class="anchored" data-anchor-id="ファイルを巡回してデータフレームを作る">ファイルを巡回してデータフレームを作る</h2>
+<p>複数のXMLファイルを巡回して、同じ要素を引っ張ってきたいことがありますよね。</p>
+<p>その方法についてもまとめます。今回はXMLファイルが2つ、<code>here::here("data/xml_sample")</code>内にあると仮定します。</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># `tibble()`や`map_dfr()`のため</span></span>
+<span id="cb7-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb7-3"></span>
+<span id="cb7-4">xml_files <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list.files</span>(here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/xml_sample"</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pattern =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.xml$"</span>, </span>
+<span id="cb7-5">                        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">full.names =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb7-6"></span>
+<span id="cb7-7">extract_info <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">function</span>(fp) {</span>
+<span id="cb7-8">  doc <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_xml</span>(fp)</span>
+<span id="cb7-9">  </span>
+<span id="cb7-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb7-11">    承認番号 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_all</span>(doc, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//*[local-name()='ApprovalAndLicenseNo']"</span>)), </span>
+<span id="cb7-12">    一般名称 <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_all</span>(doc, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//*[local-name()='PrimaryGeneralName']"</span>)), </span>
+<span id="cb7-13">    日本医療機器名コード <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">xml_find_all</span>(doc, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"//*[local-name()='JMDNCode']"</span>))</span>
+<span id="cb7-14">  )</span>
+<span id="cb7-15">}</span>
+<span id="cb7-16"></span>
+<span id="cb7-17">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">map_dfr</span>(xml_files, extract_info)</span>
+<span id="cb7-18"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 3
+  承認番号         一般名称          日本医療機器名コード
+  &lt;chr&gt;            &lt;chr&gt;             &lt;chr&gt;               
+1 99Z9Z99999999999 架空一般医療機器  99999999            
+2 88Y8Y88888888888 架空一般医療機器B 88888888            </code></pre>
+</div>
+</div>
+<p>ポイントをまとめます。</p>
+<ol type="1">
+<li><code>list.files()</code>でディレクトリ内のXMLファイルのファイル名（パス込み）を取得します。
+<ul>
+<li>ワイルドカード<code>*</code>が使われています。前が何であれ、<code>.xml</code>という条件にマッチする要素を取得するということです。</li>
+<li>また、<code>$</code>はそれで終わるということを指します。<code>.xml.csv</code>みたいに、<code>.xml</code>の後に別の要素が続くものは取得しないということです。</li>
+</ul></li>
+<li><code>function</code>で要素をデータフレームに入れる関数を作ります。
+<ul>
+<li><code>doc</code>に読み込んだXMLを格納し、そこからこれまでに見てきた方法で要素を抽出し、<code>tibble</code>（要はデータフレーム）の各列に格納します。</li>
+<li>パイプを使っていないので関数の出てくる順が先ほどと逆ですが、<code>doc |&gt; xml_find_all() |&gt; xml_text()</code>の流れと同じです。</li>
+</ul></li>
+<li><code>map_dfr()</code>で順番に処理しデータフレームを作成
+<ul>
+<li>そもそも<code>map()</code>関数はリストやベクトルに対して関数を適用するものです。</li>
+<li><code>map_dfr()</code>の<code>dfr</code>はdata frame row-bindの略で、<code>map()</code>の結果を行方向に結合することを指します。</li>
+<li>すなわち、各ファイルを読み込んで要素を抽出、1行3列（今回の場合）のデータフレームを作成し、それをどんどん下に結合していくというイメージです。</li>
+</ul></li>
+</ol>
+<p>ちなみに<code>for</code>ループでもできますが、そちらは今回は省略します。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はXMLファイルの扱い方について取り上げました。</p>
+<p>私は繰り返し処理までこれからやることになりそうなので、出番が増えそうです。</p>
+<p>ご参考になれば幸いです。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>名前空間がない場合は<code>//ApprovalAndLicenseNo</code>でもヒットします。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/250826_xml/</guid>
+  <pubDate>Mon, 25 Aug 2025 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.com/pages/tips/250826_xml/image/thumbnail.png" medium="image" type="image/png" height="97" width="144"/>
+</item>
 <item>
   <title>【Python】高速スクレイピングを実装する【並列化】</title>
   <link>https://yo5uke.com/pages/tips/250816_scraping_python/</link>
@@ -15386,217 +16130,6 @@ font-style: inherit;">document</span>}</span></code></pre></div>
   <guid>https://yo5uke.com/pages/tips/240901_tex_live/</guid>
   <pubDate>Sat, 31 Aug 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/240901_tex_live/image/texlive_installer.png" medium="image" type="image/png" height="140" width="144"/>
-</item>
-<item>
-  <title>DVCのためのGoogle Cloud Project</title>
-  <link>https://yo5uke.com/pages/tips/240831_google_cloud_project/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>以下の記事で紹介した開発コンテナですが、そのままやるとDVCの認証プロセスでエラーが出ます。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="../240504_container/index.html">開発コンテナを使って R 環境を構築！</a></p>
-</div>
-</div>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240831_google_cloud_project/image/dvc_error.png" class="img-fluid figure-img" style="width:80.0%"></p>
-<figcaption>認証を進めるとこのように出てきます。</figcaption>
-</figure>
-</div>
-<p>もしかすると今後対応されて何の問題もなく使えるようになるかもしれませんが、公式で推奨されているGoogle Cloud Projectを使えばこの問題に対処できるため、今回はその方法についてまとめていきます。</p>
-</section>
-<section id="手順" class="level2">
-<h2 class="anchored" data-anchor-id="手順">手順</h2>
-<p>まず前提として、以下のコマンドまでは問題なく行えます。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="sourceCode" id="cb1" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> init <span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">&amp;&amp;</span> <span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote add <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">-d</span> myremote gdrive://[Google DriveのフォルダID]</span></code></pre></div>
-</div>
-<p>ここからさらに<code>dvc push</code>や<code>dvc pull</code>を行おうとするときに先ほどの画面が出てきます。</p>
-<p>先述の通りGoogle Cloud Projectを使えば対処できますので、その設定を行います。</p>
-<ol type="1">
-<li>次のリンクからGoogle API Consoleにアクセス
-<ul>
-<li><a href="https://console.developers.google.com/" class="uri">https://console.developers.google.com/</a></li>
-<li>なにやら同意を求められた場合は同意して進めて下さい。</li>
-<li>使いたいGoogleアカウントでログインしていることを確認してください。</li>
-</ul></li>
-<li>「プロジェクトを作成」を選択</li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240831_google_cloud_project/image/google-api-create.png" class="img-fluid figure-img" style="width:80.0%"></p>
-<figcaption>初めてであれば画面右に出てきます。</figcaption>
-</figure>
-</div>
-<ol start="3" type="1">
-<li>プロジェクト名を設定し、作成する
-<ul>
-<li>こだわりがなければそのままで大丈夫です。</li>
-<li>場所も無視して下さい。</li>
-</ul></li>
-<li>「APIとサービスを有効にする」を選択
-<ul>
-<li>3の手順を踏むと「APIとサービス」の右に出てきます。</li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240831_google_cloud_project/image/google-api-enable.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
-</figure>
-</div>
-<ol start="5" type="1">
-<li>Google Drive APIに入り、「有効にする」をクリック
-<ul>
-<li>少し下にあります。</li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240831_google_cloud_project/image/google-drive-api-enable.png" class="img-fluid figure-img" style="width:50.0%"></p>
-<figcaption>有効にします</figcaption>
-</figure>
-</div>
-<ol start="6" type="1">
-<li>OAuth同意画面
-<ul>
-<li>画面左の「OAuth 同意画面」に入り、外部を選択して作成します。</li>
-<li>アプリ名は何でもいいです（例：DVC remote storage）。</li>
-<li>ユーザーサポートメールとデベロッパーの連絡先情報は自分のメールアドレスを入れ、その他は空欄でよいです。</li>
-<li>保存して次へ、その次は無視して保存して次へ、最後にAdd usersで自分のメールアドレス（使っているGoogleアカウントのGmailアドレス）を入れて追加し、保存して次へを押して下さい。</li>
-</ul></li>
-<li>認証情報を作成
-<ul>
-<li>画面左の「認証情報」に入り、上部に出てくる「認証情報を作成」から「OAuth クライアント ID」を選択して下さい。</li>
-<li>アプリケーションの種類は、「デスクトップ アプリ」、名前はそのままでよいので、作成して下さい。</li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240831_google_cloud_project/image/google-api-credentials.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
-</figure>
-</div>
-<p>ここまでが第1段階です。クライアントIDとクライアントシークレットが表示されていると思いますが、これは後から確認できるのでOKで閉じても大丈夫です。</p>
-<p>一応どこかにコピーして控えておくと楽かもしれません。</p>
-</section>
-<section id="vscode" class="level2">
-<h2 class="anchored" data-anchor-id="vscode"><span class="citation" data-cites="VSCode">(<strong>VSCode?</strong>)</span></h2>
-<p>VSCodeに戻ります。</p>
-<p><code>Ctrl</code> ＋ <code>J</code><sup>1</sup>でターミナルを開き、次のコードを入力します。</p>
-<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote modify <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--local</span> myremote gdrive_client_id <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'client-id'</span></span></code></pre></div>
-<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote modify <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--local</span> myremote gdrive_client_secret <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'client-secret'</span></span></code></pre></div>
-<p>ここで、<code>client-id</code>と<code>client-secret</code>は先ほどのクライアントIDとクライアントシークレットに置き換えて、それぞれ実行してください（シングルクォーテーションは残してください）。</p>
-<p>もし画面を閉じてどこかわからなくなった場合は、画面左の認証情報から「OAuth 2.0 クライアント ID」の名前部分をクリックすると見ることができるようになります。</p>
-<p>さらに、追加で以下のコードを実行してください。</p>
-<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote modify <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--local</span> myremote gdrive_user_credentials_file ~/.cache/myremote-credentials.json</span></code></pre></div>
-<p>ここでは特に変える部分はありません。</p>
-<p>これで第2段階も終了しました。</p>
-<p><code>dvc push</code>や<code>dvc pull</code>を実行すると、今度はブロックされずに進められるのではないでしょうか。途中「続行」を選ぶところがあれば、選んで進めてください。</p>
-<p>認証が成功したら、VSCodeに戻るとプッシュやプルが進められているはずです。</p>
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-異なるエラーが出た場合
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>一応上のコードで対処したつもりですが、<code>dvc push</code>で異なるエラーが出た場合には、<a href="../240619_trouble_shooting/index.html#DVCでプッシュできない">トラブルシューティング</a>のページを参照してください。</p>
-</div>
-</div>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>なにやら面倒な設定でしたが、今のところこれが（多分）唯一の解決策っぽいです。</p>
-<p>そもそもDVCを使わずにデータもGitHubで実行すればという話でもあるのですが、データサイズの制約もありますので、自分のプロジェクトに合わせて使ってもらえればと思います。</p>
-<p>Google Cloud Projectは普段あまり使うことがないと思うので、お役に立てれば幸いです。</p>
-<p>うまくいかないことがあればコメントください。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>Macなら<code>⌘</code> ＋ <code>J</code>↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>DVC</category>
-  <category>備忘録</category>
-  <guid>https://yo5uke.com/pages/tips/240831_google_cloud_project/</guid>
-  <pubDate>Fri, 30 Aug 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
