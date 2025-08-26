@@ -1,0 +1,225 @@
+---
+title: "XMLファイルから情報を抽出する"
+description: |
+  [xml2]{.fira-code}パッケージを使います。
+date: 2025-08-26
+categories:
+  - R
+  - データ処理
+image: image/thumbnail.png
+editor: visual
+---
+
+## はじめに
+
+今度は仕事でXMLファイルを扱う機会がやってきました。
+
+XMLファイルは、データを「タグ」で階層的に記述するテキスト形式のファイルで、構造化された情報を表現・交換するための標準仕様であり、システム間でデータ連携や保存に広く利用されています。
+
+見たことがない方にはとんとイメージがわかないと思うのですが、XMLは以下のような構造をしています。
+
+``` xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Library>
+  <Book id="B001">
+    <Title>データ分析入門</Title>
+    <Author>山田太郎</Author>
+    <Year>2021</Year>
+  </Book>
+  <Book id="B002">
+    <Title>XML活用ガイド</Title>
+    <Author>佐藤花子</Author>
+    <Year>2023</Year>
+  </Book>
+  <Magazine id="M001" category="Technology">
+    <Title>Tech Monthly</Title>
+    <Issue>2024-08</Issue>
+  </Magazine>
+</Library>
+```
+
+`Library`の中に`Book`や`Magazine`が入っていることがわかります。インデントされているので少しはわかりやすいのではないでしょうか。
+
+さらにその中にはタイトルや著者等の情報が含まれています。
+
+これが簡単なXMLの例です。
+
+これがもっと長くずらーっと書かれているものの中から情報を取ってくる作業が仕事で必要になったので、その方法についてまとめたいと思います。
+
+## 準備
+
+必要なパッケージは`xml2`です。
+
+```{r}
+library(xml2)
+```
+
+また、解析に使用するXMLは以下です。著作権の問題で、データはいかにもそれっぽいですが、中身は架空のものに置き換えています。
+
+``` xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Mdevices xmlns="http://info.pmda.go.jp/namespace/medical_devices/package_insert" version="1.0">
+  <PackageInsertNo>99Z9Z99999999999_1_00_01</PackageInsertNo>
+  <CompanyIdentifier>999999</CompanyIdentifier>
+  <DateOfPreparationOrRevisionArray>
+    <DateOfPreparationOrRevisionDetail id="初版">
+      <YearMonth>2025-08</YearMonth>
+      <Version>1.0</Version>
+      <ReasonForRevision>新規作成</ReasonForRevision>
+    </DateOfPreparationOrRevisionDetail>
+  </DateOfPreparationOrRevisionArray>
+  <ApprovalEtcArray>
+    <ApprovalEtcDetail>
+      <ApprovalAndLicenseNo approvalType="1">99Z9Z99999999999</ApprovalAndLicenseNo>
+      <ApprovalBrandNameDetail>
+        <ApprovalBrandName id="BRD_ApprovalBrandName_01">サンプルデバイスα</ApprovalBrandName>
+        <AccessoriesOrCompositionArticle>架空データ</AccessoriesOrCompositionArticle>
+        <ApprovalBrandNameReading>さんぷるでばいすあるふぁ</ApprovalBrandNameReading>
+      </ApprovalBrandNameDetail>
+      <DoNotReuse>No</DoNotReuse>
+    </ApprovalEtcDetail>
+  </ApprovalEtcArray>
+  <CategoryAndGeneralName>
+    <Category>A9999</Category>
+    <GeneralName>
+      <PrimaryGeneralNameDetail>
+        <PrimaryGeneralName id="GNN_Main_PrimaryGeneralName">架空一般医療機器</PrimaryGeneralName>
+        <JMDNCode>99999999</JMDNCode>
+        <Classification>2</Classification>
+      </PrimaryGeneralNameDetail>
+    </GeneralName>
+    <DiscernmentOfMaintenanceInstallation>None</DiscernmentOfMaintenanceInstallation>
+    <DiscernmentOfTheLivingThingOriginEtc>None</DiscernmentOfTheLivingThingOriginEtc>
+    <TransgenicsMaterial>None</TransgenicsMaterial>
+  </CategoryAndGeneralName>
+  <FormAndStructureDetail id="HDR_FormAndStructure"/>
+  <InfoIndicationsOrEfficacy id="HDR_InfoIndicationsOrEfficacy" wordingPatternOfInfoIndicationsOrEfficacy="1"/>
+  <PrecautionsForUseDetail id="HDR_PrecautionsForUse"/>
+  <AManufacturingAndSellingContractorsNameOrANameEtc id="HDR_AManufacturingAndSellingContractorsNameOrANameEtc">
+    <AManufacturingAndSellingContractorsNameOrANameDetail id="HDR_AManufacturingAndSellingContractorsNameOrAName">
+      <ANameOfManufacturerEtc>株式会社サンプル医療</ANameOfManufacturerEtc>
+      <Phonenumber>000-0000-0000</Phonenumber>
+    </AManufacturingAndSellingContractorsNameOrANameDetail>
+    <ANameOrAnOverseasNameEtcOfAFactoryArray id="HDR_ANameOrAnOverseasNameEtcOfAFactory">
+      <ANameOrAnOverseasNameEtcOfAFactoryDetail>
+        <ANameOfManufacturerEtc>サンプル工場</ANameOfManufacturerEtc>
+        <Phonenumber>000-1111-2222</Phonenumber>
+        <TheCompanyNameOfSpecificationIntoEnglish>Sample Factory Inc.</TheCompanyNameOfSpecificationIntoEnglish>
+        <TheCountryCode>888</TheCountryCode>
+        <NameOfACountry>架空国</NameOfACountry>
+      </ANameOrAnOverseasNameEtcOfAFactoryDetail>
+    </ANameOrAnOverseasNameEtcOfAFactoryArray>
+  </AManufacturingAndSellingContractorsNameOrANameEtc>
+  <PleaseSeeTechnicalManual>False</PleaseSeeTechnicalManual>
+</Mdevices>
+```
+
+これを`sample.xml`とします。人によってファイルへのパスは異なるかと思いますが、今回は`here::here("data/xml_sample/sample.xml`に格納されているとして進めます。
+
+一応サンプルファイルを以下からダウンロードできるようにしておきました。
+
+[XMLファイル](/data/xml_sample/sample.zip){download="sample.zip"}
+
+## データの取得
+
+それでは早速XMLファイルを読み込んで、必要な情報を抽出したいと思います。
+
+抽出したい情報は、
+
+-   承認番号（`<ApprovalAndLicenseNo>`）
+
+-   一般名称（`<PrimaryGeneralName>`）
+
+-   日本医療機器名コード（`<JMDNCode>`）
+
+とします。他のタグについても同様の方法で取得できるので、一旦この3つに絞ります。
+
+まずはファイルを読み込みましょう。
+
+```{r}
+# ファイルのパスは適宜変更
+xml_sample <- read_xml(here::here("data/xml_sample/sample.xml"))
+```
+
+次に、タグを検索し、該当するものを引っ張ってきます。タグは上の括弧内で記したとおりです。
+
+```{r}
+xml_sample |> 
+  xml_find_all("//*[local-name()='ApprovalAndLicenseNo']") |> 
+  xml_text()
+```
+
+`xml_find_all()`はXML内の要素を探してくるための関数です。複数ヒットすればすべて返してきますが、`xml_find_first()`であれば最初の一つを返します。今回はタグは重複がないのでどちらでも同じ結果が返ってきます。
+
+ところで見慣れない書き方が出てきています。`//`も`local-name`などです。これらについて1つずつまとめます。
+
+1.  `//`
+    -   これはXMLのタグがどの階層にあっても探す、ということです。
+    -   特定の階層のみを探すこともできるのですが、今回は全体から探してきたいのでこれを使います。
+2.  `*`
+    -   これはワイルドカードと呼ばれ、どんな要素でも問わない、ということを示します。
+    -   この後に条件を指定しているのですが、その条件を満たすあらゆる要素、ということを示すイメージです。
+3.  `[local-name()=]`
+    -   ここがややこしいのですが、XMLの冒頭2行目に`xmlns="http://info.pmda.go.jp/namespace/medical_devices/package_insert"`という表記があります。
+    -   これがあるとこの後に出てくるタグはこれの後に続くことになる、ということを意味します。
+    -   例：`http://info.pmda.go.jp/namespace/medical_devices/package_insert/ApprovalAndLicenseNo`
+    -   すなわち、一見`ApprovalAndLicenseNo`でヒットしそうですが、実際はこの例のように長い表記が正しいので、`ApprovalAndLicenseNo`単体だとヒットしません。
+    -   `xmlns`の部分を「名前空間」というのですが、名前空間がない場合でもこの書き方でヒットしますので、これを書いておけば間違いないといった感じです[^1]。
+
+[^1]: 名前空間がない場合は`//ApprovalAndLicenseNo`でもヒットします。
+
+ややこしい書き方でしたが、これで注目しているタグを引っ張ってこれます。
+
+最後に`xml_text()`で、タグの中身のテキストを取得でき、今回であれば`99Z9Z99999999999`が表示できています。
+
+XMLファイルから情報を取得する方法については以上です。
+
+## ファイルを巡回してデータフレームを作る
+
+複数のXMLファイルを巡回して、同じ要素を引っ張ってきたいことがありますよね。
+
+その方法についてもまとめます。今回はXMLファイルが2つ、`here::here("data/xml_sample")`内にあると仮定します。
+
+```{r}
+# `tibble()`や`map_dfr()`のため
+library(tidyverse)
+
+xml_files <- list.files(here::here("data/xml_sample"), pattern = "*.xml$", 
+                        full.names = TRUE)
+
+extract_info <- function(fp) {
+  doc <- read_xml(fp)
+  
+  tibble(
+    承認番号 = xml_text(xml_find_all(doc, "//*[local-name()='ApprovalAndLicenseNo']")), 
+    一般名称 = xml_text(xml_find_all(doc, "//*[local-name()='PrimaryGeneralName']")), 
+    日本医療機器名コード = xml_text(xml_find_all(doc, "//*[local-name()='JMDNCode']"))
+  )
+}
+
+df <- map_dfr(xml_files, extract_info)
+print(df)
+```
+
+ポイントをまとめます。
+
+1.  `list.files()`でディレクトリ内のXMLファイルのファイル名（パス込み）を取得します。
+    -   ワイルドカード`*`が使われています。前が何であれ、`.xml`という条件にマッチする要素を取得するということです。
+    -   また、`$`はそれで終わるということを指します。`.xml.csv`みたいに、`.xml`の後に別の要素が続くものは取得しないということです。
+2.  `function`で要素をデータフレームに入れる関数を作ります。
+    -   `doc`に読み込んだXMLを格納し、そこからこれまでに見てきた方法で要素を抽出し、`tibble`（要はデータフレーム）の各列に格納します。
+    -   パイプを使っていないので関数の出てくる順が先ほどと逆ですが、`doc |> xml_find_all() |> xml_text()`の流れと同じです。
+3.  `map_dfr()`で順番に処理しデータフレームを作成
+    -   そもそも`map()`関数はリストやベクトルに対して関数を適用するものです。
+    -   `map_dfr()`の`dfr`はdata frame row-bindの略で、`map()`の結果を行方向に結合することを指します。
+    -   すなわち、各ファイルを読み込んで要素を抽出、1行3列（今回の場合）のデータフレームを作成し、それをどんどん下に結合していくというイメージです。
+
+ちなみに`for`ループでもできますが、そちらは今回は省略します。
+
+## おわりに
+
+今回はXMLファイルの扱い方について取り上げました。
+
+私は繰り返し処理までこれからやることになりそうなので、出番が増えそうです。
+
+ご参考になれば幸いです。
