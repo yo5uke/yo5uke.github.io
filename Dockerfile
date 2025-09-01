@@ -23,8 +23,8 @@ RUN python3 -m venv /home/rstudio/.venv && \
 ENV PATH="/home/rstudio/.venv/bin:${PATH}"
 
 # Quarto
-ENV QUARTO_MINOR_VERSION=1.7
-ENV QUARTO_PATCH_VERSION=33
+ENV QUARTO_MINOR_VERSION=1.8
+ENV QUARTO_PATCH_VERSION=21
 
 RUN wget "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}/quarto-${QUARTO_MINOR_VERSION}.${QUARTO_PATCH_VERSION}-linux-amd64.deb" -O quarto.deb && \
     dpkg -i quarto.deb && \
