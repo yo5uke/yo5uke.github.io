@@ -10,7 +10,334 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.8.24</generator>
-<lastBuildDate>Sun, 31 Aug 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Thu, 18 Sep 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>DuckDBをRで使う</title>
+  <link>https://yo5uke.com/pages/tips/250919_duckdb/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+
+  <!-- Twitter (X) -->
+
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+
+
+  <!-- Bluesky -->
+
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+</div>
+
+
+
+<script>
+
+  const twitterUsername = "@5uke_y";
+
+  const blueskyUsername = "@5uke.bsky.social";
+
+
+
+  const share_url = encodeURIComponent(location.href);
+
+  const share_title = document.title;
+
+
+
+  // Twitter (X)
+
+  document.getElementById('js-share-twitter').setAttribute(
+
+    "href",
+
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+
+    "&hashtags=rstats"
+
+  );
+
+
+
+  // Bluesky
+
+  document.getElementById('js-share-bluesky').setAttribute(
+
+    "href",
+
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+
+  );
+
+</script>
+
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>Rで大量のデータを扱う際、メモリ制限やパフォーマンスの問題に直面することがあります。そんなとき、軽量で高速な組み込み型のデータベースであるDuckDBを利用することで、効率的にデータ操作が可能になります。本記事では、RでDuckDBを使用する方法について解説します。</p>
+</section>
+<section id="duckdbとは" class="level2">
+<h2 class="anchored" data-anchor-id="duckdbとは">DuckDBとは</h2>
+<p>DuckDBは、組み込み型のSQLデータベースであり、特に分析ワークロードに最適化されています。SQLiteのように軽量でありながら、大規模なデータセットを効率的に処理できる点が特徴です。DuckDBは、列指向ストレージを採用しており、分析クエリのパフォーマンスが向上します。</p>
+<p>ちなみに組み込み型データベースとは、アプリケーションに組み込まれて動作するデータベースのことを指します。サーバー型のデータベースとは異なり、外部のデータベースサーバーを必要とせず、アプリケーション内で直接データベース操作が可能です。すなわちR上で完結するということです。</p>
+<p>列指向については、ブログでparquetを扱った際に少し触れています。以下もご覧ください。簡潔に言うと、列指向データベースは、データを列ごとに格納するため、特定の列に対するクエリが高速に処理されるという特徴があります。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../pages/blog/250728_parquet/index.html">Parquetファイルについて調べてみる</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="duckdbのインストール" class="level2">
+<h2 class="anchored" data-anchor-id="duckdbのインストール">DuckDBのインストール</h2>
+<p>DuckDBをRで使用するには、<code>duckdb</code>パッケージをインストールします。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1">pak<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pak</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"duckdb"</span>)</span></code></pre></div></div>
+</div>
+<p>もしくは</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"duckdb"</span>)</span></code></pre></div></div>
+</div>
+</section>
+<section id="duckdbの基本的な使い方" class="level2">
+<h2 class="anchored" data-anchor-id="duckdbの基本的な使い方">DuckDBの基本的な使い方</h2>
+<section id="データベースへの接続" class="level3">
+<h3 class="anchored" data-anchor-id="データベースへの接続">データベースへの接続</h3>
+<p>まずは、DuckDBデータベースに接続します。以下のコードでは、メモリ内データベースに接続していますが、ファイルベースのデータベースを使用することも可能です。</p>
+<p>メモリ内データベースはRセッションが終了すると消えてしまいますが、ファイルベースのデータベースは永続的に保存されます。</p>
+<p>ファイルベースのデータベースではディスクにデータが保存されるため、Rセッションを終了してもデータが保持されます。一方、メモリ内データベースはRセッションが終了するとデータが失われてしまいますが、読み書きの速度が速いという利点があります。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(duckdb)</span></code></pre></div></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># メモリ内データベースに接続</span></span>
+<span id="cb4-2">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">duckdb</span>(), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbdir =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">":memory:"</span>)</span></code></pre></div></div>
+</div>
+<p>ファイルベースのデータベースに接続する場合は、以下のようにします。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ファイルベースのデータベースに接続</span></span>
+<span id="cb5-2">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">duckdb</span>(), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbdir =</span> here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/iris.duckdb"</span>))</span></code></pre></div></div>
+</div>
+<p>この方法だと、<code>data</code>フォルダに<code>iris.duckdb</code>という名前でデータベースファイルが作成されます。<code>.duckdb</code>ファイルを置くパスは自由に変更してください。</p>
+</section>
+<section id="データの読み込み" class="level3">
+<h3 class="anchored" data-anchor-id="データの読み込み">データの読み込み</h3>
+<section id="sqlを使う場合" class="level4">
+<h4 class="anchored" data-anchor-id="sqlを使う場合">SQLを使う場合</h4>
+<p>DuckDBは様々なデータ形式をサポートしています。ここでは、CSVファイルを読み込む例を示します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># CSVファイルを読み込む</span></span>
+<span id="cb6-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CREATE TABLE iris AS SELECT * FROM read_csv('data/iris.csv')"</span>)</span></code></pre></div></div>
+</div>
+<p>さて、ここで突然SQL文が出てきましたが、なんとなく単語を見てもらえればわかる通り、<code>read_csv('data/iris.csv')</code>から全ての列を選択（<code>*</code>は全ての列を意味します）して、<code>iris</code>という名前のテーブルを作成（<code>CREATE TABLE iris AS</code>）しています。</p>
+<p>ちなみに、僕はSQLはあまりわかりません。いちいち調べないと先ほどのコードも書けないレベルなのですが、この方法をとるメリットを先に説明しておきます。</p>
+<p>この方法のメリットは、<strong>Rに一度もデータを読み込まずに、DuckDBが直接CSVファイルを処理できる</strong>点です。 そのため、大規模なCSVでもメモリを無駄に消費せず、高速にテーブルを作成できます。</p>
+<p>また、<code>CREATE TABLE ... AS SELECT ...</code>という形で書けば、SQLの標準的な構文で柔軟に前処理（列の選択やフィルタリングなど）を行いながら、テーブルを作成できます。</p>
+</section>
+<section id="rを使う場合" class="level4">
+<h4 class="anchored" data-anchor-id="rを使う場合">Rを使う場合</h4>
+<p>とはいえ新しくSQLを覚えるのは面倒だしRで書けたら嬉しいという僕なので、ここでRを使うことの意義を示します。</p>
+<p>それは、今提示したコードを皆さんおなじみ<code>dplyr</code>を使って実行できる、ということです。ただ、先ほどのメリットの裏返しで、一度R上でデータを読み込んでからデータベースに送り込むことになるので、メモリを多く消費することと、データが大きいと処理速度が遅くなることには注意してください。</p>
+<p><code>dplyr</code>を使って書いたコードをSQLに変換して実行してくれるのです。その場合のコードを見てみましょう。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># `dplyr`だけでもOKです。</span></span></code></pre></div></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">iris_data <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_csv</span>(here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/iris.csv"</span>))</span>
+<span id="cb8-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">duckdb_register</span>(con, iris, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"iris_data"</span>)</span></code></pre></div></div>
+</div>
+<p>まずはデータベースに入れたいデータを<code>read_csv()</code>で読み込みます。ここでは<code>data</code>フォルダにある<code>iris.csv</code>を読み込んでいます。</p>
+<p>続いて<code>duckdb_register()</code>を使って、<code>iris_data</code>を<code>iris</code>という名前でデータベースに登録しています。これでデータベース上に<code>iris</code>テーブルが作成されました。</p>
+<p>ちなみにファイルベースのデータベースを使いたい場合は、<code>duckdb_register()</code>の代わりに<code>dbWriteTable()</code>を使います。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbWriteTable</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"iris"</span>, iris_data)</span></code></pre></div></div>
+</div>
+<p>これで<code>.duckdb</code>ファイルに<code>iris</code>テーブルが保存されます。</p>
+</section>
+</section>
+<section id="データの操作" class="level3">
+<h3 class="anchored" data-anchor-id="データの操作">データの操作</h3>
+<p>ところで、データベースを使うメリットのひとつに、遅延評価（lazy evaluation） があります。これは、実際に結果を取り出すまでSQLが実行されない仕組みのことです。</p>
+<p>通常のデータ処理は<br>
+データの読み込み → 書いた順に処理を実行 → 結果を返す<br>
+という流れですが、遅延評価では<br>
+データの読み込み → 書いた順に処理を記録 → 最後にまとめて実行（SQL発行） → 結果を返す<br>
+という流れになります。</p>
+<p>このおかげで、大規模なデータセットでも不要な計算が省かれ、効率的に処理できます。</p>
+<section id="sqlを使う場合-1" class="level4">
+<h4 class="anchored" data-anchor-id="sqlを使う場合-1">SQLを使う場合</h4>
+<p>SQLを使ってデータを操作する場合、以下のようにクエリを実行します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データをクエリする</span></span>
+<span id="cb10-2">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbGetQuery</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SELECT * FROM iris WHERE Species = 'setosa'"</span>)</span></code></pre></div></div>
+</div>
+<p>この例では、<code>iris</code>テーブルから<code>Species</code>が<code>setosa</code>の行を選択しています。</p>
+</section>
+<section id="dplyrを使う場合" class="level4">
+<h4 class="anchored" data-anchor-id="dplyrを使う場合"><code>dplyr</code>を使う場合</h4>
+<p><code>dplyr</code>を使ってデータを操作する場合、以下のように記述します（おなじみの感じですね）。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tbl</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"iris"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb11-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(Species <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"setosa"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb11-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">collect</span>()</span></code></pre></div></div>
+</div>
+<p><code>tbl(con, "iris")</code>でデータベース上の<code>iris</code>テーブルを参照し、<code>filter()</code>で条件を指定しています。最後に<code>collect()</code>を使って結果をRのデータフレームとして取得します。</p>
+<p>ここで重要なのは、<strong><code>collect()</code>を呼び出すまではSQLは実行されない</strong>という点です。<code>filter()</code>などの処理を追加するたびに、裏でSQLクエリが少しずつ組み立てられていき、最後に<code>collect()</code>を呼び出した時点でまとめて実行されます。</p>
+<p>つまり、<code>collect()</code>を呼び出すまではデータはRに読み込まれず、操作はあくまで「SQLを組み立てているだけ」です。<code>collect()</code>を実行した瞬間に初めてSQLが発行され、結果がRにデータフレームとして取り込まれます。</p>
+<p>データベースになじみがない方は違和感があるかもしれませんが（かく言う僕もですが）、<code>con</code>自体はデータそのものではなく、DuckDBデータベースへの接続（コネクション）を表すオブジェクトです。</p>
+<p>普段のRではデータフレームを直接操作しますが、ここではまず接続オブジェクト<code>con</code>を通して「このデータベースの中にあるテーブルを参照しますよ」という指示を出します。</p>
+<p>つまり、<code>con</code>はデータの実体ではなく、<strong>「データベースへの窓口」や「リモコン」</strong>のようなものと考えると分かりやすいです（ChatGPT曰く）。</p>
+<p>とりあえず、<code>collect()</code>の前までは通常のデータ処理と同じように<code>dplyr</code>の関数を使って操作できるので、慣れ親しんだ方法でデータを扱うことができます。</p>
+</section>
+</section>
+<section id="データベースからの切断" class="level3">
+<h3 class="anchored" data-anchor-id="データベースからの切断">データベースからの切断</h3>
+<p>データベースの操作が終わったら、接続を切断します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">shutdown =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
+</div>
+<p><code>shutdown = TRUE</code>を指定すると、メモリ内データベースの場合はデータが消去され、ファイルベースのデータベースの場合は接続が閉じられます。</p>
+</section>
+</section>
+<section id="まとめ" class="level2">
+<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
+<p>今回は、RでDuckDBを使用する方法についてまとめました。</p>
+<p>DuckDBは軽量で高速な組み込み型データベースであり、大規模なデータセットを効率的に処理できます。SQLを直接使う方法と、<code>dplyr</code>を使う方法の両方が利用可能であり、遅延評価によりパフォーマンスが向上します。</p>
+<p>最近は仕事ででかいデータを扱うことが増えてきたので、今後もDuckDBを活用していきたいと思います（というか活用し始めています）。ぜひ試しあれ。</p>
+</section>
+<section id="参考" class="level2">
+<h2 class="anchored" data-anchor-id="参考">参考</h2>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://duckdb.org/docs/stable/clients/r.html">R Client - DuckDB</a></p>
+</div>
+</div>
+</div>
+
+
+<!-- -->
+
+</section>
+
+ ]]></description>
+  <category>R</category>
+  <category>SQL</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/250919_duckdb/</guid>
+  <pubDate>Thu, 18 Sep 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Positronのおすすめ設定！【R | Python】</title>
   <link>https://yo5uke.com/pages/tips/250901_positron_setting/</link>
@@ -14291,887 +14618,6 @@ font-style: inherit;">d{4})$"</span></span>
   <guid>https://yo5uke.com/pages/tips/240917_pivot/</guid>
   <pubDate>Mon, 16 Sep 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/240917_pivot/image/computer_document_spreadsheet.png" medium="image" type="image/png" height="144" width="144"/>
-</item>
-<item>
-  <title>市町村合併を反映させる</title>
-  <link>https://yo5uke.com/pages/tips/240906_municipality_converter/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-
-  <!-- Twitter (X) -->
-
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-
-
-  <!-- Bluesky -->
-
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-</div>
-
-
-
-<script>
-
-  const twitterUsername = "@5uke_y";
-
-  const blueskyUsername = "@5uke.bsky.social";
-
-
-
-  const share_url = encodeURIComponent(location.href);
-
-  const share_title = document.title;
-
-
-
-  // Twitter (X)
-
-  document.getElementById('js-share-twitter').setAttribute(
-
-    "href",
-
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-
-    "&hashtags=rstats"
-
-  );
-
-
-
-  // Bluesky
-
-  document.getElementById('js-share-bluesky').setAttribute(
-
-    "href",
-
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-
-  );
-
-</script>
-
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>市町村合併（平成の大合併）前のデータを使わなければならない場合に、うまく市町村コードを新使いながらパネルデータを作成する方法についてご紹介します。</p>
-<p>この記事では<a href="https://keisukekondokk.github.io/">近藤恵介</a>先生（RIETI、神戸大学）が作成された市町村コンバーターを使用します。</p>
-<p>以下のGitHubリポジトリよりダウンロードが可能です。</p>
-<p><a href="https://github.com/keisukekondokk/municipality-converter" class="uri">https://github.com/keisukekondokk/municipality-converter</a></p>
-</section>
-<section id="方法" class="level2">
-<h2 class="anchored" data-anchor-id="方法">方法</h2>
-<section id="コンバーターファイルのダウンロードと読み込み" class="level3">
-<h3 class="anchored" data-anchor-id="コンバーターファイルのダウンロードと読み込み">コンバーターファイルのダウンロードと読み込み</h3>
-<p><a href="https://github.com/keisukekondokk/municipality-converter">GitHubリポジトリ</a>の<code>data_converter</code>内にある<code>municipality_converter_jp.csv</code>を開きます<sup>1</sup>。次のリンクから直接飛ぶことも可能です。</p>
-<p><a href="https://github.com/keisukekondokk/municipality-converter/blob/master/data_converter/municipality_converter_jp.csv" class="uri">https://github.com/keisukekondokk/municipality-converter/blob/master/data_converter/municipality_converter_jp.csv</a></p>
-<p><code>municipality_converter_jp.csv</code>を開くと、コード右上にあるダウンロードアイコン<sup>2</sup>より任意の場所にダウンロードが可能です。</p>
-<p>ダウンロードできたら、Rで読み込みます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(here)</span>
-<span id="cb1-3"></span>
-<span id="cb1-4">converter <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_csv</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/240906_municipality_converter/municipality_converter_jp.csv"</span>))</span></code></pre></div></div>
-</div>
-</section>
-<section id="パネル化したいデータの準備" class="level3">
-<h3 class="anchored" data-anchor-id="パネル化したいデータの準備">パネル化したいデータの準備</h3>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>使用するデータ
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>今回使用するデータは<a href="https://drive.google.com/drive/folders/1UbZGB2yIjO9jpXuJIihU9-0INqGzLvQ5?usp=sharing">こちら</a>からダウンロードできます。</p>
-</div>
-</div>
-<p>例えば人口データをパネル化したいとします。今回は例として、2000年から2005年の人口データ<sup>3</sup>を、2020年の市町村区分になるようにくっつけます。例なので、総人口のみを扱います。</p>
-<p>今回使用するデータは次のようなファイルになっています。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/240906_municipality_converter/image/population_data.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
-</figure>
-</div>
-<p>まずはこれらのファイル（自分がパネル化したいデータがあればそれらのファイル）をRで読み込んでください。<code>.xls</code>ファイルであれば<code>readxl</code>パッケージの<code>read_xls()</code>を僕は使っています。以下は5年分まとめて読み込むときの例です。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(readxl)</span>
-<span id="cb2-2"></span>
-<span id="cb2-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2000</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb2-4">  obj <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_xls</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/240906_municipality_converter/"</span>, year, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"0331.xls"</span>)), </span>
-<span id="cb2-5">                  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">skip =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb2-6">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>)</span>
-<span id="cb2-7">  </span>
-<span id="cb2-8">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">colnames</span>(obj) <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"prefecture"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"municipality"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"population"</span>)</span>
-<span id="cb2-9">  </span>
-<span id="cb2-10">  obj <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> obj <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb2-11">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">as.numeric</span>(code) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%/%</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>)</span>
-<span id="cb2-12">  </span>
-<span id="cb2-13">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">assign</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_"</span>, year), obj)</span>
-<span id="cb2-14">}</span></code></pre></div></div>
-<p>forループや<code>assign()</code>についての説明は行いませんが、これで2000年から2005年までを一括で読み込むことができます。ポイントは、今回使用するコンバーターはキーとなるコードが整数かつ下1桁を落としているため、<code>mutate(code = as.numeric(code) %/% 10)</code>で処理しているところです。</p>
-<p>とりあえずここで重要なことは、<code>select()</code>で必要な列のみ取り出しているのですが、<strong>団体コードと人口の列は必ず取り出すこと</strong>です。市町村名も一応取り出していますが、別になくてもよいです。</p>
-</section>
-<section id="年の自治体コードを付与" class="level3">
-<h3 class="anchored" data-anchor-id="年の自治体コードを付与">2020年の自治体コードを付与</h3>
-<p>合併前のデータに、合併後の自治体コードを付与します。具体的には、人口データの<code>code</code>とコンバーターの<code>merge_id_muni</code>をキーにして<code>left_join()</code>し、<code>id_muni2020</code>を付与します。</p>
-<p>これもまとめて6年分やりたいので、先ほどのコードに追記します。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2000</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb3-2">  obj <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_xls</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/240906_municipality_converter/"</span>, year, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"0331.xls"</span>)), <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">skip =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb3-3">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>)</span>
-<span id="cb3-4">  </span>
-<span id="cb3-5">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">colnames</span>(obj) <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"prefecture"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"municipality"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"population"</span>)</span>
-<span id="cb3-6">  </span>
-<span id="cb3-7">  obj <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> obj <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb3-8">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">as.numeric</span>(code) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%/%</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb3-9">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">left_join</span>(converter, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">by =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"merge_id_muni"</span>)) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb3-10">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(code, prefecture, municipality, population, id_muni2020)</span>
-<span id="cb3-11">  </span>
-<span id="cb3-12">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">assign</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_"</span>, year), obj)</span>
-<span id="cb3-13">}</span></code></pre></div></div>
-<p>試しに<code>pop_2020</code>の変数名を<code>colnames(pop_2020)</code>などで確認してみると、code, prefecture, municipality, population, id_muni2020となっていることがわかります。</p>
-</section>
-<section id="id_muni2020を使ってサマライズ" class="level3">
-<h3 class="anchored" data-anchor-id="id_muni2020を使ってサマライズ"><code>id_muni2020</code>を使ってサマライズ</h3>
-<p>例えばB市とC市がA市に合併した場合、Aはもとから2020年基準の自治体コードを持っていますが、B市とC市は古い自治体コードを持っていて、新しく2020年の自治体コードを付与されています。</p>
-<p>すなわち、<code>id_muni2020</code>の列を見ると、A市と同じ自治体コードをB市とC市は持っていることになります。</p>
-<p>これを使うと、各自治体コードで人口を足し算すれば、現在の自治体区分における人口総数を算出することができます。これを実行するのが<code>summarise()</code>関数です。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2000</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb4-2">  df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">get</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_"</span>, year))</span>
-<span id="cb4-3">  </span>
-<span id="cb4-4">  summarised_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb4-5">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sum</span>(population, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>), </span>
-<span id="cb4-6">              <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">.by =</span> id_muni2020)</span>
-<span id="cb4-7">  </span>
-<span id="cb4-8">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">assign</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"summarised_pop_"</span>, year), summarised_df)</span>
-<span id="cb4-9">}</span></code></pre></div></div>
-</div>
-<p>forループの中でデータフレーム名を取得するのは少々ややこしいですが、以上のような書き方で可能です。</p>
-<p><code>summarise()</code>内では<code>.by</code>で指定した<code>id_muni2020</code>ごとに<code>population</code>を<code>sum()</code>するようになっています。<code>na.rm = TRUE</code>は、NAがあった場合に計算結果がNAにならないようにするために必要です。</p>
-<p>以上を実行すると、<code>summarised_pop_2000</code>～<code>summarised_pop_2005</code>までが出来上がります。</p>
-<p>ちなみにここで使っている変数が<code>id_muni2020</code>と<code>population</code>だけなので、出来上がったデータフレームもこの2つの変数しか入っていません。市町村名も残したい場合は、<code>.by</code>で<code>prefecture</code>と<code>municipality</code>も追加で指定すれば残すことができます。</p>
-</section>
-<section id="left_joinでくっつける" class="level3">
-<h3 class="anchored" data-anchor-id="left_joinでくっつける"><code>left_join()</code>でくっつける</h3>
-<p>2000年のデータフレームをベースとして2001～2005年を結合するので、最初に2000年のデータを<code>final_df</code>として格納しておきます。その際に変数名も2000年のものであることを明記します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">final_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> summarised_pop_2000 <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb5-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rename</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_2000 =</span> population)</span>
-<span id="cb5-3"></span>
-<span id="cb5-4"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2001</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb5-5">  df_to_join <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">get</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"summarised_pop_"</span>, year)) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb5-6">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rename_with</span>(<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(., <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"_"</span>, year), population)</span>
-<span id="cb5-7">  </span>
-<span id="cb5-8">  </span>
-<span id="cb5-9">  final_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">left_join</span>(final_df, df_to_join, </span>
-<span id="cb5-10">                        <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">by =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"id_muni2020"</span>))</span>
-<span id="cb5-11">}</span></code></pre></div></div>
-</div>
-<p><code>population</code>の列が複数出てくるので、それらの後が<code>_20xx</code>となるように<code>rename_with()</code>で設定しています。</p>
-<p><code>final_df</code>が最終的なデータフレームです。確認してみてください。</p>
-<p>以上の作業で合併前のデータを最新の市町村区分を基準として結合することができました。</p>
-<p>これを応用して変数を追加したりロング形式に変換することが可能です。</p>
-</section>
-</section>
-<section id="まとめ" class="level2">
-<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
-<p>今回紹介したコードをまとめると以下の通りです。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb6-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(here)</span>
-<span id="cb6-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(readxl)</span>
-<span id="cb6-4"></span>
-<span id="cb6-5"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2000</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb6-6">  obj <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_xls</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/240906_municipality_converter/"</span>, year, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"0331.xls"</span>)), <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">skip =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-7">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>)</span>
-<span id="cb6-8">  </span>
-<span id="cb6-9">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">colnames</span>(obj) <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"prefecture"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"municipality"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"population"</span>)</span>
-<span id="cb6-10">  </span>
-<span id="cb6-11">  obj <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> obj <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-12">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">as.numeric</span>(code) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%/%</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-13">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">left_join</span>(converter, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">by =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"merge_id_muni"</span>)) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-14">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(code, prefecture, municipality, population, id_muni2020)</span>
-<span id="cb6-15">  </span>
-<span id="cb6-16">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">assign</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_"</span>, year), obj)</span>
-<span id="cb6-17">}</span>
-<span id="cb6-18"></span>
-<span id="cb6-19"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2000</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb6-20">  df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">get</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_"</span>, year))</span>
-<span id="cb6-21">  </span>
-<span id="cb6-22">  summarised_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-23">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sum</span>(population, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>), </span>
-<span id="cb6-24">              <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">.by =</span> id_muni2020)</span>
-<span id="cb6-25">  </span>
-<span id="cb6-26">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">assign</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"summarised_pop_"</span>, year), summarised_df)</span>
-<span id="cb6-27">}</span>
-<span id="cb6-28"></span>
-<span id="cb6-29">final_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> summarised_pop_2000 <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-30">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rename</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_2000 =</span> population)</span>
-<span id="cb6-31"></span>
-<span id="cb6-32"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2001</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb6-33">  df_to_join <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">get</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"summarised_pop_"</span>, year)) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-34">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rename_with</span>(<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(., <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"_"</span>, year), population)</span>
-<span id="cb6-35">  </span>
-<span id="cb6-36">  </span>
-<span id="cb6-37">  final_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">left_join</span>(final_df, df_to_join, </span>
-<span id="cb6-38">                        <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">by =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"id_muni2020"</span>))</span>
-<span id="cb6-39">}</span></code></pre></div></div>
-<p>さらに1つのコードで完結させる場合は次のようになります。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb7-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(here)</span>
-<span id="cb7-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(readxl)</span>
-<span id="cb7-4"></span>
-<span id="cb7-5"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (year <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2000</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2005</span>) {</span>
-<span id="cb7-6">  obj <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_xls</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/240906_municipality_converter/"</span>, year, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"0331.xls"</span>)), <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">skip =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-7">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>)</span>
-<span id="cb7-8">  </span>
-<span id="cb7-9">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">colnames</span>(obj) <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"prefecture"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"municipality"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"population"</span>)</span>
-<span id="cb7-10">  </span>
-<span id="cb7-11">  summarised_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> obj <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-12">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">as.numeric</span>(code) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">%/%</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-13">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">left_join</span>(converter, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">by =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"merge_id_muni"</span>)) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-14">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(code, prefecture, municipality, population, id_muni2020) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-15">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sum</span>(population, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>), <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">.by =</span> id_muni2020)</span>
-<span id="cb7-16">  </span>
-<span id="cb7-17">  <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (year <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2000</span>) {</span>
-<span id="cb7-18">    final_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> summarised_df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-19">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rename</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_2000 =</span> population)</span>
-<span id="cb7-20">  } <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">else</span> {</span>
-<span id="cb7-21">    summarised_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> summarised_df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-22">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rename_with</span>(<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"population_"</span>, year), population)</span>
-<span id="cb7-23">    </span>
-<span id="cb7-24">    final_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">left_join</span>(final_df, summarised_df, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">by =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"id_muni2020"</span>)</span>
-<span id="cb7-25">  }</span>
-<span id="cb7-26">}</span></code></pre></div></div>
-<p>以上です。合併処理はめんどくさいので、少しでもお役に立てれば幸いです。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>別に英語版でもよいです。↩︎</p></li>
-<li id="fn2"><p>カーソルを合わせると「Download raw file」と出てきます。↩︎</p></li>
-<li id="fn3"><p>住民基本台帳より↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <guid>https://yo5uke.com/pages/tips/240906_municipality_converter/</guid>
-  <pubDate>Thu, 05 Sep 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
