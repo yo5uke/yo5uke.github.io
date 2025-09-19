@@ -100,7 +100,10 @@
 <h2 class="anchored" data-anchor-id="duckdbのインストール">DuckDBのインストール</h2>
 <p>DuckDBをRで使用するには、<code>duckdb</code>パッケージをインストールします。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1">pak<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages("pak")</span></span>
+<span id="cb1-2">pak<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
 background-color: null;
@@ -190,10 +193,11 @@ font-style: inherit;">"CREATE TABLE iris AS SELECT * FROM read_csv('data/iris.cs
 </section>
 <section id="rを使う場合" class="level4">
 <h4 class="anchored" data-anchor-id="rを使う場合">Rを使う場合</h4>
-<p>とはいえ新しくSQLを覚えるのは面倒だしRで書けたら嬉しいという僕なので、ここでRを使うことの意義を示します。</p>
-<p>それは、今提示したコードを皆さんおなじみ<code>dplyr</code>を使って実行できる、ということです。データベースはなんだかよくわからないけれども、<code>dplyr</code>が使えるならうれしいですよね。</p>
-<p>ただ、先ほどのメリットの裏返しで、一度R上でデータを読み込んでからデータベースに送り込むことになるので、メモリを多く消費することと、データが大きいと処理速度が遅くなることには注意してください。</p>
-<p><code>dplyr</code>を使って書いたコードをSQLに変換して実行してくれるのです。その場合のコードを見てみましょう。</p>
+<p>とはいえ新しくSQLを覚えるのは面倒だしRで書けたらうれしいという僕なので、ここでRを使うことの意義を示します。</p>
+<p>それは、今提示したコードを皆さんおなじみ<code>dplyr</code>を使って実行できる、ということです。</p>
+<p>それはすなわち<code>dplyr</code>を使って書いたコードをSQLに変換して実行してくれるということを意味しています。</p>
+<p>データベースやSQLはなんだかよくわからないけれども、<code>dplyr</code>が使えるならうれしいですよね<sup>1</sup>。</p>
+<p>その場合のコードを見てみましょう。</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
 background-color: null;
@@ -230,7 +234,7 @@ background-color: null;
 font-style: inherit;">"iris"</span>, iris_data)</span></code></pre></div></div>
 </div>
 <p>これで<code>.duckdb</code>ファイルに<code>iris</code>テーブルが保存されます。</p>
-<p>ちなみに、データベースにはテーブルを複数作成できるので、<code>iris</code>以外のデータもも好きな名前でテーブルを追加できます<sup>1</sup>。</p>
+<p>ちなみに、データベースにはテーブルを複数作成できるので、<code>iris</code>以外のデータもも好きな名前でテーブルを追加できます<sup>2</sup>。</p>
 </section>
 </section>
 <section id="データの操作" class="level3">
@@ -294,11 +298,32 @@ font-style: inherit;">collect</span>()</span></code></pre></div></div>
 <p>とりあえず、<code>collect()</code>の前までは通常のデータ処理と同じように<code>dplyr</code>の関数を使って操作できるので、慣れ親しんだ方法でデータを扱うことができます。</p>
 </section>
 </section>
+<section id="テーブルの削除" class="level3">
+<h3 class="anchored" data-anchor-id="テーブルの削除">テーブルの削除</h3>
+<p>追加したテーブルを削除する場合は、以下のようにします。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DROP TABLE iris"</span>)</span></code></pre></div></div>
+</div>
+<p>これで<code>iris</code>テーブルがデータベースから削除されます。</p>
+<p>もし安全に削除したい場合は、</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DROP TABLE IF EXISTS iris"</span>)</span></code></pre></div></div>
+</div>
+<p>とすることで、テーブルが存在しない場合でもエラーにならずに処理を続行できます。</p>
+</section>
 <section id="データベースからの切断" class="level3">
 <h3 class="anchored" data-anchor-id="データベースからの切断">データベースからの切断</h3>
 <p>データベースの操作が終わったら、接続を切断します。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">dbDisconnect</span>(con, <span class="at" style="color: #657422;
 background-color: null;
@@ -337,7 +362,8 @@ font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
 <div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
 
 <ol>
-<li id="fn1"><p>とはいえ、プロジェクトごとなどで<code>.duckdb</code>は分けた方が良いとは思います。↩︎</p></li>
+<li id="fn1"><p>ただ、先ほどのメリットの裏返しで、一度R上でデータを読み込んでからデータベースに送り込むことになるので、メモリを多く消費することと、データが大きいと処理速度が遅くなることには注意してください。↩︎</p></li>
+<li id="fn2"><p>とはいえ、プロジェクトごとなどで<code>.duckdb</code>は分けた方が良いとは思います。↩︎</p></li>
 </ol>
 </section></div> ]]></description>
   <category>R</category>
