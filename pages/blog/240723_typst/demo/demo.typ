@@ -278,6 +278,56 @@
   inset: 6pt,
   stroke: none
 )
+#let brand-color = (
+  background: rgb("#ffffff"),
+  black: rgb("#111111"),
+  coral-pink: rgb("#f3969a"),
+  dark: rgb("#343a40"),
+  foreground: rgb("#454955"),
+  gray: rgb("#454955"),
+  gray-dark: rgb("#343a40"),
+  gray-light: rgb("#f0f0f0"),
+  light: rgb("#f0f0f0"),
+  mint: rgb("#78c2ad"),
+  primary: rgb("#78c2ad"),
+  purple: rgb("#7d12ba"),
+  white: rgb("#ffffff")
+)
+#set page(fill: brand-color.background)
+#set text(fill: brand-color.foreground)
+#set table.hline(stroke: (paint: brand-color.foreground))
+#set line(stroke: (paint: brand-color.foreground))
+#let brand-color-background = (
+  background: color.mix((brand-color.background, 15%), (brand-color.background, 85%)),
+  black: color.mix((brand-color.black, 15%), (brand-color.background, 85%)),
+  coral-pink: color.mix((brand-color.coral-pink, 15%), (brand-color.background, 85%)),
+  dark: color.mix((brand-color.dark, 15%), (brand-color.background, 85%)),
+  foreground: color.mix((brand-color.foreground, 15%), (brand-color.background, 85%)),
+  gray: color.mix((brand-color.gray, 15%), (brand-color.background, 85%)),
+  gray-dark: color.mix((brand-color.gray-dark, 15%), (brand-color.background, 85%)),
+  gray-light: color.mix((brand-color.gray-light, 15%), (brand-color.background, 85%)),
+  light: color.mix((brand-color.light, 15%), (brand-color.background, 85%)),
+  mint: color.mix((brand-color.mint, 15%), (brand-color.background, 85%)),
+  primary: color.mix((brand-color.primary, 15%), (brand-color.background, 85%)),
+  purple: color.mix((brand-color.purple, 15%), (brand-color.background, 85%)),
+  white: color.mix((brand-color.white, 15%), (brand-color.background, 85%))
+)
+#let brand-logo-images = (
+  icon: (
+    path: "assets\\icons\\favicon.ico"
+  ),
+  icon-r: (
+    path: "assets\\icons\\abe-r.png"
+  )
+)
+#set text(weight: 400, )
+#set par(leading: 0.85em)
+#show heading: set text(font: ("Zen Maru Gothic",), weight: 700, style: "normal", )
+#show heading: set par(leading: 0.5em)
+#show raw.where(block: false): set text(font: ("Fira Code",), weight: 400, fill: rgb("#7d12ba"), )
+#show raw.where(block: false): content => highlight(fill: rgb(247, 247, 249, 65%), content)
+#show raw.where(block: true): set text(font: ("Fira Code",), weight: 400, size: 0.95*12pt, )
+#show link: set text(weight: 400, fill: rgb("#78c2ad"), )
 
 #set page(
   paper: "us-letter",
@@ -298,6 +348,13 @@
 
 ],
   abstract-title: "Abstract",
+  font: ("Zen Maru Gothic",),
+  fontsize: 12pt,
+  heading-family: ("Zen Maru Gothic",),
+  heading-weight: 700,
+  heading-style: "normal",
+  heading-color: rgb("#454955"),
+  heading-line-height: 0.5em,
   toc_title: [Table of contents],
   toc_depth: 3,
   cols: 1,
