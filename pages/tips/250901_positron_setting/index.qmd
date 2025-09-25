@@ -3,9 +3,11 @@ title: "Positronのおすすめ設定！【R | Python】"
 description: |
   RStudioからの移行もスムーズに進めましょう。
 date: 2025-09-01
+date-modified: last-modified
 categories:
   - Positron
   - R
+  - Python
   - Quarto
 editor: visual
 ---
@@ -64,11 +66,13 @@ Windowsの方であれば一番上のをダウンロードすればよいと思�
 
 ### 地味にイヤな設定の解消
 
-続いて、地味に困ったのがQuarto Markdownにおけるチャンク挿入についてです。
+続いて、地味に困ったのがQuarto Markdownにおけるチャンク挿入についてです[^4]。
+
+[^4]: ここではR Markdownについては書いていませんが、Positronへの移行を考えている前衛的な皆様であれば、R MarkdownからQuartoへ乗り換えるべきです。ということにして、R Markdownの設定は僕もしていないので、説明から逃げています。
 
 RStudio上ではチャンク（\`\`\`{r}で始まるコードブロック）を挿入する際に`Ctrl` + `Shift` + `I`でチャンクを挿入できるわけなのですが、これはカーソルを置いている位置から始まります。カーソルを置いているその行に\`\`\`{r}が挿入されるということです。
 
-しかしPositronでは、その行を空行にしたうえで、1行下に挿入される設定になっています。問題なければ放置でよいのですが、僕は気になってしまったので、修正することにしました。
+しかしPositronでは、その行を空行にしたうえで、1行下に挿入される設定になっています。気にされないようであれば放置でよいのですが、僕は気になってしまったので、修正することにしました。
 
 先ほどと同様画面左下歯車マークから「キーボードショートカット」（キーボードを使う場合`Shift` + `Alt` + `K`）を開きます。
 
@@ -95,6 +99,37 @@ RStudio上ではチャンク（\`\`\`{r}で始まるコードブロック）を�
 
 これでデフォルトの設定が上書きされ、1行の空白を生まずに済みます。
 
+ちなみに、この設定だとRのチャンクが強制的に挿入されるので、Pythonも使う方は困る！と思うかもしれません。
+
+そのような方には、同じ書き方で`Ctrl` + `Shift` + `I`を使ってPythonのチャンクを挿入するようにするのがおすすめです。そもそもPositronではデフォルトのチャンク挿入が`Ctrl` + `Shift` + `I`（`Alt`ではなく）なのですが、もしRとPythonしか使わないのであれば、これをPython専用のショートカットにしてしまうのがよいのではないでしょうか。
+
+上の設定に書き足す形で、カンマで区切った後ろに以下のように記述します。
+
+``` json
+[
+  {
+    "key": "ctrl+alt+i",
+    "command": "editor.action.insertSnippet",
+    "when": "editorTextFocus && editorLangId == 'quarto'",
+    "args": {
+      "snippet": "```{r}\n$0\n```\n"
+    }
+  },
+
+  // ここから追記
+  {
+    "key": "ctrl+shift+i",
+    "command": "editor.action.insertSnippet",
+    "when": "editorTextFocus && editorLangId == 'quarto'",
+    "args": {
+      "snippet": "```{python}\n$0\n```\n"
+    }
+  }
+]
+```
+
+これで`Ctrl` + `Shift` + `I`をPython専用のショートカットに変更できました。やっていることはキーとスニペットを変えているだけで、他は一緒です。
+
 ## レイアウトの設定
 
 これは個人の好みが大きく、僕がマイナーであることもわかっているので共感いただけないかもしれませんが、僕はコードとコンソールは縦に並べたいタイプの人間です。
@@ -117,11 +152,13 @@ RStudio上ではチャンク（\`\`\`{r}で始まるコードブロック）を�
 
 ![](image/replace_variables.gif){fig-align="center" width="100%"}
 
+（2025/09/25追記）Variablesを左下に移す設定をしていましたが、右側をフルでコンソールにする必要性はないかなと思うようになってきたので右側の上半分をコンソールにし、下半分にVariablesを置くことが増えてきました。プロットをあまりしなくなったことが影響しているかもしれません…。プロットをたくさんする方は上の設定の方がスペースを有効活用できるかもしれません。
+
 ## Project Manager
 
-皆さんはR Projectを使用しているでしょうか。再現可能な研究のための1つのツールにR Projectがあります。ここではそれそのものについて詳しくは書きませんが[^4]、PositronにはR Projectと同様のシステムがありません。
+皆さんはR Projectを使用しているでしょうか。再現可能な研究のための1つのツールにR Projectがあります。ここではそれそのものについて詳しくは書きませんが[^5]、PositronにはR Projectと同様のシステムがありません。
 
-[^4]: R Projectについては[こちら](../240515_rproj/index.qmd)をご覧ください。
+[^5]: R Projectについては[こちら](../240515_rproj/index.qmd)をご覧ください。
 
 そこでPositron（VSCodeもですが）では、拡張機能を使用してプロジェクト管理を行います。
 
@@ -133,9 +170,9 @@ RStudio上ではチャンク（\`\`\`{r}で始まるコードブロック）を�
 
 ではどうやってそのフォルダを開けばよいのか。それを解決してくれるのが「Project Manager」という拡張機能です。
 
-Positronの左にあるサイドバーから拡張機能のアイコンを開き、検索窓から「alefragnani.project-manager」と検索してください[^5]。
+Positronの左にあるサイドバーから拡張機能のアイコンを開き、検索窓から「alefragnani.project-manager」と検索してください[^6]。
 
-[^5]: おそらく「project manager」でも一番上に出ます。
+[^6]: おそらく「project manager」でも一番上に出ます。
 
 ![これです](image/project_manager.png){fig-align="center" width="80%"}
 
@@ -153,9 +190,7 @@ Positronの左にあるサイドバーから拡張機能のアイコンを開き
 
 ぜひプロジェクトはここから保存してみてください。
 
-::: callout-note
-## 参考
-
+::: {.callout-tip appearance="minimal"}
 [The Rproj File - Positron](https://positron.posit.co/migrate-rstudio-rproj.html#launch-from-the-project-manager-extension)
 :::
 
