@@ -10,7 +10,272 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.8.24</generator>
-<lastBuildDate>Thu, 18 Sep 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Thu, 25 Sep 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【R】仮想環境を設定する【Python】</title>
+  <link>https://yo5uke.com/pages/tips/250926_virtual_environment/</link>
+  <description><![CDATA[ 
+<div class="social-share-buttons">
+
+  <!-- Twitter (X) -->
+
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+
+
+  <!-- Bluesky -->
+
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+</div>
+
+
+
+<script>
+
+  const twitterUsername = "@5uke_y";
+
+  const blueskyUsername = "@5uke.bsky.social";
+
+
+
+  const share_url = encodeURIComponent(location.href);
+
+  const share_title = document.title;
+
+
+
+  // Twitter (X)
+
+  document.getElementById('js-share-twitter').setAttribute(
+
+    "href",
+
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+
+    "&hashtags=rstats"
+
+  );
+
+
+
+  // Bluesky
+
+  document.getElementById('js-share-bluesky').setAttribute(
+
+    "href",
+
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+
+  );
+
+</script>
+
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>みなさん、仮想環境、使っていらっしゃいますでしょうか。</p>
+<p>プログラミングにおける仮想環境とは、プロジェクトごとに依存パッケージを切り分けて管理できる仕組みです。これにより、他のプロジェクトやシステム全体に影響を与えず、再現性の高い開発環境を保つことができます。研究や開発を長期に続ける上で、安定した環境を構築するために欠かせないものです。</p>
+<p>例えば、仮想環境をしない場合とする場合で、以下のような違いがあります。</p>
+<p>【仮想環境なし】</p>
+<ul>
+<li>全プロジェクトで共通のRやPythonのパッケージ（同じバージョン）を使用する。</li>
+<li>あるプロジェクトのためにパッケージを更新すると、他のプロジェクトで動かなくなるリスクがある。</li>
+<li>チームで共有するとき、同じ環境を再現するのが難しい。</li>
+</ul>
+<p>【仮想環境あり】</p>
+<ul>
+<li>プロジェクトごとにパッケージのバージョンを使い分ける。</li>
+<li>依存関係を切り分けることで、環境が壊れるリスクを減らせる。</li>
+<li>設定ファイルを共有すれば、他の人も同じ環境を簡単に再現できる。</li>
+</ul>
+<p>本ページでは、これらの違いについて説明しつつ、実際に導入するためのコードも掲載しますので、仮想環境になじみのない方から、知ってはいるけど毎度どうやるんだっけ…となってしまう方までご参考にしていただければと思います。</p>
+</section>
+<section id="仮想環境について" class="level2">
+<h2 class="anchored" data-anchor-id="仮想環境について">仮想環境について</h2>
+<p>仮想環境のポイントは、上で書いた通りです。もう少し詳しく書きます。</p>
+<p>例えば、3年前のRと現在のRでは、バージョンも利用できるパッケージも大きく異なります。もしRやパッケージを常に最新に保っていた場合、3年前に書いたコードがそのまま期待通りに動作するとは限りません。計算方法が変わっていたり、古い関数が削除されていたりして、過去の研究を再現できない可能性があるのです。</p>
+<p>この点、仮想環境では「<strong>バージョンごとに環境を保存する</strong>」ことで問題に対応できます。例えば、あるパッケージの現在のバージョンが1.2.3だとしても、3年後には1.5.4へ更新されているかもしれません。仮想環境を使えば「このプロジェクトではバージョン1.2.3を使用していますよ」とファイルに記録し、後からその環境を再現することができるのです。</p>
+<p>こうすることで、研究当時の環境を正確に呼び出せるため、バージョン変更に伴うトラブルを避け、長期的に安定した再現性を確保できます。</p>
+<p>ちなみに本ページではRに関してはrenv、Pythonに関してはvenvを使用します。どちらもメジャーな仮想環境であり、これを使えていれば問題ないと思います。</p>
+<p>Pythonに関してはcondaなど他のメジャーな仮想環境もありますが、本ページを見てくださっている方であれば個人的にはvenvで十分だと考えています。これは目的にもよりますので、興味がある方は他の仮想環境も調べてみてください。</p>
+</section>
+<section id="renv" class="level2">
+<h2 class="anchored" data-anchor-id="renv">renv</h2>
+<p>ではRの方の説明から始めます。</p>
+<p>renvは、R プロジェクトごとに使用するパッケージの情報を ロックファイル（<code>renv.lock</code>） に記録し、必要に応じて同じ環境を再現できるようにするパッケージです。このロックファイルが「このパッケージのバージョン1.2.3を使用していますよ」ということを保存しているということですね。</p>
+<p>ライブラリはグローバル環境とは分離され、プロジェクト専用のフォルダに保存されます。これにより「どのパッケージを、どのバージョンで使っていたか」が明示され、数年後でも同じ環境を復元することが可能になります。</p>
+<p>もし仮想環境を使ったことがない方であれば、今あなたが使っているのがグローバル環境です。グローバル環境でパッケージをアップデートした場合、もれなくすべてのプロジェクトでパッケージのバージョンが更新されます。renvを使用していれば、そのプロジェクトについてだけバージョンが更新されるという仕組みです。</p>
+<section id="renvの始め方" class="level3">
+<h3 class="anchored" data-anchor-id="renvの始め方">renvの始め方</h3>
+<p>始め方は極めて簡単です。</p>
+<p>まずはプロジェクトを作成します。プロジェクトとは？という方であれば、RStudioユーザーの方であれば<a href="../../../pages/tips/240515_rproj/index.html">こちら</a>、Positronの方であれば<a href="../../../pages/tips/250901_positron_setting/index.html#project-manager">こちら</a>をご参考になさってください。</p>
+<p>そしたらコンソールで以下を実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># renvをまだインストールしていない場合は先にこちらを実行</span></span>
+<span id="cb1-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages("renv")</span></span>
+<span id="cb1-3"></span>
+<span id="cb1-4">renv<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">init</span>()</span></code></pre></div></div>
+<p>renvを開始する、というわかりやすい関数ですね。するとワーキングディレクトリ内にrenvというフォルダと、<code>.Rprofile</code>、<code>renv.lock</code>ファイルが作成されます。これで設定やらなにやらをしていますので、ファイルは消さないようにしてください。</p>
+<p>後は通常通り作業を進めます。パッケージのインストールや、アップデートをしても、それはこのファイル内でのみ適用されます。</p>
+</section>
+<section id="保存の仕方" class="level3">
+<h3 class="anchored" data-anchor-id="保存の仕方">保存の仕方</h3>
+<p>作業を一通り終えたら、ロックファイルにパッケージのバージョンを記述しないといけません（もちろん自動でやってくれます）。以下を実行してください。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">renv<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">snapshot</span>()</span></code></pre></div></div>
+<p><code>Do you want to proceed? [Y/n]:</code>と出てきたら<code>Y</code>を入力し、<code>- Lockfile written to "~/yo5uke.github.io/renv.lock".</code>と出てきたら保存完了です。</p>
+<p>新しいパッケージを追加したらその都度スナップショットを実行してください。ちなみにインストールしただけでは記載の対象にならず、プロジェクト内のコードで使用したパッケージのみ記載されます。この点renvは賢いですよね。</p>
+</section>
+<section id="環境の呼び出し方" class="level3">
+<h3 class="anchored" data-anchor-id="環境の呼び出し方">環境の呼び出し方</h3>
+<p>例えばPCを変更して、環境が移ったとします。すると新しい環境ではパッケージが何もインストールされていない状態です。</p>
+<p>しかしプロジェクトをGit経由等で新しい環境に移せたら、ロックファイルがありますので、その情報をもとに必要なパッケージをインストールすることが可能です。</p>
+<p><code>renv</code>パッケージがインストールされていない場合はしてから、以下の関数を実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages("renv")</span></span>
+<span id="cb3-2">renv<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">restore</span>()</span></code></pre></div></div>
+<p>これでロックファイル内に記載されているパッケージが、バージョンを保ったまま新しい環境にインストールされます。これで前のPCと同じ環境が再現できるというわけです。</p>
+<p>ちなみに新しいPCというわけではなくとも、GitHubにプロジェクトをアップロードしておけば、当然ロックファイルもGitHub上に保存されるわけですので、再度GitHubから引っ張ってくれば、ローカルから一度プロジェクトを削除しても後々再現ができるわけです。これは地味にうれしいですよね。</p>
+</section>
+<section id="まとめ" class="level3">
+<h3 class="anchored" data-anchor-id="まとめ">まとめ</h3>
+<p><code>init()</code>、<code>snapshot()</code>、<code>restore()</code>の3つが使えれば、renvを使いこなせていると言えるでしょう。近年は再現可能な研究への需要が高まってきていますから、Rユーザーの方はぜひrenvを使ってみてください。</p>
+</section>
+</section>
+<section id="venv" class="level2">
+<h2 class="anchored" data-anchor-id="venv">venv</h2>
+<p>Pythonは少々ややこしいと個人的に感じています<sup>1</sup>。</p>
+<p>renvはR上で完結する一方、venvはPowerShellないしコマンドプロンプトを使う必要があるからです<sup>2</sup>。</p>
+<p>それでは改めてvenvについて説明します。</p>
+<p>venvは<code>Python</code>に標準で付属している仮想環境ツールで、プロジェクトごとに独立したパッケージ環境を作成できます。</p>
+<p>venvで作成した環境はプロジェクト内の<code>.venv</code>フォルダに保存され、そこにPython本体や必要なライブラリがインストールされます。そのため、システム全体のPythonに影響を与えることなく、プロジェクトごとにライブラリのバージョンを固定できます。</p>
+<p>さらに、<code>requirements.txt</code>というファイルを用いれば、使用しているライブラリとそのバージョンを記録し、他の人や別の環境でも同じ構成を再現できます。これはRの<code>renv.lock</code>に相当する役割です。</p>
+<section id="sec-init-venv" class="level3">
+<h3 class="anchored" data-anchor-id="sec-init-venv">venvの始め方</h3>
+<p>それではvenv環境を作る手順に移ります。</p>
+<p>VSCodeもしくはPositronの場合、まずプロジェクト（ワークスペース）を開いたのち、<code>Ctrl</code> + <code>Shift</code> + <code>@</code>でターミナルを開きます。</p>
+<p>開けたら、以下を入力して実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">python</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> venv .venv</span></code></pre></div></div>
+<p>これは独立したPython環境を<code>.venv</code>というフォルダに作るということを意味しており、<code>.venv</code>という名前で作成すると、VSCodeやPositronが自動的に「これを仮想環境だな」と認識し、インタープリタの候補に出してくれるので必須ではないですがおすすめです<sup>3</sup>。</p>
+<p>しかし、環境を作るだけでは自動でアクティベートされません（最初は自動で起動しないということです）。</p>
+<p>VSCodeの場合方法は2つあります。1つ目は簡単で、ターミナルを新しくするということです。ターミナルの右上に<code>+</code>ボタンがありますので、これを押して新しいターミナルを開きます。すると以下のような表示が出ますので、これでアクティベートされています。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250926_virtual_environment/image/activate_vscode.png" class="img-fluid figure-img"></p>
+<figcaption>VSCodeのターミナル</figcaption>
+</figure>
+</div>
+<p>頭に<code>(.venv)</code>と表示されていれば、アクティベートされています。</p>
+<p>2つ目は、1つ目の方法でうまくいかなかったときにも有効な方法で、ターミナルに以下を打ち込んで実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">.venv/Scripts/activate</span></span></code></pre></div></div>
+<p>これでアクティベートされます<sup>4</sup>。上の画像と同じ表示になると思いますのでご確認ください。</p>
+<p>Positronの場合は、ウィンドウ右上の「R 4.5.1」や「Python 3.13.7」と表示があるところからインタープリタを選択します。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/250926_virtual_environment/image/venv_positron.gif" class="img-fluid figure-img"></p>
+<figcaption>Positronのイメージ</figcaption>
+</figure>
+</div>
+<p>「Venv: .venv」とあるものを選択すればvenv環境に移れます。こちらは簡単ですね。</p>
+<p>ちなみに少し細かい話をすると、<code>.venv</code>は容量が大きい一方で、環境の再現自体は<code>requirements.txt</code>のみで担保できるため、Gitには保存せず<code>.gitignore</code>に<code>.venv/</code>と記載しておくのがよいと思います。そのため、後述しますが新しい環境では再度venv環境を作成してください。</p>
+</section>
+<section id="保存の仕方-1" class="level3">
+<h3 class="anchored" data-anchor-id="保存の仕方-1">保存の仕方</h3>
+<p>保存もターミナル上で行います（Pythonのコンソールではありません）。</p>
+<p>ターミナルで以下を実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">pip</span> freeze <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> requirements.txt</span></code></pre></div></div>
+<p>これは先述の通り、<code>requirements.txt</code>というファイルにパッケージ名とバージョンを保存します。まさにロックファイルと同じような感じですが、中身を見てみると、<code>polars==1.33.1</code>のように、非常にシンプルな形で記載されています。</p>
+<p>作業が終わったら、適宜保存してください。</p>
+</section>
+<section id="パッケージの呼び出し方" class="level3">
+<h3 class="anchored" data-anchor-id="パッケージの呼び出し方">パッケージの呼び出し方</h3>
+<p>R同様、新しい環境に移行したら、この<code>requirements.txt</code>ファイルからパッケージをバージョンごと再現する必要があります。</p>
+<p>新しい環境だとまだ<code>.venv</code>が存在しないと思うので、前と同じ方法でvenv環境を作成したのち、<code>renv::restore()</code>と同じような働きをする以下のコマンドを実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">pip</span> install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
+<p><code>-r</code>は「ファイルに書かれたリストを読む」という意味で、これでファイル内に記載されているパッケージがまとめてインストールできます。</p>
+</section>
+<section id="まとめ-1" class="level3">
+<h3 class="anchored" data-anchor-id="まとめ-1">まとめ</h3>
+<p>renvよりはやや複雑ですが、ターミナル上で仮想環境の作成から再現まで行うことができます。必要なのは以下の3つです。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">python</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> venv .venv</span>
+<span id="cb8-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">pip</span> freeze <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> requirements.txt</span>
+<span id="cb8-3"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">pip</span> install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
+</section>
+</section>
+<section id="まとめ-2" class="level2">
+<h2 class="anchored" data-anchor-id="まとめ-2">まとめ</h2>
+<p>今回は仮想環境のrenvとvenvについて簡単にご紹介しました。簡単にとはいうものの、エンジニアでもなければこれで十分ではないかと思っています。</p>
+<p>仮想環境を活用しながら、再現可能な研究を進めていきましょう！</p>
+<p>（余談：サムネイルの設定をミスったのですが、でかでかと<code>.venv</code>が表示されたので、これで良しとします！）</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>Pythonはまだ勉強中ということもあり、マスターすれば大したことはないのかもしれません。↩︎</p></li>
+<li id="fn2"><p>Macユーザーの方へは十分な説明になっていないかもしれませんが、ターミナルを使うことになると思います。↩︎</p></li>
+<li id="fn3"><p>インタープリタというのは、使用するPythonのバージョンのようなイメージです。PCにインストールしたグローバルなPython環境と、venv環境がこの場合の選択肢です。↩︎</p></li>
+<li id="fn4"><p><code>.venv</code>とは異なるフォルダ名で作成した場合はその名前に変えてください。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>Python</category>
+  <category>VSCode</category>
+  <category>Positron</category>
+  <guid>https://yo5uke.com/pages/tips/250926_virtual_environment/</guid>
+  <pubDate>Thu, 25 Sep 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>DuckDBをRで使う</title>
   <link>https://yo5uke.com/pages/tips/250919_duckdb/</link>
@@ -479,9 +744,9 @@ font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
 </section>
 <section id="地味にイヤな設定の解消" class="level3">
 <h3 class="anchored" data-anchor-id="地味にイヤな設定の解消">地味にイヤな設定の解消</h3>
-<p>続いて、地味に困ったのがQuarto Markdownにおけるチャンク挿入についてです。</p>
+<p>続いて、地味に困ったのがQuarto Markdownにおけるチャンク挿入についてです<sup>4</sup>。</p>
 <p>RStudio上ではチャンク（```{r}で始まるコードブロック）を挿入する際に<code>Ctrl</code> + <code>Shift</code> + <code>I</code>でチャンクを挿入できるわけなのですが、これはカーソルを置いている位置から始まります。カーソルを置いているその行に```{r}が挿入されるということです。</p>
-<p>しかしPositronでは、その行を空行にしたうえで、1行下に挿入される設定になっています。問題なければ放置でよいのですが、僕は気になってしまったので、修正することにしました。</p>
+<p>しかしPositronでは、その行を空行にしたうえで、1行下に挿入される設定になっています。気にされないようであれば放置でよいのですが、僕は気になってしまったので、修正することにしました。</p>
 <p>先ほどと同様画面左下歯車マークから「キーボードショートカット」（キーボードを使う場合<code>Shift</code> + <code>Alt</code> + <code>K</code>）を開きます。</p>
 <p>するとキーボードショートカットに関する設定がずらーっと出てきますが、出てきた画面右上の「キーボードショートカットを開く（JSON）」というアイコンをクリックして開きます。</p>
 <div class="quarto-figure quarto-figure-center">
@@ -561,6 +826,148 @@ font-style: inherit;">}</span></span>
 background-color: null;
 font-style: inherit;">]</span></span></code></pre></div></div>
 <p>これでデフォルトの設定が上書きされ、1行の空白を生まずに済みます。</p>
+<p>ちなみに、この設定だとRのチャンクが強制的に挿入されるので、Pythonも使う方は困る！と思うかもしれません。</p>
+<p>そのような方には、同じ書き方で<code>Ctrl</code> + <code>Shift</code> + <code>I</code>を使ってPythonのチャンクを挿入するようにするのがおすすめです。そもそもPositronではデフォルトのチャンク挿入が<code>Ctrl</code> + <code>Shift</code> + <code>I</code>（<code>Alt</code>ではなく）なのですが、もしRとPythonしか使わないのであれば、これをPython専用のショートカットにしてしまうのがよいのではないでしょうか。</p>
+<p>上の設定に書き足す形で、カンマで区切った後ろに以下のように記述します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb2-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"key"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ctrl+alt+i"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"command"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"editor.action.insertSnippet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-5">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"when"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"editorTextFocus &amp;&amp; editorLangId == 'quarto'"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-6">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"args"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-7">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"snippet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"```{r}</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">$0</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">```</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb2-8">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-10"></span>
+<span id="cb2-11">  <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">//</span> <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">ここから追記</span></span>
+<span id="cb2-12">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-13">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"key"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ctrl+shift+i"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-14">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"command"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"editor.action.insertSnippet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-15">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"when"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"editorTextFocus &amp;&amp; editorLangId == 'quarto'"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-16">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"args"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-17">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"snippet"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"```{python}</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">$0</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">```</span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">\n</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb2-18">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-19">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-20"><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span></code></pre></div></div>
+<p>これで<code>Ctrl</code> + <code>Shift</code> + <code>I</code>をPython専用のショートカットに変更できました。やっていることはキーとスニペットを変えているだけで、他は一緒です。</p>
 </section>
 </section>
 <section id="レイアウトの設定" class="level2">
@@ -583,16 +990,17 @@ font-style: inherit;">]</span></span></code></pre></div></div>
 <p><img src="https://yo5uke.com/pages/tips/250901_positron_setting/image/replace_variables.gif" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:100.0%"></p>
 </figure>
 </div>
+<p>（2025/09/25追記）Variablesを左下に移す設定をしていましたが、右側をフルでコンソールにする必要性はないかなと思うようになってきたので右側の上半分をコンソールにし、下半分にVariablesを置くことが増えてきました。プロットをあまりしなくなったことが影響しているかもしれません…。プロットをたくさんする方は上の設定の方がスペースを有効活用できるかもしれません。</p>
 </section>
 <section id="project-manager" class="level2">
 <h2 class="anchored" data-anchor-id="project-manager">Project Manager</h2>
-<p>皆さんはR Projectを使用しているでしょうか。再現可能な研究のための1つのツールにR Projectがあります。ここではそれそのものについて詳しくは書きませんが<sup>4</sup>、PositronにはR Projectと同様のシステムがありません。</p>
+<p>皆さんはR Projectを使用しているでしょうか。再現可能な研究のための1つのツールにR Projectがあります。ここではそれそのものについて詳しくは書きませんが<sup>5</sup>、PositronにはR Projectと同様のシステムがありません。</p>
 <p>そこでPositron（VSCodeもですが）では、拡張機能を使用してプロジェクト管理を行います。</p>
 <p>ざっくりR Projectは<code>.Rproj</code>ファイルを作成し、そのファイルが認識されることでそこをワーキングディレクトリとして設定し、<code>here::here()</code>をはじめとした相対パスを使用できるようになり、効率的なプロジェクト管理が可能になります。</p>
 <p>前述のようにPositronでは<code>.Rproj</code>ファイルは作成できず、代わりにワークスペースを設定することでプロジェクト管理を行います。</p>
 <p>このワークスペースとは一体何かと言えば「Positron内でワーキングディレクトリとなるフォルダを開く」ことに他ならないのですが、つまるところ<code>.Rproj</code>をダブルクリックしてそのフォルダをRStudioで開くのと同様に、そのフォルダをIDE上で「開く」ことが重要なのです。</p>
 <p>ではどうやってそのフォルダを開けばよいのか。それを解決してくれるのが「Project Manager」という拡張機能です。</p>
-<p>Positronの左にあるサイドバーから拡張機能のアイコンを開き、検索窓から「alefragnani.project-manager」と検索してください<sup>5</sup>。</p>
+<p>Positronの左にあるサイドバーから拡張機能のアイコンを開き、検索窓から「alefragnani.project-manager」と検索してください<sup>6</sup>。</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="https://yo5uke.com/pages/tips/250901_positron_setting/image/project_manager.png" class="img-fluid figure-img" style="width:80.0%"></p>
@@ -610,17 +1018,14 @@ font-style: inherit;">]</span></span></code></pre></div></div>
 <p>そしてアイコンの一番左にあるフロッピーディスク💾をクリックすると、今開いているフォルダがワークスペースとして保存され、下に表示されると思います。つまりエクスプローラーにおけるクイックアクセスへのピン留めと同じ要領で、次回以降表示されるプロジェクトを選択すればそのフォルダを開けるようになるというわけです。</p>
 <p><code>.Rproj</code>のようなファイルこそないものの、ワークスペースを開いていれば<code>here::here()</code>をはじめとしたプロジェクト管理のためのツールは同様に使用可能です。</p>
 <p>ぜひプロジェクトはここから保存してみてください。</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
 <div class="callout-icon-container">
-<i class="callout-icon"></i>
+<i class="callout-icon no-icon"></i>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>参考
-</div>
-</div>
-<div class="callout-body-container callout-body">
+<div class="callout-body-container">
 <p><a href="https://positron.posit.co/migrate-rstudio-rproj.html#launch-from-the-project-manager-extension">The Rproj File - Positron</a></p>
+</div>
 </div>
 </div>
 </section>
@@ -643,12 +1048,14 @@ font-style: inherit;">]</span></span></code></pre></div></div>
 <li id="fn1"><p>新しいものが好きな割に敬遠していたのかというご指摘はごもっともですが、ご容赦ください。↩︎</p></li>
 <li id="fn2"><p>これは個人的な意見で、念入りに環境を整えればよいのだと思います。↩︎</p></li>
 <li id="fn3"><p>とはいえ今でも使いやすいのはRStudioだと思っています。今後より便利になるという期待も込めて、Positronを使っている面が大きいです。↩︎</p></li>
-<li id="fn4"><p>R Projectについては<a href="../../../pages/tips/240515_rproj/index.html">こちら</a>をご覧ください。↩︎</p></li>
-<li id="fn5"><p>おそらく「project manager」でも一番上に出ます。↩︎</p></li>
+<li id="fn4"><p>ここではR Markdownについては書いていませんが、Positronへの移行を考えている前衛的な皆様であれば、R MarkdownからQuartoへ乗り換えるべきです。ということにして、R Markdownの設定は僕もしていないので、説明から逃げています。↩︎</p></li>
+<li id="fn5"><p>R Projectについては<a href="../../../pages/tips/240515_rproj/index.html">こちら</a>をご覧ください。↩︎</p></li>
+<li id="fn6"><p>おそらく「project manager」でも一番上に出ます。↩︎</p></li>
 </ol>
 </section></div> ]]></description>
   <category>Positron</category>
   <category>R</category>
+  <category>Python</category>
   <category>Quarto</category>
   <guid>https://yo5uke.com/pages/tips/250901_positron_setting/</guid>
   <pubDate>Sun, 31 Aug 2025 15:00:00 GMT</pubDate>
@@ -13540,1118 +13947,6 @@ font-style: inherit;">--chown=rstudio:rstudio</span> /etc/rstudio/rsession.conf 
   <category>Docker</category>
   <guid>https://yo5uke.com/pages/tips/241113_copilot_rstudio/</guid>
   <pubDate>Tue, 12 Nov 2024 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【データハンドリング】pivot_longer()を使ってロング形式のパネルデータを作る【使い方】</title>
-  <link>https://yo5uke.com/pages/tips/240917_pivot/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-
-  <!-- Twitter (X) -->
-
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-
-
-  <!-- Bluesky -->
-
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-</div>
-
-
-
-<script>
-
-  const twitterUsername = "@5uke_y";
-
-  const blueskyUsername = "@5uke.bsky.social";
-
-
-
-  const share_url = encodeURIComponent(location.href);
-
-  const share_title = document.title;
-
-
-
-  // Twitter (X)
-
-  document.getElementById('js-share-twitter').setAttribute(
-
-    "href",
-
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-
-    "&hashtags=rstats"
-
-  );
-
-
-
-  // Bluesky
-
-  document.getElementById('js-share-bluesky').setAttribute(
-
-    "href",
-
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-
-  );
-
-</script>
-
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>今回は<code>tidyr</code>の<code>pivot_longer()</code>を使ってワイド形式のデータをロング形式にする方法をご紹介します。</p>
-</section>
-<section id="使用するパッケージ" class="level2">
-<h2 class="anchored" data-anchor-id="使用するパッケージ">使用するパッケージ</h2>
-<p><code>tidyverse</code>を使用します。<code>tidyverse</code>には<code>dplyr</code>や<code>tidyr</code>をはじめとした諸パッケージが含まれているので、一括でやるのが便利で僕は好きです。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span></code></pre></div></div>
-</div>
-</section>
-<section id="データの準備" class="level2">
-<h2 class="anchored" data-anchor-id="データの準備">データの準備</h2>
-<p>今回は適当に作成していきます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb2-2">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">Region_id =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>, </span>
-<span id="cb2-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">Region =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Region1"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Region2"</span>),</span>
-<span id="cb2-4">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">income_2000 =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">40000</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">35000</span>),</span>
-<span id="cb2-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">income_2005 =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">42000</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">37000</span>),</span>
-<span id="cb2-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">income_2010 =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">45000</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">39000</span>),</span>
-<span id="cb2-7">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_2000 =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">500000</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">450000</span>),</span>
-<span id="cb2-8">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_2005 =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">520000</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">460000</span>),</span>
-<span id="cb2-9">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_2010 =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">540000</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">470000</span>)</span>
-<span id="cb2-10">)</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div id="tbl-wide" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-wide-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-表&nbsp;1: ワイド形式のパネルデータ
-</figcaption>
-<div aria-describedby="tbl-wide-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script>
-
-      function styleCell_wz668g6opw61ptzac4yv(i, j, css_id) {
-          var table = document.getElementById("tinytable_wz668g6opw61ptzac4yv");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_wz668g6opw61ptzac4yv');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_wz668g6opw61ptzac4yv(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_wz668g6opw61ptzac4yv");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: 2, j: 0 }, { i: 2, j: 1 }, { i: 2, j: 2 }, { i: 2, j: 3 }, { i: 2, j: 4 }, { i: 2, j: 5 }, { i: 2, j: 6 }, { i: 2, j: 7 },  ], css_id: 'tinytable_css_pglr6xbmxk5hm1btabag',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 }, { i: 0, j: 5 }, { i: 0, j: 6 }, { i: 0, j: 7 },  ], css_id: 'tinytable_css_hslkpqt4b6erftfarr3u',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  styleCell_wz668g6opw61ptzac4yv(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_pglr6xbmxk5hm1btabag, .table th.tinytable_css_pglr6xbmxk5hm1btabag { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_hslkpqt4b6erftfarr3u, .table th.tinytable_css_hslkpqt4b6erftfarr3u { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-    </style>
-    <div class="container">
-      <table class="table table-borderless" id="tinytable_wz668g6opw61ptzac4yv" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        <thead>
-        
-              <tr>
-                <th scope="col">Region_id</th>
-                <th scope="col">Region</th>
-                <th scope="col">income_2000</th>
-                <th scope="col">income_2005</th>
-                <th scope="col">income_2010</th>
-                <th scope="col">population_2000</th>
-                <th scope="col">population_2005</th>
-                <th scope="col">population_2010</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>Region1</td>
-                  <td>40000</td>
-                  <td>42000</td>
-                  <td>45000</td>
-                  <td>500000</td>
-                  <td>520000</td>
-                  <td>540000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Region2</td>
-                  <td>35000</td>
-                  <td>37000</td>
-                  <td>39000</td>
-                  <td>450000</td>
-                  <td>460000</td>
-                  <td>470000</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</figure>
-</div>
-</div>
-<p>2つの地域について収入と人口のデータを作りました。</p>
-<p>ポイントは、主要なデータにおいて<code>変数名_年</code>となっていることです。</p>
-</section>
-<section id="pivot_longerを使う" class="level2">
-<h2 class="anchored" data-anchor-id="pivot_longerを使う"><code>pivot_longer()</code>を使う</h2>
-<p>一番ベーシックなやり方は次の通りです。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">df_long <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb3-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">pivot_longer</span>(</span>
-<span id="cb3-3">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cols =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">starts_with</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"income_"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"population_"</span>)), </span>
-<span id="cb3-4">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_to =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".value"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"year"</span>), </span>
-<span id="cb3-5">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_sep =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"_"</span></span>
-<span id="cb3-6">  )</span></code></pre></div></div>
-</div>
-<p><code>cols</code>ではロング形式に変換したい変数を指定しています。<code>dplyr</code>の<code>starts_with()</code>を使えば、複数年分の変数を一括で指定することができます。今回は<code>income_</code>と<code>population_</code>で始まる変数という意味です。</p>
-<p><code>names_to</code>は新しい列名をどうするかを指定しています。<code>names_sep</code>で分割の区切りを指定しているのですが（この場合はアンダースコア）、その区切り前なら<code>.value</code>（すなわち、もとの名前のまま<sup>1</sup>）、区切り後は<code>Year</code>という列に格納するという意味です。</p>
-<p>できたデータフレームは次のようになります。</p>
-<div class="cell">
-<div id="tbl-long" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-long-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-表&nbsp;2: ロング形式のパネルデータ
-</figcaption>
-<div aria-describedby="tbl-long-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script>
-
-      function styleCell_k462mfa30ot0e2cy75si(i, j, css_id) {
-          var table = document.getElementById("tinytable_k462mfa30ot0e2cy75si");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_k462mfa30ot0e2cy75si');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_k462mfa30ot0e2cy75si(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_k462mfa30ot0e2cy75si");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 },  ], css_id: 'tinytable_css_mbo3xrhei2va4akyb2kq',}, 
-          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 },  ], css_id: 'tinytable_css_ln1z8p5zj0at2avlr456',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  styleCell_k462mfa30ot0e2cy75si(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_mbo3xrhei2va4akyb2kq, .table th.tinytable_css_mbo3xrhei2va4akyb2kq { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_ln1z8p5zj0at2avlr456, .table th.tinytable_css_ln1z8p5zj0at2avlr456 { border-bottom: solid #d3d8dc 0.1em; }
-    </style>
-    <div class="container">
-      <table class="table table-borderless" id="tinytable_k462mfa30ot0e2cy75si" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        <thead>
-        
-              <tr>
-                <th scope="col">Region_id</th>
-                <th scope="col">Region</th>
-                <th scope="col">year</th>
-                <th scope="col">income</th>
-                <th scope="col">population</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>Region1</td>
-                  <td>2000</td>
-                  <td>40000</td>
-                  <td>500000</td>
-                </tr>
-                <tr>
-                  <td>1</td>
-                  <td>Region1</td>
-                  <td>2005</td>
-                  <td>42000</td>
-                  <td>520000</td>
-                </tr>
-                <tr>
-                  <td>1</td>
-                  <td>Region1</td>
-                  <td>2010</td>
-                  <td>45000</td>
-                  <td>540000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Region2</td>
-                  <td>2000</td>
-                  <td>35000</td>
-                  <td>450000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Region2</td>
-                  <td>2005</td>
-                  <td>37000</td>
-                  <td>460000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Region2</td>
-                  <td>2010</td>
-                  <td>39000</td>
-                  <td>470000</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</figure>
-</div>
-</div>
-<p>もし仮に、ロング形式に変換したい変数がすべてアンダースコアで区切られている場合<sup>2</sup>、<code>cols = contain("_")</code>とすれば、変数が多くても一気に指定することができます。ただ今回の場合、<code>Region_id</code>がありますからうまくいきませんね。使える場面は限られそうです。</p>
-</section>
-<section id="もしくは" class="level2">
-<h2 class="anchored" data-anchor-id="もしくは">もしくは</h2>
-<p>今は具体的に<code>income_</code>などと指定しましたが、変数がたくさんあると手動で書くのも大変かと思います。もし何列目を変えたいのかわかっていれば、列の番号で指定することも可能です。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">df_long <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb4-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">pivot_longer</span>(</span>
-<span id="cb4-3">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cols =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">8</span>, </span>
-<span id="cb4-4">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_to =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".value"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"year"</span>), </span>
-<span id="cb4-5">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_sep =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"_"</span></span>
-<span id="cb4-6">  )</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script>
-
-      function styleCell_zx9ui4f363fjyaw9kynd(i, j, css_id) {
-          var table = document.getElementById("tinytable_zx9ui4f363fjyaw9kynd");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_zx9ui4f363fjyaw9kynd');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_zx9ui4f363fjyaw9kynd(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_zx9ui4f363fjyaw9kynd");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: 6, j: 0 }, { i: 6, j: 1 }, { i: 6, j: 2 }, { i: 6, j: 3 }, { i: 6, j: 4 },  ], css_id: 'tinytable_css_lyvyssardpl95mu90n83',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 },  ], css_id: 'tinytable_css_5bdpl5n6yannbltqrolq',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  styleCell_zx9ui4f363fjyaw9kynd(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_lyvyssardpl95mu90n83, .table th.tinytable_css_lyvyssardpl95mu90n83 { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_5bdpl5n6yannbltqrolq, .table th.tinytable_css_5bdpl5n6yannbltqrolq { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-    </style>
-    <div class="container">
-      <table class="table table-borderless" id="tinytable_zx9ui4f363fjyaw9kynd" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        <thead>
-        
-              <tr>
-                <th scope="col">Region_id</th>
-                <th scope="col">Region</th>
-                <th scope="col">year</th>
-                <th scope="col">income</th>
-                <th scope="col">population</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>Region1</td>
-                  <td>2000</td>
-                  <td>40000</td>
-                  <td>500000</td>
-                </tr>
-                <tr>
-                  <td>1</td>
-                  <td>Region1</td>
-                  <td>2005</td>
-                  <td>42000</td>
-                  <td>520000</td>
-                </tr>
-                <tr>
-                  <td>1</td>
-                  <td>Region1</td>
-                  <td>2010</td>
-                  <td>45000</td>
-                  <td>540000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Region2</td>
-                  <td>2000</td>
-                  <td>35000</td>
-                  <td>450000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Region2</td>
-                  <td>2005</td>
-                  <td>37000</td>
-                  <td>460000</td>
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Region2</td>
-                  <td>2010</td>
-                  <td>39000</td>
-                  <td>470000</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-<p><code>cols = 3:8</code>で3～8列目を対象に変換するということが可能になっています。</p>
-</section>
-<section id="アンダースコアが2つ以上ある場合" class="level2">
-<h2 class="anchored" data-anchor-id="アンダースコアが2つ以上ある場合">アンダースコアが2つ以上ある場合</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb5-2">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">id =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, </span>
-<span id="cb5-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">income_hoge_2020 =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">100</span>, </span>
-<span id="cb5-4">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">income_hoge_2021 =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">110</span>, </span>
-<span id="cb5-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_fuga_2020 =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000</span>, </span>
-<span id="cb5-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">population_fuga_2021 =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1050</span></span>
-<span id="cb5-7">)</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script>
-
-      function styleCell_s7mvq6617fljl2ywr2p6(i, j, css_id) {
-          var table = document.getElementById("tinytable_s7mvq6617fljl2ywr2p6");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_s7mvq6617fljl2ywr2p6');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_s7mvq6617fljl2ywr2p6(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_s7mvq6617fljl2ywr2p6");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: 1, j: 0 }, { i: 1, j: 1 }, { i: 1, j: 2 }, { i: 1, j: 3 }, { i: 1, j: 4 },  ], css_id: 'tinytable_css_y05qkscxs8eroo6a0ap8',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 }, { i: 0, j: 4 },  ], css_id: 'tinytable_css_2tbiys2y2a5zcoa6rvep',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  styleCell_s7mvq6617fljl2ywr2p6(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_y05qkscxs8eroo6a0ap8, .table th.tinytable_css_y05qkscxs8eroo6a0ap8 { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_2tbiys2y2a5zcoa6rvep, .table th.tinytable_css_2tbiys2y2a5zcoa6rvep { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-    </style>
-    <div class="container">
-      <table class="table table-borderless" id="tinytable_s7mvq6617fljl2ywr2p6" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        <thead>
-        
-              <tr>
-                <th scope="col">id</th>
-                <th scope="col">income_hoge_2020</th>
-                <th scope="col">income_hoge_2021</th>
-                <th scope="col">population_fuga_2020</th>
-                <th scope="col">population_fuga_2021</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>100</td>
-                  <td>110</td>
-                  <td>1000</td>
-                  <td>1050</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-<p>こんな感じでアンダースコアが2つ以上ある場合に先ほどのコードを使うと、意図せぬ分割が起きてしまう可能性があります。そうした場合は正規表現を用いて指定することで対処可能です。</p>
-<p>ここでは変数の末が<code>hoge_fuga_2025</code>のように<code>なんちゃら_年</code>のような形になっていることを仮定します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">df_long <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb6-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">pivot_longer</span>(</span>
-<span id="cb6-3">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cols =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, </span>
-<span id="cb6-4">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_to =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".value"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"year"</span>), </span>
-<span id="cb6-5">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_pattern =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"^(.*)_(</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">d{4})$"</span></span>
-<span id="cb6-6">  )</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script>
-
-      function styleCell_yiu120696ox445kmxbf5(i, j, css_id) {
-          var table = document.getElementById("tinytable_yiu120696ox445kmxbf5");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_yiu120696ox445kmxbf5');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_yiu120696ox445kmxbf5(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_yiu120696ox445kmxbf5");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_vr7w5j4vnc1c4zr6pr6w',}, 
-          { positions: [ { i: 2, j: 0 }, { i: 2, j: 1 }, { i: 2, j: 2 }, { i: 2, j: 3 },  ], css_id: 'tinytable_css_9an94r1ke9l91oom98mh',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  styleCell_yiu120696ox445kmxbf5(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_vr7w5j4vnc1c4zr6pr6w, .table th.tinytable_css_vr7w5j4vnc1c4zr6pr6w { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-      .table td.tinytable_css_9an94r1ke9l91oom98mh, .table th.tinytable_css_9an94r1ke9l91oom98mh { border-bottom: solid #d3d8dc 0.1em; }
-    </style>
-    <div class="container">
-      <table class="table table-borderless" id="tinytable_yiu120696ox445kmxbf5" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        <thead>
-        
-              <tr>
-                <th scope="col">id</th>
-                <th scope="col">year</th>
-                <th scope="col">income_hoge</th>
-                <th scope="col">population_fuga</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>2020</td>
-                  <td>100</td>
-                  <td>1000</td>
-                </tr>
-                <tr>
-                  <td>1</td>
-                  <td>2021</td>
-                  <td>110</td>
-                  <td>1050</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-<p>このように<code>names_pattern = "^(.*)_(\d{4})$"</code>とすること1つ目のアンダースコアを残したまま変換することが可能です。正規表現はややこしいので、このおまじないで最後のアンダースコアを境に分離できるんだ、くらいの解釈でよいと思います。</p>
-<p>あまりないかもしれませんが、2つのアンダースコアで挟まれた部分が要らない場合は</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">df_long <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">pivot_longer</span>(</span>
-<span id="cb7-3">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cols =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>, </span>
-<span id="cb7-4">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_to =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".value"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"year"</span>), </span>
-<span id="cb7-5">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_pattern =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"^(.*)_.*_(</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">d{4})$"</span></span>
-<span id="cb7-6">  )</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script>
-
-      function styleCell_8tmhleij26wkm0tvkzf4(i, j, css_id) {
-          var table = document.getElementById("tinytable_8tmhleij26wkm0tvkzf4");
-          var cell = table.rows[i]?.cells[j];  // Safe navigation to avoid errors
-          if (cell) {
-              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
-              cell.classList.add(css_id);
-          } else {
-              console.warn(`Cell at (${i}, ${j}) not found.`);
-          }
-      }
-      function insertSpanRow(i, colspan, content) {
-        var table = document.getElementById('tinytable_8tmhleij26wkm0tvkzf4');
-        var newRow = table.insertRow(i);
-        var newCell = newRow.insertCell(0);
-        newCell.setAttribute("colspan", colspan);
-        // newCell.innerText = content;
-        // this may be unsafe, but innerText does not interpret <br>
-        newCell.innerHTML = content;
-      }
-      function spanCell_8tmhleij26wkm0tvkzf4(i, j, rowspan, colspan) {
-        var table = document.getElementById("tinytable_8tmhleij26wkm0tvkzf4");
-        const targetRow = table.rows[i];
-        const targetCell = targetRow.cells[j];
-        for (let r = 0; r < rowspan; r++) {
-          // Only start deleting cells to the right for the first row (r == 0)
-          if (r === 0) {
-            // Delete cells to the right of the target cell in the first row
-            for (let c = colspan - 1; c > 0; c--) {
-              if (table.rows[i + r].cells[j + c]) {
-                table.rows[i + r].deleteCell(j + c);
-              }
-            }
-          }
-          // For rows below the first, delete starting from the target column
-          if (r > 0) {
-            for (let c = colspan - 1; c >= 0; c--) {
-              if (table.rows[i + r] && table.rows[i + r].cells[j]) {
-                table.rows[i + r].deleteCell(j);
-              }
-            }
-          }
-        }
-        // Set rowspan and colspan of the target cell
-        targetCell.rowSpan = rowspan;
-        targetCell.colSpan = colspan;
-      }
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: 2, j: 0 }, { i: 2, j: 1 }, { i: 2, j: 2 }, { i: 2, j: 3 },  ], css_id: 'tinytable_css_t6xzvkwn656ocfh2ll5s',}, 
-          { positions: [ { i: 0, j: 0 }, { i: 0, j: 1 }, { i: 0, j: 2 }, { i: 0, j: 3 },  ], css_id: 'tinytable_css_cthhywrfg4frvt6qqx1r',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  styleCell_8tmhleij26wkm0tvkzf4(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <style>
-      /* tinytable css entries after */
-      .table td.tinytable_css_t6xzvkwn656ocfh2ll5s, .table th.tinytable_css_t6xzvkwn656ocfh2ll5s { border-bottom: solid #d3d8dc 0.1em; }
-      .table td.tinytable_css_cthhywrfg4frvt6qqx1r, .table th.tinytable_css_cthhywrfg4frvt6qqx1r { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
-    </style>
-    <div class="container">
-      <table class="table table-borderless" id="tinytable_8tmhleij26wkm0tvkzf4" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        <thead>
-        
-              <tr>
-                <th scope="col">id</th>
-                <th scope="col">year</th>
-                <th scope="col">income</th>
-                <th scope="col">population</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>2020</td>
-                  <td>100</td>
-                  <td>1000</td>
-                </tr>
-                <tr>
-                  <td>1</td>
-                  <td>2021</td>
-                  <td>110</td>
-                  <td>1050</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-<p>とすれば省くこともできます。正規表現が少し長くなってるのが違いです。</p>
-</section>
-<section id="おまけ" class="level2">
-<h2 class="anchored" data-anchor-id="おまけ">おまけ</h2>
-<p>この方法でロング形式にしたデータは<code>year</code>がキャラクター型になっているので、<code>mutate(year = as.integer(year))</code>等でクラスを変えておくことをお忘れなく…。</p>
-<p><code>income</code>などの値はnumeric型になっています。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回はワイド形式のデータフレームをロング形式に変換する方法をご紹介しました。</p>
-<p>僕自身<code>pivot_longer()</code>を使う時いつも何を指定すればいいんだっけ？となりがちです😅</p>
-<p>ご参考まで。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>この場合なら<code>income</code>や<code>population</code>↩︎</p></li>
-<li id="fn2"><p>逆に言うと、ほかの変数はアンダースコアが用いられていない場合↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <guid>https://yo5uke.com/pages/tips/240917_pivot/</guid>
-  <pubDate>Mon, 16 Sep 2024 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.com/pages/tips/240917_pivot/image/computer_document_spreadsheet.png" medium="image" type="image/png" height="144" width="144"/>
 </item>
 </channel>
 </rss>
