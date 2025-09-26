@@ -1,7 +1,7 @@
 ---
-title: "[ggplot2]{.fira-code}ガイド"
+title: "【4.0.0対応！】[ggplot2]{.fira-code}使い方ガイド"
 description: |
-  ggplotを使うのに役立つコマンドを紹介します。
+  ggplotを使うのに役立つコマンドを紹介します！
 date: 2024-11-17
 date-modified: today
 categories:
@@ -24,6 +24,10 @@ editor: visual
 [Rグラフィックスクックブック 第2版 ―ggplot2によるグラフ作成のレシピ集](https://www.amazon.co.jp/R%E3%82%B0%E3%83%A9%E3%83%95%E3%82%A3%E3%83%83%E3%82%AF%E3%82%B9%E3%82%AF%E3%83%83%E3%82%AF%E3%83%96%E3%83%83%E3%82%AF-%E7%AC%AC2%E7%89%88-%E2%80%95ggplot2%E3%81%AB%E3%82%88%E3%82%8B%E3%82%B0%E3%83%A9%E3%83%95%E4%BD%9C%E6%88%90%E3%81%AE%E3%83%AC%E3%82%B7%E3%83%94%E9%9B%86-Winston-Chang/dp/4873118921)
 :::
 
+さらに、2025年9月、ggplot2がバージョン4.0.0にアップデートされました！それを記念し、4.0.0の要素も取り入れたページにアップデートしました！🎉
+
+ぜひご参考になさってください！
+
 ## `ggplot2`の基本
 
 ::: callout-note
@@ -39,9 +43,13 @@ editor: visual
 library(ggplot2)
 ```
 
-基本的な使い方としては、`ggplot()`と`aes()`、そして図に応じて`geom_line()`や`geom_point()`を使っていきます。
+基本的な使い方としては、`ggplot()`と`aes()`、そして図に応じて`geom_line()`（折れ線）や`geom_point()`（散布図）などを使っていきます。
 
 今回は例として、アイリスのがく片の長さ、幅をそれぞれ軸としてプロットします。
+
+### 散布図
+
+まずは基本的な散布図を描いてみます。散布図は`geom_point()`を使うことで描画できます。
 
 ```{r}
 #| label: fig-iris
@@ -55,13 +63,27 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 1.  `ggplot(data, aes())`という形で使用するデータを指定
 2.  `aes()`内ではX軸とY軸をそれぞれ指定する。
     -   例：`aes(x = Sepal.Length, y = Sepal.Width)`
+    -   第1引数がX、第2引数がYと決まっているので、`x =`や`y =`は書かなくてもよいです。
 3.  ggplotのコマンドは`+`で繋ぐ
-4.  散布図を作るには`geom_point()`を繋げる
-    -   その他、折れ線なら`geom_line()`、ヒストグラムなら`geom_histogram()`など
+4.  散布図を作るために`geom_point()`を繋げる
 
-これが土台です。`ggplot()`だけではプロットは表示されませんので、何かしら繋ぐ形にしてください。
+これが土台です。`ggplot()`だけではプロットは表示されませんので、`geom_point()`など何かしら繋ぐ形にしてください。
 
-今回はggplotの基本というよりも、そこからの拡張を主に書きたいので、この散布図をベースに進めます。
+**回帰線を引きたい場合：**
+
+早速応用ではありますが、散布図を描いたら回帰線を引きたいことがありますよね。そのためには、`geom_smooth()`を使います。
+
+```{r}
+#| label: fig-iris-lm
+#| fig-cap: "回帰直線を引いた散布図"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  geom_smooth(method = lm, formula = y ~ x)
+
+```
+
+### 折れ線グラフ
 
 ## 軸
 
