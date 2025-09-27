@@ -1,25 +1,24 @@
 {
   "name": "yo5uke.github.io",
-  "image": "ghcr.io/rocker-org/devcontainer/geospatial:4",
+  "build": { "dockerfile": "Dockerfile" },
   "remoteUser": "rstudio",
+
   "containerEnv": {
     "TZ": "Asia/Tokyo",
     "RENV_CONFIG_REPOS_OVERRIDE": "https://packagemanager.posit.co/cran/__linux__/jammy/latest"
   },
+
   "forwardPorts": [8787],
 
-  "features": {
-    "ghcr.io/devcontainers/features/python:1": { "version": "3.12" },
-    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:latest": { "version": "1.8.24" }
+  "settings": {
+    "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python"
   },
+
+  "postCreateCommand": "cd ${containerWorkspaceFolder} && python3 -m venv .venv && .venv/bin/pip install -U pip && R -q -e \"install.packages(c('renv','pak'))\" && fc-cache -fv || true",
 
   "customizations": {
-    "vscode": {
-        "extensions": [
-        "James-Yu.latex-workshop"
-        ]
-    }
-  },
-
-  "postCreateCommand": "cd ${containerWorkspaceFolder} && python -m venv .venv && .venv/bin/pip install -U pip && R -q -e \"install.packages(c('renv','pak'))\" && fc-cache -fv || true"
+    "vscode": { "extensions": [
+      "James-Yu.latex-workshop"
+    ] }
+  }
 }
