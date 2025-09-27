@@ -10,9 +10,13 @@
 
   "forwardPorts": [8787],
 
-  "postCreateCommand": "cd ${containerWorkspaceFolder} && python3 -m venv .venv && ${containerWorkspaceFolder}/.venv/bin/python -m pip install -U pip && R -q -e \"install.packages(c('renv','pak'))\" && fc-cache -fv || true",
+  "features": {
+    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:latest": {
+      "version": "1.8.24"
+    }
+  },
 
-  "postStartCommand": "set -e; WS=${containerWorkspaceFolder}; if [ ! -d \"$WS/.venv\" ]; then cd \"$WS\" && python3 -m venv .venv && \"$WS/.venv/bin/python\" -m pip install -U pip; fi; if ! grep -q '## AUTO_VENV_START' /home/rstudio/.bashrc 2>/dev/null; then { echo '## AUTO_VENV_START'; echo \"if [ -f \\\"$WS/.venv/bin/activate\\\" ]; then source \\\"$WS/.venv/bin/activate\\\"; fi\"; echo '## AUTO_VENV_END'; } >> /home/rstudio/.bashrc; fi",
+  "postCreateCommand": "cd ${containerWorkspaceFolder} && python3 -m venv .venv && ${containerWorkspaceFolder}/.venv/bin/python -m pip install -U pip && R -q -e \"install.packages(c('renv','pak'))\" && fc-cache -fv || true",
 
   "customizations": {
     "vscode": {
