@@ -79,17 +79,108 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
   geom_point() + 
-  geom_smooth(method = lm, formula = y ~ x)
+  geom_smooth(method = lm, formula = y ~ log(x))
 
 ```
 
+`method = lm`で回帰直線を引くオプションを付けることができ、デフォルトではYをXに回帰する直線が引かれます。式を変えたい場合は`formula = y ~ log(x)`などと式を追加してください。
+
+また、デフォルトでは信頼区間がプロットされます。要らない場合は、`se = FALSE`を追加します。
+
 ### 折れ線グラフ
+
+折れ線グラフは`geom_line()`を使います。
+
+```{r}
+#| label: fig-iris-line
+#| fig-cap: "折れ線グラフ"
+
+d <- tibble::tibble(
+  a = 1:4, 
+  b = c(5, 3, 4, 2)
+)
+
+ggplot(d, aes(x = a, y = b)) + 
+  geom_line()
+
+```
+
+今回は`d`という何のひねりもないデータフレームを作成して、それを用いて折れ線グラフを作成しています。
+
+なぜわざわざデータフレームを自分で作ったかというと、1個体についてのみ時系列をとったデータを探してくるより、作った方が早かったからです😅
+
+というのも、折れ線グラフを作るときは、多くの場合各個体ごとに何本かの折れ線を描くことが多いと思います^[例えば男性と女性という2種類について、それぞれ平均寿命の時系列グラフを作る場合など。]。各個体ごとに折れ線を作る方法については、[後のセクション](#sec-multi-cat-plot)でご確認ください。
+
+ここで覚えていただきたいのは`geom_line()`で折れ線グラフを作れるということです。
+
+### 棒グラフ
+
+棒グラフも汎用性が高いグラフです。棒グラフはデータフレーム内の集計をするときに役に立ちます。
+
+まずは、`iris`データセットの`Species`（種）ごとに個体数を数えた棒グラフを作成します。
+
+```{r}
+#| label: fig-iris-bar
+#| fig-cap: "棒グラフ"
+
+ggplot(iris, aes(x = Species)) + 
+  geom_bar()
+
+```
+
+おっと…。まさかのすべて50個体ずつで、棒グラフが全部同じ高さになってしまいました。これはミスではありません！
+
+棒グラフを書く際には、縦は自動で個体数をカウントすることになるので、`aes(x = Species)`とXを指定するだけで横に種類、縦にカウントをとった棒グラフが描けてしまいます。
+
+もし横向きにしたければ、`aes(y = Species)`とYを指定すればOKです。
+
+```{r}
+#| label: fig-iris-bar-horizontal
+#| fig-cap: "横向きの棒グラフ"
+
+ggplot(iris, aes(y = Species)) + 
+  geom_bar()
+
+```
+
+
+もう1種類いきましょう。`iris`データセットの`Species`（種）ごとに、`Sepal.Length`（がく片の長さ）の平均を計算して、その平均値を棒グラフで表示します。
+
+```{r}
+#| label: fig-iris-bar-mean
+#| fig-cap: "種ごとのがく片の長さの平均"
+
+ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+  geom_bar(stat = "summary", fun = "mean")
+
+```
+
+今回は`geom_bar(stat = "summary", fun = "mean")`とすることで、`Species`ごとに`Sepal.Length`の平均を計算して棒グラフを描いています。種類ごとに集計をするのだけど、じゃあ集計するときには平均を使ってね、ということを`geom_bar()`内で指定しています。
+
+この場合は種類ごとにがく片の長さを計算する、ということでXもYもデータフレーム内の変数を使いますので`aes(x = Species, y = Sepal.Length)`とX, Y両方明示しています。
+
+### バイオリンプロット
+
+バイオリンプロットは、分布を可視化するのに便利なグラフです。箱ひげ図と似ていますが、分布の形状もわかるようになっています。
+
+```{r}
+#| label: fig-iris-violin
+#| fig-cap: "バイオリンプロット"
+
+ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+  geom_violin()
+
+```
+
+各種類において、`Sepal.Length`（がく片の長さ）の分布がわかります。例えば、`setosa`はがく片の長さが5あたりに集中していることがわかります。`virginica`は全体的に長い傾向があることもわかりますね。
 
 ## 軸
 
+基本的なグラフを紹介できたところで、次にこれらのグラフを使いながら、軸の扱いについて説明します。
+
 ### 軸ラベル
 
-まずはX軸、Y軸のラベルを変更します。次のコマンドを追加することで変更できます。
+まずはX軸、Y軸のラベルを変更します。
 
 ```{r}
 #| label: fig-axis-label
@@ -101,6 +192,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ```
 
+`labs(x = "Length of Sepal", y = "Width of Sepal")`でX軸とY軸のラベルを変更しています。
+
 また、以下のコードは同じ結果を示します。
 
 ``` r
@@ -110,7 +203,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
   ylab("Width of Sepal")
 ```
 
-すなわち、`labs()`はそれ一つでX軸もY軸もラベルを変更することができますが、`xlab()`、`ylab()`を使えば片方ずつ変更できるということです。
+すなわち、`labs()`はそれ一つでX軸もY軸もラベルを変更することができますが、`xlab()`、`ylab()`を使えば片方ずつでも変更できるということです。
 
 次に、軸ラベルの体裁を変更したい場合、以下のようにします。
 
@@ -121,16 +214,18 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
   geom_point() + 
   labs(x = "Length of Sepal", y = "Width of Sepal") + 
-  theme(
-    axis.title = element_text(family = "times", face = "italic", 
-                              color = "red", size = 20)
+  theme(axis.title = element_text(
+    family = "Times New Roman", face = "italic", 
+    color = "red", size = 20)
   )
 
 ```
 
 1.  `theme()`内の`axis.title`で変更する
-    -   X軸Y軸のどちらかだけにしたければ、`axis.title.x`のようにします。
+    -   X軸Y軸のどちらかだけ変更したければ、`axis.title.x`のようにします。
 2.  `element_text()`内で具体的にフォントの体裁を指定
+    -   フォントはTimes New Romanを使用しています。これはWindowsの設定であり、MacやLinuxではTimesで表示されると思います。
+
     -   今回はわかりやすく派手にしましたが、これらの要素を変更すれば調整できます。
 
     -   例えば、`face = "bold"`にすれば太字にできます。
@@ -163,7 +258,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
   geom_point() + 
   theme(
-    axis.text = element_text(family = "times", face = "bold", 
+    axis.text = element_text(family = "Times New Roman", face = "bold", 
                              color = "red", size = 20)
   )
 
@@ -180,7 +275,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
   geom_point() + 
   theme(
-    axis.text = element_text(family = "times", face = "bold", 
+    axis.text = element_text(family = "Times New Roman", face = "bold", 
                              color = "red", size = 20), 
     axis.ticks = element_blank()
   )
@@ -202,7 +297,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
   xlim(5, 7) + 
   ylim(3, 4) + 
   theme(
-    axis.text = element_text(family = "times", face = "bold", 
+    axis.text = element_text(family = "Times New Roman", face = "bold", 
                              color = "red", size = 20), 
     axis.ticks = element_blank()
   )
@@ -224,7 +319,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
   geom_point() + 
   annotate("text", label = "ggplot is\nwonderful!", x = 6.5, y = 4, 
-           family = "times", color = "#CC6666", size = 10)
+           family = "Times New Roman", color = "#CC6666", size = 10)
 
 ```
 
@@ -277,7 +372,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ## 複数のプロットと凡例
 
-### 複数のカテゴリのプロット
+### 複数のカテゴリのプロット {#sec-multi-cat-plot}
 
 ここでは`Orange`データセットを使って複数のカテゴリのプロットと、凡例について説明します。
 
