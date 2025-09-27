@@ -10,11 +10,13 @@
 
   "forwardPorts": [8787],
 
-  "settings": {
-    "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python"
-  },
+  "postCreateCommand": "cd ${containerWorkspaceFolder} && python3 -m venv .venv && ${containerWorkspaceFolder}/.venv/bin/python -m pip install -U pip && R -q -e \"install.packages(c('renv','pak'))\" && fc-cache -fv || true",
 
-  "postCreateCommand": "cd ${containerWorkspaceFolder} && python3 -m venv .venv && .venv/bin/pip install -U pip && R -q -e \"install.packages(c('renv','pak'))\" && fc-cache -fv || true",
+  "postStartCommand": "if [ ! -d ${containerWorkspaceFolder}/.venv ]; then cd ${containerWorkspaceFolder} && python3 -m venv .venv && ${containerWorkspaceFolder}/.venv/bin/python -m pip install -U pip; fi; grep -q \"source ${containerWorkspaceFolder}/.venv/bin/activate\" /home/rstudio/.bashrc || echo 'source ${containerWorkspaceFolder}/.venv/bin/activate' >> /home/rstudio/.bashrc",
+
+  "remoteEnv": {
+    "PATH": "${containerWorkspaceFolder}/.venv/bin:${env:PATH}"
+  },
 
   "customizations": {
     "vscode": { "extensions": [
