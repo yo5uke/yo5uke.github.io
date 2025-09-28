@@ -3,7 +3,7 @@ title: "【4.0.0対応！】[ggplot2]{.fira-code}使い方ガイド"
 description: |
   ggplotを使うのに役立つコマンドを紹介します！
 date: 2024-11-17
-date-modified: today
+date-modified: last-modified
 categories:
   - R
 image: figure/fig-ggrepel.png
@@ -43,6 +43,11 @@ editor: visual
 library(ggplot2)
 ```
 
+```{r}
+par(family = "Times New Roman")
+```
+
+
 基本的な使い方としては、`ggplot()`と`aes()`、そして図に応じて`geom_line()`（折れ線）や`geom_point()`（散布図）などを使っていきます。
 
 今回は例として、アイリスのがく片の長さ、幅をそれぞれ軸としてプロットします。
@@ -79,13 +84,25 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
   geom_point() + 
-  geom_smooth(method = lm, formula = y ~ log(x))
+  geom_smooth(method = lm)
 
 ```
 
 `method = lm`で回帰直線を引くオプションを付けることができ、デフォルトではYをXに回帰する直線が引かれます。式を変えたい場合は`formula = y ~ log(x)`などと式を追加してください。
 
 また、デフォルトでは信頼区間がプロットされます。要らない場合は、`se = FALSE`を追加します。
+
+また、lm以外にも、`method = "loess"`などもあります。`?geom_smooth`で確認してみてください。
+
+```{r}
+#| label: fig-iris-loess
+#| fig-cap: "loessを使った散布図"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  geom_smooth(method = "loess", se = FALSE)
+
+```
 
 ### 折れ線グラフ
 
@@ -109,7 +126,9 @@ ggplot(d, aes(x = a, y = b)) +
 
 なぜわざわざデータフレームを自分で作ったかというと、1個体についてのみ時系列をとったデータを探してくるより、作った方が早かったからです😅
 
-というのも、折れ線グラフを作るときは、多くの場合各個体ごとに何本かの折れ線を描くことが多いと思います^[例えば男性と女性という2種類について、それぞれ平均寿命の時系列グラフを作る場合など。]。各個体ごとに折れ線を作る方法については、[後のセクション](#sec-multi-cat-plot)でご確認ください。
+というのも、折れ線グラフを作るときは、多くの場合各個体ごとに何本かの折れ線を描くことが多いと思います[^1]。各個体ごとに折れ線を作る方法については、[後のセクション](#sec-multi-cat-plot)でご確認ください。
+
+[^1]: 例えば男性と女性という2種類について、それぞれ平均寿命の時系列グラフを作る場合など。
 
 ここで覚えていただきたいのは`geom_line()`で折れ線グラフを作れるということです。
 
@@ -143,7 +162,6 @@ ggplot(iris, aes(y = Species)) +
 
 ```
 
-
 もう1種類いきましょう。`iris`データセットの`Species`（種）ごとに、`Sepal.Length`（がく片の長さ）の平均を計算して、その平均値を棒グラフで表示します。
 
 ```{r}
@@ -159,6 +177,21 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 
 この場合は種類ごとにがく片の長さを計算する、ということでXもYもデータフレーム内の変数を使いますので`aes(x = Species, y = Sepal.Length)`とX, Y両方明示しています。
 
+### 箱ひげ図
+
+箱ひげ図は、分布を可視化するのに便利なグラフです。散布図と似ていますが、分布の要約がわかるようになっています。
+
+```{r}
+#| label: fig-iris-box
+#| fig-cap: "箱ひげ図"
+
+ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+  geom_boxplot()
+
+```
+
+各種類において、`Sepal.Length`（がく片の長さ）の分布がわかります。四分位数や外れ値がわかるのが特徴です。
+
 ### バイオリンプロット
 
 バイオリンプロットは、分布を可視化するのに便利なグラフです。箱ひげ図と似ていますが、分布の形状もわかるようになっています。
@@ -173,6 +206,100 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 ```
 
 各種類において、`Sepal.Length`（がく片の長さ）の分布がわかります。例えば、`setosa`はがく片の長さが5あたりに集中していることがわかります。`virginica`は全体的に長い傾向があることもわかりますね。
+
+## 色を付ける {#sec-color}
+
+グラフに色を付ける方法について説明します。
+
+基本的には`geom_xxx()`内で`color = "red"`のように指定すれば、色を付けることができます。
+
+```{r}
+#| label: fig-color
+#| fig-cap: "散布図の点を赤色に"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point(color = "red")
+
+```
+
+このように、`geom_point(color = "red")`で点を赤色にしています。
+
+他のケースも見てみましょう。
+
+```{r}
+#| label: fig-color-line
+#| fig-cap: "折れ線グラフの線を青色に"
+
+ggplot(d, aes(x = a, y = b)) + 
+  geom_line(color = "blue")
+
+```
+
+これも同様に、`geom_line(color = "blue")`で線を青色にしています。
+
+棒グラフの場合は、少し事情が異なります。`color`は棒の枠線の色を指定することになるので、棒自体の色を変えたい場合は`fill`を使います。
+
+```{r}
+#| label: fig-color-bar
+#| layout-ncol: 2
+#| fig-cap: 
+#|   - "棒グラフの枠線が緑色に"
+#|   - "棒の色が緑色に"
+
+ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+  geom_bar(stat = "summary", fun = "mean", color = "darkgreen")
+
+ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+  geom_bar(stat = "summary", fun = "mean", fill = "darkgreen")
+
+```
+
+`fill`を使うのは棒グラフやバイオリンプロットなど、塗りつぶしがある場合です。もし枠線と塗りつぶしの両方を変えたい場合は、`color`と`fill`の両方を指定してください。
+
+```{r}
+#| label: fig-color-violin-both
+#| fig-cap: "枠線と塗りつぶしの両方を指定"
+
+ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+  geom_violin(color = "darkgreen", fill = "lightgreen")
+
+```
+
+## 少しいじる
+
+ここでは少しグラフをいじって、点の形を変えたり、線の種類や太さを変えたりする方法を説明します。
+
+### 点の形
+
+```{r}
+#| label: fig-point-shape
+#| fig-cap: "点の形と大きさが変わっています"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point(shape = 17, color = "blue", size = 3)
+
+```
+
+1.  `shape`で点の形を指定
+    -   形は0から25まであります。`?points`で確認できます。
+2.  `size`で点の大きさを指定
+    -   数値が大きいほど大きくなります。
+
+### 線の種類と太さ
+
+```{r}
+#| label: fig-line-type
+#| fig-cap: "線の種類と太さが変わっています"
+
+ggplot(d, aes(x = a, y = b)) + 
+  geom_line(color = "blue", linetype = 2, linewidth = 1.5)
+
+```
+
+1.  `linetype`で線の種類を指定
+    -   0から6まであります。`?linetype`で確認できます。
+2.  `linewidth`で線の太さを指定
+    -   数値が大きいほど太くなります。
 
 ## 軸
 
@@ -319,11 +446,11 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ## 注釈
 
+グラフの中に文字や線を入れる方法について説明します。文字や線を入れるには`annotate()`関数を使います。
+
 ### 文字
 
-表の中に文字を入れることができます。
-
-`annotate()`内で`"text"`か`"segment"`を指定することで挿入可能です。
+まずは文字を入れる方法です。文字は`annotate()`内で`"text"`か`"segment"`を指定することで挿入可能です。
 
 ```{r}
 #| label: fig-annotate
@@ -336,9 +463,9 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ```
 
-1.  `annotate("text", label = "hogehoge")`で文字を入れることができる
+1.  `annotate("text", label = "hogehoge")`で`hogehoge`と文字を入れることができる
 
-2.  `x`と`y`を指定しないと反映されない
+2.  `x`と`y`の位置を指定しないと反映されない
 
 3.  改行したい場合、`\n`を入れる
 
@@ -377,11 +504,14 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 2.  `x`と`xend`、`y`と`yend`を指定する必要がある
     -   $(x, y)$から$(xend, yend)$までの2点を結ぶようにできます。
 3.  `linewidth`で線の太さを指定可
-    -   他の要素も文字と同様に指定できますが、`size`が`linewidth`に置き換わっています。
+    -   他の要素も文字の場合と同様に指定できますが、`size`が`linewidth`に置き換わっています。
 4.  `arrow = arrow(length = unit(x, units = "cm"))`で矢じりが付く
     -   `x`で矢じりのサイズ、`units`は単位で、他にmmやinchesなどがあります。
+    -   ややこしいですが、`xend`と`yend`の方に向かって矢印が付きます。
 
 以上のように、文字だけでなく線や矢印を追加することができます。
+
+今回はわかりやすくでかでかと描きましたが、例えばグラフ内の特徴的な部分に注釈をつけたい場合などに役立ちます。
 
 ## 複数のプロットと凡例
 
@@ -394,7 +524,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ```{r}
 #| echo: false
 #| label: tbl-orange
-#| tbl-cap: "`Orange`の一部"
+#| tbl-cap: "`Orangeデータセットの一部"
 
 Orange |> 
   head(10) |> 
@@ -415,7 +545,9 @@ ggplot(Orange, aes(x = age, y = circumference)) +
 
 ```
 
-これでは各点がどの木のものなのか判別できない状態です。これを識別するには次のようにします。
+これでは各点がどの木のものなのか判別できない状態です。
+
+これを識別するために、色を付けたいとしましょう。
 
 ```{r}
 #| label: fig-orange-color
@@ -426,7 +558,9 @@ ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
 
 ```
 
-これでとりあえずはどの点がどの木のものかわかるようになりました。`color = Tree`で、木の種類ごとに色を使うことを指定しています。
+[前のセクション](#sec-color)では`geom_point(color = "red")`のように線全体に対して同じ色を付けましたが、今回の方法では、色を付けることを前提として、`aes()`内の`color =`で指定した種類ごとに色が付くという設定です。
+
+これでとりあえずはどの点がどの木のものかわかるようになりました。
 
 今は散布図なので色を分けるだけで済みますが、折れ線グラフのような場合は、色だけでなく線の種類を変えたいかもしれません。そんな時は次のようにします。
 
@@ -448,7 +582,9 @@ ggplot(Orange, aes(x = age, y = circumference, color = Tree, linetype = Tree)) +
 
 ### 凡例の位置
 
-次にしたいのは、凡例の設定です。凡例は現在右側に表示されていますが、まずはこれを下に表示したいとします。これは、次のコードでできます。
+次にしたいのは、凡例の設定です。凡例は現在右側に表示されていますが、まずはこれを下に表示したいとします。
+
+これは、`theme()`内の`legend.position`で設定できます。
 
 ```{r}
 #| label: fig-orange-legend-position
@@ -478,9 +614,9 @@ ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
 
 ### 凡例の調整
 
-例えば、凡例のタイトルは消したい場合が結構あると思います。@fig-orange-color の例でいえば、Treeという文字は消したいということです。
+例えば、凡例のタイトルだけ消したい場合が結構あると思います。@fig-orange-color の例でいえば、Treeという文字は消したいということです。
 
-そんな場合は、以下のようにします。
+そんな場合は、`guides()`を使います。
 
 ```{r}
 #| label: fig-orange-legend-delte-title
@@ -590,7 +726,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 ここで`theme()`**は**`theme_xxx()`**の後に使う**ということに注意してください。
 
-これは、`theme_xxx()`が`theme()`を上書きしてしまうためです。
+これは、`theme_xxx()`が`theme()`の設定を上書きしてしまうためです。
 
 ```{r}
 #| label: fig-theme-miss
@@ -618,9 +754,393 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 このようにしっかり反映されます。
 
-## 発展1：`ggrepel`
+`theme()`は`theme_xxx()`で設定できない部分を細かく調整したい場合に使います。できることはたくさんあるので全てを説明することはできませんが、例えば以下のようなことができます。
 
-ここからは、`ggrepel`というパッケージを用いて折れ線グラフを発展させた例をご紹介します。
+```{r}
+#| label: fig-theme-custom
+#| fig-cap: "カスタムテーマ"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_minimal() + 
+  theme(
+    panel.grid = element_blank(), 
+    legend.position = "none", 
+    axis.title = element_text(family = "Times New Roman", size = 18), 
+    axis.text = element_text(family = "Times New Roman", size = 14)
+  )
+
+```
+
+1.  `panel.grid = element_blank()`で罫線を消す
+2.  `legend.position = "none"`で凡例を消す
+3.  `axis.title`と`axis.text`で軸ラベルと目盛りのフォントとサイズを変更
+
+このように、「グラフのここを変えたいんだけどなぁ…」みたいなことは`theme()`で解決できることが多かったりします。
+
+詳しくは`?theme`で確認してみてください。引数名はわかりやすいので、比較的目的を見つけやすいと思います。
+
+## 新しくなった`theme()`の設定
+
+### `paper`と`ink`
+
+ggplot2のバージョン4.0.0からは、`theme_xxx()`内で色に関するデフォルト設定が追加できるようになりました。
+
+百聞は一見に如かずということで、以下のコードをご覧ください。
+
+```{r}
+#| label: fig-theme-v4
+#| fig-cap: "theme()内での色のデフォルト設定"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_minimal(paper = "papayawhip", ink = "darkgreen")
+```
+
+`paper`で背景色、`ink`で前景色を指定することができます。前景色は、軸ラベル、目盛り、点などに適用されます。
+
+ここのポイントは、使用する色を統一的に指定できるということで、例えば`theme()`内で`axis.title`や`axis.text`の色を指定する必要がなくなります。
+
+### `geom`
+
+また、`theme()`内で`geom`を設定することで、色に関するデフォルトを設定しつつ`geom_xxx()`内でその設定を参照することが可能です。
+
+```{r}
+#| label: fig-theme-v4-geom
+#| fig-cap: "geom内での色のデフォルト設定"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+  geom_point() + 
+  theme_minimal(paper = "papayawhip", ink = "darkgreen") + 
+  theme(
+    geom = element_geom(color = "coral", pointsize = 3)
+  )
+
+```
+
+ここでは、`theme(geom = element_geom(color = "coral", pointsize = 3))`で点の色と大きさを指定しています。`element_geom()`は`geom_point()`、`geom_line()`、`geom_bar()`などで共通して使われる設定を指定できます。一元管理できる点が便利ですね。
+
+ちなみに`geom`を設定しないと、点の色は`ink`の色、すなわちdarkgreenになります。
+
+### `from_theme()`
+
+さらに、`geom_xxx()`内で`from_theme()`を使うことにより、`theme()`内で設定した色を`geom_xxx()`内で参照することも可能です。
+
+```{r}
+#| label: fig-theme-v4-from_theme
+#| layout-ncol: 2
+#| fig-cap: 
+#|   - "アクセントカラーを青に"
+#|   - "アクセントカラーをオレンジに"
+
+p <- ggplot(iris, aes(Sepal.Length, Sepal.Width)) +
+  geom_point(aes(color = from_theme(accent))) +
+  theme_minimal()
+
+p + theme(geom = element_geom(accent = "blue"))
+p + theme(geom = element_geom(accent = "orange"))
+```
+
+ここでは、`from_theme(accent)`で`theme()`内で設定した`accent`を参照しています。`theme(geom = element_geom(accent = "blue"))`のように設定することで、アクセントカラーを青に変更できます。
+
+これは`element_geom(color = "blue")`と一見同じことをしているように思えますが、たくさんのプロットを作成する場合、`accent`を一括で変更できる点で便利です。
+
+#### 使用例
+
+-   ケース：
+    -   論文執筆をしており、論文用とスライド用で色を変えたい
+    -   `geom_point()`と`geom_smooth()`を使っており、`geom_smooth()`の色は論文用とスライド用で変えたい
+-   解決策：
+-   テーマ側でアクセントカラーを定義
+-   `geom_line()`のみ`from_theme(accent)`を参照させる
+-   こうするとプロットの本体コードは共通のまま、テーマを差し替えるだけで線の色だけ切り替わる
+
+まず、あらかじめテーマを2つ用意しておきます。
+
+```{r}
+# 論文用のテーマ
+theme_paper <- theme_minimal(paper = "white",  ink = "black") + 
+  theme(geom = element_geom(accent = "navy"))
+
+# スライド用のテーマ
+theme_slide <- theme_minimal(paper = "black",  ink = "white") + 
+  theme(geom = element_geom(accent = "orange"))
+```
+
+次に、テーマを除くプロット本体を作成します。
+
+```{r}
+p <- ggplot(Orange, aes(age, circumference)) + 
+  # 散布図は灰色で固定
+  geom_point(color = "gray60", size = 2) + 
+  geom_smooth(aes(color = from_theme(accent)), 
+              method = lm, se = FALSE, size = 1) + 
+  labs(x = "Age (days)", y = "Circumference (mm)")
+```
+
+この時点で`p`をプロットしても、折れ線の色は変わりません。まだ`theme()`を付けておらず、アクセントカラーが指定されていないためです。
+
+それでは先に設定したテーマを`p`に適用します。
+
+```{r}
+#| label: fig-theme-final
+#| layout-ncol: 2
+#| fig-cap:
+#|   - "論文用のテーマ"
+#|   - "スライド用のテーマ"
+
+p_paper  <- p + theme_paper
+p_slide  <- p + theme_slide
+
+p_paper
+p_slide
+
+```
+
+今回は1種類のスライドを論文用とスライド用に分ける想定しかしていませんが、たくさんのスライドを作る場合、アクセントカラーを一括で変えられる点で便利です。コードはそのままに、`tmeme_paper`と`theme_slide`の`accent`だけ変えればよいからです。
+
+## 新しくなったラベル設定
+
+ここまでは`labs()`や`xlab()`、`ylab()`で軸ラベルを設定してきましたが、あらかじめラベルを設定しておき、自動で表示させることが可能になりました。
+
+`Orange`データセットを使って説明します。
+
+まず、何もしない場合は以下のようになります。
+
+```{r}
+#| label: fig-label-default
+#| fig-cap: "デフォルトのラベル"
+
+ggplot(Orange, aes(x = age, y = circumference)) + 
+  geom_point()
+
+```
+
+X軸は`age`、Y軸は`circumference`と表示されています。
+
+これを、あらかじめラベルを設定しておくことができるようになりました。
+
+```{r}
+library(tibble)
+
+# tibbleは属性を保持しやすい
+df <- as_tibble(Orange)
+
+# 単位: age=days, circumference=mm
+attr(df$age, "label") <- "Age (days)"
+attr(df$circumference, "label") <- "Trunk circumference (mm)"
+```
+
+-   `attr()`で変数に属性を追加
+    -   `df`の`age`の`label`属性に`Age (days)`を追加している、という解釈です。
+    -   `Age (days)`や`Trunk circumference (mm)`の部分がラベルなのでここを自由に変更できます。
+
+これで`df`を使ってプロットすると、
+
+```{r}
+#| label: fig-label-custom
+#| fig-cap: "カスタムラベル"
+
+ggplot(df, aes(x = age, y = circumference)) + 
+  geom_point()
+
+```
+
+`labs()`を使わなくても、X軸とY軸のラベルが変更されました。
+
+1つのグラフであれば`labs()`で設定した方が労力が少ないかもしれませんが、大量のグラフを作成する場合、あらかじめラベルを設定しておけば、`labs()`をいちいち書く必要がなくなるので便利です。
+
+::: callout-note
+## tibble形式について
+
+皆さんはCSVデータを読み込むとき、何の関数を使用していますか？
+
+多いのはbase Rの`read.csv()`や、tidyverseに含まれるreadrパッケージの`read_csv()`だと思います。
+
+`read.csv()`はdata.frame形式、`read_csv()`はtibble形式でデータを読み込みます。**tibbleはdata.frameを改良したデータ構造**で、tidyverseの多くのパッケージで標準的に使われており、以下のような特徴があります。
+
+-   見やすい表示 すべての行を出さず、必要に応じて端だけを表示するので、データの中身を把握しやすいです。
+-   型情報を保持 各列のデータ型（数値・文字列など）が一緒に表示され、解析時に便利です。
+-   属性を保持 labelのような属性が処理中に消えにくく、ラベル管理や可視化との相性が良いです。
+
+tibbleはdata.frameとほぼ同じように使えるので、tidyverseを使う場合はtibble形式でデータを扱うことをおすすめします。困ったら`tibble::as_tibble()`で変換できます。
+:::
+
+## カラーパレット
+
+ggplot2では、連続値やカテゴリ値を色で表現する際に「カラーパレット」を使います。
+
+例えば`scale_colour_brewer()`や`scale_fill_viridis_c()`を指定すると、データの値に応じて自動的に一貫した配色が割り当てられます。
+
+パレットを選ぶことで、見やすさや配色の意味（アクセシビリティ対応や論文用の白黒印刷など）を調整でき、グラフの理解度や印象に大きく影響します。
+
+### 連続値のカラースケール
+
+まずは例を見てみましょう。
+
+```{r}
+#| label: fig-color-default
+#| fig-cap: "scale_colour_continuous()を使った例"
+
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width,
+                 colour = Petal.Length)) + 
+  geom_point(size = 2) + 
+  scale_colour_continuous() + 
+  labs(colour = "Petal length")
+
+```
+
+`scale_colour_continuous()`は連続変数を色で表すためのカラースケールで、デフォルトの配色が使われ、数値の大小をなめらかなグラデーションで示しています。
+
+自分で色を指定することも可能です。
+
+```{r}
+#| label: fig-color-continuous-custom
+#| fig-cap: 
+#|   - "左: 青から赤へのグラデーション"
+#|   - "右: 指定した3色のグラデーション"
+
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) + 
+  geom_point(size = 2) + 
+  scale_colour_continuous(low = "blue", high = "red") + 
+  labs(colour = "Petal length")
+
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) + 
+  geom_point(size = 2) + 
+  scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26")) + 
+  labs(colour = "Petal length")
+
+```
+
+lowからhighまでの2色を指定する方法や、自分で3色以上を指定する方法などがあります。
+
+また、他の例として`scale_colour_viridis_c()`を使う方法もあったりします。
+
+```{r}
+#| label: fig-color-viridis
+#| fig-cap: "scale_colour_viridis_c()を使った例"
+
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) + 
+  geom_point(size = 2) + 
+  scale_colour_viridis_c(option = "plasma") + 
+  labs(colour = "Petal length")
+
+```
+
+`scale_colour_viridis_c()`は連続変数を色で表すためのカラースケールで、視認性・色覚バリアフリー・白黒印刷対応に優れたviridisパレットを使います。`plasma`以外にも`magma`や`inferno`、`cividis`などのバリエーションがあります。
+
+### カテゴリ値のカラースケール
+
+カテゴリ変数を色で表す場合は、`scale_colour_brewer()`や`scale_colour_viridis_d()`などを使います[^2]。
+
+[^2]: ちなみに`scale_colour_viridis`の`c`の方はcontinuousで、`d`の方はdiscreteですね。
+
+```{r}
+#| label: fig-color-brewer
+#| fig-cap: "scale_colour_brewer()を使った例"
+
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
+  geom_point(size = 2) + 
+  scale_colour_brewer(palette = "Set1") + 
+  labs(colour = "Species")
+
+```
+
+`scale_colour_brewer()`の`palette`には`Set1`、`Set2`、`Dark2`、`Paired`などのカラーパレットがあり、用途に応じて選択できます。
+
+また、`scale_colour_discrete()`を使う方法もあります。
+
+```{r}
+#| label: fig-color-discrete
+#| fig-cap: "scale_colour_discrete()を使った例"
+
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
+  geom_point(size = 2) + 
+  scale_colour_discrete() + 
+  labs(colour = "Species")
+
+```
+
+なんというか、これぞggplot2！という感じの配色ですね。もちろん色を自分で指定することも可能です。
+
+```{r}
+#| label: fig-color-discrete-custom
+#| fig-cap: "指定した3色"
+
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
+  geom_point(size = 2) + 
+  scale_colour_manual(values = c("darkred", "darkblue", "darkgreen")) + 
+  labs(colour = "Species")
+
+```
+
+さらに、`scale_colour_viridis_d()`だと以下のようになります。
+
+```{r}
+#| label: fig-color-viridis-d
+#| fig-cap: "scale_colour_viridis_d()を使った例"
+
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
+  geom_point(size = 2) + 
+  scale_colour_viridis_d(option = "plasma") + 
+  labs(colour = "Species")
+
+```
+
+今回はSpeciesがカテゴリ変数なので、先ほどの`scale_colour_viridis_c()`よりも`scale_colour_viridis_d()`の方が適していると言えますね。
+
+今回は代表的なカラースケールをご紹介しましたが、他にもカラーパレットはたくさんあります。今回は入門編ということでこのあたりにしておきますが、いろいろ紹介してくれているページはあるので、例えば以下のようなページを参考にしてみてください。
+
+::: {.callout-tip appearance="minimal"}
+[The R Graph Gallery](https://r-graph-gallery.com/)
+:::
+
+## いろいろ含めたグラフを作ってみる
+
+ではここで、これまでの内容を踏まえて、新しいプロットを作ってみます。データはこれもデフォルトで用意されている`mpg`データセットを使います。
+
+```{r}
+#| label: fig-complex-plot
+#| layout-ncol: 2
+#| fig-cap: "作ってみました"
+#| fig-subcap: 
+#|   - "カットと価格の関係"
+#|   - "カラットと価格の関係"
+
+df <- as_tibble(diamonds)
+
+attr(df$cut, "label") <- "Cut"
+attr(df$price, "label") <- "Price (USD)"
+attr(df$carat, "label") <- "Carat"
+
+theme_use <- theme_minimal(paper = "gray98", ink = "navy") + 
+  theme(
+    geom = element_geom(accent = "purple", paper = "pink", 
+                        pointsize = 2, borderwidth = 1), 
+    axis.title = element_text(family = "Times New Roman", size = 16), 
+    axis.text = element_text(family = "Times New Roman", size = 12), 
+    legend.title = element_text(family = "Times New Roman"), 
+    legend.text = element_text(family = "Times New Roman")
+  )
+
+ggplot(df, aes(cut, price)) +
+  geom_violin(aes(color = from_theme(accent))) + 
+  theme_minimal(paper = "gray98", ink = "navy") + 
+  theme_use
+
+ggplot(df, aes(carat, price, color = cut)) + 
+  geom_point() + 
+  annotate("text", label = "Fair < Good < Very Good < Premium < Ideal", 
+           x = 3.4, y = 2500, family = "Times New Roman") + 
+  scale_color_viridis_d(option = "plasma") + 
+  guides(color = guide_legend(reverse = TRUE)) + 
+  theme_use
+```
+
+
+## 発展：`ggrepel`
+
+ここからは、`ggrepel`というパッケージを用いて折れ線グラフを発展させた例をご紹介します。ここからはだいぶややこしいので、出来上がったグラフを見て、必要性を感じていただけたらコードを読み解いてもらえればと思います。
 
 ```{r}
 # インストール
