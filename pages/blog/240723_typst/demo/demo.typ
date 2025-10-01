@@ -322,7 +322,7 @@
 )
 #set text(weight: 400, )
 #set par(leading: 0.85em)
-#show heading: set text(font: ("Zen Maru Gothic",), weight: 700, style: "normal", )
+#show heading: set text(font: ("Zen Maru Gothic",), weight: 700, )
 #show heading: set par(leading: 0.5em)
 #show raw.where(block: false): set text(font: ("Fira Code",), weight: 400, fill: rgb("#7d12ba"), )
 #show raw.where(block: false): content => highlight(fill: rgb(247, 247, 249, 65%), content)
@@ -352,7 +352,6 @@
   fontsize: 12pt,
   heading-family: ("Zen Maru Gothic",),
   heading-weight: 700,
-  heading-style: "normal",
   heading-color: rgb("#454955"),
   heading-line-height: 0.5em,
   toc_title: [Table of contents],
