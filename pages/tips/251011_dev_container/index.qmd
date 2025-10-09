@@ -1,0 +1,214 @@
+---
+title: "開発コンテナの環境について"
+description: |
+  VSCodeの開発コンテナを用いたRの開発環境についての一案です。
+date: 2025-10-11
+categories:
+  - R
+  - Docker
+  - VSCode
+---
+
+## はじめに
+
+VSCodeの開発コンテナは、開発環境をコード化し、再現性のある環境を提供する強力なツールです。
+
+これまで本サイトでは開発コンテナを用いた環境構築についていくつかの記事を掲載してきました。しかし、自分にとってはややオーバースペックだった感も否めず、もう少しシンプルにできないかと考えることもありました。
+
+本記事では改めて開発コンテナを用いた環境構築について検討し、Rの開発環境を構築する際に考慮すべきポイントや、実際の設定例についてまとめていきたいと思います。
+
+## 実行環境
+
+- Windows 11
+- WSL2 (Ubuntu 24.04)
+- Docker Desktop 4.47.0
+- VSCode
+
+## 開発コンテナを用いるメリット
+
+開発コンテナを用いることで、以下のようなメリットがあります。
+
+- **一貫性のある環境**: 開発コンテナはコード化された設定ファイル（Dockerfileやdevcontainer.json）を使用するため、チーム全体で同じ環境を再現できます。
+- **依存関係の管理**: 開発コンテナ内で必要なパッケージやツールをインストールすることで、依存関係の衝突を避けることができます。
+- **環境の分離**: 開発コンテナはホストマシンから独立して動作するため、異なるプロジェクトで異なる環境を簡単に切り替えることができます。
+- **ポータビリティ**: 開発コンテナは異なるマシンやOS間で同じ環境を提供できるため、開発者がどこでも同じ環境で作業できます。
+- **VSCodeとの統合**: VSCodeは開発コンテナとシームレスに統合されており、コンテナ内で直接コードを編集、デバッグ、実行できます。
+- **RStudio Serverの利用**: 開発コンテナ内にRStudio Serverをセットアップすることで、ブラウザベースでRの開発が可能になります。
+
+チームで研究・開発を行う際には非常に力を発揮することになりますが、個人で使う場合でも、環境の再現性や依存関係の管理が重要な場合には有用です。
+
+## 開発コンテナを用いる際の考慮点
+
+開発コンテナを用いる際には、以下のような点を考慮する必要があります。
+
+- **学習コスト**: Dockerや開発コンテナの設定に慣れるまでには時間がかかる場合があります。特に初心者にとっては、最初の設定が難しく感じられることがあります。
+- **設定の複雑さ**: 開発コンテナの設定ファイルが複雑になることがあり、特に多くの依存関係やカスタム設定が必要な場合には管理が難しくなることがあります。
+- **チームの合意形成**: 開発コンテナの使用に関して、チーム全体で合意を形成することが重要です。全員が同じツールやワークフローを使用することで、効率的な開発が可能になります。
+
+特に学習コストに関しては、互いに開発コンテナのメリットを理解していないと高くなってしまい、導入が難しくなることがあると感じています。
+
+## Rの開発環境構築例
+
+Rの開発環境をDocker上で手軽に再現できるようにしたのが、rockerプロジェクトです。
+
+そもそもDockerとは、アプリケーションとその依存関係をコンテナとしてパッケージ化し、どこでも同じ環境で実行できるようにする技術です。
+
+rockerでは、R本体やTidyverse、RStudioなどをあらかじめ組み込んだイメージが用意されており、Dockerを使えばすぐに「同じ環境」で分析を始められます。
+
+開発コンテナではこのrockerイメージをベースに設定を行うことで、VSCode上でも安定したRの実行環境を構築できます。
+
+### プロジェクトフォルダの用意
+
+まず、VSCodeで開発コンテナを使用するためのプロジェクトフォルダを用意します。
+
+任意のフォルダを作成し、その中に`.devcontainer`という名前のサブフォルダを作成します。ここでは仮にプロジェクトフォルダを`work`とすると、次に紹介する2つのファイルを追加して以下のような構成になります。
+
+```
+work/
+└── .devcontainer/
+    ├── devcontainer.json
+    └── Dockerfile
+```
+
+### .devcontainer/devcontainer.json
+
+今回は開発コンテナを使用するということで、`devcontainer.json`と`Dockerfile`の2つのファイルを用いて設定を行います。
+
+まず、`devcontainer.json`は開発コンテナの設定ファイルで、以下のような内容になります。
+
+```json
+{
+  "name": "yo5uke.github.io",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  "remoteUser": "rstudio",
+  "overrideCommand": false,
+
+  "containerEnv": {
+    "TZ": "Asia/Tokyo",
+    "DISABLE_AUTH": "true"
+  },
+
+  "workspaceFolder": "/home/rstudio/${localWorkspaceFolderBasename}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/rstudio/${localWorkspaceFolderBasename},type=bind",
+
+  "runArgs": ["-p", "8787:8787"],
+  "forwardPorts": [8787],
+  "portsAttributes": {
+    "8787": { "label": "RStudio Server" }
+  },
+
+  "features": {
+    "ghcr.io/rocker-org/devcontainer-features/quarto-cli:latest": {
+      "version": "1.8.25"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "REditorSupport.r",
+        "Posit.air-vscode",
+        "ms-python.python",
+        "quarto.quarto",
+        "ms-toolsai.jupyter",
+        "GitHub.copilot",
+        "GitHub.vscode-pull-request-github",
+        "janisdd.vscode-edit-csv",
+        "James-Yu.latex-workshop"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/home/rstudio/.venv/bin/python",
+        "python.terminal.activateEnvironment": false,
+        "r.plot.useHttpgd": true
+      }
+    }
+  }
+}
+```
+
+この設定ファイルでは、以下のポイントに注目してください。
+
+- `build.dockerfile`: 使用するDockerfileを指定します。
+  - ここでは同じディレクトリにある`Dockerfile`を指定しています。
+- `remoteUser`: コンテナ内で使用するユーザーを指定します。rockerイメージでは`rstudio`ユーザーがデフォルトです。
+- `containerEnv`: コンテナ内の環境変数を設定します。ここではタイムゾーンとRStudio Serverの認証無効化を設定しています。
+  - RStudio Serverでは通常ユーザー名とパスワードで認証が必要ですが、`DISABLE_AUTH`を`true`に設定することで、認証を無効化しています。
+- `workspaceFolder`と`workspaceMount`: ホストマシンの作業ディレクトリをコンテナ内にマウントする設定です。
+- `runArgs`と`forwardPorts`: RStudio Serverのポート（8787）をホストマシンにフォワードする設定です。
+- `features`: Quarto CLIをインストールするための設定です。バージョンを指定できます。
+- `customizations.vscode`: VSCodeの拡張機能や設定を指定します。RやPython、Quartoなどの拡張機能をインストールしています。
+
+ここではPythonの設定も含めていますが、Pythonを使わない場合は削除しても問題ありません。具体的にはVSCodeの拡張機能と設定の部分を削除してください。
+
+### .devcontainer/Dockerfile
+
+次に、`Dockerfile`はコンテナのベースイメージや追加のパッケージを指定するファイルです。`devcontainer.json`と同じディレクトリに配置してください。
+
+以下のような内容になります。
+
+```Dockerfile
+FROM rocker/verse:4.5.1
+
+ENV DEBIAN_FRONTEND=noninteractive
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN R -q -e "install.packages(c('renv','languageserver','httpgd'))"
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      python3 python3-venv python3-pip \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /home/rstudio/.venv \
+ && /home/rstudio/.venv/bin/python -m pip install --upgrade pip \
+ && chown -R rstudio:rstudio /home/rstudio/.venv
+
+ENV VIRTUAL_ENV=/home/rstudio/.venv
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+
+EXPOSE 8787
+```
+
+このDockerfileでは、以下のポイントに注目してください。
+
+- `FROM rocker/verse:4.5.1`: rockerのverseイメージをベースにしています。verseイメージにはR本体、Tidyverse、RStudioが含まれています。必要に応じて他のrockerイメージを選択できます。
+  - 詳しくは[rockerの公式ページ](https://rocker-project.org/images/)を参照してください。
+- `RUN R -q -e "install.packages(c('renv','languageserver','httpgd'))"`: Rのパッケージをインストールしています。ここでは`renv`、`languageserver`、`httpgd`をインストールしています。
+  - VSCode上でRを利用しない場合は`renv`のみでよいと思います。
+- `RUN apt-get install -y python3 python3-venv python3-pip`: Pythonの仮想環境を作成するために必要なパッケージをインストールしています。
+  - Pythonを使わない場合はこの行を削除してください。
+- `RUN python3 -m venv /home/rstudio/.venv`: RStudioユーザーのホームディレクトリにPythonの仮想環境を作成しています。
+  - Pythonを使わない場合はこの行も削除してください。
+- `EXPOSE 8787`: RStudio Serverのポートを公開しています。
+
+## 開発コンテナの起動
+
+設定ファイルが準備できたら、VSCodeでプロジェクトフォルダを開き、コマンドパレット（{{< kbd win=Ctrl-Shift-P mac=⇧-⌘-P >}}）から「Dev Containers: Reopen in Container」を選択します。
+
+これにより、VSCodeが開発コンテナをビルドし、コンテナ内で作業できるようになります。
+
+コンテナのビルドには時間がかかる場合がありますが、一度ビルドが完了すれば、次回からは迅速に起動できます。
+
+## RStudio Serverへのアクセス
+
+開発コンテナが起動したら、ブラウザで`localhost:8787`にアクセスします。
+
+RStudio Server上でプロジェクトフォルダを開き、Rプロジェクトを作成して作業を始めましょう。
+
+## おわりに
+
+今回は`devcontainer.json`と`Dockerfile`を紹介することがメインだったので環境構築の手順についてはごく簡単に説明しました。
+
+もし興味があれば、以下の記事も参考にしてみてください。
+
+:::{.callout-tip appearance="minimal"}
+[【改訂版】開発コンテナを使ってR環境を構築！](../241219_container/index.qmd)
+:::
+
+そこまで大きくないデータでしたらGitHubを通じて管理できます。もしデータが大きくなればDVCなど他のツールを利用することも検討するのがよいと思います。
+
+ご参考まで。
