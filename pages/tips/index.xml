@@ -10,11 +10,637 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.8.25</generator>
-<lastBuildDate>Thu, 25 Sep 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 10 Oct 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>開発コンテナの環境について</title>
+  <link>https://yo5uke.com/pages/tips/251011_dev_container/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+
+  <!-- Twitter (X) -->
+
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+
+
+  <!-- Bluesky -->
+
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+</div>
+
+
+
+<script>
+
+  const twitterUsername = "@5uke_y";
+
+  const blueskyUsername = "@5uke.bsky.social";
+
+
+
+  const share_url = encodeURIComponent(location.href);
+
+  const share_title = document.title;
+
+
+
+  // Twitter (X)
+
+  document.getElementById('js-share-twitter').setAttribute(
+
+    "href",
+
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+
+    "&hashtags=rstats"
+
+  );
+
+
+
+  // Bluesky
+
+  document.getElementById('js-share-bluesky').setAttribute(
+
+    "href",
+
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+
+  );
+
+</script>
+
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>VSCodeの開発コンテナは、開発環境をコード化し、再現性のある環境を提供する強力なツールです。</p>
+<p>これまで本サイトでは開発コンテナを用いた環境構築についていくつかの記事を掲載してきました。しかし、自分にとってはややオーバースペックだった感も否めず、もう少しシンプルにできないかと考えることもありました。</p>
+<p>本記事では改めて開発コンテナを用いた環境構築について検討し、Rの開発環境を構築する際に考慮すべきポイントや、実際の設定例についてまとめていきたいと思います。</p>
+</section>
+<section id="実行環境" class="level2">
+<h2 class="anchored" data-anchor-id="実行環境">実行環境</h2>
+<ul>
+<li>Windows 11</li>
+<li>WSL2 (Ubuntu 24.04)</li>
+<li>Docker Desktop 4.47.0</li>
+<li>VSCode</li>
+</ul>
+</section>
+<section id="開発コンテナを用いるメリット" class="level2">
+<h2 class="anchored" data-anchor-id="開発コンテナを用いるメリット">開発コンテナを用いるメリット</h2>
+<p>開発コンテナを用いることで、以下のようなメリットがあります。</p>
+<ul>
+<li><strong>一貫性のある環境</strong>: 開発コンテナはコード化された設定ファイル（Dockerfileやdevcontainer.json）を使用するため、チーム全体で同じ環境を再現できます。</li>
+<li><strong>依存関係の管理</strong>: 開発コンテナ内で必要なパッケージやツールをインストールすることで、依存関係の衝突を避けることができます。</li>
+<li><strong>環境の分離</strong>: 開発コンテナはホストマシンから独立して動作するため、異なるプロジェクトで異なる環境を簡単に切り替えることができます。</li>
+<li><strong>ポータビリティ</strong>: 開発コンテナは異なるマシンやOS間で同じ環境を提供できるため、開発者がどこでも同じ環境で作業できます。</li>
+<li><strong>VSCodeとの統合</strong>: VSCodeは開発コンテナとシームレスに統合されており、コンテナ内で直接コードを編集、デバッグ、実行できます。</li>
+<li><strong>RStudio Serverの利用</strong>: 開発コンテナ内にRStudio Serverをセットアップすることで、ブラウザベースでRの開発が可能になります。</li>
+</ul>
+<p>チームで研究・開発を行う際には非常に力を発揮することになりますが、個人で使う場合でも、環境の再現性や依存関係の管理が重要な場合には有用です。</p>
+</section>
+<section id="開発コンテナを用いる際の考慮点" class="level2">
+<h2 class="anchored" data-anchor-id="開発コンテナを用いる際の考慮点">開発コンテナを用いる際の考慮点</h2>
+<p>開発コンテナを用いる際には、以下のような点を考慮する必要があります。</p>
+<ul>
+<li><strong>学習コスト</strong>: Dockerや開発コンテナの設定に慣れるまでには時間がかかる場合があります。特に初心者にとっては、最初の設定が難しく感じられることがあります。</li>
+<li><strong>設定の複雑さ</strong>: 開発コンテナの設定ファイルが複雑になることがあり、特に多くの依存関係やカスタム設定が必要な場合には管理が難しくなることがあります。</li>
+<li><strong>チームの合意形成</strong>: 開発コンテナの使用に関して、チーム全体で合意を形成することが重要です。全員が同じツールやワークフローを使用することで、効率的な開発が可能になります。</li>
+</ul>
+<p>特に学習コストに関しては、互いに開発コンテナのメリットを理解していないと高くなってしまい、導入が難しくなることがあると感じています。</p>
+</section>
+<section id="rの開発環境構築例" class="level2">
+<h2 class="anchored" data-anchor-id="rの開発環境構築例">Rの開発環境構築例</h2>
+<p>Rの開発環境をDocker上で手軽に再現できるようにしたのが、rockerプロジェクトです。</p>
+<p>そもそもDockerとは、アプリケーションとその依存関係をコンテナとしてパッケージ化し、どこでも同じ環境で実行できるようにする技術です。</p>
+<p>rockerでは、R本体やTidyverse、RStudioなどをあらかじめ組み込んだイメージが用意されており、Dockerを使えばすぐに「同じ環境」で分析を始められます。</p>
+<p>開発コンテナではこのrockerイメージをベースに設定を行うことで、VSCode上でも安定したRの実行環境を構築できます。</p>
+<section id="プロジェクトフォルダの用意" class="level3">
+<h3 class="anchored" data-anchor-id="プロジェクトフォルダの用意">プロジェクトフォルダの用意</h3>
+<p>まず、VSCodeで開発コンテナを使用するためのプロジェクトフォルダを用意します。</p>
+<p>任意のフォルダを作成し、その中に<code>.devcontainer</code>という名前のサブフォルダを作成します。ここでは仮にプロジェクトフォルダを<code>work</code>とすると、次に紹介する2つのファイルを追加して以下のような構成になります。</p>
+<pre><code>work/
+└── .devcontainer/
+    ├── devcontainer.json
+    └── Dockerfile</code></pre>
+</section>
+<section id="devcontainerdevcontainer.json" class="level3">
+<h3 class="anchored" data-anchor-id="devcontainerdevcontainer.json">.devcontainer/devcontainer.json</h3>
+<p>今回は開発コンテナを使用するということで、<code>devcontainer.json</code>と<code>Dockerfile</code>の2つのファイルを用いて設定を行います。</p>
+<p>まず、<code>devcontainer.json</code>は開発コンテナの設定ファイルで、以下のような内容になります。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-2">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"name"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"yo5uke.github.io"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-3">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"build"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-4">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"dockerfile"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Dockerfile"</span></span>
+<span id="cb2-5">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb2-6"></span>
+<span id="cb2-7">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"remoteUser"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"rstudio"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-8">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"overrideCommand"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">false</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-9"></span>
+<span id="cb2-10">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"containerEnv"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-11">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"TZ"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Asia/Tokyo"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-12">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"DISABLE_AUTH"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"true"</span></span>
+<span id="cb2-13">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb2-14"></span>
+<span id="cb2-15">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"workspaceFolder"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/rstudio/${localWorkspaceFolderBasename}"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-16">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"workspaceMount"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"source=${localWorkspaceFolder},target=/home/rstudio/${localWorkspaceFolderBasename},type=bind"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-17"></span>
+<span id="cb2-18">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"runArgs"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-p"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"8787:8787"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-19">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"forwardPorts"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8787</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-20">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"portsAttributes"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-21">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"8787"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"label"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RStudio Server"</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-22">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb2-23"></span>
+<span id="cb2-24">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"features"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-25">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"ghcr.io/rocker-org/devcontainer-features/quarto-cli:latest"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-26">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"version"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"1.8.25"</span></span>
+<span id="cb2-27">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-28">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">},</span></span>
+<span id="cb2-29"></span>
+<span id="cb2-30">  <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"customizations"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-31">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"vscode"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-32">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"extensions"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span></span>
+<span id="cb2-33">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"REditorSupport.r"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-34">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Posit.air-vscode"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-35">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ms-python.python"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-36">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"quarto.quarto"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-37">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ms-toolsai.jupyter"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-38">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"GitHub.copilot"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-39">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"GitHub.vscode-pull-request-github"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-40">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"janisdd.vscode-edit-csv"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-41">        <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"James-Yu.latex-workshop"</span></span>
+<span id="cb2-42">      <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-43">      <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"settings"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb2-44">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"python.defaultInterpreterPath"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/rstudio/.venv/bin/python"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-45">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"python.terminal.activateEnvironment"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">false</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb2-46">        <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"r.plot.useHttpgd"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">true</span></span>
+<span id="cb2-47">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-48">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-49">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span>
+<span id="cb2-50"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>この設定ファイルでは、以下のポイントに注目してください。</p>
+<ul>
+<li><code>build.dockerfile</code>: 使用するDockerfileを指定します。
+<ul>
+<li>ここでは同じディレクトリにある<code>Dockerfile</code>を指定しています。</li>
+</ul></li>
+<li><code>remoteUser</code>: コンテナ内で使用するユーザーを指定します。rockerイメージでは<code>rstudio</code>ユーザーがデフォルトです。</li>
+<li><code>containerEnv</code>: コンテナ内の環境変数を設定します。ここではタイムゾーンとRStudio Serverの認証無効化を設定しています。
+<ul>
+<li>RStudio Serverでは通常ユーザー名とパスワードで認証が必要ですが、<code>DISABLE_AUTH</code>を<code>true</code>に設定することで、認証を無効化しています。</li>
+</ul></li>
+<li><code>workspaceFolder</code>と<code>workspaceMount</code>: ホストマシンの作業ディレクトリをコンテナ内にマウントする設定です。</li>
+<li><code>runArgs</code>と<code>forwardPorts</code>: RStudio Serverのポート（8787）をホストマシンにフォワードする設定です。</li>
+<li><code>features</code>: Quarto CLIをインストールするための設定です。バージョンを指定できます。</li>
+<li><code>customizations.vscode</code>: VSCodeの拡張機能や設定を指定します。RやPython、Quartoなどの拡張機能をインストールしています。</li>
+</ul>
+<p>ここではPythonの設定も含めていますが、Pythonを使わない場合は削除しても問題ありません。具体的にはVSCodeの拡張機能と設定の部分を削除してください。</p>
+</section>
+<section id="devcontainerdockerfile" class="level3">
+<h3 class="anchored" data-anchor-id="devcontainerdockerfile">.devcontainer/Dockerfile</h3>
+<p>次に、<code>Dockerfile</code>はコンテナのベースイメージや追加のパッケージを指定するファイルです。<code>devcontainer.json</code>と同じディレクトリに配置してください。</p>
+<p>以下のような内容になります。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode dockerfile code-with-copy"><code class="sourceCode dockerfile"><span id="cb3-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">FROM</span> rocker/verse:4.5.1</span>
+<span id="cb3-2"></span>
+<span id="cb3-3"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ENV</span> DEBIAN_FRONTEND=noninteractive</span>
+<span id="cb3-4"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">SHELL</span> [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/bin/bash"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-o"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pipefail"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"-c"</span>]</span>
+<span id="cb3-5"></span>
+<span id="cb3-6"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">RUN</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">R</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-q</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-e</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"install.packages(c('renv','languageserver','httpgd'))"</span></span>
+<span id="cb3-7"></span>
+<span id="cb3-8"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">RUN</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">apt-get</span> update <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb3-9"> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">&amp;&amp;</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">apt-get</span> install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--no-install-recommends</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb3-10">      python3 python3-venv python3-pip <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb3-11"> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">&amp;&amp;</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">apt-get</span> clean <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb3-12"> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">&amp;&amp;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rm</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-rf</span> /var/lib/apt/lists/<span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">*</span></span>
+<span id="cb3-13"></span>
+<span id="cb3-14"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">RUN</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">python3</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> venv /home/rstudio/.venv <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb3-15"> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">&amp;&amp;</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">/home/rstudio/.venv/bin/python</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> pip install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--upgrade</span> pip <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb3-16"> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">&amp;&amp;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">chown</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-R</span> rstudio:rstudio /home/rstudio/.venv</span>
+<span id="cb3-17"></span>
+<span id="cb3-18"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ENV</span> VIRTUAL_ENV=/home/rstudio/.venv</span>
+<span id="cb3-19"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ENV</span> PATH=<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"${VIRTUAL_ENV}/bin:${PATH}"</span></span>
+<span id="cb3-20"></span>
+<span id="cb3-21"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">EXPOSE</span> 8787</span></code></pre></div></div>
+<p>このDockerfileでは、以下のポイントに注目してください。</p>
+<ul>
+<li><code>FROM rocker/verse:4.5.1</code>: rockerのverseイメージをベースにしています。verseイメージにはR本体、Tidyverse、RStudioが含まれています。必要に応じて他のrockerイメージを選択できます。
+<ul>
+<li>詳しくは<a href="https://rocker-project.org/images/">rockerの公式ページ</a>を参照してください。</li>
+</ul></li>
+<li><code>RUN R -q -e "install.packages(c('renv','languageserver','httpgd'))"</code>: Rのパッケージをインストールしています。ここでは<code>renv</code>、<code>languageserver</code>、<code>httpgd</code>をインストールしています。
+<ul>
+<li>VSCode上でRを利用しない場合は<code>renv</code>のみでよいと思います。</li>
+</ul></li>
+<li><code>RUN apt-get install -y python3 python3-venv python3-pip</code>: Pythonの仮想環境を作成するために必要なパッケージをインストールしています。
+<ul>
+<li>Pythonを使わない場合はこの行を削除してください。</li>
+</ul></li>
+<li><code>RUN python3 -m venv /home/rstudio/.venv</code>: RStudioユーザーのホームディレクトリにPythonの仮想環境を作成しています。
+<ul>
+<li>Pythonを使わない場合はこの行も削除してください。</li>
+</ul></li>
+<li><code>EXPOSE 8787</code>: RStudio Serverのポートを公開しています。</li>
+</ul>
+</section>
+</section>
+<section id="開発コンテナの起動" class="level2">
+<h2 class="anchored" data-anchor-id="開発コンテナの起動">開発コンテナの起動</h2>
+<p>設定ファイルが準備できたら、VSCodeでプロジェクトフォルダを開き、コマンドパレット（<span class="visually-hidden"></span>）から「Dev Containers: Reopen in Container」を選択します。</p>
+<p>これにより、VSCodeが開発コンテナをビルドし、コンテナ内で作業できるようになります。</p>
+<p>コンテナのビルドには時間がかかる場合がありますが、一度ビルドが完了すれば、次回からは迅速に起動できます。</p>
+</section>
+<section id="rstudio-serverへのアクセス" class="level2">
+<h2 class="anchored" data-anchor-id="rstudio-serverへのアクセス">RStudio Serverへのアクセス</h2>
+<p>開発コンテナが起動したら、ブラウザで<code>localhost:8787</code>にアクセスします。</p>
+<p>RStudio Server上でプロジェクトフォルダを開き、Rプロジェクトを作成して作業を始めましょう。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回は<code>devcontainer.json</code>と<code>Dockerfile</code>を紹介することがメインだったので環境構築の手順についてはごく簡単に説明しました。</p>
+<p>もし興味があれば、以下の記事も参考にしてみてください。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../pages/tips/241219_container/index.html">【改訂版】開発コンテナを使ってR環境を構築！</a></p>
+</div>
+</div>
+</div>
+<p>そこまで大きくないデータでしたらGitHubを通じて管理できます。もしデータが大きくなればDVCなど他のツールを利用することも検討するのがよいと思います。</p>
+<p>ご参考まで。</p>
+
+
+<!-- -->
+
+</section>
+
+ ]]></description>
+  <category>R</category>
+  <category>Docker</category>
+  <category>VSCode</category>
+  <guid>https://yo5uke.com/pages/tips/251011_dev_container/</guid>
+  <pubDate>Fri, 10 Oct 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【R】仮想環境を設定する【Python】</title>
   <link>https://yo5uke.com/pages/tips/250926_virtual_environment/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -280,6 +906,7 @@ font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
   <title>DuckDBをRで使う</title>
   <link>https://yo5uke.com/pages/tips/250919_duckdb/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -641,6 +1268,7 @@ font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
   <title>Positronのおすすめ設定！【R | Python】</title>
   <link>https://yo5uke.com/pages/tips/250901_positron_setting/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -1064,6 +1692,7 @@ font-style: inherit;">]</span></span></code></pre></div></div>
   <title>XMLファイルから情報を抽出する</title>
   <link>https://yo5uke.com/pages/tips/250826_xml/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -1836,6 +2465,7 @@ font-style: inherit;">print</span>(df)</span></code></pre></div></div>
   <title>【Python】高速スクレイピングを実装する【並列化】</title>
   <link>https://yo5uke.com/pages/tips/250816_scraping_python/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -3294,6 +3924,7 @@ font-style: inherit;">"__main__"</span>:</span>
   <title>recode関数でデータフレームの中身を置き換える</title>
   <link>https://yo5uke.com/pages/tips/250727_recode/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -3928,6 +4559,7 @@ font-style: inherit;">set_names</span>(col_names)</span></code></pre></div></div
   <title>RStudio Serverをインストールする【リモートデスクトップも】</title>
   <link>https://yo5uke.com/pages/tips/250715_rstudio_server/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -4314,6 +4946,7 @@ font-style: inherit;">sudo</span> rstudio-server start</span></code></pre></div>
   <title>【スクレイピング】Rでe-Statのメッシュ人口データファイルを一気に取得する</title>
   <link>https://yo5uke.com/pages/tips/250613_scraping_pop_by_mesh/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -4699,6 +5332,7 @@ font-style: inherit;">"data/pop_by_mesh"</span>)</span></code></pre></div></div>
   <title>【データ管理】DVCの設定まとめ</title>
   <link>https://yo5uke.com/pages/tips/250601_dvc/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -4920,6 +5554,7 @@ font-style: inherit;">\</span></span>
   <title>【パッケージ開発】fixesでイベントスタディを効率化</title>
   <link>https://yo5uke.com/pages/tips/250525_fixes/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -6403,6 +7038,7 @@ font-style: inherit;">(s.e. = 0.03)"</span>)</span></code></pre></div></div>
   <title>【GIS】行政区域データを整理【ファイル有】</title>
   <link>https://yo5uke.com/pages/tips/250413_municipality/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -6558,6 +7194,7 @@ font-style: inherit;">theme_void</span>()</span></code></pre></div></div>
   <title>【スクレイピング】rvestを使ってe-Statからファイルを取得する</title>
   <link>https://yo5uke.com/pages/tips/250319_scraping/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -7943,6 +8580,7 @@ font-style: inherit;">"白書"</span>))</span></code></pre></div></div>
   <title>e-Stat APIを使ってデータを取得しよう</title>
   <link>https://yo5uke.com/pages/tips/250309_estat_api/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -8552,6 +9190,7 @@ font-style: inherit;">print</span>(df_wide)</span></code></pre></div></div>
   <title>【ウェブサイト】設定を追加する</title>
   <link>https://yo5uke.com/pages/tips/250205_website_tools/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -9237,6 +9876,7 @@ font-style: inherit;">|</span></span>
   <title>pinsでデータ管理</title>
   <link>https://yo5uke.com/pages/tips/241224_pins/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -9534,6 +10174,7 @@ font-style: inherit;">"~/Dropbox"</span>)</span></code></pre></div></div>
   <title>【改訂版】開発コンテナを使ってR環境を構築！</title>
   <link>https://yo5uke.com/pages/tips/241219_container/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -10532,6 +11173,7 @@ font-style: inherit;">instantiate</span>()</span></code></pre></div></div>
   <title>【Quarto &amp; RStudio】ウェブサイトを作る！</title>
   <link>https://yo5uke.com/pages/tips/241213_create_website/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -11321,6 +11963,7 @@ font-style: inherit;">quarto</span> publish gh-pages</span></code></pre></div></
   <title>Quartoでアイコンを挿入したい</title>
   <link>https://yo5uke.com/pages/tips/241201_icon/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -11498,6 +12141,7 @@ font-style: inherit;">quarto</span> publish gh-pages</span></code></pre></div></
   <title>【4.0.0対応！】ggplot2使い方ガイド</title>
   <link>https://yo5uke.com/pages/tips/241117_ggplot2/</link>
   <description><![CDATA[ 
+
 <div class="social-share-buttons">
 
   <!-- Twitter (X) -->
@@ -15751,166 +16395,6 @@ font-style: inherit;">5.0</span>)</span>
   <guid>https://yo5uke.com/pages/tips/241117_ggplot2/</guid>
   <pubDate>Sat, 16 Nov 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/241117_ggplot2/figure/fig-ggrepel.png" medium="image" type="image/png" height="103" width="144"/>
-</item>
-<item>
-  <title>RStudio (Server)でGitHub Copilotを使う</title>
-  <link>https://yo5uke.com/pages/tips/241113_copilot_rstudio/</link>
-  <description><![CDATA[ 
-<div class="social-share-buttons">
-
-  <!-- Twitter (X) -->
-
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-
-
-  <!-- Bluesky -->
-
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-</div>
-
-
-
-<script>
-
-  const twitterUsername = "@5uke_y";
-
-  const blueskyUsername = "@5uke.bsky.social";
-
-
-
-  const share_url = encodeURIComponent(location.href);
-
-  const share_title = document.title;
-
-
-
-  // Twitter (X)
-
-  document.getElementById('js-share-twitter').setAttribute(
-
-    "href",
-
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-
-    "&hashtags=rstats"
-
-  );
-
-
-
-  // Bluesky
-
-  document.getElementById('js-share-bluesky').setAttribute(
-
-    "href",
-
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-
-  );
-
-</script>
-
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>皆さん、GitHub Copilot使ってますか？チャットでコーディングについて質問できたり、コードを補完してくれたりして便利ですよね。</p>
-<p>主にVSCodeで使うことが多い僕ですが、RStudioも最近は使うようになってきたので、その設定についてまとめたいと思います。</p>
-<p>GitHubは学生なら無料で使えますので、以下の記事など参考にしながら、ぜひ登録してみてください。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="../../blog/240918_github_copilot/index.html">【学生は申し込め】GitHub Copilotを申請しよう</a></p>
-</div>
-</div>
-</div>
-<p>前提として、<strong>GitHub Copilotに申請して、使えるようになっている</strong>ことを確認してください。</p>
-</section>
-<section id="ローカルのrstudio" class="level2">
-<h2 class="anchored" data-anchor-id="ローカルのrstudio">ローカルのRStudio</h2>
-<p>自分のPCにRStudioをインストールして使っている方が多いと思いますが、ローカルの場合は簡単に設定できます。</p>
-<p>まず、RStudioを開き、画面上部の<code>Tools</code>から、<code>Global Options...</code>へ入ります。すると1番下にGitHubのアイコンとともに<code>Copilot</code>があると思いますので、そこをクリックします。</p>
-<p>「Enable GitHub Copilot」が1番上に出ると思うので、チェックを入れます。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/241113_copilot_rstudio/figure/local_rstudio_copilot_setting.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
-</figure>
-</div>
-<p>「The GitHub Copilot agent is not currently installed. Would you like to install it?」みたいに出てきたら、それはインストールしてください。無事にインストールできたと出てきたら、OKで閉じます。</p>
-<p>すると、<code>Sign In</code>のボタンが現れると思いますので、そこを押し、表示された手順に従ってサインインします。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/241113_copilot_rstudio/figure/local_rstudio_copilot_sign_in.png" class="img-fluid figure-img" style="width:80.0%"></p>
-<figcaption>リンクに飛んで、Varification codeを入力します。</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/241113_copilot_rstudio/figure/github_sign_in.png" class="img-fluid figure-img" style="width:60.0%"></p>
-<figcaption>Continueを押します。</figcaption>
-</figure>
-</div>
-<p>上のように出てくるので、リンクをクリックしてGitHubに飛び、Continueを押したらコードを入力します。これで無事サインインができ、RSturio上でGitHub Copilotが使えるようになります。</p>
-</section>
-<section id="開発コンテナrstudio-server" class="level2">
-<h2 class="anchored" data-anchor-id="開発コンテナrstudio-server">開発コンテナ×RStudio Server</h2>
-<p>以前紹介した<a href="../../tips/240504_container/index.html">記事</a>で紹介したような開発コンテナを使用しているような場合では、RStudio Server上でローカルと同じようにやろうとしても、権限がないとか何とかで使えないようになっています。</p>
-<p>もう少し設定が要るので、それをご紹介します。</p>
-<p>まずは、開発コンテナ内のワーキングディレクトリに、<code>etc</code>というフォルダを作り、その中に<code>rstudio</code>というフォルダをさらに作り、その中に<code>rsession.conf</code>というファイルを作成します<sup>1</sup>。そして、<code>rsession.conf</code>ファイルを開いて、以下の内容を書き込みます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode conf code-with-copy"><code class="sourceCode toml"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># R Session Configuration File</span></span>
-<span id="cb1-2"></span>
-<span id="cb1-3"><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">copilot-enabled</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span></span></code></pre></div></div>
-<p>そしたらコードを保存して閉じ、次にDockerfileを編集します。</p>
-<p>Dockerfileを開いたら、以下の内容を追記します。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode dockerfile code-with-copy"><code class="sourceCode dockerfile"><span id="cb2-1"><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">COPY</span> <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">--chown=rstudio:rstudio</span> /etc/rstudio/rsession.conf /etc/rstudio/rsession.conf</span></code></pre></div></div>
-<p>要は今作ったファイルをコンテナ側にコピーするということです。これにより設定を反映させることができます。</p>
-<p>追記したら保存して、コンテナをリビルドしてください。</p>
-<p>すると、RStudio Serverでもローカルと同じような設定ができるようになり、GitHub Copilotを使えるようになります。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>開発コンテナを使用している場合は若干手間がかかりますが、ローカルと同じようにCipolotを使うことができます。</p>
-<p>コードを書いていて、Copilotが提案してくれたコードを確定するときはTabキーを使うのですが、これがRStudioのもともとの設定に干渉するので、使いようによっては使いにくいかもしれません。</p>
-<p>便利なことには違いはないので、ぜひ試してみてください。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>ぶっちゃけフォルダは作らずに<code>.conf</code>ファイルをそのまま作ってもよいのですが、雑然としてしまうかなと個人的には思うので、このようにしています。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>GitHub</category>
-  <category>RStudio</category>
-  <category>Docker</category>
-  <guid>https://yo5uke.com/pages/tips/241113_copilot_rstudio/</guid>
-  <pubDate>Tue, 12 Nov 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
