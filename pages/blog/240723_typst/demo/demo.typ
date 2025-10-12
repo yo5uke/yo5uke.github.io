@@ -289,6 +289,8 @@
   gray-light: rgb("#f0f0f0"),
   light: rgb("#f0f0f0"),
   mint: rgb("#78c2ad"),
+  mint-dark: rgb("#4a8573"),
+  mint-light: rgb("#e6f4ef"),
   primary: rgb("#78c2ad"),
   purple: rgb("#7d12ba"),
   white: rgb("#ffffff")
@@ -308,6 +310,8 @@
   gray-light: color.mix((brand-color.gray-light, 15%), (brand-color.background, 85%)),
   light: color.mix((brand-color.light, 15%), (brand-color.background, 85%)),
   mint: color.mix((brand-color.mint, 15%), (brand-color.background, 85%)),
+  mint-dark: color.mix((brand-color.mint-dark, 15%), (brand-color.background, 85%)),
+  mint-light: color.mix((brand-color.mint-light, 15%), (brand-color.background, 85%)),
   primary: color.mix((brand-color.primary, 15%), (brand-color.background, 85%)),
   purple: color.mix((brand-color.purple, 15%), (brand-color.background, 85%)),
   white: color.mix((brand-color.white, 15%), (brand-color.background, 85%))
@@ -324,8 +328,8 @@
 #set par(leading: 0.85em)
 #show heading: set text(font: ("Zen Kaku Gothic New",), weight: 700, )
 #show heading: set par(leading: 0.5em)
-#show raw.where(block: false): set text(font: ("Fira Code",), weight: 400, fill: rgb("#7d12ba"), )
-#show raw.where(block: false): content => highlight(fill: rgb(247, 247, 249, 65%), content)
+#show raw.where(block: false): set text(font: ("Fira Code",), weight: 400, fill: rgb("#d86a85"), )
+#show raw.where(block: false): content => highlight(fill: rgb("#fcf7f8"), content)
 #show raw.where(block: true): set text(font: ("Fira Code",), weight: 400, size: 0.95*12pt, )
 #show link: set text(weight: 400, fill: rgb("#78c2ad"), )
 
