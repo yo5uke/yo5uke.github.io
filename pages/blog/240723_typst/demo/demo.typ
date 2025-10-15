@@ -1,9 +1,4 @@
 // Some definitions presupposed by pandoc's typst output.
-#let blockquote(body) = [
-  #set text( size: 0.92em )
-  #block(inset: (left: 1.5em, top: 0.2em, bottom: 0.2em))[#body]
-]
-
 #let horizontalrule = line(start: (25%,0%), end: (75%,0%))
 
 #let endnote(num, contents) = [
@@ -87,11 +82,11 @@
 
         show figure: it => {
           let num = numbering(subcapnumbering, n-super, quartosubfloatcounter.get().first() + 1)
-          show figure.caption: it => {
+          show figure.caption: it => block({
             num.slice(2) // I don't understand why the numbering contains output that it really shouldn't, but this fixes it shrug?
             [ ]
             it.body
-          }
+          })
 
           quartosubfloatcounter.step()
           it
