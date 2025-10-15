@@ -67,7 +67,7 @@
     "href": "pages/tips/250901_positron_setting/index.html#キーボードショートカットの設定",
     "title": "Positronのおすすめ設定！【R | Python】",
     "section": "キーボードショートカットの設定",
-    "text": "キーボードショートカットの設定\n\nRStudioからの移行\nまずRStudioからの移行を検討する場合、やはりキーボードショートカットは引き続き使えた方が良いですよね。\n画面左下歯車マークから「設定」を開きます。すると設定画面が出てきますので、上部に出てきた「設定の検索」窓に「workbench.keybindings.rstudioKeybindings」と入力します（ぜひコピペしてくださいね）。\nすると設定が1つヒットし、チェックボックスにはチェックが入っていない状況かと思います。\nそこにチェックを入れ、確認出来たら上部の×印から設定を閉じます。再起動が必要ですので、一度Positronを閉じてから再度開いてください。これで基本的なRStudioのキーボードショートカットが使えるようになります。\n\n\n\nこの項目にチェックを入れてください\n\n\n\n\n地味にイヤな設定の解消\n続いて、地味に困ったのがQuarto Markdownにおけるチャンク挿入についてです[ここではR Markdownについては書いていませんが、Positronへの移行を考えている前衛的な皆様であれば、R MarkdownからQuartoへ乗り換えるべきです。ということにして、R Markdownの設定は僕もしていないので、説明から逃げています。]。\nRStudio上ではチャンク（```{r}で始まるコードブロック）を挿入する際にCtrl + Shift + Iでチャンクを挿入できるわけなのですが、これはカーソルを置いている位置から始まります。カーソルを置いているその行に```{r}が挿入されるということです。\nしかしPositronでは、その行を空行にしたうえで、1行下に挿入される設定になっています。気にされないようであれば放置でよいのですが、僕は気になってしまったので、修正することにしました。\n先ほどと同様画面左下歯車マークから「キーボードショートカット」（キーボードを使う場合Shift + Alt + K）を開きます。\nするとキーボードショートカットに関する設定がずらーっと出てきますが、出てきた画面右上の「キーボードショートカットを開く（JSON）」というアイコンをクリックして開きます。\n\n\n\n赤で示した部分です\n\n\nすると// 既定値を上書きするには、このファイル内にキー バインドを挿入しますという文言とともに[ ]があると思います。\n初期段階では何も記載されていないと思いますが、この中に以下を記述します（[ ]は一応表示しています）。\n[\n  {\n    \"key\": \"ctrl+alt+i\",\n    \"command\": \"editor.action.insertSnippet\",\n    \"when\": \"editorTextFocus && editorLangId == 'quarto'\",\n    \"args\": {\n      \"snippet\": \"```{r}\\n$0\\n```\\n\"\n    }\n  }\n]\nこれでデフォルトの設定が上書きされ、1行の空白を生まずに済みます。\nちなみに、この設定だとRのチャンクが強制的に挿入されるので、Pythonも使う方は困る！と思うかもしれません。\nそのような方には、同じ書き方でCtrl + Shift + Iを使ってPythonのチャンクを挿入するようにするのがおすすめです。そもそもPositronではデフォルトのチャンク挿入がCtrl + Shift + I（Altではなく）なのですが、もしRとPythonしか使わないのであれば、これをPython専用のショートカットにしてしまうのがよいのではないでしょうか。\n上の設定に書き足す形で、カンマで区切った後ろに以下のように記述します。\n[\n  {\n    \"key\": \"ctrl+alt+i\",\n    \"command\": \"editor.action.insertSnippet\",\n    \"when\": \"editorTextFocus && editorLangId == 'quarto'\",\n    \"args\": {\n      \"snippet\": \"```{r}\\n$0\\n```\\n\"\n    }\n  },\n\n  // ここから追記\n  {\n    \"key\": \"ctrl+shift+i\",\n    \"command\": \"editor.action.insertSnippet\",\n    \"when\": \"editorTextFocus && editorLangId == 'quarto'\",\n    \"args\": {\n      \"snippet\": \"```{python}\\n$0\\n```\\n\"\n    }\n  }\n]\nこれでCtrl + Shift + IをPython専用のショートカットに変更できました。やっていることはキーとスニペットを変えているだけで、他は一緒です。"
+    "text": "キーボードショートカットの設定\n\nRStudioからの移行\nまずRStudioからの移行を検討する場合、やはりキーボードショートカットは引き続き使えた方が良いですよね。\n画面左下歯車マークから「設定」を開きます。すると設定画面が出てきますので、上部に出てきた「設定の検索」窓に「workbench.keybindings.rstudioKeybindings」と入力します（ぜひコピペしてくださいね）。\nすると設定が1つヒットし、チェックボックスにはチェックが入っていない状況かと思います。\nそこにチェックを入れ、確認出来たら上部の×印から設定を閉じます。再起動が必要ですので、一度Positronを閉じてから再度開いてください。これで基本的なRStudioのキーボードショートカットが使えるようになります。\n\n\n\nこの項目にチェックを入れてください\n\n\n\n\n地味にイヤな設定の解消\n\n\n\n\n\n\nCautionMacユーザーの方へ\n\n\n\nここではWindowsのキーに基づいて説明しています。Macの方は適宜キーを置き換えながら読み進めてください。Macの正しいキーについて存じ上げず、申し訳ありません。\n\n\n続いて、地味に困ったのがQuarto Markdownにおけるチャンク挿入についてです3。\nRStudio上ではチャンク（```{r}で始まるコードブロック）を挿入する際にCtrl-Alt-ICtrl-Alt-Iでチャンクを挿入できるわけなのですが、これはカーソルを置いている位置から始まります。カーソルを置いているその行に```{r}が挿入されるということです。\nしかしPositronでは、その行を空行にしたうえで、1行下に挿入される設定になっています。気にされないようであれば放置でよいのですが、僕は気になってしまったので、修正することにしました。\n先ほどと同様画面左下歯車マークから「キーボードショートカット」（キーボードを使う場合Ctrl-K+Ctrl-SCtrl-K+Ctrl-S）を開きます。\nするとキーボードショートカットに関する設定がずらーっと出てきますが、出てきた画面右上の「キーボードショートカットを開く（JSON）」というアイコンをクリックして開きます。\n\n\n\n赤で示した部分です\n\n\nすると// 既定値を上書きするには、このファイル内にキー バインドを挿入しますという文言とともに[ ]があると思います。\n初期段階では何も記載されていないと思いますが、この中に以下を記述します（[ ]は一応表示しています）。\n[\n  {\n    \"key\": \"ctrl+alt+i\",\n    \"command\": \"editor.action.insertSnippet\",\n    \"when\": \"editorTextFocus && editorLangId == 'quarto'\",\n    \"args\": {\n      \"snippet\": \"```{r}\\n$0\\n```\\n\"\n    }\n  }\n]\nこれでデフォルトの設定が上書きされ、Ctrl-Alt-ICtrl-Alt-Iでチャンクを挿入すると、カーソルを置いている行に直接チャンクが挿入されるようになります。\nちなみに、この設定だとRのチャンクが強制的に挿入されるので、Pythonも使う方は困る！と思うかもしれません。\nそのような方には、同じ書き方でCtrl-Shift-ICtrl-Shift-Iを使ってPythonのチャンクを挿入するようにするのがおすすめです。そもそもPositronではデフォルトのチャンク挿入がCtrl-Shift-ICtrl-Shift-I（AltAltではなく）であるため、もしRとPythonしか使わないのであれば、これをPython専用のショートカットにしてしまうのがよいのではないでしょうか。\n上の設定に書き足す形で、カンマで区切った後ろに以下のように記述します。\n[\n  {\n    \"key\": \"ctrl+alt+i\",\n    \"command\": \"editor.action.insertSnippet\",\n    \"when\": \"editorTextFocus && editorLangId == 'quarto'\",\n    \"args\": {\n      \"snippet\": \"```{r}\\n$0\\n```\\n\"\n    }\n  },\n\n  // ここから追記\n  {\n    \"key\": \"ctrl+shift+i\",\n    \"command\": \"editor.action.insertSnippet\",\n    \"when\": \"editorTextFocus && editorLangId == 'quarto'\",\n    \"args\": {\n      \"snippet\": \"```{python}\\n$0\\n```\\n\"\n    }\n  }\n]\nこれでCtrl-Shift-ICtrl-Shift-IをPython専用のショートカットに変更できました。やっていることはキーとスニペットを変えているだけで、他は一緒です。"
   },
   {
     "objectID": "pages/tips/250901_positron_setting/index.html#レイアウトの設定",
@@ -81,14 +81,14 @@
     "href": "pages/tips/250901_positron_setting/index.html#project-manager",
     "title": "Positronのおすすめ設定！【R | Python】",
     "section": "Project Manager",
-    "text": "Project Manager\n皆さんはR Projectを使用しているでしょうか。再現可能な研究のための1つのツールにR Projectがあります。ここではそれそのものについて詳しくは書きませんが3、PositronにはR Projectと同様のシステムがありません。\nそこでPositron（VSCodeもですが）では、拡張機能を使用してプロジェクト管理を行います。\nざっくりR Projectは.Rprojファイルを作成し、そのファイルが認識されることでそこをワーキングディレクトリとして設定し、here::here()をはじめとした相対パスを使用できるようになり、効率的なプロジェクト管理が可能になります。\n前述のようにPositronでは.Rprojファイルは作成できず、代わりにワークスペースを設定することでプロジェクト管理を行います。\nこのワークスペースとは一体何かと言えば「Positron内でワーキングディレクトリとなるフォルダを開く」ことに他ならないのですが、つまるところ.RprojをダブルクリックしてそのフォルダをRStudioで開くのと同様に、そのフォルダをIDE上で「開く」ことが重要なのです。\nではどうやってそのフォルダを開けばよいのか。それを解決してくれるのが「Project Manager」という拡張機能です。\nPositronの左にあるサイドバーから拡張機能のアイコンを開き、検索窓から「alefragnani.project-manager」と検索してください4。\n\n\n\nこれです\n\n\nこれをインストールすると、サイドバーにアイコンが表示されることと思います。\n画面左上の「ファイル」から「フォルダを開く」へと進み、何かプロジェクトを開いてみてください（なければ適当にフォルダを作ってみてください）。\n開けたら、Project Managerのアイコンをクリックし、拡張機能の画面を開きます。すると上部に下のような表示があると思います。\n\n\n\n\n\nそしてアイコンの一番左にあるフロッピーディスク💾をクリックすると、今開いているフォルダがワークスペースとして保存され、下に表示されると思います。つまりエクスプローラーにおけるクイックアクセスへのピン留めと同じ要領で、次回以降表示されるプロジェクトを選択すればそのフォルダを開けるようになるというわけです。\n.Rprojのようなファイルこそないものの、ワークスペースを開いていればhere::here()をはじめとしたプロジェクト管理のためのツールは同様に使用可能です。\nぜひプロジェクトはここから保存してみてください。\n\n\n\n\n\n\nThe Rproj File - Positron"
+    "text": "Project Manager\n皆さんはR Projectを使用しているでしょうか。再現可能な研究のための1つのツールにR Projectがあります。ここではそれそのものについて詳しくは書きませんが4、PositronにはR Projectと同様のシステムがありません。\nそこでPositron（VSCodeもですが）では、拡張機能を使用してプロジェクト管理を行います。\nざっくりR Projectは.Rprojファイルを作成し、そのファイルが認識されることでそこをワーキングディレクトリとして設定し、here::here()をはじめとした相対パスを使用できるようになり、効率的なプロジェクト管理が可能になります。\n前述のようにPositronでは.Rprojファイルは作成できず、代わりにワークスペースを設定することでプロジェクト管理を行います。\nこのワークスペースとは一体何かと言えば「Positron内でワーキングディレクトリとなるフォルダを開く」ことに他ならないのですが、つまるところ.RprojをダブルクリックしてそのフォルダをRStudioで開くのと同様に、そのフォルダをIDE上で「開く」ことが重要なのです。\nではどうやってそのフォルダを開けばよいのか。それを解決してくれるのが「Project Manager」という拡張機能です。\nPositronの左にあるサイドバーから拡張機能のアイコンを開き、検索窓から「alefragnani.project-manager」と検索してください5。\n\n\n\nこれです\n\n\nこれをインストールすると、サイドバーにアイコンが表示されることと思います。\n画面左上の「ファイル」から「フォルダを開く」へと進み、何かプロジェクトを開いてみてください（なければ適当にフォルダを作ってみてください）。\n開けたら、Project Managerのアイコンをクリックし、拡張機能の画面を開きます。すると上部に下のような表示があると思います。\n\n\n\n\n\nそしてアイコンの一番左にあるフロッピーディスク💾をクリックすると、今開いているフォルダがワークスペースとして保存され、下に表示されると思います。つまりエクスプローラーにおけるクイックアクセスへのピン留めと同じ要領で、次回以降表示されるプロジェクトを選択すればそのフォルダを開けるようになるというわけです。\n.Rprojのようなファイルこそないものの、ワークスペースを開いていればhere::here()をはじめとしたプロジェクト管理のためのツールは同様に使用可能です。\nぜひプロジェクトはここから保存してみてください。\n\n\n\n\n\n\nThe Rproj File - Positron"
   },
   {
     "objectID": "pages/tips/250901_positron_setting/index.html#テーマの変更",
     "href": "pages/tips/250901_positron_setting/index.html#テーマの変更",
     "title": "Positronのおすすめ設定！【R | Python】",
     "section": "テーマの変更",
-    "text": "テーマの変更\n\nデフォルトのテーマ設定\nPositronではテーマも変更可能です。VSCodeと基本的な設定は同じですが、このセクションの終わりに拡張機能を利用したテーマの変更方法も書いておきます。\nまず、左下の歯車マークから「設定」を開きます。\n上部の検索窓に「color theme」と入力します。すると「Workbench: Color Theme」という項目がヒットすると思います。ここがデフォルトでは「Positron Light」になっていると思います。ここをクリックすると、テーマの一覧が表示されます。\n\nダーク系のテーマが好きな方は「Positron Dark」を選択してください。これでダークモードになります。\n他にもいろいろなテーマがあるので、気に入ったものを選んでみてください。\n\n\nテーマの自動切換え\n僕はMicrosoft Storeで入手可能な「Auto Dark Mode」というアプリを使用して、日の出と日没に合わせてWindowsのテーマを自動で切り替えています。昼間ならライトモード、夜ならナイトモードに自動で切り替わるというものです。\nPositronはデフォルトでWindowsのテーマに合わせて自動で切り替わるわけではないのですが、同じく設定から「auto detect color scheme」を検索し、「Window: Auto Detect Color Scheme」という項目にチェックを入れると、Windowsのテーマに合わせて自動で切り替わるようになります。\n別にAuto Dark Modeを使っていない場合でも、Windowsのテーマを手動で切り替えた際にPositronもそれに合わせて切り替えてくれるようになります。\nまた、この際にライトのテーマとダークのテーマをそれぞれ設定する必要があります。「Workbench: Preferred Light Color Theme」と「Workbench: Preferred Dark Color Theme」という項目があるので、それぞれ好きなテーマを選んでください。ここで選んだものがWindowsのテーマに合わせて切り替わるようになります（Macでも同様かと思います）。\n\n\n拡張機能によるテーマの追加\nダークモードに関して、最近1つ新しいテーマを見つけたので、ご紹介します。\n\n\n\n\n\n\nPorting my favorite RStudio color theme to Positron\n\n\n\nこちらはRStudioの「Tomorrow Night Bright」というテーマをPositronに移植するために拡張機能を作成した、という記事です。この拡張機能を用いればRStudioのTomorrow Night BrightのテーマをPositronで使用可能になります。\n拡張機能のインストール方法は前述のProject Managerと同様です。拡張機能のアイコンをクリックし、検索窓に「tomorrow night bright」と入力します。するとRユーザーにはおなじみ、六角形のロゴがアイコンの「Tomomorrow Night Bright (R Classic)」という拡張機能が出てくると思いますので、インストールしてください。\nインストールできたら、先述の「Workbench: Color Theme」から「Tomorrow Night Bright (R Classic)」を選択してください。これでテーマが適用されます5。\n\n\n\nTommorw Night Bright"
+    "text": "テーマの変更\n\nデフォルトのテーマ設定\nPositronではテーマも変更可能です。VSCodeと基本的な設定は同じですが、このセクションの終わりに拡張機能を利用したテーマの変更方法も書いておきます。\nまず、左下の歯車マークから「設定」を開きます。\n上部の検索窓に「color theme」と入力します。すると「Workbench: Color Theme」という項目がヒットすると思います。ここがデフォルトでは「Positron Light」になっていると思います。ここをクリックすると、テーマの一覧が表示されます。\n\nダーク系のテーマが好きな方は「Positron Dark」を選択してください。これでダークモードになります。\n他にもいろいろなテーマがあるので、気に入ったものを選んでみてください。\n\n\nテーマの自動切換え\n僕はMicrosoft Storeで入手可能な「Auto Dark Mode」というアプリを使用して、日の出と日没に合わせてWindowsのテーマを自動で切り替えています。昼間ならライトモード、夜ならナイトモードに自動で切り替わるというものです。\nPositronはデフォルトでWindowsのテーマに合わせて自動で切り替わるわけではないのですが、同じく設定から「auto detect color scheme」を検索し、「Window: Auto Detect Color Scheme」という項目にチェックを入れると、Windowsのテーマに合わせて自動で切り替わるようになります。\n別にAuto Dark Modeを使っていない場合でも、Windowsのテーマを手動で切り替えた際にPositronもそれに合わせて切り替えてくれるようになります。\nまた、この際にライトのテーマとダークのテーマをそれぞれ設定する必要があります。「Workbench: Preferred Light Color Theme」と「Workbench: Preferred Dark Color Theme」という項目があるので、それぞれ好きなテーマを選んでください。ここで選んだものがWindowsのテーマに合わせて切り替わるようになります（Macでも同様かと思います）。\n\n\n拡張機能によるテーマの追加\nダークモードに関して、最近1つ新しいテーマを見つけたので、ご紹介します。\n\n\n\n\n\n\nPorting my favorite RStudio color theme to Positron\n\n\n\nこちらはRStudioの「Tomorrow Night Bright」というテーマをPositronに移植するために拡張機能を作成した、という記事です。この拡張機能を用いればRStudioのTomorrow Night BrightのテーマをPositronで使用可能になります。\n拡張機能のインストール方法は前述のProject Managerと同様です。拡張機能のアイコンをクリックし、検索窓に「tomorrow night bright」と入力します。するとRユーザーにはおなじみ、六角形のロゴがアイコンの「Tomomorrow Night Bright (R Classic)」という拡張機能が出てくると思いますので、インストールしてください。\nインストールできたら、先述の「Workbench: Color Theme」から「Tomorrow Night Bright (R Classic)」を選択してください。これでテーマが適用されます6。\n\n\n\nTommorw Night Bright"
   },
   {
     "objectID": "pages/tips/250901_positron_setting/index.html#おわりに",
@@ -102,7 +102,7 @@
     "href": "pages/tips/250901_positron_setting/index.html#footnotes",
     "title": "Positronのおすすめ設定！【R | Python】",
     "section": "注",
-    "text": "注\n\n\n新しいものが好きな割に敬遠していたのかというご指摘はごもっともですが、ご容赦ください。↩︎\nとはいえ今でも使いやすいのはRStudioだと思っています。今後より便利になるという期待も込めて、Positronを使っている面が大きいです。↩︎\nR Projectについてはこちらをご覧ください。↩︎\nおそらく「project manager」でも一番上に出ます。↩︎\nテーマの自動切換えで使用するには、Preferred Dark Color Themeに設定してください。↩︎"
+    "text": "注\n\n\n新しいものが好きな割に敬遠していたのかというご指摘はごもっともですが、ご容赦ください。↩︎\nとはいえ今でも使いやすいのはRStudioだと思っています。今後より便利になるという期待も込めて、Positronを使っている面が大きいです。↩︎\nここではR Markdownについては書いていませんが、Positronへの移行を考えている前衛的な皆様であれば、R MarkdownからQuartoへ乗り換えるべきです。ということにして、R Markdownの設定は僕もしていないので、説明から逃げています。↩︎\nR Projectについてはこちらをご覧ください。↩︎\nおそらく「project manager」でも一番上に出ます。↩︎\nテーマの自動切換えで使用するには、Preferred Dark Color Themeに設定してください。↩︎"
   },
   {
     "objectID": "pages/tips/250816_scraping_python/index.html#はじめに",
@@ -1134,522 +1134,179 @@
     "text": "注\n\n\n2024年4月現在↩︎\n例えば相模原市は2010年4月1日から政令指定都市に移行したので、10月1日時点で政令指定都市であることから2010年のデータには政令指定都市として反映してあります。↩︎\nもちろん必ずしも上書きする必要はなく、新しい列を作っても問題ありません。↩︎"
   },
   {
-    "objectID": "pages/software/index.html#r",
-    "href": "pages/software/index.html#r",
-    "title": "Software",
-    "section": "R",
-    "text": "R\n\n\n\n  \n  \n      \n          \n              \n              fixes \n              \n          \n          TWFEを用いたDIDにおけるイベントスタディの計算とプロットを行う関数を提供しています。\n\n          \n              \n                  Link:\n                  \n                      \n                      \n                      \n                      \n                           CRAN\n                      \n                      \n                      \n                      \n                      \n                           GitHub\n                      \n                      \n                  \n              \n          \n      \n  \n  \n\n\n一致なし"
-  },
-  {
-    "objectID": "pages/gis_in_r/index.html",
-    "href": "pages/gis_in_r/index.html",
-    "title": "GIS in R",
+    "objectID": "pages/software/nighttime_lights/index.html",
+    "href": "pages/software/nighttime_lights/index.html",
+    "title": "日本の夜間光データ（2012～2024）",
     "section": "",
-    "text": "R で GIS を使う方法についてまとめています。\n\n\n\n\n   \n    \n    \n      並び替え\n      デフォルト\n      \n        公開日 - 日付（昇順）\n      \n      \n        公開日 - 日付（降順）\n      \n      \n        トピック\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\nトピック\n\n\n公開日\n\n\n\n\n\n\n導入 + ハンドリング\n\n\n2024/05/16\n\n\n\n\nプロットの応用\n\n\n2024/12/16\n\n\n\n\n地理データを集約\n\n\n2025/02/21\n\n\n\n\n地図の調整\n\n\n2025/04/06\n\n\n\n\n夜間光を可視化する\n\n\n2025/05/07\n\n\n\n\n一致なし"
+    "text": "このデータセットは、NASA/NOAAのVIIRS（Visible Infrared Imaging Radiometer Suite）夜間光データをもとに、Colorado School of MinesのEarth Observation Group（EOG）が公開するAnnual VNL V2.1およびV2.2データ（2012～2024 年）を使用して作成しており、2012年から2021年はVNL V2.1、2022年から2024年はVNL V2.2を使用しています。\nまた、本データでは、各年の平均光量を示すデータのみを使用しています。最大値や最小値は含んでおりません。\nオリジナルデータはグローバルスケールで提供されていますが、本データセットでは日本領域のみを抽出しており、大幅に軽量化しつつ研究等で利用しやすい範囲に絞っています。"
   },
   {
-    "objectID": "pages/gis_in_r/3_adjust_map/index.html#はじめに",
-    "href": "pages/gis_in_r/3_adjust_map/index.html#はじめに",
-    "title": "地図の調整",
-    "section": "はじめに",
-    "text": "はじめに\n今回は地図を調整する方法を説明します。ここでいう調整というのは、日本地図で北海道を本州の左側に、沖縄を東に配置するというようなことを指します。\n図を挿入するスペースが限られており、通常の形で挿入すると地図が小さくなってしまうような場合に役立ちます。\n今回使用するデータは国土数値情報ダウンロードサイトの行政区域データから取得しています。\nhttps://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html"
-  },
-  {
-    "objectID": "pages/gis_in_r/3_adjust_map/index.html#ファイルデータの読み込み",
-    "href": "pages/gis_in_r/3_adjust_map/index.html#ファイルデータの読み込み",
-    "title": "地図の調整",
-    "section": "ファイル・データの読み込み",
-    "text": "ファイル・データの読み込み\n今回は都道府県のマップを使用します（ダウンロードした後にファイル名を変えています）。\n\nlibrary(tidyverse)\nlibrary(sf)\n\n# GISデータを保存しているフォルダ\ndata_dir &lt;- here::here(\"data/jpn_geojson\")\n\npref &lt;- read_sf(file.path(data_dir, \"prefecture.geojson\")) |&gt; \n  st_transform(st_crs(6668))\n\n平面にマッピングするのにCRSを6668に設定するとバランスが良いと感じるので、ついでに設定しています。\n今回は説明を簡単にするため、北海道のみを例にとって説明します。"
-  },
-  {
-    "objectID": "pages/gis_in_r/3_adjust_map/index.html#データの整理",
-    "href": "pages/gis_in_r/3_adjust_map/index.html#データの整理",
-    "title": "地図の調整",
-    "section": "データの整理",
-    "text": "データの整理\n今回の目標は北海道を本州の西側に配置することです。\nプロットに先立ち、データを北海道とそれ以外に分割する必要があります。\n\npref_no_hokkaido &lt;- pref |&gt; \n  filter(N03_001 != \"北海道\")\n\nhokkaido &lt;- pref |&gt; \n  filter(N03_001 == \"北海道\")\n\nN03_001に都道府県名が格納されています。\n試しに北海道だけプロットしてみると、\n\nggplot(hokkaido) + \n  geom_sf()\n\n\n\n\n\n\n\n図 1\n\n\n\n\n\nこのように北海道のみが抽出できています。"
-  },
-  {
-    "objectID": "pages/gis_in_r/3_adjust_map/index.html#北海道の移動",
-    "href": "pages/gis_in_r/3_adjust_map/index.html#北海道の移動",
-    "title": "地図の調整",
-    "section": "北海道の移動",
-    "text": "北海道の移動\n次に北海道を移動させます。\n先に日本全体をマッピングしておくと、どの程度移動させるべきかイメージが付きやすいと思います。\n\nggplot(pref) + \n  geom_sf()\n\n\n\n\n\n\n\n図 2\n\n\n\n\n\nこれを見ると、北海道を西に11度、南に4度くらい動かせばよいのではないかなと思います。ちなみに動かす単位は緯度経度です。\nそれでは先ほどのhokkaidoデータのgeometryを西と南にそれぞれ動かしていきます。\n\nhokkaido &lt;- hokkaido |&gt; \n  mutate(geometry = geometry + c(-11, -4)) |&gt; \n  st_set_crs(st_crs(pref))\n\nポイント：\n\ngeometryを上書き\n\ngeometryにc(-11, -4)のようにc(x, y)を加えることで動かすことができます。\n設定しているCRSによって動く幅が異なるので、そこは調節してください。\n\nCRSを設定\n\ngeometryを上書きするとマッピングの際に必要なCRSが失われますので、再度設定が必要です。\nst_set_crs()で設定できます。\nst_crs(pref)でprefと同じCRSを設定することが可能です。直接6668を設定することも可能です。st_crs()で設定されているCRSを確認できます。"
-  },
-  {
-    "objectID": "pages/gis_in_r/3_adjust_map/index.html#プロット",
-    "href": "pages/gis_in_r/3_adjust_map/index.html#プロット",
-    "title": "地図の調整",
-    "section": "プロット",
-    "text": "プロット\n\nベース\nでは、これをpref_no_hokkaidoと併せてプロットしてみましょう。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido)\n\n\n\n\n\n\n\n図 3\n\n\n\n\n\nいい感じですね。必要に応じて表示する範囲を絞りましょう。今回は東経127度から143度、北緯30度から上は自動調節にしましょう（外れた範囲の地域の方、申し訳ございません…）。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA)\n\n\n\n\n\n\n\n図 4\n\n\n\n\n\nうまい具合に絞ることができました。\nxlimとylimで調節ができます。上限や下限を特に指定しない場合はNAを設定すればよいです。\n\n\nセグメントの追加\n北海道と本州の間に線を引いて、区切りを入れていきます。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA) + \n  annotate(\"segment\", x = 128, xend = 133, \n           y = 37, color = \"gray50\") + \n  annotate(\"segment\", x = 133, xend = 139, \n           y = 37, yend = 41, color = \"gray50\")\n\n\n\n\n\n\n\n図 5\n\n\n\n\n\nannotate(\"segment\", ...)で線を追加できます。Xの開始点と終点、Yの開始点と終点をそれぞれ指定することができます。終点の方を指定しなければ、垂直線あるいは水平線になります。2本の線をつなげたい場合は、1本の終点が2本目の開始点になるように調節してください。\nannotate()については以下のページもご覧ください。\n\n\n\n\n\n\nggplot2ガイド\n\n\n\n\n\n調整\n最後に図の調整を行います。ここでは地図のテーマを変えたり、軸ラベルを消したりします。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA) + \n  annotate(\"segment\", x = 128, xend = 133, \n           y = 37, color = \"gray50\") + \n  annotate(\"segment\", x = 133, xend = 139, \n           y = 37, yend = 41, color = \"gray50\") + \n  labs(x = NULL, y = NULL) + \n  theme_bw() + \n  theme(\n    axis.text = element_blank(), \n    axis.ticks = element_blank(), \n    panel.grid = element_blank()\n  )\n\n\n\n\n\n\n\n図 6\n\n\n\n\n\nポイント：\n\nlabs(x = NULL, y = NULL)で各軸のラベルを消去\ntheme_bw()で白黒テーマの適用\ntheme()\n\naxis.textで軸のテキスト（今回は緯度経度）を消去\naxis.ticksで軸の目盛りを消去\npanel.gridで図内の罫線を消去\nelement_blank()は要素を消去する関数\n\n\nこれである程度きれいなプロットができました。\nもし地図の塗りつぶしの色を変えたければ、geom_sf()内でfill = \"white\"などを追加すれば変更することができます。"
-  },
-  {
-    "objectID": "pages/gis_in_r/1_intro/index.html#データの抽出",
-    "href": "pages/gis_in_r/1_intro/index.html#データの抽出",
-    "title": "導入 + ハンドリング",
-    "section": "データの抽出",
-    "text": "データの抽出\n\nデータの読み込み\nsfパッケージのread_sf()関数を用います。\nShift_JISで書かれたような変なデータがたまにあるので、そのようなときはオプションで指定しましょう。options = \"ENCODING=Shift_JIS\"を追加してください。\n\n\n\n\n\n\nNote読み込みに使う関数について\n\n\n\n\n\nread_sf()は、st_read()の細かい設定を省いてくれた関数、というイメージです。\n具体的には、\nread_sf(dsn)\n\nst_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)\nこの2つが同じです2。詳しくは?st_read()をコンソールに打ち込みドキュメントを読んでみてください。\n基本的にはread_sf()で十分だと思います。\n\n\n\nまた、公園のデータはCRSが設定されていないようです。その設定も行います。CRSについては後の回で説明します。\n\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))\n\npark &lt;- read_sf(here(\"data/P13-11_07_GML/P13-11_07.shp\"), \n                options = \"ENCODING=Shift_JIS\") |&gt; \n  st_set_crs(st_crs(4612)) |&gt;  # JGD2000/(B, L) データ本来のCRS\n  st_transform(st_crs(6668))   # JGD2011/(B, L) 変換したいCRS\n\n\n\nデータを見てみる\n公園のデータを見てみます。\n\n\n\n\n\n\n\n\n図 1: 公園のポイントデータ\n\n\n\n\n\n\n\n\n表 1: 公園データの中身（一部）\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                P13_001\n                P13_002\n                P13_003\n                P13_004\n                P13_005\n                P13_006\n                P13_007\n                P13_008\n                P13_009\n                P13_010\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  NA\n                  福島空港公園            \n                  6\n                  福島県\n                  須賀川市  \n                  1993\n                  520900\n                  1\n                  NA\n                  POINT (140.4202 37.24667)\n                \n                \n                  福島県\n                  NA\n                  あづま総合運動公園      \n                  6\n                  福島県\n                  福島市    \n                  1980\n                  982000\n                  1\n                  NA\n                  POINT (140.362 37.722)\n                \n                \n                  福島県\n                  NA\n                  逢瀬公園                \n                  4\n                  福島県\n                  郡山市    \n                  1979\n                  346000\n                  1\n                  NA\n                  POINT (140.2739 37.41234)\n                \n                \n                  福島県\n                  NA\n                  会津レクリエーション公園\n                  6\n                  福島県\n                  会津若松市\n                  1998\n                  426000\n                  1\n                  NA\n                  POINT (140.0166 37.51643)\n                \n                \n                  福島県\n                  NA\n                  東ヶ丘公園              \n                  6\n                  福島県\n                  南相馬市  \n                  1995\n                  212000\n                  1\n                  NA\n                  POINT (140.9671 37.6326)\n                \n                \n                  福島県\n                  NA\n                  いわき公園              \n                  6\n                  福島県\n                  いわき市  \n                  1987\n                  713000\n                  1\n                  NA\n                  POINT (140.9216 37.01329)\n                \n        \n      \n    \n\n\n\n\n\n\n国土数値情報ダウンロードサイトの説明を見てみると、各列は以下のようになっています。\n\n\n\nP13_001：管理都道府県・整備局\nP13_002：管理市区町村\nP13_003：公園名\nP13_004：公園種別\nP13_005：所在地都道府県名\n\n\n\nP13_006：所在地市区町村名\nP13_007：供用開始年\nP13_008：供用済面積\nP13_009：都市計画決定\nP13_010：備考\n\n\n\n\n\n抽出\n今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表すgeometryの列だけが必要だとします。\ndplyr::select()関数を使って列を抽出し、同時に名前も変更します。\n\n\n\n\n\n\nNote\n\n\n\nselect()内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。\n\n\n\npark_s &lt;- park |&gt; \n  select(\n    name_park = P13_003,  # 公園名\n    name_pref = P13_005,  # 都道府県名\n    name_muni = P13_006,  # 市区町村名\n    geometry              # プロットに必要\n  )\n\n\n\n\n\n表 2: 列抽出済みのデータ\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                name_park\n                name_pref\n                name_muni\n                geometry\n              \n        \n        \n        \n                \n                  福島空港公園            \n                  福島県\n                  須賀川市  \n                  POINT (140.4202 37.24667)\n                \n                \n                  あづま総合運動公園      \n                  福島県\n                  福島市    \n                  POINT (140.362 37.722)\n                \n                \n                  逢瀬公園                \n                  福島県\n                  郡山市    \n                  POINT (140.2739 37.41234)\n                \n                \n                  会津レクリエーション公園\n                  福島県\n                  会津若松市\n                  POINT (140.0166 37.51643)\n                \n                \n                  東ヶ丘公園              \n                  福島県\n                  南相馬市  \n                  POINT (140.9671 37.6326)\n                \n                \n                  いわき公園              \n                  福島県\n                  いわき市  \n                  POINT (140.9216 37.01329)\n                \n        \n      \n    \n\n\n\n\n\n\nこのようにtidyverseの強みを活かしてデータハンドリングを行えます3。"
-  },
-  {
-    "objectID": "pages/gis_in_r/1_intro/index.html#可視化",
-    "href": "pages/gis_in_r/1_intro/index.html#可視化",
-    "title": "導入 + ハンドリング",
-    "section": "可視化",
-    "text": "可視化\ntidyverseに含まれるggplot2を使って、ここまでのデータをプロットしていきます。\n基本的な書き方は以下の通りです。データフレームからggplot()を繋いで記述していきます。\n\npark_s |&gt; \n  ggplot() + \n  geom_sf()   # 地図をプロットするためのコマンド\n\n\n\n\n\n\n\n図 2: シンプルなプロット\n\n\n\n\n\nこれだとやや分かりにくいので、背景を消しましょう。theme_void()やtheme_bw()、theme_classic()などがよいと思います。\n\npark_s |&gt; \n  ggplot() + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n図 3: 背景を削除\n\n\n\n\n\nこれだけだとどこなのかわからないので、先ほどダウンロードした福島県の行政区域を重ねてプロットします。\n\n\n\n\n\n\nNoteプロットするとき\n\n\n\nggplot を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。\n今回は行政区域をベースとし、その上に公園をプロットするので、先に行政区域をプロットします。\n\n\n\n\n\n\n\n\nImportantgeom_sf() の注意点\n\n\n\ngeom_sf() でデータを指定する引数は data であり、これは第2引数なので、シンプルに geom_sf(fukushima) と書くとプロットがうまくいきません4。geom_sf(data = fukushima) と書く必要がある点にご注意ください。\n\n\n\nggplot() + \n  geom_sf(data = fukushima) + \n  geom_sf(data = park_s, color = \"orange\") +  # 点の色も指定\n  theme_void()\n\n\n\n\n\n\n\n図 4: 行政区域と公園ポイントのプロット\n\n\n\n\n\nここまでがプロットの方法です。\n今後も可視化の際に ggplot2 を使いますので、その都度紹介します。"
-  },
-  {
-    "objectID": "pages/gis_in_r/1_intro/index.html#ファイルの出力",
-    "href": "pages/gis_in_r/1_intro/index.html#ファイルの出力",
-    "title": "導入 + ハンドリング",
-    "section": "ファイルの出力",
-    "text": "ファイルの出力\n先ほど作成したpark_sをShapefileとして出力します。\nGISデータは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。\n# フォルダがない場合に作成する\nif (!dir.exists(here(\"data/output/1_intro\"))) {\n  dir.create(here(\"data/output/1_intro\"), recursive = TRUE)\n}\n\nwrite_sf(park_s, here(\"data/output/1_intro/Park_selected.shp\"), \n         layer_options = \"ENCODING=UTF-8\")\n次回以降はPark_selected.shpを読み込めばここから作業を開始できます。"
-  },
-  {
-    "objectID": "pages/gis_in_r/1_intro/index.html#footnotes",
-    "href": "pages/gis_in_r/1_intro/index.html#footnotes",
-    "title": "導入 + ハンドリング",
-    "section": "注",
-    "text": "注\n\n\nR Projectと後述のhereについてはこちらを参照して下さい。↩︎\ndsnのところがデータです。↩︎\nデータハンドリングの基礎的な知識を身に付けるには、私たちのRがおすすめです。↩︎\n「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。↩︎"
-  },
-  {
-    "objectID": "pages/blog/index.html",
-    "href": "pages/blog/index.html",
-    "title": "Blog",
+    "objectID": "pages/software/nighttime_lights/index.html#概要",
+    "href": "pages/software/nighttime_lights/index.html#概要",
+    "title": "日本の夜間光データ（2012～2024）",
     "section": "",
-    "text": "バージョンアップしたggplot2を試す\n\n\n\nR\n\n\n\nggplot2がバージョンアップしたので、新しい要素を試してみた\n\n\n\n\n\n2025/09/15\n\n\n\n\n\n\n\n\n\n\n\n\nPolarsを触ってみる\n\n\n\nPython\n\n\n\nPython版のTidyverseのようなものらしい。\n\n\n\n\n\n2025/08/25\n\n\n\n\n\n\n\n\n\n\n\n\nPythonでスクレイピングをやってみる\n\n\n\nPython\n\n\n\nRでやったスクレイピングをPythonで再現してみたい\n\n\n\n\n\n2025/08/12\n\n\n\n\n\n\n\n\n\n\n\n\nParquetファイルについて調べてみる\n\n\nファイルサイズを小さくできるということだけは知っているが…\n\n\n\n\n\n2025/07/28\n\n\n\n\n\n\n\n\n\n\n\n\n学生最後にやってみたかったこと\n\n\nここから得られるエビデンスは特にないが。\n\n\n\n\n\n2025/03/31\n\n\n\n\n\n\n\n\n\n\n\n\nパッケージがCRANに公開された話\n\n\n\nR\n\n\n\n果たして分析者が使ってくれるほどになるだろうか…。\n\n\n\n\n\n2025/03/23\n\n\n\n\n\n\n\n\n\n\n\n\n【CiteDrive】オンラインで手軽に文献管理（？）\n\n\n\nQuarto\n\nR Markdown\n\nLaTeX\n\n\n\n結構いいと思ったけど、まだまだやな。\n\n\n\n\n\n2024/11/25\n\n\n\n\n\n\n\n\n\n\n\n\n【念願】GitHub CopilotにGPT 4oが搭載\n\n\n\nGitHub\n\nAI\n\n\n\n\n\n\n\n\n\n2024/11/12\n\n\n\n\n\n\n\n\n\n\n\n\n【学生は申し込め】GitHub Copilotを申請しよう\n\n\n\nGitHub\n\nAI\n\n\n\n\n\n\n\n\n\n2024/09/18\n\n\n\n\n\n\n\n\n\n\n\n\nDVCが使えない…？\n\n\n\nDVC\n\n\n\n\n\n\n\n\n\n2024/08/24\n\n\n\n\n\n\n\n\n\n\n\n\nもはや TinyTeX も要らないのか…？\n\n\n\nTypst\n\nQuarto\n\n\n\n\n\n\n\n\n\n2024/07/23\n\n\n\n\n\n\n\n\n\n\n\n\nPositron は何者？\n\n\n\nR\n\nPositron\n\n\n\nPosit社が出した新たなIDE！\n\n\n\n\n\n2024/07/08\n\n\n\n\n\n一致なし"
+    "text": "このデータセットは、NASA/NOAAのVIIRS（Visible Infrared Imaging Radiometer Suite）夜間光データをもとに、Colorado School of MinesのEarth Observation Group（EOG）が公開するAnnual VNL V2.1およびV2.2データ（2012～2024 年）を使用して作成しており、2012年から2021年はVNL V2.1、2022年から2024年はVNL V2.2を使用しています。\nまた、本データでは、各年の平均光量を示すデータのみを使用しています。最大値や最小値は含んでおりません。\nオリジナルデータはグローバルスケールで提供されていますが、本データセットでは日本領域のみを抽出しており、大幅に軽量化しつつ研究等で利用しやすい範囲に絞っています。"
   },
   {
-    "objectID": "pages/blog/250824_polars/index.html#はじめに",
-    "href": "pages/blog/250824_polars/index.html#はじめに",
-    "title": "Polarsを触ってみる",
-    "section": "はじめに",
-    "text": "はじめに\n先日仕事の用事でRAブートキャンプへ行ってきた。\nRAブートキャンプの目的は以下。\n\n社会科学領域の実証研究においてリサーチアシスタント(RA)として携わるための技能を学び、またお互いとの交流を深めることを目的としています。\n\nここでは経済学をはじめとしたさまざまな分野で実証分析をしている大学学部生・院生が集い、4泊5日でデータの処理や分析方法について学んでいる。\n僕自身も2023年度に参加した経験があり、当時は力不足を痛感したものの、そこで得た知識をもとにその後もいろいろ学び、結果としてこのWebサイトを運営するまでに至っている。\nということでもしこれを見ている学生がいたら、是非次年度以降の参加をお勧めしたい。\nというのはさておき、ここに参加する方々は皆さん大変豊富な知識を持っているので1、今回も学生オーガナイザーの方から有益な情報を得ることができた（僕が時代遅れなだけの可能性大）。\nそれはPythonのPolarsというライブラリで、これがbase RとTidyverseのように、Pandasの次世代版のようなものらしい。Quartoドキュメントのレンダリングがめっちゃ速いのも特徴とのこと。\n新しい物好きのミーハーな僕としては、是非とも触ってみたいと思い、今回勉強を兼ねてここで概要を見てみることにする。"
+    "objectID": "pages/software/nighttime_lights/index.html#データ",
+    "href": "pages/software/nighttime_lights/index.html#データ",
+    "title": "日本の夜間光データ（2012～2024）",
+    "section": "データ",
+    "text": "データ\n以下のリンクからGoogle Driveに飛んで、データをダウンロードできます。\nGoogle Drive：nighttime_lights_jp"
   },
   {
-    "objectID": "pages/blog/250824_polars/index.html#polarsとは",
-    "href": "pages/blog/250824_polars/index.html#polarsとは",
-    "title": "Polarsを触ってみる",
-    "section": "Polarsとは",
-    "text": "Polarsとは\nとりあえずPolarsの公式ページを覗いてみると、\n\nPolarsは、データ操作のためのオープンソースライブラリであり、単一マシン上で最速のデータ処理ソリューションの一つとして知られています。表現力豊かで使いやすい、構造化された型付きAPIを備えています。\n\nとのこと（Google翻訳済）。\nChatGPTにもPolarsについて説明してもらったところ、\n\nPolarsは、Rust製で高速かつメモリ効率の良い列指向エンジンを持ち、遅延評価や宣言的なチェーン式APIにより、大規模データを直感的かつ効率的に処理できる次世代のデータフレームライブラリです。\n\nらしい。\nこれだけ見ると速さや効率性が売りなようだが、言葉で説明されてもよくわからないので、とりあえず触ってみたい。"
+    "objectID": "pages/software/nighttime_lights/index.html#加工処理の内容",
+    "href": "pages/software/nighttime_lights/index.html#加工処理の内容",
+    "title": "日本の夜間光データ（2012～2024）",
+    "section": "加工・処理の内容",
+    "text": "加工・処理の内容\nEOG公開の年次データ（Annual VNL V2.1, V2.2）を基に、日本全域をカバーする範囲（日本の外接矩形±1度）で切り出しています。"
   },
   {
-    "objectID": "pages/blog/250824_polars/index.html#使ってみる",
-    "href": "pages/blog/250824_polars/index.html#使ってみる",
-    "title": "Polarsを触ってみる",
-    "section": "使ってみる",
-    "text": "使ってみる\nとりあえずインストールから始めよう。\npip install polars\nそしたら公式のガイドに載っているサンプルコードをちょっといじって試してみる。\n\nimport polars as pl\n\nq = (\n    pl.scan_csv(\"../../../data/iris.csv\")\n    .filter(pl.col(\"Sepal.Length\") &gt; 5)\n    .group_by(\"Species\")\n    .agg(pl.all().sum())\n)\n\ndf = q.collect()\n\nprint(df)\n\nshape: (3, 5)\n┌────────────┬──────────────┬─────────────┬──────────────┬─────────────┐\n│ Species    ┆ Sepal.Length ┆ Sepal.Width ┆ Petal.Length ┆ Petal.Width │\n│ ---        ┆ ---          ┆ ---         ┆ ---          ┆ ---         │\n│ str        ┆ f64          ┆ f64         ┆ f64          ┆ f64         │\n╞════════════╪══════════════╪═════════════╪══════════════╪═════════════╡\n│ virginica  ┆ 324.5        ┆ 146.2       ┆ 273.1        ┆ 99.6        │\n│ setosa     ┆ 116.9        ┆ 81.7        ┆ 33.2         ┆ 6.1         │\n│ versicolor ┆ 281.9        ┆ 131.8       ┆ 202.9        ┆ 63.3        │\n└────────────┴──────────────┴─────────────┴──────────────┴─────────────┘\n\n\nしっかり出力できている。\nちなみにPandas版だとこんな感じ。\n\nimport pandas as pd\n\ndf = pd.read_csv(\"../../../data/iris.csv\")\n\ndf_filtered = df[df[\"Sepal.Length\"] &gt; 5]\n\ndf_grouped = df_filtered.groupby(\"Species\").sum(numeric_only=True).reset_index()\n\nprint(df_grouped)\n\n      Species  Sepal.Length  Sepal.Width  Petal.Length  Petal.Width\n0      setosa         116.9         81.7          33.2          6.1\n1  versicolor         281.9        131.8         202.9         63.3\n2   virginica         324.5        146.2         273.1         99.6\n\n\n僕はPythonがあまり使えないのでChatGPTにPandas版に変換してもらっただけなのだが、見た感じPolarsの方はRのパイプを使った書き方と似ており、個人的には使いやすそうに感じている。\nまた、出力結果が見やすくなっているのも特徴だろうか。Rのtibbleのように感じる。\n時間もあまりないのでこの程度にしておくが、いろいろと試し甲斐がありそうなので、また時間があるときにでも触ってみたい。"
+    "objectID": "pages/software/nighttime_lights/index.html#データの仕様",
+    "href": "pages/software/nighttime_lights/index.html#データの仕様",
+    "title": "日本の夜間光データ（2012～2024）",
+    "section": "データの仕様",
+    "text": "データの仕様\n\n\n\n項目\n内容\n\n\n\n\nデータ形式\nGeoTIFF（拡張子 .tif.gz、gzip圧縮形式）\n\n\nファイル内容\n年次平均放射輝度\n\n\nデータ期間\n2012年～2024年\n\n\n単位\nnW/cm²/sr（放射輝度）\n\n\n座標参照系\nWGS84（EPSG:4326）\n\n\n解像度\n約500m（15 arc-second）\n\n\nデータ範囲\n日本全域（外接矩形＋1度）\n\n\nファイルサイズ\n約15MB（1ファイルあたり）"
   },
   {
-    "objectID": "pages/blog/250824_polars/index.html#おわりに",
-    "href": "pages/blog/250824_polars/index.html#おわりに",
-    "title": "Polarsを触ってみる",
-    "section": "おわりに",
-    "text": "おわりに\n今回はそんなものがあるということを綴っただけなので細かい点はまだよくわかっていないが、使えそうな関数も結構あるみたいなので、データハンドリングの際には是非とも使ってみたい。\nもう少し知識がたまってきたらtipsの方でも何か書いていこうと思う。"
+    "objectID": "pages/software/nighttime_lights/index.html#ライセンス",
+    "href": "pages/software/nighttime_lights/index.html#ライセンス",
+    "title": "日本の夜間光データ（2012～2024）",
+    "section": "ライセンス",
+    "text": "ライセンス\n\n\n\n項目\n内容\n\n\n\n\n出典\nEarth Observation Group (EOG), Payne Institute for Public Policy, Colorado School of Mines\n\n\n原データ\nVIIRS Nighttime Lights Annual VNL V2.1, V2.2 (2012–2024)\n\n\nライセンス\nCreative Commons Attribution 4.0 International (CC BY 4.0)\n\n\n加工・公開\n阿部 洋輔（Yosuke Abe）"
   },
   {
-    "objectID": "pages/blog/250824_polars/index.html#footnotes",
-    "href": "pages/blog/250824_polars/index.html#footnotes",
-    "title": "Polarsを触ってみる",
-    "section": "注",
-    "text": "注\n\n\nとはいえデータハンドリングの経験がない方も参加できるのでご安心を！↩︎"
-  },
-  {
-    "objectID": "pages/blog/250728_parquet/index.html#はじめに",
-    "href": "pages/blog/250728_parquet/index.html#はじめに",
-    "title": "Parquetファイルについて調べてみる",
-    "section": "はじめに",
-    "text": "はじめに\n仕事ででかいサイズのファイルを扱うことがあるので、ファイルサイズを小さくしたいという需要が僕の中にはあるのだが、その需要を満たしてくれる候補にParquetファイルがある。\nhogehoge.parquetという拡張子で、そのままparquetである。\nなんとなくファイルサイズが小さいということは知っているのだが、なぜ小さいのかはまだ分かっていないので、今回調べてみようと思う。"
-  },
-  {
-    "objectID": "pages/blog/250728_parquet/index.html#parquetファイルとは何だ",
-    "href": "pages/blog/250728_parquet/index.html#parquetファイルとは何だ",
-    "title": "Parquetファイルについて調べてみる",
-    "section": "Parquetファイルとは何だ",
-    "text": "Parquetファイルとは何だ\nChat-GPTにまとめてもらったParquetファイルの説明は以下だ。\n\nParquetファイルは、Apache Parquetというカラム指向のデータフォーマットで、主に大規模データ処理や分析で使われます。特徴は以下の通りです：\n\nカラム指向：列ごとにデータを保存するため、特定の列だけを効率的に読み込める。\n圧縮効率が高い：同じ型のデータがまとまるので圧縮しやすく、ストレージ節約になる。\nスキーマ情報を持つ：データ型や構造がファイル内に記録され、互換性を保ちやすい。\n高速なI/O：大規模データを分散処理（SparkやHadoopなど）で扱うのに適している。\n広い対応環境：Python（pandas, PyArrow）、R、Spark、BigQueryなど多くのツールで利用可能。\n\n要するに、「大規模データを効率的かつ圧縮して扱える、分析向けのカラム型データフォーマット」です。\n\nもう少し調べたので補足すると、CSVのようなファイルは行志向ファイルと呼ばれ、1行ごとにすべての列のデータがまとめて格納されているのに対し、Parquetは列（カラム）志向ファイルであり、列ごとにデータをまとめて格納しているとのこと。\nこれを実際のデータフレームの形で見てみると、以下のようになる。\n# 行志向\n(1, Yosuke, 25), (2, Yusuke, 30), (3, Kosuke, 28)\n# 列志向\nID:   [1, 2, 3]\nName: [Yosuke, Yusuke, Kosuke]\nAge:  [25, 30, 28]\nこれをテーブルで見た場合、行志向の方は各観測（それぞれの括弧）が縦に積み重なり、列志向の方は各変数（ID, Name, Age）を縦にして横に並べられる形になるのがお分かりいただけると思う。\nこれらにはもちろんそれぞれメリットがあるから両方存在しているわけなのだが、列志向データが分析に向いている点はどこなのだろうか。"
-  },
-  {
-    "objectID": "pages/blog/250728_parquet/index.html#列志向データの強み",
-    "href": "pages/blog/250728_parquet/index.html#列志向データの強み",
-    "title": "Parquetファイルについて調べてみる",
-    "section": "列志向データの強み",
-    "text": "列志向データの強み\n\n処理の効率化\nそこまで大きくないファイルではあまり実感がわかないと思うが、分析に必要なデータを抽出してくる過程で強みが発揮されるようだ。\n1億行もあるような大きいデータにおいて、売上高の合計を計算したい場合、売上高の変数を読み込めばよいわけで、列志向データであればこの列だけを読み込むことができる。\n一方の行志向データであれば、一度すべての行を読み込んでから（すなわちすべての列も必然的に読み込まれた上で）売上高の列を取得することになり、ここで非効率が生じてしまう。\nつまり、必要な列だけを高速に処理できるため、大量データの集計や分析が効率的というのが強みと言える。\n\n\nデータサイズの削減\nまた、冒頭に書いた通り、データサイズが小さいというのもメリットである。各列には同じ型のデータ（数値型、文字型等）が揃っているため、効率よく圧縮できるそうだ（ランレングス圧縮）。圧縮について説明しているページによると、\n\n例えば、文字列 AAAABBBCCDAA をランレングス圧縮すると、 4A3B2C1D2A という形式になります。\nこのように、連続する同じデータを短縮して表現することで、データのサイズを削減することができます。\n\nということで、短縮して表現できることがファイルサイズを小さくできる要因らしい。\n個人的にはむしろこっちの方が実務的にはありがたいと思っているが、そこは仕事によるといったところだろうか。"
-  },
-  {
-    "objectID": "pages/blog/250728_parquet/index.html#まとめ",
-    "href": "pages/blog/250728_parquet/index.html#まとめ",
-    "title": "Parquetファイルについて調べてみる",
-    "section": "まとめ",
-    "text": "まとめ\nParquetファイルは処理を効率化できる点、ファイルサイズを小さくできる点が特徴として挙げられる。そしてこれは、列志向データであるという特徴がポイントであることが分かった。\n色々なデータを保管していると、気づいたらストレージが少なくなってきている…ということがよくあるので、個人的には重宝している。\n今回は特徴を知ることが目的だったが、使い方についてはまたtipsの方でまとめたいと思う。その際にどれくらいファイルサイズを小さくできるのか、ファイルの中身はどうなっているのかを見ていければと思う。"
-  },
-  {
-    "objectID": "pages/blog/250728_parquet/index.html#参考",
-    "href": "pages/blog/250728_parquet/index.html#参考",
-    "title": "Parquetファイルについて調べてみる",
+    "objectID": "pages/software/nighttime_lights/index.html#参考",
+    "href": "pages/software/nighttime_lights/index.html#参考",
+    "title": "日本の夜間光データ（2012～2024）",
     "section": "参考",
-    "text": "参考\n\n\n\n\n\n\nランレングス圧縮とは？データ圧縮技術の一つとその応用"
+    "text": "参考\n以下のページでRでGeoTIFFデータを扱う方法を紹介しています。\n\n\n\n\n\n\n夜間光を可視化する"
   },
   {
-    "objectID": "pages/blog/250323_fixes/index.html#春休みの成果",
-    "href": "pages/blog/250323_fixes/index.html#春休みの成果",
-    "title": "パッケージがCRANに公開された話",
-    "section": "春休みの成果",
-    "text": "春休みの成果\n自分の修士論文だったり先輩後輩との研究だったり、昨年末あたりからDID分析をすることがまぁまぁ多かった。DID自体は比較的簡単に分析を回せるから別にいいんだけど、いかんせんイベントスタディが面倒くさかった。fixestにi()関数があることは知っていたものの、あまり使い勝手が良くないなと思っていたので、修士論文が年始に書き終わったタイミングでイベントスタディ用のパッケージを開発しようと決めた。\n他のパッケージのソースコードを何個か見たことがあったのでその複雑さは知っていたものの、幸いにも今はAIが発展してきているので、なんとかなるだろうという楽観的な気持ちで始めてみた。\n結果的になんとか書き終わったものの、その道のりは思ったよりも大変だった。"
-  },
-  {
-    "objectID": "pages/blog/250323_fixes/index.html#意外と考えることは多い",
-    "href": "pages/blog/250323_fixes/index.html#意外と考えることは多い",
-    "title": "パッケージがCRANに公開された話",
-    "section": "意外と考えることは多い",
-    "text": "意外と考えることは多い\n何が大変だったかというと、変数の扱いがある。変数をダブルクォーテーションで囲んで指定するというのは個人的に面倒だな～と思っているので、なるべく囲まなくていいようにしたかったのだが、これがまぁ難しい。いくらAIが助けてくれるとはいっても、今の段階では「とはいえAI」だと思っているので、書いてくれたのが間違っていた時がしんどい。ダブルクォーテーションで囲まなくてよくするのがこんなに大変なのかと、これまでのパッケージの開発者の方々には尊敬の念を抱くばかりだ。\n次は条件分岐。もし存在しない変数が入力されたり、値が存在する範囲をはみ出していたりすると警告やエラーメッセージを出さなくてはならない。今も完璧ではないかもしれないが、ある程度は対処できているとは思う。しかし、自分の想像しない入力があったりすると、対応できていないことがあるかもしれない。今後もこうしたことが見つかってくると思うと、メンテナンスの意義をひしひしと感じる。"
-  },
-  {
-    "objectID": "pages/blog/250323_fixes/index.html#関数ができてからも長い",
-    "href": "pages/blog/250323_fixes/index.html#関数ができてからも長い",
-    "title": "パッケージがCRANに公開された話",
-    "section": "関数ができてからも長い",
-    "text": "関数ができてからも長い\n関数ができたまではいいものの、結構提出するまでが長かったりする。パッケージをビルドしてドキュメントを作成し、タイポをチェックしたりと、やることは多い。コード例やテストコードを書いたりしなくてもならない。RStudio上でコマンドが用意されているものの…という感じではある。\nこのあたり忘れそうだから、またtipsでまとめたいな。"
-  },
-  {
-    "objectID": "pages/blog/250323_fixes/index.html#けどcranに公開できたのは大きい",
-    "href": "pages/blog/250323_fixes/index.html#けどcranに公開できたのは大きい",
-    "title": "パッケージがCRANに公開された話",
-    "section": "けどCRANに公開できたのは大きい",
-    "text": "けどCRANに公開できたのは大きい\nしばらくはCRANに公開するつもりもなかったのでGitHub上で公開しているだけだったのだが、どうせならinstall.packages()でインストールできるようにしたいし、なんか実績っぽくていいかなという思いもあったので、やっぱり公開することにした。\n新しくNEWS.mdを書かなきゃいけなかったりいくつかステップは必要だったものの、提出自体はそこまで大変ではなかった。しかし、Windows, Mac, Linuxでしっかり動くことだったり、ドキュメントの中身が精査されたりと、ハードルはGitHubで公開するよりも厳しい。実際提出した後に一回送り返された。\nけど幸いにも送り返されたのは一回だけで、二回目の提出で承認された。あまりにもぬるっと掲載されていたのでしばらく気づかなかったのだが、これで春休みの頑張りが一つ結果になった気がしてちょっとうれしかった。\nというわけで、掲載されたページは以下。\nhttps://cran.r-project.org/web/packages/fixes/index.html\ninstall.packages(\"fixes\")\nでインストールできるようにもなっている。"
-  },
-  {
-    "objectID": "pages/blog/250323_fixes/index.html#これからも何か作るかも",
-    "href": "pages/blog/250323_fixes/index.html#これからも何か作るかも",
-    "title": "パッケージがCRANに公開された話",
-    "section": "これからも何か作るかも",
-    "text": "これからも何か作るかも\nとりあえず流れを知ることができたのは大きい。今後も仕事でRを使っていくことが多いと思うので、引き続きなにか効率化できそうなものがあったらパッケージ化していけたらいいなと思う。"
-  },
-  {
-    "objectID": "pages/blog/241112_copilot_gpt/index.html#github-copilotにgpt-4oがやってきた",
-    "href": "pages/blog/241112_copilot_gpt/index.html#github-copilotにgpt-4oがやってきた",
-    "title": "【念願】GitHub CopilotにGPT 4oが搭載",
-    "section": "GitHub CopilotにGPT 4oがやってきた",
-    "text": "GitHub CopilotにGPT 4oがやってきた\nもう多分１か月は前のことだと思うが、GitHub CopilotでGPT 4oが使えるようになり、そのウェイトリストに登録できますという旨のニュースを見かけた。\nついにやってきたかーという思いで早速登録ページに行き、登録したわけだが、どうやらそんなすぐに使えるようになるわけでもないらしく、しばらく待機とのこと…。\nしかし、まだかなーとボケーっとしていたとある日、VSCodeのGitHub Copilot拡張機能にアップデートが入り、仕様も大きく変わったことに気が付いた。\nおや？と思いCopilot Chatを見てみるとなんと！\n\n\n\n右下にありますね。チャット自体はページ上部の真ん中右にあるアイコンから開けます。\n\n\nGPT 4oが選択できるようになっている。\nもちろんコーディング支援の精度や反応速度は向上するだろう。頼もしい限りだ。ブラウザでChat GPTを開かなくてもいいというのは大きい。\nまだ使い込めてはいないので何とも言えないところだが、Copilotの今後のさらなる成長に期待したい！\nGitHub Copilotをまだお使いでない方、学生なら無料で使えるので、少し手間だが以下の記事も参照に申請してみることをお勧めします！\n\n\n\n\n\n\n【学生は申し込め】GitHub Copilotを申請しよう"
-  },
-  {
-    "objectID": "pages/blog/241112_copilot_gpt/index.html#おまけ",
-    "href": "pages/blog/241112_copilot_gpt/index.html#おまけ",
-    "title": "【念願】GitHub CopilotにGPT 4oが搭載",
-    "section": "おまけ",
-    "text": "おまけ\nところで、CopilotをRStudioで使えるようにする（と言ってもローカルのRStudioの場合はすぐできるけれども）tipsを近々公開しようと思うので、RStudio Serverをお使いの方は、また見てみてください。"
-  },
-  {
-    "objectID": "pages/blog/241112_copilot_gpt/index.html#追記",
-    "href": "pages/blog/241112_copilot_gpt/index.html#追記",
-    "title": "【念願】GitHub CopilotにGPT 4oが搭載",
-    "section": "追記",
-    "text": "追記\nTipsすぐ書けたので、記事を追加しました。以下をご覧ください。\n\n\n\n\n\n\nRStudio (Server)でGitHub Copilotを使う"
-  },
-  {
-    "objectID": "pages/blog/240824_dvc/index.html#データはdvcで管理しているのだが",
-    "href": "pages/blog/240824_dvc/index.html#データはdvcで管理しているのだが",
-    "title": "DVCが使えない…？",
-    "section": "データはDVCで管理しているのだが…。",
-    "text": "データはDVCで管理しているのだが…。\nなんかDVCが使えなくなった。\ndvc pushやdvc pullをしようとするとはじめは認証が必要になると思うのだが、認証しようとするとこんなものが出る。\n\n\n\n\n\nえー、という感じ。\nDVCの公式を覗いてみたら、やっぱりこれは問題らしい。\n\n\n\n\n\n\n\nDVC公式ドキュメント\n\n\nちょっと読んでみると、Google Cloudプロジェクトを使えば何とかなるような感じがする。\nしばらくして治らなかったら、このやり方もまとめるとしようかなー。"
-  },
-  {
-    "objectID": "pages/blog/240824_dvc/index.html#結論",
-    "href": "pages/blog/240824_dvc/index.html#結論",
-    "title": "DVCが使えない…？",
-    "section": "結論",
-    "text": "結論\nこれまでのが楽でよかった。"
-  },
-  {
-    "objectID": "pages/blog/240723_typst/demo/demo.html",
-    "href": "pages/blog/240723_typst/demo/demo.html",
-    "title": "Typst demo",
+    "objectID": "pages/research/notsu_et_al_2025.html",
+    "href": "pages/research/notsu_et_al_2025.html",
+    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
     "section": "",
-    "text": "Keywords: Keyword 1, Keyword 2, Keyword 3…"
+    "text": "Most studies have focused on the economic consequences of disaster shocks, but the broader impact on areas outside the disaster remains unclear. Using the shock of the Great East Japan Earthquake and cross-municipality variation in the locations of nuclear power plants unrelated to the earthquake, this paper shows the indirect impact of disasters on population dynamics. The earthquake triggered nuclear power plant accidents, which heightened residents’ risk perceptions of the plants. We find that population inflows to and outflows from municipalities with nuclear power plants decreased after the earthquake. The effects could also be driven by the residents’ risk perceptions and falling land prices. Our findings suggest that policymakers and researchers need to consider the broader extent of disaster effects more carefully.\nURL: https://www.tandfonline.com/doi/full/10.1080/13504851.2025.2493771"
   },
   {
-    "objectID": "pages/blog/240723_typst/demo/demo.html#subsection",
-    "href": "pages/blog/240723_typst/demo/demo.html#subsection",
-    "title": "Typst demo",
-    "section": "Subsection",
-    "text": "Subsection\nYou can also write mathematical expressions like Equation 1.\n\\[\nY_{it} = \\delta D_{it} + u_i + \\varepsilon_{it}, \\quad t = 1, 2, \\ldots, T\n\\tag{1}\\]"
-  },
-  {
-    "objectID": "pages/about.html",
-    "href": "pages/about.html",
-    "title": "阿部洋輔",
+    "objectID": "pages/research/notsu_et_al_2025.html#abstract",
+    "href": "pages/research/notsu_et_al_2025.html#abstract",
+    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
     "section": "",
-    "text": "X (Twitter)\n  \n  \n      Bluesky\n  \n  \n    \n     GitHub\n  \n\n  \n  \n\n\n\n福島県出身（福島市）\n学士（経済学）\n修士（国際公共政策）\n仕事：民間シンクタンク研究員\n\n\n\n\n\n (Base, Tidyverse)\n Quarto Markdown\n\\(\\LaTeX\\)\n Python （勉強中）"
+    "text": "Most studies have focused on the economic consequences of disaster shocks, but the broader impact on areas outside the disaster remains unclear. Using the shock of the Great East Japan Earthquake and cross-municipality variation in the locations of nuclear power plants unrelated to the earthquake, this paper shows the indirect impact of disasters on population dynamics. The earthquake triggered nuclear power plant accidents, which heightened residents’ risk perceptions of the plants. We find that population inflows to and outflows from municipalities with nuclear power plants decreased after the earthquake. The effects could also be driven by the residents’ risk perceptions and falling land prices. Our findings suggest that policymakers and researchers need to consider the broader extent of disaster effects more carefully.\nURL: https://www.tandfonline.com/doi/full/10.1080/13504851.2025.2493771"
   },
   {
-    "objectID": "pages/about.html#ざっくり",
-    "href": "pages/about.html#ざっくり",
-    "title": "阿部洋輔",
-    "section": "",
-    "text": "福島県出身（福島市）\n学士（経済学）\n修士（国際公共政策）\n仕事：民間シンクタンク研究員"
+    "objectID": "pages/research/notsu_et_al_2025.html#bibtex",
+    "href": "pages/research/notsu_et_al_2025.html#bibtex",
+    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
+    "section": "BibTeX",
+    "text": "BibTeX\n@article{notsu_indirect_2025,\n    author = {Notsu, Naruki and Abe, Yosuke and Harada, Shuko},\n    title = {The indirect effects of nuclear power plant accidents on population dynamics},\n    journal = {Applied Economics Letters},\n    volume = {0},\n    number = {0},\n    pages = {1--6},\n    year = {2025},\n    publisher = {Routledge},\n    doi = {10.1080/13504851.2025.2493771},\n\n    URL = {https://doi.org/10.1080/13504851.2025.2493771},\n    eprint = {https://doi.org/10.1080/13504851.2025.2493771}\n}"
   },
   {
-    "objectID": "pages/about.html#スキル",
-    "href": "pages/about.html#スキル",
-    "title": "阿部洋輔",
-    "section": "",
-    "text": "(Base, Tidyverse)\n Quarto Markdown\n\\(\\LaTeX\\)\n Python （勉強中）"
-  },
-  {
-    "objectID": "pages/about.html#research",
-    "href": "pages/about.html#research",
-    "title": "阿部洋輔",
-    "section": "Research",
-    "text": "Research\n\n\n  \n  \n    \n      \n        Notsu, Abe, and Harada (2025) \"The Indirect Effects of Nuclear Power Plant Accidents on Population Dynamics\" Applied Economics Letters,\n        \n          https://doi.org/10.1080/13504851.2025.2493771\n        \n      \n      \n      \n        \n           Abstract\n        \n      \n      \n    \n  \n  \n\n一致なし"
-  },
-  {
-    "objectID": "index.html#highlights",
-    "href": "index.html#highlights",
-    "title": "Yosuke Abe",
-    "section": "🌟 Highlights",
-    "text": "🌟 Highlights\n🗓 2025/10/14\nSoftwareにデータセクションを追加しました！\n📌 第1弾として日本の夜間光データ（GeoTIFF形式）を追加しました！\n🗓 2025/09/28\nggplot2使い方ガイドをアップデートしました！（→ Tipsへ）\n📌 バージョン4.0.0に対応しています！\n🗓 2025/09/01\nPositronのおすすめ設定についての記事を追加しました！\n📌 新しい環境に移行して、Positronを盛り上げましょう！\n🗓 2025/07/21\nShinyアプリケーション「人口ヒートマップ」をアップデートしました！（→ Softwareへ）\n📌 サーバーを変更しました！\n🗓 2025/04/17\nNotsu, Abe, and Harada (2025)がApplied Economics Lettersに掲載されました！\n📌 Abstractはこちら\n🗓 2025/02/16\n「政令指定都市・中核市の整理」ページをアップデート（→ Tipsへ）\n📌 行政区を市単位で集計できるコードを追加しました。"
-  },
-  {
-    "objectID": "index.html#latest-posts",
-    "href": "index.html#latest-posts",
-    "title": "Yosuke Abe",
-    "section": "📜 Latest Posts",
-    "text": "📜 Latest Posts\n\n\n\n\n\n\n\n\n\n\n開発コンテナの環境について\n\n\nVSCodeの開発コンテナを用いたRの開発環境についての一案です。\n\n\n\n\n\n2025/10/11\n\n\n\n\n\n\n\n\n\n\n\n\n【R】仮想環境を設定する【Python】\n\n\nrenvとvenvを使います！\n\n\n\n\n\n2025/09/26\n\n\n\n\n\n\n\n\n\n\n\n\nDuckDBをRで使う\n\n\nR上でデータベース操作を行うために、DuckDBを利用する方法についてまとめます。\n\n\n\n\n\n2025/09/19\n\n\n\n\n\n\n\n\n\n\n\n\nバージョンアップしたggplot2を試す\n\n\nggplot2がバージョンアップしたので、新しい要素を試してみた\n\n\n\n\n\n2025/09/15\n\n\n\n\n\n\n\n\n\n\n\n\nPositronのおすすめ設定！【R | Python】\n\n\nRStudioからの移行もスムーズに進めましょう。\n\n\n\n\n\n2025/09/01\n\n\n\n\n\n一致なし"
-  },
-  {
-    "objectID": "pages/blog/240708_positron/index.html#positron",
-    "href": "pages/blog/240708_positron/index.html#positron",
-    "title": "Positron は何者？",
-    "section": "Positron…?",
-    "text": "Positron…?\n先日後輩に教えられて「Positron」なるものの存在を知りました。\nどうやら RStudio に次ぐ IDE（統合開発環境）のようで、R には RStudio しか勝たんだろうと思っていた僕としては少し驚きました。\nというのも、VSCode での R 操作も試していたことがあり、その際に不便を感じることが多かったからです。特にキーボードショートカットで、は万能な VSCode であるがゆえに他の言語や機能と干渉してしまい、設定も面倒でした。その後は開発コンテナを使用している場合も RStudio Server を使用してきました。\nしかし今度は RStudio を提供する Posit 社が直々に新たな IDE を提供してきたと聞いて、大変興味を惹かれさっそくインストールすることにしました。\nとりあえず、R と Python のどちらとも親和性が高いことが売りみたいです！"
-  },
-  {
-    "objectID": "pages/blog/240708_positron/index.html#インストール",
-    "href": "pages/blog/240708_positron/index.html#インストール",
-    "title": "Positron は何者？",
-    "section": "インストール！",
-    "text": "インストール！\nまだ正式リリースはされていないようです。\nGitHub からリリースページに飛んでインストールをしてみます。ここからインストールできます。\nインストールに難しいことはなく、サクサクと進みました。"
-  },
-  {
-    "objectID": "pages/blog/240708_positron/index.html#開いてみる",
-    "href": "pages/blog/240708_positron/index.html#開いてみる",
-    "title": "Positron は何者？",
-    "section": "開いてみる",
-    "text": "開いてみる\n画面はこんな感じです。\n\nこれを開くまで知らなかったのですが、これは VSCode をフォークして作られているっぽいですね。\nVSCode での R に挫折した僕としては、少し不穏なスタートです😅"
-  },
-  {
-    "objectID": "pages/blog/240708_positron/index.html#コードを実行してみる",
-    "href": "pages/blog/240708_positron/index.html#コードを実行してみる",
-    "title": "Positron は何者？",
-    "section": "コードを実行してみる",
-    "text": "コードを実行してみる\n試しに ggplot2::ggplot() を使ってプロットしてみることにします。\n\nうーん、現段階では課題が多そうですね。プレリリース版なので仕方なしです。\n\nショートカットが違う\n\nVSCode ベースの時点でなんとなく察していましたが、いろいろと違います。設定の必要あり。\n例えばチャンクの挿入は RStudio では Ctrl + Alt + I でしたが、Positron では Alt ではなく Shift。\nパイプも Ctrl + Shift + M では入れられない。など…。\n\nインライン出力未対応\n\nRStudio ではコードの下に実行結果が出ていましたが、Positron では対応していないようです。\n後で触れますが、今後対応していくみたい。\n\nggplot() で日本語を使うと文字化けする\n\nRStudio では文字化けしないので、今後修正されるのかな？\n\n\n\n\n\nRStudio"
-  },
-  {
-    "objectID": "pages/blog/240708_positron/index.html#レンダリングしてみる",
-    "href": "pages/blog/240708_positron/index.html#レンダリングしてみる",
-    "title": "Positron は何者？",
-    "section": "レンダリングしてみる",
-    "text": "レンダリングしてみる\nではレンダリング（R Markdown で言うところの Knit）してみます。\n\nあれ、なんか普通に日本語出力できてますね…笑\n\nでも PDF だといつも通り文字化けします。ここは YAML ヘッダーの設定で対応できそうです。"
-  },
-  {
-    "objectID": "pages/blog/240708_positron/index.html#感想",
-    "href": "pages/blog/240708_positron/index.html#感想",
-    "title": "Positron は何者？",
-    "section": "感想",
-    "text": "感想\n\n今後の期待が高まる\n現時点では VSCode の時の不便さを解消しきれておらず、まだ乗り換えられないなというのが正直なところです。\nしかし、他ではコンソールで予測変換が使えるようになってて、それが結構いい感じです。install.packages() と書く時間が短縮できます(^^)（他にもっとないのか()）\n次の課題を乗り越えてきたら、僕は Positron に移行するかもしれません。\n\nインライン出力\n\n実行結果がコードの下に出てほしいです。\n\n拡張機能の充実\n\n現時点では主要な拡張機能が使えません。Microsoft が提供する拡張機能は純正 VSCode でしか使えないようです。\n\nリモート開発機能への対応\n\nTips でも紹介している通り、開発コンテナを使用した環境構築をしているので、ここへの対応は必須です。\n\n\nちなみに、Posit 公式が言っているように、現在は多くの課題を抱えていて、データサイエンティストにとってすぐに最適なものになるとは考えていないようです。\nまた、今後のビジョンも示されており、上に挙げたような課題も克服されると思います。\nこれからのアップデートに期待しましょう！"
-  },
-  {
-    "objectID": "pages/blog/240723_typst/index.html#typst",
-    "href": "pages/blog/240723_typst/index.html#typst",
-    "title": "もはや TinyTeX も要らないのか…？",
-    "section": "Typst…？",
-    "text": "Typst…？\nこれまで PDF 出力は Quarto × TinyTeX でやってきたけど、たまたま Typst なるものを見つけた。\n疲れたら Quarto 公式ドキュメントを読んでいるのだけど、PDF 出力 = \\(\\LaTeX\\) との先入観があったので、Typst に気が付かなかったのだ。\nどうやら \\(\\LaTeX\\) 出力よりは速いらしい。早速使ってみる。"
-  },
-  {
-    "objectID": "pages/blog/240723_typst/index.html#確かに早いし楽",
-    "href": "pages/blog/240723_typst/index.html#確かに早いし楽",
-    "title": "もはや TinyTeX も要らないのか…？",
-    "section": "確かに早いし、楽。",
-    "text": "確かに早いし、楽。\nとりあえず、以下のようにして書き始めてみる。\nYAML ヘッダーに keywords の項目あるのにPDFには出力できないのはなぜなんだろうか…。公式見ると HTML とかではいけそうなんだけどね。\n---\ntitle: Typst demo\nauthor: \n  - name: Yosuke Abe\n    affiliation: OSIPP\nabstract: |\n  Here is an abstract.\ndate: today\ndate-format: long\nlang: en\nformat: \n  typst: \n    keep-typ: true\n---\nそんで出力できたのがこちら\n結構いい感じですねー。そんなに \\(\\LaTeX\\) と比べても遜色ない。\nこれはもう少し丁寧にまとめて Tips に追加したい。\nそれでは。"
-  },
-  {
-    "objectID": "pages/blog/240918_github_copilot/index.html#copilotは強い",
-    "href": "pages/blog/240918_github_copilot/index.html#copilotは強い",
-    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
-    "section": "Copilotは強い",
-    "text": "Copilotは強い\n最近はAIの時代といっても過言じゃないほどスマホにもパソコンにもAIが搭載されるのが普通になっている。\n僕はM1の頃にGitHub Copilotの存在を知り、それを使い続けているのだが、結構すごくて役に立つ。特にVSCodeで作業するときに重宝している（RStudioでも使えるのだが、RStudioの良さが消えてしまうのであまり使っていない。）\n本来GitHub Copilotは有料だが、学生は無料で使えるため全大学院生が申請して損はないと思う。今回は申請方法をまとめてくれている記事の紹介とどんな感じで使えるのかを紹介したい。"
-  },
-  {
-    "objectID": "pages/blog/240918_github_copilot/index.html#申請方法",
-    "href": "pages/blog/240918_github_copilot/index.html#申請方法",
-    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
-    "section": "申請方法",
-    "text": "申請方法\n申請方法については、以下の記事がわかりやすくまとめてくれている。\n\n\n\n\n\n\n【GitHub】学生申請をして無料でGitHub Copilotを使う\n\n\n\n特に難しいところはない。学生証を英語にして書き直すところが面倒なくらいかと。\n後半に書いてあるように、VSCodeでGitHub Copilotの拡張機能を入れ、GitHubでログインすればVSCode上で使うことができる。"
-  },
-  {
-    "objectID": "pages/blog/240918_github_copilot/index.html#使い方のイメージ",
-    "href": "pages/blog/240918_github_copilot/index.html#使い方のイメージ",
-    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
-    "section": "使い方のイメージ",
-    "text": "使い方のイメージ\nVSCodeで空ファイルを作ると、以下のように出てくる。\n\n\n\n「何らかの操作を依頼」することができるようだ。\n\n\n早速Ctrl + Iを押して依頼してみる。\n\n\n\n\n\nこんな感じで依頼してみると、\n\n\n\n\n\nこんな感じで書いてくれた。「同意する」を押すと、コードが入力される。\nもっと丁寧に指示すれば、細かいコードも書いてくれる。\nまた、ChatGPTのように、チャット形式で依頼することも可能。GitHub Copilot Chatの拡張機能を入れると、左側のバーにチャットのアイコンが出てくるので、そこをクリック。\nチャットで聞くと、回答を出してくれる。\n\n\n\n\n\nいい感じに出してくれた。出してくれたコードにカーソルを合わせると星マークのようなものが出てくるが、それは「エディターで適用します」であり、クリックすれば書いていた文書にそのコードを適用してくれる。\nさらに、Copilotは書いている文章の候補も自動で提示してくれる。\n先ほどのコードの「はじめに」の部分を少しいじってみると、\n\n\n\n\n\n初めまして、と打ったら続けてグレーの文字で続きを提示してくれている。\nTabキーで一括採用できるし、Ctrl + →で一部採用もできる。文章によっては、超絶長い提示もしてくれることがあって、すげえな…と思うこともある。\n全然そういうことじゃないんだけどなーということもあれば、的を射た提示をしてくれることもある。場合にはよるが、結構頼りになる。"
-  },
-  {
-    "objectID": "pages/blog/240918_github_copilot/index.html#まとめ",
-    "href": "pages/blog/240918_github_copilot/index.html#まとめ",
-    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
-    "section": "まとめ",
-    "text": "まとめ\n入れておいて損はなかったなと、1年使ってみて思う。\nもちろん文章だけでなくRやPython、LaTeXなどなどにも使えるし、むしろそっちが本業だと思う。\nぜひ紹介したサイトを参考にしながら、申請してみてほしい。"
-  },
-  {
-    "objectID": "pages/blog/241125_cite_drive/index.html#はじめに",
-    "href": "pages/blog/241125_cite_drive/index.html#はじめに",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#はじめに",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#はじめに",
+    "title": "夜間光を可視化する",
     "section": "はじめに",
-    "text": "はじめに\n文献管理には何を使っていますか？\nZoteroやEndnote、Paperpileなど様々なツールがあると思いますが、最近CiteDriveなるものをR Markdown公式がツイートしていました。\n\n\n📚 Tired of juggling citations? Meet (CiteDrive?)—your ultimate solution for seamless citation and reference management with #RStudio, #RMarkdown, and #QuartoPub. Simplify your workflow today! 🚀 Learn more: https://t.co/tEQyezjwEa#RStats #DataScience #QuartoPub #BibTeX #LaTeX…\n\n— R Markdown ((rmarkdown?)) November 25, 2024\n\n\nどうやらOverleaf, R Markdown, Quartoに適した文献管理ツールのようで、Quartoユーザーの僕にとってはいい選択肢になるのでは？と思いました。\nとは言っても修士論文の文献管理はZoteroで行っており、それをいまさら変えるつもりはなかったので、とりあえずプレゼンスライド用にQuarto \\(\\times\\) CiteDriveで使ってみました。\n結果として、簡単で使いやすく、文献管理ツールを使ったことがない方でも大きな抵抗感なく使えると思い、今回まとめることにしました。"
+    "text": "はじめに\n今回は夜間光について扱います。\n夜間光とは、人工衛星から夜間に撮影された地上の光のデータのことを指し、夜間光の強さやパターンは、都市の発展、産業の活況、電力消費量などを反映していると考えられています。\n例えば Martínez (2022) では、独裁的な政府ではGDP成長率が過大申告されているという仮説をもとに、夜間光は政府が制御できないという客観性を用いて仮説検証を行っています。結果として独裁国家では、同じ夜間光の伸びに対して報告されるGDP成長率が過大になっていることを明らかにしています。\nこのように夜間光は近年の研究で度々用いられており、その客観性が有用な指標になっているわけですが、今回はどのようにこの夜間光データを扱えばよいのか、説明していきます。"
   },
   {
-    "objectID": "pages/blog/241125_cite_drive/index.html#citedriveの準備",
-    "href": "pages/blog/241125_cite_drive/index.html#citedriveの準備",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
-    "section": "CiteDriveの準備",
-    "text": "CiteDriveの準備\nCiteDriveのいいなと思った点に、アプリをインストールしなくてよいということが挙げられ、そのためブラウザ上ですべてが完結します。\nまずはCiteDriveにアクセスします。すると右上にSign upがあると思うので、そこからユーザー登録します。\nホーム画面へ行くので、New Projectより任意のプロジェクト名を入力し、Create New Projectを選択します。\n\n\n\n\n\n次に拡張機能をインストールします1。\nchrome ウェブストアやFirefox Browser ADD-ONSからCiteDriveと検索して出てきたものをインストールします。どちらも1番上に出てくることを確認したので、特に問題ないと思います。\n\n\n\nchromeウェブストアの場合\n\n\nちなみに上のツールバーにピン止めしておくと使いやすくお勧めです。\n\nユーザー登録\n拡張機能のインストール\n\nこれで準備は完了です。"
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#使用するデータ",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#使用するデータ",
+    "title": "夜間光を可視化する",
+    "section": "使用するデータ",
+    "text": "使用するデータ\n夜間光は、NASAのSuomi NPPに搭載されたVisible/Infrared Imager and Radiometer Suite (VIIRS)という地球観測用のセンサーによって観測され、こちらのページからダウンロードできます。\n今回使用するのはAnnual VNL V2という年単位のデータで、この中の、雲などのノイズを除去しつつ年間の夜間光の平均を反映したものを使っていきます。\nAnnual VNL V2のセクションから「Go to Download V2.2」をクリックし、ダウンロードページに飛びます。\n\n\n\nV2.2には2022年から2024年のデータがあります\n\n\n任意の年（今回は2024年とします）のフォルダをクリックすると、.gzファイル（gzipファイル）がいくつかあります。目的にもよりますが、今回は平均のデータを使うので、~average.dat.tif.gzというファイルをクリックしたダウンロードします。おそらく1番上に表示されていると思います。\nダウンロードに際してアカウント登録が必要です。ダウンロードしたいファイルをクリックすると登録を求められると思うので表示された内容に従って登録してください。\n右にファイルサイズが表示されていますが、10GB近いファイルですので、ダウンロードには30分近く要します。ダウンロードできたら、通常のzipファイル同様に展開してください。"
   },
   {
-    "objectID": "pages/blog/241125_cite_drive/index.html#文献を追加する",
-    "href": "pages/blog/241125_cite_drive/index.html#文献を追加する",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
-    "section": "文献を追加する",
-    "text": "文献を追加する\n引用したい2論文のページに行きます。今回は Bassetto et al. (2024) を例に紹介します。\n追加の方法は2種類あります。\n\n拡張機能を使って追加する\n.bibファイルを使って追加する\n\n\n拡張機能を利用\nまず1つ目です。\n論文のページに行き、ツールバーの拡張機能ボタン、もしくは右下に出ているCiteDriveボタンをクリックします。\n\n\n\n右下にもボタンが出ています\n\n\nすると、次のような画面に進みます。\n\n\n\n一部おかしくなっています\n\n\nこのように出てきて、問題がなければ右上のSaveをクリックし、保存します。\nしかし、冒頭にも書いたようにまだ完璧ではないツールなので、たまにおかしくなることがあり、今回も文字化けのような現象が起きています。\nこのような場合は手で修正するのが早いでしょう。名前とページの部分で修正が必要なので、まず名前は「Marco Bassetto & Zhen Huo & José-Víctor Ríos-Rull」とFirst name Last name & …となるように&でつないでいきます。ページは-（ハイフン）が文字化けしているので、ハイフンに直します。「3427–68」といった具合です。\nどうしてもページ情報を読み取っているので、その過程でおかしくなってしまうみたいですね。\nできたら右上のSaveで保存します。\n\n\n.bibファイルを利用\n次に2つ目の手順です。\n論文のページでは、citationをexportできるようになっています。一般的にはRISやBibTeXを使うことが多いと思いますが、ここではBibTeXを使用します。例えばAEAのページでは、論文ページの下の方へ行くと、Citationというところがあり、そこから.bibファイルをダウンロードできます。\n\n\n\nBibTeXを選択します\n\n\n選択ボックスからBibTeXを選択し、「Download as .bib」をクリックし、ダウンロードします。\n次にCiteDriveの任意のプロジェクトから、「Add」\\(\\rightarrow\\)「Upload BibTeX / RIS files」を選択し、「参照…」から、今ダウンロードした.bibファイルをアップロードします。\n.bibファイルは必要な情報を正確に含んでいる（はず）なので、画面の情報から作成する1の手順より正確です。"
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#tiffファイルについて",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#tiffファイルについて",
+    "title": "夜間光を可視化する",
+    "section": "TIFFファイルについて",
+    "text": "TIFFファイルについて\nダウンロードしたファイルは、.tif形式になっています。これはTIFFファイルと言って、Tagged Image File Formatの略です。TIFFファイルは画像ファイルの一種で、写真や図面、スキャン画像などを高画質・非圧縮または可逆圧縮で保存できる形式です。\n特に今回用いるファイルはGeoTIFFと言い、TIFFフォーマットに位置情報（地理情報）を埋め込んだ拡張版です。そのため、シェープファイル等とあわせて特定の場所におけるデータを編集したり分析したりすることができます。"
   },
   {
-    "objectID": "pages/blog/241125_cite_drive/index.html#限界に気づく",
-    "href": "pages/blog/241125_cite_drive/index.html#限界に気づく",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
-    "section": "限界に気づく",
-    "text": "限界に気づく\n…とここまで書いて、CiteDriveの限界に気が付いた。\n.bibファイルを読み込んでも、それを正確に認識してくれないのだ。特に著者が複数人いる場合。\n.bibファイルの書かれ方は結構いろいろあり、「Last name, First name and …」みたいな書き方もあれば「First name Last name, …」みたいな書き方もある。しかし、CiteDriveはこれに対する認識力が欠如しており、「First name Last name & …」という書き方しか認識してくれないようだ（阿部調べ）。\nこれではせっかく正確な情報を写すために.bibファイルをダウンロードしてきているのに、手直しが必要なのでは元も子もない。\nここは今後改善されていくのだろうが、現段階ではあまりに不便すぎる。Zotero等は自動で認識して整理してくれるので大変ありがたい。\nしかしこれではZoteroでいい！となってしまう（実際なりそうなのだが）ので、引用が非常に便利という利点（これは本当にそう）を伝えるべく、この点には目をつむって書き進めていこうと思う。"
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#ラスタデータについて",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#ラスタデータについて",
+    "title": "夜間光を可視化する",
+    "section": "ラスタデータについて",
+    "text": "ラスタデータについて\nこのTIFF形式のデータは、ラスタデータの一種です。ラスタデータとは、格子状のセル（ピクセル）で構成されるもので、各セルに値を持つグリッドデータです。例えばExcelでシート上に地図を書いて、土地に該当するセルにデータを入れていったようなイメージです。ピクセルの大きさによってデータの大きさも異なり、もちろん細かいピクセルにしたデータの方が大きくなります。\nちなみに、これまで扱ってきたシェープファイルやGeoJSON、Geopackageなどの点や線、ポリゴンなどの幾何学的な形で空間情報を表現するデータをベクタデータと言います。こちらは行政区域データのような境界線を表したり、線路などの線、駅などのポイントデータが該当します。"
   },
   {
-    "objectID": "pages/blog/241125_cite_drive/index.html#citedrive内を整理",
-    "href": "pages/blog/241125_cite_drive/index.html#citedrive内を整理",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
-    "section": "CiteDrive内を整理",
-    "text": "CiteDrive内を整理\n追加した文献は、プロジェクトに自動追加されるのではなく、ホームのリストにプールされます。そのため、使いたいプロジェクトに振り分けてやる必要があります。\n\n\n\n「mywebsite」というフォルダに入れています\n\n\n文献をプロジェクトに入れることができたら、左側のリストから使いたいプロジェクトを選択します。すると、画面右上に「.bib」というボタンがあるのでそこをクリックし、出てきたURLをコピーしておきます。\n続いてRStudioに移ります。"
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#rで読み込み可視化する",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#rで読み込み可視化する",
+    "title": "夜間光を可視化する",
+    "section": "Rで読み込み可視化する",
+    "text": "Rで読み込み可視化する\nダウンロードしたファイルを読み込みます。\n必要となるパッケージは以下の通りです。\n\n# 未インストールの場合\n# pak::pak(\"terra\")\n\nlibrary(terra)\n\n10GBもあるファイルですが、シェープファイル等と違って読み込み自体は素早くできます。terraパッケージのrast()関数で読み込んでいきます（ファイル名はオリジナルから変更しています）。ファイルまでのパスは各々変更してください。\nntl_24 &lt;- rast(here::here(\"data/nighttime_lights/nighttime_lights_2024.tif\"))\nTIFFファイルをプロットするには、terraパッケージのplot()関数を用います。ここでplot()はベースRの関数としても備わっているため、その関数と区別するためにterra::plot()と明示して使用します。\nterra::plot(ntl_24)\n\n\n\nほぼ認識できません\n\n\nご覧の通り、ほぼ紫になってしまっており、このままではどこがどこなのかさっぱり認識できません。これは外れ値ともいえるような極端に明るいところが点在しているため、その他の光量がほぼ0のようになってしまっていることが原因です。\nここで、右の凡例が光量の値を示しているのですが、この値を600などの大きい値ではなく、0から10のような狭い範囲でプロットしてみましょう。range引数で指定することができます。\nterra::plot(ntl_24, range = c(0, 10))\n\n\n\nだいぶ見やすくなりました\n\n\n今度はどうでしょうか。10以上のところは白飛びしていますが、それでもスケール調整によって見やすくなったと思いますし、地図が浮かび上がってきました。こういうことはプロットの際にはよくあるので、うまくスケール調整をしながらプロットしてみてください。"
   },
   {
-    "objectID": "pages/blog/241125_cite_drive/index.html#quarto内で引用",
-    "href": "pages/blog/241125_cite_drive/index.html#quarto内で引用",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
-    "section": "Quarto内で引用",
-    "text": "Quarto内で引用\nRStudioで新しいQuartoファイルもしくはR Markdownファイルを開きます。\n---で囲まれたYAMLヘッダーと呼ばれる部分がありますが、ここにbibliography: \"コピーしたURL\"という感じで追加します。\n\n\n\nダブルクォーテーションで囲むのをお忘れなく\n\n\n長ったらしいですが、これでOKです。\n次にCiteDriveに戻り、プロジェクト内で引用したい論文にチェックを入れ、上の引用符をクリックします。\n\n\n\n\n\nこれで引用するためのコードがコピーされました。\nRStudioに戻り、任意の場所にペーストすると、[@bassetto_institution_2024]のように出てきますので、このままRenderすれば、(Bassetto et al. 2024) のように出力されます。Bassetto et al. (2024) のようにしたければ、四角括弧を外す必要がありますので、用途に応じて変えてみてください。"
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#日本を切り出す",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#日本を切り出す",
+    "title": "夜間光を可視化する",
+    "section": "日本を切り出す",
+    "text": "日本を切り出す\n今度はこの夜間光のファイルから日本を切り出してみます。\n日本を切り出すメリットとしては、プロットの際に日本にフォーカスできることはもちろん、ファイルサイズを大幅に縮小することができます。日本に切り取った場合、10GBから15MB程度までファイルサイズは小さくなります（！）。\nまずは切り取るための土台として日本の行政区域データを準備します。\n\n日本の市区町村データを準備\n以下のファイルを使用します。国土数値情報ダウンロードサイトからとってきた行政区域データを、各自治体が1オブジェクトになるように整理したデータです。これをmuniとして読み込んでおきます。\nGPKGファイル\n\nlibrary(sf)\n\nmuni &lt;- read_sf(here::here(\"data/jpn_geojson/municipality_summarise.gpkg\"))\n\n\n\nコード\nggplot2::ggplot(muni) + \n  ggplot2::geom_sf() + \n  ggplot2::theme_void()\n\n\n\n\n\nファイルをプロットするとこんな感じです\n\n\n\n\nポイント：夜間光のラスタデータと、行政区域のベクタデータの投影座標系を揃える必要があります。これをあらかじめ設定しておかないと、後々切り取る際の基準がバラバラになってしまい、ずれが生じてしまいます。この行政区域データを、夜間光データと同じ座標系に設定しましょう。\nmuni &lt;- muni |&gt; \n  sf::st_transform(terra::crs(ntl_24))\nわかりやすくパッケージも明示しましたが、ラスタデータの座標系（CRS）はterraパッケージのcrs()関数で取得でき、これをsfパッケージのst_transform()関数で読み込ませて座標系を上書きしています。ベクタデータの場合の座標系は、sf::st_crs()で取得できます1。\n\n\n切り取り\n切り取る際には大きく分けてcrop()関数とmask()関数の2つを使います。\ncrop()関数はある範囲でラスタデータを切り取り、mask()は指定したポリゴンの形状に基づいてその形で切る関数です。今回のイメージで言えば、日本を囲む四角形で一度切り取ったうえで、日本の形に添ってさらに切り取るという流れです。一度crop()を挟むことでmask()の計算を軽量化することができます。\n\ncrop()で四角形に切り取る\n\n切り取るうえで、基準は様々あります。例えば日本の東西南北の端の緯度経度を取得してその通りに切り取るというものであったり、日本がすっぽり埋まるような緯度経度を自分で指定して切り取るといったような方法です。今回は前者を採用して進めてみます。\nいま、ntl_24という夜間光のラスタデータと、muniという自治体のベクタデータがあります。ここでmuniがすっぽり収まるような四角形（外接矩形）に切り取るため、terra::ext()を用います。\njapan_extent &lt;- ext(muni)\nこれ自体はプロットしても日本は表示されません。外接矩形を切り出しただけで、範囲のみが出てきます。\n\n\n\nterra::plot(japan_extent)\n\n\nこれを使って、ntl_24を切り取ります。\ncropped &lt;- crop(ntl_24, japan_extent)\n\nterra::plot(cropped, range = c(0, 10))\n\n\n\n切り取れました\n\n\n先ほどと同様光量の範囲を0～10に絞ってプロットしました。日本がしっかり収まっているのがわかると思います。ぴったり切っているため、北海道の頭が上辺に接していますが、最終的にプロットを載せないのであれば特に問題ないかと思います。\n\n\n\n\n\n\nTip夜間光のプロットまで載せたい場合\n\n\n\n\n\n成果物にプロットまで載せたい場合は、もう少し北に幅を持たせたいかもしれません。その場合はext()を使う段階で調整をします。\njapan_extent &lt;- ext(muni)\n\n# バッファを加える\njapan_extent &lt;- ext(\n  xmin(japan_extent), \n  xmax(japan_extent), \n  ymin(japan_extent), \n  ymax(japan_extent) + 2\n)\nこのように、ext()で上書きします。経度の下限上限、緯度の下限上限の順に指定し、その中でプラス（あるいはマイナス）何度余白を持たせるかを設定します2。これでプロットすると以下のようになります。\n\n\n\n北に少し幅を持たせられました\n\n\n\n\n\n\nmask()で日本の形に沿って切り出す\n\nラスタデータの範囲を絞ることができたので、次は軽量化したこのデータから日本の形を切り出していきます。\n以下のコードで切り出せます。\nmasked &lt;- mask(cropped, vect(muni))\n\nterra::plot(masked, range = c(0, 10))\n\n\n\n日本の形に切り取られました\n\n\n外接矩形のデータと行政区域データを用いて、日本の領土上における夜間光をプロットすることができました。ポイントは、ラスタデータとベクタデータでそろっておらず計算できないため、vect()を用いてmuniをmask()で計算できる形に変更しているところです。\n以上で夜間光データから日本を切り出すことができました。"
   },
   {
-    "objectID": "pages/blog/241125_cite_drive/index.html#おわりに",
-    "href": "pages/blog/241125_cite_drive/index.html#おわりに",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
-    "section": "おわりに",
-    "text": "おわりに\nこのように、文献追加のところさえうまくいけば、ローカルにアプリをインストールする必要もなくブラウザ上で完結するし、.bibファイルをエクスポートする必要もないので非常に便利なツールなのです。\nしかし、その課題点が僕には大きく、本格採用には至っていません。僕は公式推奨のツールはなるべく使ってみたい人間なので、改善点が早期に修正され、満足いく使用感が得られるようになることを望みます。\n興味があれば、使ってみてください。"
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#市町村ごとに光量を計算する",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#市町村ごとに光量を計算する",
+    "title": "夜間光を可視化する",
+    "section": "市町村ごとに光量を計算する",
+    "text": "市町村ごとに光量を計算する\nここからは、切り出したデータを用い、市町村の平均光量を計算していきます。なお、本ページでは計算の厳密さは重視しませんので、あくまでも計算方法の提示にとどめます3。\n使用するデータは今計算したmaskedです。そして計算に使用する関数はterra::extract()です。\n\nntl_values &lt;- terra::extract(masked, muni, fun = mean, na.rm = TRUE)\n\nextract()関数を使い、maskedとmuniを重ね合わせながら、平均（mean）を計算しています4。欠損値がある場合でも対応できるように、na.rm = TRUEを指定しています。このときもし\nWarning: [extract] transforming vector data to the CRS of the raster\nというような警告が出てきた場合は座標系が揃っていないということなので、前に戻って座標系を設定してください。\n計算したものの中身は以下のようになっています。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                ID\n                nighttime_lights_2024\n              \n        \n        \n        \n                \n                  1\n                  10.530607\n                \n                \n                  2\n                  2.032149\n                \n                \n                  3\n                  2.897246\n                \n                \n                  4\n                  3.978741\n                \n                \n                  5\n                  6.942668\n                \n                \n                  6\n                  1.047370\n                \n        \n      \n    \n\n\n\nこのIDはmuniの行番号に対応しているので、muniにbind_cols()等すれば適切に結合できます5。\n例：\n\nlibrary(tidyverse)\n\nmuni_ntl &lt;- muni |&gt; \n  bind_cols(ntl_values) |&gt; \n  select(-ID) |&gt; \n  relocate(geom, .after = last_col())\n\nIDはもはや不要なので抜いて、個人的にgeomは最後に置きたいので移動させていますが、これらはなくても問題ありません。\nこれでできるのが以下です。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                name_muni\n                id_muni\n                id_pref\n                nighttime_lights_2024\n                geom\n              \n        \n        \n        \n                \n                  札幌市\n                  01100\n                  01\n                  10.530607\n                  MULTIPOLYGON (((141.2828 43...\n                \n                \n                  函館市\n                  01202\n                  01\n                  2.032149\n                  MULTIPOLYGON (((141.1571 41...\n                \n                \n                  小樽市\n                  01203\n                  01\n                  2.897246\n                  MULTIPOLYGON (((140.8554 43...\n                \n                \n                  旭川市\n                  01204\n                  01\n                  3.978741\n                  MULTIPOLYGON (((142.2877 43...\n                \n                \n                  室蘭市\n                  01205\n                  01\n                  6.942668\n                  MULTIPOLYGON (((140.941 42....\n                \n                \n                  釧路市\n                  01206\n                  01\n                  1.047370\n                  MULTIPOLYGON (((144.3589 42...\n                \n        \n      \n    \n\n\n\n単純平均ではあるものの、札幌が大きな値をとっており、傾向はあっていそうな感じです。\n他の、例えばメッシュデータなどを組み合わせればもう少し詳細に計算もできると思いますが、今回はここまでとします。"
   },
   {
-    "objectID": "pages/blog/241125_cite_drive/index.html#footnotes",
-    "href": "pages/blog/241125_cite_drive/index.html#footnotes",
-    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#footnotes",
+    "href": "pages/gis_in_r/4_nighttime_light/index.html#footnotes",
+    "title": "夜間光を可視化する",
     "section": "注",
-    "text": "注\n\n\nサイト側からインストールするよう勧められるかもしれませんが、指示に従って大丈夫です。↩︎\n実際に論文で使うかはさておいて、メモとして記録しておくためだけでも使えます↩︎"
+    "text": "注\n\n\n例：st_transform(st_crs(muni))↩︎\nxmin()は経度の下限、ymax()は緯度の上限を表しているといった感じです。↩︎\n単純平均では、面積が大きいかつごく一部のみ都市化しているような市町村は過小評価されると考えてよいと思います。↩︎\nここでもtidyrパッケージとの競合を避けるためterraを明記しています。↩︎\nidはmuni のどの列にも対応しない（行番号のみ）ので、left_join()ではなくbind_cols()しています。↩︎"
   },
   {
-    "objectID": "pages/blog/250331_hanzai/index.html#いよいよ学生が終わる",
-    "href": "pages/blog/250331_hanzai/index.html#いよいよ学生が終わる",
-    "title": "学生最後にやってみたかったこと",
-    "section": "いよいよ学生が終わる",
-    "text": "いよいよ学生が終わる\n今日は3月31日ということで、今日をもって正式に学生生活が終わる。まさか大学院まで行って勉強することになるとは思っていなかったが、思ったより頑張れたし、同期や先輩後輩、先生にも恵まれてうまいことやってこれたと思う。\nところで先日の卒業式、総長が感受性の話をされていたのだが、その中でフィルターバブルの話にもなった。僕自身はこの言葉はつい最近まで全く知らなかったのだが、日経に最近は普通に使われる～といったようなことが書いてあったので焦って調べたのがつい2週間くらい前だ。まぁそんなことはどうでもよくて、ともかく最近は自分もフィルターバブルの中にいたのだと気づいて大いに反省し、スマホもあまり触らなくなった（おかげでメンタルがやられなくて幸福度が上がった気がする）。しかしどうしても最後にXで見た論調で気になることがあって、最後にどうしてもそれだけ自分でデータを集めてみたくなった。\nそれは、\n「（実質的な）移民を増やせば犯罪が増加する」\nというものである。保守（というよりネトウヨ）がずっと言っていることだが、特に大した根拠も示されていないのに、もしかしたらそうなのかな…とかこれまた根拠のない不安を覚えていた（大体みな敵意がすさまじく、とにかくこれがメンタルヘルスに悪い）。\n僕はとにかくアカデミアの世界に疎いので、どうせこの手の研究はごまんとあるのだろうと思ってはいる。しかしデータを集める、可視化するというのがそもそも好きなのと、（おまけ程度だが）仕事でいろいろな国のデータを見ることになると思うのでその練習という意味合いもある。\n直感的には日本は世界最高水準に治安が良いので、在留外国人が増えたら異なる価値基準の人が増えて犯罪は増えそうだ。しかし、実際には外国人の犯罪率は高くないという記事も見たことがある。なので根拠のない思い込みという可能性が大いにあるのかもしれないとも思う。\n何はともあれ、この学生最後の春休み最終日という、明日の準備しろよと言う時間に急ぎデータを集めプロットしてみることにした。さすがに分析までは無理そうだ。開始は16時。朝早く起きていたのに思い出したのが遅かった…。"
-  },
-  {
-    "objectID": "pages/blog/250331_hanzai/index.html#e-statにあたってみる",
-    "href": "pages/blog/250331_hanzai/index.html#e-statにあたってみる",
-    "title": "学生最後にやってみたかったこと",
-    "section": "e-Statにあたってみる",
-    "text": "e-Statにあたってみる\n犯罪のデータなど見たことがなかったので、どのデータがよいのかもわからない。とりあえずe-Statで「犯罪」と打ち込んでヒットした犯罪統計をあたってみる。\nひとまず犯罪の種類ごとにデータがあったので、（レイプなどが増えるという話が特に吹き荒れているので）ひとまず不同意性交等のデータを集めてみた。不同意わいせつもあったのだが、とにかくデータが分析に不向きで時間がないため、このデータにした。こんなExcelファイル見て「ほぉほぉなるほど！」とかなる人いないのだから、せめて分析向きにしてほしい。切実に。\n\n\n\n元データ\n\n\nとりあえずコロナ前の2018年から2024年までのデータを収集した。\nあとは住民基本台帳から都道府県ごとの外国人人口を回収。同じく2018年から2024年。"
-  },
-  {
-    "objectID": "pages/blog/250331_hanzai/index.html#取り急ぎプロット",
-    "href": "pages/blog/250331_hanzai/index.html#取り急ぎプロット",
-    "title": "学生最後にやってみたかったこと",
-    "section": "取り急ぎプロット",
-    "text": "取り急ぎプロット\nとにかくデータ整備が煩わしく、思い立ってから整備を終えるだけで2時間近くかかってしまった。やっとデータフレーム化できたので、急いでプロットしてみよう。\n\n\nコード\nlibrary(tidyverse)\nlibrary(ggrepel)\ndata_dir &lt;- here::here(\"data/250331_hanzai\")\n\n# --------------------\n# 変数の整備\n# --------------------\ndf &lt;- read_csv(file.path(data_dir, \"dataframe.csv\")) |&gt; \n  mutate(\n    group = if_else(id_pref %in% c(13, 23, 27), \n                    as.factor(name_pref), \"other\"), \n    group_lab = if_else(id_pref %in% c(13, 23, 27) & year == 2024, \n                        name_pref, NA_character_)\n  )\n\n# --------------------\n# プロット\n# --------------------\nggplot(\n  df |&gt; filter(id_pref %in% c(13, 23, 27)), \n  aes(x = year, y = ninchi_total, group = id_pref)\n) + \n  theme_minimal() + \n  theme(\n    panel.grid = element_blank(), \n    legend.position = \"none\"\n  ) + \n  geom_vline(\n    xintercept = seq(2018, 2024, by = 1), \n    color = \"gray91\", \n    linewidth = .6\n  ) + \n  geom_segment(\n    data = tibble(y = seq(0, 600, by = 200), x1 = 2018, x2 = 2024), \n    aes(x = x1, xend = x2, y = y, yend = y), \n    inherit.aes = FALSE, \n    color = \"gray91\", \n    linewidth = .6\n  ) + \n  geom_segment(\n    data = tibble(y = seq(100, 500, by = 200), x1 = 2018, x2 = 2024), \n    aes(x = x1, xend = x2, y = y, yend = y), \n    inherit.aes = FALSE, \n    color = \"gray93\", \n    linewidth = .4\n  ) + \n  geom_line(\n    data = df |&gt; filter(group == \"other\"), \n    color = \"gray75\"\n  ) + \n  geom_line(\n    aes(color = group)\n  ) + \n  geom_text_repel(\n    aes(color = group, label = group_lab), \n    hjust = 0, \n    xlim = c(2024.4, NA), \n    size = 4, \n    segment.linetype = \"dotted\"\n  ) + \n  labs(x = \"年\", y = \"不同意性交等の認知件数\") + \n  scale_x_continuous(\n    expand = c(0, 0), \n    limits = c(2018, 2025), \n    breaks = seq(2018, 2024, by = 2)\n  ) + \n  scale_y_continuous(\n    expand = c(0, 0), \n    limits = c(0, 600), \n    breaks = seq(0, 600, by = 200)\n  )\n\n\n\n\n\n\n\n\n\nここまでプロットして、人口当たりにするのを忘れていたことに気づく…。そりゃ東京大阪名古屋が多いに決まってるよねー…という感じではある。\nしかし繰り返すが時間がない。ここで分かったこととしては、明確にコロナ以降に犯罪数が伸びていることである。東京なんかは前と比べて3倍弱になっているようだ。\nコロナで何かが変わったのか？という気がするが、ここで外国人が増えたからだとは論じることはできない。とはいえインバウンドが盛んになったのもコロナ以後であるから、犯罪が増加したのと時期が被っているのは確かなようである。"
-  },
-  {
-    "objectID": "pages/blog/250331_hanzai/index.html#ここまできたら最後までやりたいが",
-    "href": "pages/blog/250331_hanzai/index.html#ここまできたら最後までやりたいが",
-    "title": "学生最後にやってみたかったこと",
-    "section": "ここまできたら最後までやりたいが…",
-    "text": "ここまできたら最後までやりたいが…\n今は19時15分。さっさと明日の準備して寝ないとという焦りも生じてきたので、せめて相関くらいは見ておこう。仕事が始まってもし時間ができたらさらに調べてみることにする。\n\n\nコード\ndf_ratio &lt;- df |&gt; \n  filter(year %in% c(2018, 2024)) |&gt; \n  select(id_pref, name_pref, year, ninchi_total, pop_gaikoku) |&gt; \n  pivot_wider(\n    names_from = year, \n    values_from = c(ninchi_total, pop_gaikoku), \n    names_sep = \"\"\n  ) |&gt; \n  mutate(\n    ninchi_inc = ninchi_total2024 / ninchi_total2018, \n    fpop_inc = pop_gaikoku2024 / pop_gaikoku2018\n  ) |&gt; \n  select(ends_with(c(\"_pref\", \"_inc\")))\n\nggplot(df_ratio, aes(x = fpop_inc, y = ninchi_inc)) + \n  geom_point() + \n  xlab(\"外国人人口増加率\") + \n  ylab(\"不同意性交等罪認知件数増加率\") + \n  stat_smooth(method = lm, se = FALSE, color = \"darkgreen\") + \n  annotate(\"text\", x = 1.75, y = 11, label = \"R^2 == 0.088\", \n           parse = TRUE) + \n  theme_bw()\n\n\n\n\n\n2018年から2024年の増加率で見た相関\n\n\n\n\nまぁ、正の相関は見られるが、大して強くはないな。しかも思いついた変数同士で適当に見ただけだから特に説得力もない。やってみただけになってしまった…（はじめからそのつもりではあったのだが）。\n時間も時間なのでここが限界かもしれない。"
-  },
-  {
-    "objectID": "pages/blog/250331_hanzai/index.html#力尽きた",
-    "href": "pages/blog/250331_hanzai/index.html#力尽きた",
-    "title": "学生最後にやってみたかったこと",
-    "section": "力尽きた",
-    "text": "力尽きた\nこんな簡単なプロットでも数時間かかると思うと恐ろしいものだ。しかも説得力を持たせようと思ったらさらに入念に変数を検討して、適切な手法を用いて分析せねばならない。\n研究者とはすごいなと改めて思った。僕はどちらかというとその環境整備というか、もちろんRで分析カタカタすることもあるとは思うのだが、使いやすいデータを普及させたり、一般市民が社会問題の概要を適切に把握できるようなプロットを作成したいという思いがある。エビデンスという言葉は一見説得力があるが、なんだかほんとにわかってるのかなと、未熟な僕でも思うことがある。\n今日もプロットを作っていて、これをこう切って貼ったら信じちゃう人もいるんじゃないかと感じた。上のプロットだって大した検討もしていないのに、これだけ持ってやっぱり外国人が増えると犯罪が増えるじゃないかと主張できかねない。何事も妄信はいけないなと、なぜか春休みの最後に考えることとなった。\nともかく明日からは社会人。まずは見習いだが、自分でも納得がいくいい仕事をできるように頑張っていきたい。"
-  },
-  {
-    "objectID": "pages/blog/250331_hanzai/index.html#最後に",
-    "href": "pages/blog/250331_hanzai/index.html#最後に",
-    "title": "学生最後にやってみたかったこと",
-    "section": "最後に",
-    "text": "最後に\n春休みはShinyアプリケーションも作ってみた。RESASに感化されてRでもやれたらどうかと思い、勢いで3つくらい作った（ついでに久しぶりにRESASみたらだいぶアップデートされてた）。\n春休みの自由課題ということで、ここまで読んでくれた方にはぜひそちらも少し見ていってほしい。お願いします。\n\n\n\n\n\n\nSoftware"
-  },
-  {
-    "objectID": "pages/blog/250812_python_scraping/index.html#はじめに",
-    "href": "pages/blog/250812_python_scraping/index.html#はじめに",
-    "title": "Pythonでスクレイピングをやってみる",
+    "objectID": "pages/gis_in_r/2_summarise/index.html#はじめに",
+    "href": "pages/gis_in_r/2_summarise/index.html#はじめに",
+    "title": "地理データを集約",
     "section": "はじめに",
-    "text": "はじめに\n仕事でスクレイピングをする機会がまたやってきそうだ。\nしかし、その後の処理のスピード面から、Pythonでできた方がよさそうだと思ったので、今回はPythonでスクレイピングに挑戦し、その記録をここに書いていこうと思う。\n学部生の頃に一度習ったことがあり、BeautifulSoupを使うということは覚えているのだが、当時はPyhonはおろかRの知識も乏しかったので、もったいないことをしたなと思う。改めて勉強していこう。"
+    "text": "はじめに\n今回は地理データを集約する方法について説明します。\n集約とは、例えば市町村単位のデータを県単位のデータにまとめるというイメージです。市町村単位のデータしかもっていないものの都道府県単位でプロットしたいといった場合に、今回説明する方法を使えば対応することができます。"
   },
   {
-    "objectID": "pages/blog/250812_python_scraping/index.html#方針",
-    "href": "pages/blog/250812_python_scraping/index.html#方針",
-    "title": "Pythonでスクレイピングをやってみる",
-    "section": "方針",
-    "text": "方針\n時間も限られているので、今回は以下の記事で実行したRのコードをChat-GPTにPython用に改変してもらい、それをなぞりながら練習するというやり方で進めていきたい。\n\n\n\n\n\n\n【スクレイピング】Rでe-Statのメッシュ人口データファイルを一気に取得する\n\n\n\n\n\n\n\n\n\nNote一応Rでのコードも貼り付けておく\n\n\n\n\n\nlibrary(rvest)\n\n# データを保存したいフォルダを指定\nsave_dir &lt;- here::here(\"data/pop_by_mesh\")\n\n# 保存したいフォルダがない場合に作成\nif (!dir.exists(save_dir)) {\n  dir.create(save_dir)\n}\n\nbase_url &lt;- \"https://www.e-stat.go.jp\"\n\nfor (i in 1:8) {\n  url &lt;- paste0(\n    \"https://www.e-stat.go.jp/gis/statmap-search?page=\",\n    i,\n    \"&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H\",\n    \"&serveyId=H002005112020&statsId=T001141&datum=2011\"\n  )\n\n  html &lt;- read_html_live(url)\n  Sys.sleep(1)\n\n  links &lt;- html |&gt;\n    html_elements(\"a\") |&gt;\n    html_attr(\"href\")\n\n  csv_links &lt;- links[grepl(\"data\\\\?statsId=T001141\", links)]\n  full_urls &lt;- paste0(base_url, csv_links)\n\n  for (j in seq_along(full_urls)) {\n    code &lt;- sub(\".*code=([0-9]+).*\", \"\\\\1\", csv_links[j])\n    zip_path &lt;- file.path(save_dir, paste0(\"pop_mesh\", code, \".zip\"))\n    txt_path &lt;- file.path(save_dir, paste0(\"pop_mesh\", code, \".txt\"))\n    \n    # 既にファイルがある場合は次のループへ\n    if (file.exists(txt_path)) next\n\n    tryCatch({\n      download.file(full_urls[j], destfile = zip_path, mode = \"wb\")\n      Sys.sleep(1)\n\n      unzip_files &lt;- unzip(zip_path, list = TRUE)$Name\n      unzip(zip_path, exdir = save_dir)\n\n      for (original_name in unzip_files) {\n        if (grepl(\"\\\\.txt$\", original_name, ignore.case = TRUE)) {\n          old_path &lt;- file.path(save_dir, original_name)\n          new_path &lt;- txt_path\n          file.rename(old_path, new_path)\n        }\n      }\n\n      file.remove(zip_path)\n\n    }, error = function(e) {\n      warning(paste(\"エラー：\", full_urls[j]))\n    })\n\n    Sys.sleep(2)\n  }\n}"
+    "objectID": "pages/gis_in_r/2_summarise/index.html#使用するパッケージデータ",
+    "href": "pages/gis_in_r/2_summarise/index.html#使用するパッケージデータ",
+    "title": "地理データを集約",
+    "section": "使用するパッケージ・データ",
+    "text": "使用するパッケージ・データ\n今回は使用するデータを軽量化するために、イントロで使用した福島県のデータを使います1。日本の全市町村のような場合でも同様の流れで進めることができます。\n\nlibrary(tidyverse)  # データハンドリング\nlibrary(here)       # 相対パスを使用\nlibrary(sf)         # 地理データを使用\n\n# 福島県のデータの読み込み\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))"
   },
   {
-    "objectID": "pages/blog/250812_python_scraping/index.html#出力してもらったpythonコード",
-    "href": "pages/blog/250812_python_scraping/index.html#出力してもらったpythonコード",
-    "title": "Pythonでスクレイピングをやってみる",
-    "section": "出力してもらったPythonコード",
-    "text": "出力してもらったPythonコード\nChat-GPTに頼んでできたのがこれだー。\nimport re\nimport shutil\nimport zipfile\nfrom pathlib import Path\nfrom typing import Optional, Iterable, Tuple\nimport requests\nfrom bs4 import BeautifulSoup\nfrom tqdm import tqdm\nfrom concurrent.futures import ThreadPoolExecutor, as_completed\nimport threading\n\nfrom selenium import webdriver\nfrom selenium.webdriver.chrome.options import Options\nfrom selenium.webdriver.common.by import By\nfrom selenium.webdriver.support.ui import WebDriverWait\nfrom selenium.webdriver.support import expected_conditions as EC\nfrom requests.adapters import HTTPAdapter\nfrom urllib3.util.retry import Retry\n\n# ==============================\n# 設定\n# ==============================\nSAVE_DIR = Path(\"data/pop_by_mesh\")\nSAVE_DIR.mkdir(parents=True, exist_ok=True)\nBASE_URL = \"https://www.e-stat.go.jp\"\nMAX_WORKERS = 6  # 並列ダウンロード数（回線や先方負荷を見て調整）\nREQUEST_TIMEOUT = 60  # 秒\n\n# ==============================\n# Selenium セットアップ\n# ==============================\ndef get_selenium_driver() -&gt; webdriver.Chrome:\n    \"\"\"Chromeをヘッドレスで安定起動するモダン設定。\"\"\"\n    options = Options()\n    options.add_argument(\"--headless=new\")\n    options.add_argument(\"--no-sandbox\")\n    options.add_argument(\"--disable-gpu\")\n    options.add_argument(\"--window-size=1280,1800\")\n    options.add_argument(\"--disable-dev-shm-usage\")\n    options.add_argument(\"--disable-blink-features=AutomationControlled\")\n    options.add_argument(\n        \"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) \"\n        \"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36\"\n    )\n    driver = webdriver.Chrome(options=options)\n    driver.set_page_load_timeout(60)\n    driver.set_script_timeout(60)\n    return driver\n\n# ==============================\n# 動的ページ読み込み\n# ==============================\ndef read_html_live(\n    url: str,\n    driver: webdriver.Chrome,\n    wait_for_css: Optional[str] = None,\n    timeout: int = 20\n) -&gt; str:\n    \"\"\"JS実行後のHTMLを取得。\"\"\"\n    driver.get(url)\n\n    # 1) ドキュメントの読み込み完了を待つ\n    WebDriverWait(driver, timeout).until(\n        lambda d: d.execute_script(\"return document.readyState\") == \"complete\"\n    )\n\n    # 2) 目的の要素が現れるまで待つ（指定がある場合）\n    if wait_for_css:\n        WebDriverWait(driver, timeout).until(\n            EC.presence_of_all_elements_located((By.CSS_SELECTOR, wait_for_css))\n        )\n\n    return driver.page_source\n\n# ==============================\n# CSVリンク抽出\n# ==============================\ndef extract_csv_links(html: str) -&gt; list[str]:\n    soup = BeautifulSoup(html, \"html.parser\")\n    links = [a.get(\"href\") for a in soup.find_all(\"a\", href=True)]\n    csv_links = [link for link in links if link and \"data?statsId=T001141\" in link]\n    return csv_links\n\n# ==============================\n# requests Session（スレッドローカル）\n# ==============================\n_thread_local = threading.local()\n\ndef get_session() -&gt; requests.Session:\n    \"\"\"各スレッド専用のSessionを用意（接続プール＆自動リトライ付き）。\"\"\"\n    if getattr(_thread_local, \"session\", None) is None:\n        s = requests.Session()\n        retries = Retry(\n            total=3,\n            backoff_factor=0.8,  # 0.8, 1.6, 3.2秒…指数バックオフ\n            status_forcelist=(429, 500, 502, 503, 504),\n            allowed_methods=(\"GET\",)\n        )\n        adapter = HTTPAdapter(pool_connections=MAX_WORKERS, pool_maxsize=MAX_WORKERS, max_retries=retries)\n        s.mount(\"http://\", adapter)\n        s.mount(\"https://\", adapter)\n        _thread_local.session = s\n    return _thread_local.session\n\n# ==============================\n# ZIPダウンロード＆解凍（並列ワーカー用）\n# ==============================\ndef sanitize_member_name(name: str) -&gt; str:\n    \"\"\"Zipエントリ名の安全化（ディレクトリトラバーサル対策の簡易版）。\"\"\"\n    name = name.replace(\"\\\\\", \"/\")\n    name = name.lstrip(\"/.\")\n    # サブディレクトリを無視して最後のパス要素だけ使う\n    return name.split(\"/\")[-1]\n\ndef download_and_extract_zip_worker(task: Tuple[str, str]) -&gt; tuple[str, bool, str]:\n    \"\"\"\n    並列ワーカー：ZIPを取得して.txtを保存。\n    Returns: (url, success, message)\n    \"\"\"\n    full_url, code = task\n    zip_path = SAVE_DIR / f\"pop_mesh{code}.zip\"\n    txt_path = SAVE_DIR / f\"pop_mesh{code}.txt\"\n\n    if txt_path.exists():\n        return (full_url, True, \"skipped (exists)\")\n\n    try:\n        session = get_session()\n        with session.get(full_url, stream=True, timeout=REQUEST_TIMEOUT) as resp:\n            resp.raise_for_status()\n            with open(zip_path, \"wb\") as f:\n                for chunk in resp.iter_content(chunk_size=8192):\n                    if chunk:\n                        f.write(chunk)\n\n        found_txt = False\n        with zipfile.ZipFile(zip_path, \"r\") as zf:\n            for member in zf.namelist():\n                if re.search(r\"\\.txt$\", member, re.IGNORECASE):\n                    safe_name = sanitize_member_name(member)\n                    extract_tmp = SAVE_DIR / safe_name\n                    zf.extract(member, SAVE_DIR)\n                    # 抽出元がサブディレクトリでも safe_name で移動\n                    src = SAVE_DIR / member\n                    # srcが存在しない（ディレクトリ含む）場合に備えて\n                    if not src.exists() and extract_tmp.exists():\n                        src = extract_tmp\n                    shutil.move(str(src), txt_path)\n                    found_txt = True\n                    break\n\n        zip_path.unlink(missing_ok=True)\n\n        if not found_txt:\n            return (full_url, False, \"no .txt in zip\")\n\n        return (full_url, True, \"ok\")\n\n    except Exception as e:\n        # エラー時はZIPを片付ける\n        try:\n            zip_path.unlink(missing_ok=True)\n        except Exception:\n            pass\n        return (full_url, False, f\"error: {e}\")\n\n# ==============================\n# メイン処理（並列ダウンロード）\n# ==============================\ndef main():\n    driver = get_selenium_driver()\n    try:\n        # 1) 各ページからCSVリンクを収集\n        all_tasks: list[tuple[str, str]] = []\n        for i in tqdm(range(1, 9), desc=\"ページ巡回\"):\n            url = (\n                f\"https://www.e-stat.go.jp/gis/statmap-search?page={i}\"\n                \"&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H\"\n                \"&serveyId=H002005112020&statsId=T001141&datum=2011\"\n            )\n            html = read_html_live(\n                url,\n                driver,\n                wait_for_css=\"a[href*='data?statsId=T001141']\",\n                timeout=25,\n            )\n            csv_links = extract_csv_links(html)\n            full_urls = [BASE_URL + link for link in csv_links]\n\n            # ダウンロードタスク（(url, code)）を積む\n            for full_url, csv_link in zip(full_urls, csv_links):\n                m = re.search(r\"code=([0-9]+)\", csv_link)\n                code = m.group(1) if m else \"unknown\"\n                all_tasks.append((full_url, code))\n\n        # 2) 並列ダウンロード実行\n        successes = 0\n        failures = 0\n        skipped = 0\n\n        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:\n            futures = [ex.submit(download_and_extract_zip_worker, task) for task in all_tasks]\n            for fut in tqdm(as_completed(futures), total=len(futures), desc=\"ダウンロード\"):\n                url, ok, msg = fut.result()\n                if ok and msg.startswith(\"ok\"):\n                    successes += 1\n                elif ok and \"skipped\" in msg:\n                    skipped += 1\n                else:\n                    failures += 1\n                # 進捗の詳細を見たい場合は次の行のコメントアウトを外す\n                # print(f\"[{ 'OK' if ok else 'NG' }] {msg} - {url}\")\n\n        print(f\"\\nDone. ok={successes}, skipped={skipped}, failed={failures}\")\n\n    finally:\n        driver.quit()\n\nif __name__ == \"__main__\":\n    main()\nPythonにしてもらうついでに並列処理を可能にし、高速でダウンロードできるようにしてもらったため、結構複雑な処理になっている。\nポイントとしてはJavaScriptに対応したスクレイピングをするためにSeleniumを使用しているところだと思う。Rで言えばread_html()ではなくread_html_live()を使用しているのと同じような違いだ。\nまた、僕がread_html_live()をもとに作るよう依頼したせいか、read_html_live()関数を定義して使用しているようだ。なんだかR訛りのあるPythonコードになっているような気がする。"
+    "objectID": "pages/gis_in_r/2_summarise/index.html#データの確認",
+    "href": "pages/gis_in_r/2_summarise/index.html#データの確認",
+    "title": "地理データを集約",
+    "section": "データの確認",
+    "text": "データの確認\nデータのCRS（座標参照系）はデータを読み込んだら確認しておくようにしましょう。これがデータごとに異なるとデータ間で整合性が失われたり、同じデータでも思ったプロットにならなかったりします。\n\nst_crs(fukushima)\n\nCoordinate Reference System:\n  User input: JGD2011 \n  wkt:\nGEOGCRS[\"JGD2011\",\n    DATUM[\"Japanese Geodetic Datum 2011\",\n        ELLIPSOID[\"GRS 1980\",6378137,298.257222101,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"Japan - onshore and offshore.\"],\n        BBOX[17.09,122.38,46.05,157.65]],\n    ID[\"EPSG\",6668]]\n\n\n2行目にJGD2011、1番下にID[\"EPSG\",6668]]と書かれています。6668はJGD2011に対応する数字であり、他の数字であっても1対１の関係で数字が割り振られています。JGD2011は日本測地系2011を表しているのですが、CRSの詳細は次回に回します。\nひとまずここでは問題ないので、データの中身を確認したいと思います。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                N03_001\n                N03_002\n                N03_003\n                N03_004\n                N03_005\n                N03_007\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  NA\n                  NA\n                  福島市\n                  NA\n                  07201\n                  POLYGON ((140.3745 37.65095...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  会津若松市\n                  NA\n                  07202\n                  POLYGON ((139.949 37.33309,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  郡山市\n                  NA\n                  07203\n                  POLYGON ((140.1249 37.33085...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.8494 36.9161,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.889 36.91886,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.8873 36.91099...\n                \n        \n      \n    \n\n\n\n1列目に県名、4列目に市町村名、6列目に市町村コード、7列目に座標データが入っているのが確認できます。\n次にプロットして確認します。\n\nggplot() + \n  geom_sf(data = fukushima) + \n  theme_void()\n\n\n\n\n\n\n\n\nこのように市町村の境界が示されています。\n今回の目標はこれを県でまとめることなので、最終的に県境だけが残ることになります。"
   },
   {
-    "objectID": "pages/blog/250812_python_scraping/index.html#まとめ",
-    "href": "pages/blog/250812_python_scraping/index.html#まとめ",
-    "title": "Pythonでスクレイピングをやってみる",
-    "section": "まとめ",
-    "text": "まとめ\n実行してみたのだが、並列処理が可能になっているおかげでだいぶ高速でダウンロードできるようになった。\nこれまではR信者としてなんとかRで実行しようとしていたが、スピードも求められる仕事ではPythonの恩恵にあずかることになる気がしてきた。\n詳細をまとめようと思ったのだが、いかんせん見慣れないコードが並んでいるので、もう少し噛み砕いてからtipsの方でまとめようと思う。\nこんな感じでできるのか、というのがわかっただけでも収穫としよう。"
+    "objectID": "pages/gis_in_r/2_summarise/index.html#データの集約",
+    "href": "pages/gis_in_r/2_summarise/index.html#データの集約",
+    "title": "地理データを集約",
+    "section": "データの集約",
+    "text": "データの集約\nそれでは本題のデータの集約に入ります。\nこれまでTidyverseを使ったことがある方であれば、dplyr::summarise()が思い浮かぶ方がいらっしゃるのではないでしょうか。特定のグループごとに平均や合計を集計する際に便利な関数ですが、基本的な概念はそれと同じです。\n平均を算出する場合であればmean()を使いますが、地理データをまとめる際にはsfパッケージのst_union()を用います。\n早速使い方を見てみると、\n\nfukushima_summarise &lt;- fukushima |&gt; \n  summarise(geometry = st_union(geometry), \n            .by = N03_001)\n\n# 先にgroup_by()をしても同じ\n# fukushima_summarise &lt;- fukushima |&gt; \n#   group_by(N03_001) |&gt; \n#   summarise(geometry = st_union(geometry))\n\nこのように、県を表す変数でグルーピングした上でgeometryを上書きするような形になります。県番号のような、グループを識別できる変数があればそれを用いてもよいのですが、今回は県名しかないので、それを利用しています。\nコードにもコメントアウトして書いているように、group_by()は先に実行しても問題ありません。summarise()内の.byは、group_by()を指定しているのと同様です。"
   },
   {
-    "objectID": "pages/blog/250915_ggplot2/index.html#はじめに",
-    "href": "pages/blog/250915_ggplot2/index.html#はじめに",
-    "title": "バージョンアップしたggplot2を試す",
-    "section": "はじめに",
-    "text": "はじめに\n\n\n\n\n\n\nImportantTipsの更新\n\n\n\nTipsのページでバージョン4に対応したggplot2の内容をまとめたので、よければそちらも参照ください。\n【4.0.0対応！】ggplot2使い方ガイド\n\n\nRのプロットでおなじみggplot2がバージョン4.0.0にアップデートされたようだ。\nここでは簡単にどのような変更がなされたのかを確認したい。\n詳細については以下などを参照。\n\n\n\n\n\n\nggplot2 4.0.0 - Tidyverse"
+    "objectID": "pages/gis_in_r/2_summarise/index.html#集約したデータの確認",
+    "href": "pages/gis_in_r/2_summarise/index.html#集約したデータの確認",
+    "title": "地理データを集約",
+    "section": "集約したデータの確認",
+    "text": "集約したデータの確認\nfukushima_summariseを確認してみると、1つの行にまとまっていることがわかります。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                N03_001\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  MULTIPOLYGON (((141.0231 37...\n                \n        \n      \n    \n\n\n\nさらにこれをプロットしてみると、\n\nggplot() + \n  geom_sf(data = fukushima_summarise) + \n  theme_void()\n\n\n\n\n\n\n\n\nこのように、市境がなくなり、県境のみが残っています。\n今は1つの県のみを用いていますが、全国のデータを用いた場合でも、都道府県ごとにgroup_by()されますので、都道府県単位のプロットに集約することが可能です。"
   },
   {
-    "objectID": "pages/blog/250915_ggplot2/index.html#テーマの色遣い",
-    "href": "pages/blog/250915_ggplot2/index.html#テーマの色遣い",
-    "title": "バージョンアップしたggplot2を試す",
-    "section": "テーマの色遣い",
-    "text": "テーマの色遣い\n一番に目を引いたのはテーマの色に関するアップデートだ。\ntheme_xxx()系の引数にpaperやink、accentが追加されている。\n公式のサンプルコードを見てみる。\n\nlibrary(tidyverse)\n\nggplot(mpg, aes(displ, hwy)) +\n  geom_point() +\n  geom_smooth(method = \"lm\", formula = y ~ x) +\n  theme_gray(paper = \"cornsilk\", ink = \"navy\", accent = \"tomato\")\n\n\n\n\n\n\n\n\nご覧いただいてわかるように、背景がcornsilk（とうもろこしの髭の色らしい…）、文字や点がネイビー、直線がトマト色になっている。\n要は、背景色、前景色、アクセントカラーの設定がtheme_xxx()から設定できるようになったということだ。\n\nggplot(mpg, aes(class, displ)) +\n  geom_boxplot(aes(colour = from_theme(accent))) +\n  theme(\n    geom = element_geom(accent = \"tomato\", paper = \"cornsilk\")\n  )\n\n\n\n\n\n\n\n\n上記のように、from_theme(accent)でtheme()内のgeomよりアクセントカラーを参照できる。\n今回の例では一度しか参照していないが、何度も色を設定する際にtheme()で設定しておけば効率的だと思う。\n自分でもなにか適当に書いてみる。\n\nggplot(iris, aes(Sepal.Length, Sepal.Width)) +\n  geom_point(size = 3) + \n  geom_smooth(aes(fill = from_theme(accent)), method = \"lm\", formula = y ~ x, alpha = 0.3) +\n  theme_bw(paper = \"black\", ink = \"white\") + \n  theme(\n    geom = element_geom(\n      accent = \"magenta\"\n    )\n  )\n\n\n\n\n\n\n\n\nなんだかキモいのは置いておいて、背景が黒、文字が白、回帰直線がマゼンタになっている。"
-  },
-  {
-    "objectID": "pages/blog/250915_ggplot2/index.html#図形の枠線",
-    "href": "pages/blog/250915_ggplot2/index.html#図形の枠線",
-    "title": "バージョンアップしたggplot2を試す",
-    "section": "図形の枠線",
-    "text": "図形の枠線\nまたまた公式からの引用。\n\nggplot(faithful, aes(waiting)) +\n  geom_histogram(bins = 30, colour = \"black\") +\n  geom_freqpoly(bins = 30) +\n  theme(geom = element_geom(\n    bordertype = \"dashed\",\n    borderwidth = 0.2,\n    linewidth = 2,\n    linetype = \"solid\"\n  ))\n\n\n\n\n\n\n\n\n上記のように、theme()内でgeomを指定することで、図形の枠線を一括で設定できる。境界線としてbordertype、borderwidth、また、線に関してはlinewidth、linetypeを設定できる。\n先ほどの色の設定と組み合わせると、theme()内でかなり多くの設定ができるようになりそう。\n\nggplot(faithful, aes(waiting)) +\n  geom_histogram(aes(fill = from_theme(accent)), bins = 30, colour = \"black\") +\n  geom_freqpoly(bins = 30) +\n  theme_bw(paper = \"lightyellow\", ink = \"darkgreen\") +\n  theme(geom = element_geom(\n    bordertype = \"dashed\",\n    borderwidth = 0.2,\n    linewidth = 2,\n    linetype = \"solid\",\n    accent = \"tomato\"\n  ))\n\n\n\n\n\n\n\n\n今回は書かないが、地図の方でもいろいろ設定できると思うので、GISと絡めて使うのが楽しみだ。"
-  },
-  {
-    "objectID": "pages/blog/250915_ggplot2/index.html#おわりに",
-    "href": "pages/blog/250915_ggplot2/index.html#おわりに",
-    "title": "バージョンアップしたggplot2を試す",
+    "objectID": "pages/gis_in_r/2_summarise/index.html#おわりに",
+    "href": "pages/gis_in_r/2_summarise/index.html#おわりに",
+    "title": "地理データを集約",
     "section": "おわりに",
-    "text": "おわりに\n他にもいろいろアップデートはあるようだが、今回はggplot2のバージョン4.0.0で追加されたテーマの色遣いと図形の枠線について見てみた。\nなにやら結構重大な変更になるみたいなことを若干耳にしていたが、今回見てみたところ安全に使えそうな気がする。\n今後もいろいろ試していきたいと思う。"
+    "text": "おわりに\n今回はsummarise()とst_union()を用いて地理データを集約する方法を説明しました。\n市町村を都道府県単位にする以外にも、政令指定都市が区単位になっているので市単位にしたい、と言った場合にも応用することができます。\nそういった場合にはTipsページでご紹介したデータフレームを用い、政令指定都市の区コードを市町村コードに書き換えた後で今回と同じ工程を踏めば、まとめることができます。\nぜひご活用ください。"
+  },
+  {
+    "objectID": "pages/gis_in_r/2_summarise/index.html#footnotes",
+    "href": "pages/gis_in_r/2_summarise/index.html#footnotes",
+    "title": "地理データを集約",
+    "section": "注",
+    "text": "注\n\n\n導入 + ハンドリングに出典も示しています。↩︎"
   },
   {
     "objectID": "pages/gis_in_r/1.5_handling_plot/index.html#はじめに",
@@ -1729,130 +1386,529 @@
     "text": "注\n\n\n変数が「政令指定都市」、「中核市」、「その他」でscale_fill_manual( values = c(\"white\", \"lightblue\", \"blue\") )とするなど。↩︎\n例えば折れ線グラフでlinetypeを使っていたら、ここもlinetype =になります。↩︎"
   },
   {
-    "objectID": "pages/gis_in_r/2_summarise/index.html#はじめに",
-    "href": "pages/gis_in_r/2_summarise/index.html#はじめに",
-    "title": "地理データを集約",
+    "objectID": "pages/blog/250915_ggplot2/index.html#はじめに",
+    "href": "pages/blog/250915_ggplot2/index.html#はじめに",
+    "title": "バージョンアップしたggplot2を試す",
     "section": "はじめに",
-    "text": "はじめに\n今回は地理データを集約する方法について説明します。\n集約とは、例えば市町村単位のデータを県単位のデータにまとめるというイメージです。市町村単位のデータしかもっていないものの都道府県単位でプロットしたいといった場合に、今回説明する方法を使えば対応することができます。"
+    "text": "はじめに\n\n\n\n\n\n\nImportantTipsの更新\n\n\n\nTipsのページでバージョン4に対応したggplot2の内容をまとめたので、よければそちらも参照ください。\n【4.0.0対応！】ggplot2使い方ガイド\n\n\nRのプロットでおなじみggplot2がバージョン4.0.0にアップデートされたようだ。\nここでは簡単にどのような変更がなされたのかを確認したい。\n詳細については以下などを参照。\n\n\n\n\n\n\nggplot2 4.0.0 - Tidyverse"
   },
   {
-    "objectID": "pages/gis_in_r/2_summarise/index.html#使用するパッケージデータ",
-    "href": "pages/gis_in_r/2_summarise/index.html#使用するパッケージデータ",
-    "title": "地理データを集約",
-    "section": "使用するパッケージ・データ",
-    "text": "使用するパッケージ・データ\n今回は使用するデータを軽量化するために、イントロで使用した福島県のデータを使います1。日本の全市町村のような場合でも同様の流れで進めることができます。\n\nlibrary(tidyverse)  # データハンドリング\nlibrary(here)       # 相対パスを使用\nlibrary(sf)         # 地理データを使用\n\n# 福島県のデータの読み込み\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))"
+    "objectID": "pages/blog/250915_ggplot2/index.html#テーマの色遣い",
+    "href": "pages/blog/250915_ggplot2/index.html#テーマの色遣い",
+    "title": "バージョンアップしたggplot2を試す",
+    "section": "テーマの色遣い",
+    "text": "テーマの色遣い\n一番に目を引いたのはテーマの色に関するアップデートだ。\ntheme_xxx()系の引数にpaperやink、accentが追加されている。\n公式のサンプルコードを見てみる。\n\nlibrary(tidyverse)\n\nggplot(mpg, aes(displ, hwy)) +\n  geom_point() +\n  geom_smooth(method = \"lm\", formula = y ~ x) +\n  theme_gray(paper = \"cornsilk\", ink = \"navy\", accent = \"tomato\")\n\n\n\n\n\n\n\n\nご覧いただいてわかるように、背景がcornsilk（とうもろこしの髭の色らしい…）、文字や点がネイビー、直線がトマト色になっている。\n要は、背景色、前景色、アクセントカラーの設定がtheme_xxx()から設定できるようになったということだ。\n\nggplot(mpg, aes(class, displ)) +\n  geom_boxplot(aes(colour = from_theme(accent))) +\n  theme(\n    geom = element_geom(accent = \"tomato\", paper = \"cornsilk\")\n  )\n\n\n\n\n\n\n\n\n上記のように、from_theme(accent)でtheme()内のgeomよりアクセントカラーを参照できる。\n今回の例では一度しか参照していないが、何度も色を設定する際にtheme()で設定しておけば効率的だと思う。\n自分でもなにか適当に書いてみる。\n\nggplot(iris, aes(Sepal.Length, Sepal.Width)) +\n  geom_point(size = 3) + \n  geom_smooth(aes(fill = from_theme(accent)), method = \"lm\", formula = y ~ x, alpha = 0.3) +\n  theme_bw(paper = \"black\", ink = \"white\") + \n  theme(\n    geom = element_geom(\n      accent = \"magenta\"\n    )\n  )\n\n\n\n\n\n\n\n\nなんだかキモいのは置いておいて、背景が黒、文字が白、回帰直線がマゼンタになっている。"
   },
   {
-    "objectID": "pages/gis_in_r/2_summarise/index.html#データの確認",
-    "href": "pages/gis_in_r/2_summarise/index.html#データの確認",
-    "title": "地理データを集約",
-    "section": "データの確認",
-    "text": "データの確認\nデータのCRS（座標参照系）はデータを読み込んだら確認しておくようにしましょう。これがデータごとに異なるとデータ間で整合性が失われたり、同じデータでも思ったプロットにならなかったりします。\n\nst_crs(fukushima)\n\nCoordinate Reference System:\n  User input: JGD2011 \n  wkt:\nGEOGCRS[\"JGD2011\",\n    DATUM[\"Japanese Geodetic Datum 2011\",\n        ELLIPSOID[\"GRS 1980\",6378137,298.257222101,\n            LENGTHUNIT[\"metre\",1]]],\n    PRIMEM[\"Greenwich\",0,\n        ANGLEUNIT[\"degree\",0.0174532925199433]],\n    CS[ellipsoidal,2],\n        AXIS[\"geodetic latitude (Lat)\",north,\n            ORDER[1],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n        AXIS[\"geodetic longitude (Lon)\",east,\n            ORDER[2],\n            ANGLEUNIT[\"degree\",0.0174532925199433]],\n    USAGE[\n        SCOPE[\"Horizontal component of 3D system.\"],\n        AREA[\"Japan - onshore and offshore.\"],\n        BBOX[17.09,122.38,46.05,157.65]],\n    ID[\"EPSG\",6668]]\n\n\n2行目にJGD2011、1番下にID[\"EPSG\",6668]]と書かれています。6668はJGD2011に対応する数字であり、他の数字であっても1対１の関係で数字が割り振られています。JGD2011は日本測地系2011を表しているのですが、CRSの詳細は次回に回します。\nひとまずここでは問題ないので、データの中身を確認したいと思います。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                N03_001\n                N03_002\n                N03_003\n                N03_004\n                N03_005\n                N03_007\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  NA\n                  NA\n                  福島市\n                  NA\n                  07201\n                  POLYGON ((140.3745 37.65095...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  会津若松市\n                  NA\n                  07202\n                  POLYGON ((139.949 37.33309,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  郡山市\n                  NA\n                  07203\n                  POLYGON ((140.1249 37.33085...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.8494 36.9161,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.889 36.91886,...\n                \n                \n                  福島県\n                  NA\n                  NA\n                  いわき市\n                  NA\n                  07204\n                  POLYGON ((140.8873 36.91099...\n                \n        \n      \n    \n\n\n\n1列目に県名、4列目に市町村名、6列目に市町村コード、7列目に座標データが入っているのが確認できます。\n次にプロットして確認します。\n\nggplot() + \n  geom_sf(data = fukushima) + \n  theme_void()\n\n\n\n\n\n\n\n\nこのように市町村の境界が示されています。\n今回の目標はこれを県でまとめることなので、最終的に県境だけが残ることになります。"
+    "objectID": "pages/blog/250915_ggplot2/index.html#図形の枠線",
+    "href": "pages/blog/250915_ggplot2/index.html#図形の枠線",
+    "title": "バージョンアップしたggplot2を試す",
+    "section": "図形の枠線",
+    "text": "図形の枠線\nまたまた公式からの引用。\n\nggplot(faithful, aes(waiting)) +\n  geom_histogram(bins = 30, colour = \"black\") +\n  geom_freqpoly(bins = 30) +\n  theme(geom = element_geom(\n    bordertype = \"dashed\",\n    borderwidth = 0.2,\n    linewidth = 2,\n    linetype = \"solid\"\n  ))\n\n\n\n\n\n\n\n\n上記のように、theme()内でgeomを指定することで、図形の枠線を一括で設定できる。境界線としてbordertype、borderwidth、また、線に関してはlinewidth、linetypeを設定できる。\n先ほどの色の設定と組み合わせると、theme()内でかなり多くの設定ができるようになりそう。\n\nggplot(faithful, aes(waiting)) +\n  geom_histogram(aes(fill = from_theme(accent)), bins = 30, colour = \"black\") +\n  geom_freqpoly(bins = 30) +\n  theme_bw(paper = \"lightyellow\", ink = \"darkgreen\") +\n  theme(geom = element_geom(\n    bordertype = \"dashed\",\n    borderwidth = 0.2,\n    linewidth = 2,\n    linetype = \"solid\",\n    accent = \"tomato\"\n  ))\n\n\n\n\n\n\n\n\n今回は書かないが、地図の方でもいろいろ設定できると思うので、GISと絡めて使うのが楽しみだ。"
   },
   {
-    "objectID": "pages/gis_in_r/2_summarise/index.html#データの集約",
-    "href": "pages/gis_in_r/2_summarise/index.html#データの集約",
-    "title": "地理データを集約",
-    "section": "データの集約",
-    "text": "データの集約\nそれでは本題のデータの集約に入ります。\nこれまでTidyverseを使ったことがある方であれば、dplyr::summarise()が思い浮かぶ方がいらっしゃるのではないでしょうか。特定のグループごとに平均や合計を集計する際に便利な関数ですが、基本的な概念はそれと同じです。\n平均を算出する場合であればmean()を使いますが、地理データをまとめる際にはsfパッケージのst_union()を用います。\n早速使い方を見てみると、\n\nfukushima_summarise &lt;- fukushima |&gt; \n  summarise(geometry = st_union(geometry), \n            .by = N03_001)\n\n# 先にgroup_by()をしても同じ\n# fukushima_summarise &lt;- fukushima |&gt; \n#   group_by(N03_001) |&gt; \n#   summarise(geometry = st_union(geometry))\n\nこのように、県を表す変数でグルーピングした上でgeometryを上書きするような形になります。県番号のような、グループを識別できる変数があればそれを用いてもよいのですが、今回は県名しかないので、それを利用しています。\nコードにもコメントアウトして書いているように、group_by()は先に実行しても問題ありません。summarise()内の.byは、group_by()を指定しているのと同様です。"
-  },
-  {
-    "objectID": "pages/gis_in_r/2_summarise/index.html#集約したデータの確認",
-    "href": "pages/gis_in_r/2_summarise/index.html#集約したデータの確認",
-    "title": "地理データを集約",
-    "section": "集約したデータの確認",
-    "text": "集約したデータの確認\nfukushima_summariseを確認してみると、1つの行にまとまっていることがわかります。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                N03_001\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  MULTIPOLYGON (((141.0231 37...\n                \n        \n      \n    \n\n\n\nさらにこれをプロットしてみると、\n\nggplot() + \n  geom_sf(data = fukushima_summarise) + \n  theme_void()\n\n\n\n\n\n\n\n\nこのように、市境がなくなり、県境のみが残っています。\n今は1つの県のみを用いていますが、全国のデータを用いた場合でも、都道府県ごとにgroup_by()されますので、都道府県単位のプロットに集約することが可能です。"
-  },
-  {
-    "objectID": "pages/gis_in_r/2_summarise/index.html#おわりに",
-    "href": "pages/gis_in_r/2_summarise/index.html#おわりに",
-    "title": "地理データを集約",
+    "objectID": "pages/blog/250915_ggplot2/index.html#おわりに",
+    "href": "pages/blog/250915_ggplot2/index.html#おわりに",
+    "title": "バージョンアップしたggplot2を試す",
     "section": "おわりに",
-    "text": "おわりに\n今回はsummarise()とst_union()を用いて地理データを集約する方法を説明しました。\n市町村を都道府県単位にする以外にも、政令指定都市が区単位になっているので市単位にしたい、と言った場合にも応用することができます。\nそういった場合にはTipsページでご紹介したデータフレームを用い、政令指定都市の区コードを市町村コードに書き換えた後で今回と同じ工程を踏めば、まとめることができます。\nぜひご活用ください。"
+    "text": "おわりに\n他にもいろいろアップデートはあるようだが、今回はggplot2のバージョン4.0.0で追加されたテーマの色遣いと図形の枠線について見てみた。\nなにやら結構重大な変更になるみたいなことを若干耳にしていたが、今回見てみたところ安全に使えそうな気がする。\n今後もいろいろ試していきたいと思う。"
   },
   {
-    "objectID": "pages/gis_in_r/2_summarise/index.html#footnotes",
-    "href": "pages/gis_in_r/2_summarise/index.html#footnotes",
-    "title": "地理データを集約",
-    "section": "注",
-    "text": "注\n\n\n導入 + ハンドリングに出典も示しています。↩︎"
-  },
-  {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#はじめに",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#はじめに",
-    "title": "夜間光を可視化する",
+    "objectID": "pages/blog/250812_python_scraping/index.html#はじめに",
+    "href": "pages/blog/250812_python_scraping/index.html#はじめに",
+    "title": "Pythonでスクレイピングをやってみる",
     "section": "はじめに",
-    "text": "はじめに\n今回は夜間光について扱います。\n夜間光とは、人工衛星から夜間に撮影された地上の光のデータのことを指し、夜間光の強さやパターンは、都市の発展、産業の活況、電力消費量などを反映していると考えられています。\n例えば Martínez (2022) では、独裁的な政府ではGDP成長率が過大申告されているという仮説をもとに、夜間光は政府が制御できないという客観性を用いて仮説検証を行っています。結果として独裁国家では、同じ夜間光の伸びに対して報告されるGDP成長率が過大になっていることを明らかにしています。\nこのように夜間光は近年の研究で度々用いられており、その客観性が有用な指標になっているわけですが、今回はどのようにこの夜間光データを扱えばよいのか、説明していきます。"
+    "text": "はじめに\n仕事でスクレイピングをする機会がまたやってきそうだ。\nしかし、その後の処理のスピード面から、Pythonでできた方がよさそうだと思ったので、今回はPythonでスクレイピングに挑戦し、その記録をここに書いていこうと思う。\n学部生の頃に一度習ったことがあり、BeautifulSoupを使うということは覚えているのだが、当時はPyhonはおろかRの知識も乏しかったので、もったいないことをしたなと思う。改めて勉強していこう。"
   },
   {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#使用するデータ",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#使用するデータ",
-    "title": "夜間光を可視化する",
-    "section": "使用するデータ",
-    "text": "使用するデータ\n夜間光は、NASAのSuomi NPPに搭載されたVisible/Infrared Imager and Radiometer Suite (VIIRS)という地球観測用のセンサーによって観測され、こちらのページからダウンロードできます。\n今回使用するのはAnnual VNL V2という年単位のデータで、この中の、雲などのノイズを除去しつつ年間の夜間光の平均を反映したものを使っていきます。\nAnnual VNL V2のセクションから「Go to Download V2.2」をクリックし、ダウンロードページに飛びます。\n\n\n\nV2.2には2022年から2024年のデータがあります\n\n\n任意の年（今回は2024年とします）のフォルダをクリックすると、.gzファイル（gzipファイル）がいくつかあります。目的にもよりますが、今回は平均のデータを使うので、~average.dat.tif.gzというファイルをクリックしたダウンロードします。おそらく1番上に表示されていると思います。\nダウンロードに際してアカウント登録が必要です。ダウンロードしたいファイルをクリックすると登録を求められると思うので表示された内容に従って登録してください。\n右にファイルサイズが表示されていますが、10GB近いファイルですので、ダウンロードには30分近く要します。ダウンロードできたら、通常のzipファイル同様に展開してください。"
+    "objectID": "pages/blog/250812_python_scraping/index.html#方針",
+    "href": "pages/blog/250812_python_scraping/index.html#方針",
+    "title": "Pythonでスクレイピングをやってみる",
+    "section": "方針",
+    "text": "方針\n時間も限られているので、今回は以下の記事で実行したRのコードをChat-GPTにPython用に改変してもらい、それをなぞりながら練習するというやり方で進めていきたい。\n\n\n\n\n\n\n【スクレイピング】Rでe-Statのメッシュ人口データファイルを一気に取得する\n\n\n\n\n\n\n\n\n\nNote一応Rでのコードも貼り付けておく\n\n\n\n\n\nlibrary(rvest)\n\n# データを保存したいフォルダを指定\nsave_dir &lt;- here::here(\"data/pop_by_mesh\")\n\n# 保存したいフォルダがない場合に作成\nif (!dir.exists(save_dir)) {\n  dir.create(save_dir)\n}\n\nbase_url &lt;- \"https://www.e-stat.go.jp\"\n\nfor (i in 1:8) {\n  url &lt;- paste0(\n    \"https://www.e-stat.go.jp/gis/statmap-search?page=\",\n    i,\n    \"&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H\",\n    \"&serveyId=H002005112020&statsId=T001141&datum=2011\"\n  )\n\n  html &lt;- read_html_live(url)\n  Sys.sleep(1)\n\n  links &lt;- html |&gt;\n    html_elements(\"a\") |&gt;\n    html_attr(\"href\")\n\n  csv_links &lt;- links[grepl(\"data\\\\?statsId=T001141\", links)]\n  full_urls &lt;- paste0(base_url, csv_links)\n\n  for (j in seq_along(full_urls)) {\n    code &lt;- sub(\".*code=([0-9]+).*\", \"\\\\1\", csv_links[j])\n    zip_path &lt;- file.path(save_dir, paste0(\"pop_mesh\", code, \".zip\"))\n    txt_path &lt;- file.path(save_dir, paste0(\"pop_mesh\", code, \".txt\"))\n    \n    # 既にファイルがある場合は次のループへ\n    if (file.exists(txt_path)) next\n\n    tryCatch({\n      download.file(full_urls[j], destfile = zip_path, mode = \"wb\")\n      Sys.sleep(1)\n\n      unzip_files &lt;- unzip(zip_path, list = TRUE)$Name\n      unzip(zip_path, exdir = save_dir)\n\n      for (original_name in unzip_files) {\n        if (grepl(\"\\\\.txt$\", original_name, ignore.case = TRUE)) {\n          old_path &lt;- file.path(save_dir, original_name)\n          new_path &lt;- txt_path\n          file.rename(old_path, new_path)\n        }\n      }\n\n      file.remove(zip_path)\n\n    }, error = function(e) {\n      warning(paste(\"エラー：\", full_urls[j]))\n    })\n\n    Sys.sleep(2)\n  }\n}"
   },
   {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#tiffファイルについて",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#tiffファイルについて",
-    "title": "夜間光を可視化する",
-    "section": "TIFFファイルについて",
-    "text": "TIFFファイルについて\nダウンロードしたファイルは、.tif形式になっています。これはTIFFファイルと言って、Tagged Image File Formatの略です。TIFFファイルは画像ファイルの一種で、写真や図面、スキャン画像などを高画質・非圧縮または可逆圧縮で保存できる形式です。\n特に今回用いるファイルはGeoTIFFと言い、TIFFフォーマットに位置情報（地理情報）を埋め込んだ拡張版です。そのため、シェープファイル等とあわせて特定の場所におけるデータを編集したり分析したりすることができます。"
+    "objectID": "pages/blog/250812_python_scraping/index.html#出力してもらったpythonコード",
+    "href": "pages/blog/250812_python_scraping/index.html#出力してもらったpythonコード",
+    "title": "Pythonでスクレイピングをやってみる",
+    "section": "出力してもらったPythonコード",
+    "text": "出力してもらったPythonコード\nChat-GPTに頼んでできたのがこれだー。\nimport re\nimport shutil\nimport zipfile\nfrom pathlib import Path\nfrom typing import Optional, Iterable, Tuple\nimport requests\nfrom bs4 import BeautifulSoup\nfrom tqdm import tqdm\nfrom concurrent.futures import ThreadPoolExecutor, as_completed\nimport threading\n\nfrom selenium import webdriver\nfrom selenium.webdriver.chrome.options import Options\nfrom selenium.webdriver.common.by import By\nfrom selenium.webdriver.support.ui import WebDriverWait\nfrom selenium.webdriver.support import expected_conditions as EC\nfrom requests.adapters import HTTPAdapter\nfrom urllib3.util.retry import Retry\n\n# ==============================\n# 設定\n# ==============================\nSAVE_DIR = Path(\"data/pop_by_mesh\")\nSAVE_DIR.mkdir(parents=True, exist_ok=True)\nBASE_URL = \"https://www.e-stat.go.jp\"\nMAX_WORKERS = 6  # 並列ダウンロード数（回線や先方負荷を見て調整）\nREQUEST_TIMEOUT = 60  # 秒\n\n# ==============================\n# Selenium セットアップ\n# ==============================\ndef get_selenium_driver() -&gt; webdriver.Chrome:\n    \"\"\"Chromeをヘッドレスで安定起動するモダン設定。\"\"\"\n    options = Options()\n    options.add_argument(\"--headless=new\")\n    options.add_argument(\"--no-sandbox\")\n    options.add_argument(\"--disable-gpu\")\n    options.add_argument(\"--window-size=1280,1800\")\n    options.add_argument(\"--disable-dev-shm-usage\")\n    options.add_argument(\"--disable-blink-features=AutomationControlled\")\n    options.add_argument(\n        \"user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) \"\n        \"AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36\"\n    )\n    driver = webdriver.Chrome(options=options)\n    driver.set_page_load_timeout(60)\n    driver.set_script_timeout(60)\n    return driver\n\n# ==============================\n# 動的ページ読み込み\n# ==============================\ndef read_html_live(\n    url: str,\n    driver: webdriver.Chrome,\n    wait_for_css: Optional[str] = None,\n    timeout: int = 20\n) -&gt; str:\n    \"\"\"JS実行後のHTMLを取得。\"\"\"\n    driver.get(url)\n\n    # 1) ドキュメントの読み込み完了を待つ\n    WebDriverWait(driver, timeout).until(\n        lambda d: d.execute_script(\"return document.readyState\") == \"complete\"\n    )\n\n    # 2) 目的の要素が現れるまで待つ（指定がある場合）\n    if wait_for_css:\n        WebDriverWait(driver, timeout).until(\n            EC.presence_of_all_elements_located((By.CSS_SELECTOR, wait_for_css))\n        )\n\n    return driver.page_source\n\n# ==============================\n# CSVリンク抽出\n# ==============================\ndef extract_csv_links(html: str) -&gt; list[str]:\n    soup = BeautifulSoup(html, \"html.parser\")\n    links = [a.get(\"href\") for a in soup.find_all(\"a\", href=True)]\n    csv_links = [link for link in links if link and \"data?statsId=T001141\" in link]\n    return csv_links\n\n# ==============================\n# requests Session（スレッドローカル）\n# ==============================\n_thread_local = threading.local()\n\ndef get_session() -&gt; requests.Session:\n    \"\"\"各スレッド専用のSessionを用意（接続プール＆自動リトライ付き）。\"\"\"\n    if getattr(_thread_local, \"session\", None) is None:\n        s = requests.Session()\n        retries = Retry(\n            total=3,\n            backoff_factor=0.8,  # 0.8, 1.6, 3.2秒…指数バックオフ\n            status_forcelist=(429, 500, 502, 503, 504),\n            allowed_methods=(\"GET\",)\n        )\n        adapter = HTTPAdapter(pool_connections=MAX_WORKERS, pool_maxsize=MAX_WORKERS, max_retries=retries)\n        s.mount(\"http://\", adapter)\n        s.mount(\"https://\", adapter)\n        _thread_local.session = s\n    return _thread_local.session\n\n# ==============================\n# ZIPダウンロード＆解凍（並列ワーカー用）\n# ==============================\ndef sanitize_member_name(name: str) -&gt; str:\n    \"\"\"Zipエントリ名の安全化（ディレクトリトラバーサル対策の簡易版）。\"\"\"\n    name = name.replace(\"\\\\\", \"/\")\n    name = name.lstrip(\"/.\")\n    # サブディレクトリを無視して最後のパス要素だけ使う\n    return name.split(\"/\")[-1]\n\ndef download_and_extract_zip_worker(task: Tuple[str, str]) -&gt; tuple[str, bool, str]:\n    \"\"\"\n    並列ワーカー：ZIPを取得して.txtを保存。\n    Returns: (url, success, message)\n    \"\"\"\n    full_url, code = task\n    zip_path = SAVE_DIR / f\"pop_mesh{code}.zip\"\n    txt_path = SAVE_DIR / f\"pop_mesh{code}.txt\"\n\n    if txt_path.exists():\n        return (full_url, True, \"skipped (exists)\")\n\n    try:\n        session = get_session()\n        with session.get(full_url, stream=True, timeout=REQUEST_TIMEOUT) as resp:\n            resp.raise_for_status()\n            with open(zip_path, \"wb\") as f:\n                for chunk in resp.iter_content(chunk_size=8192):\n                    if chunk:\n                        f.write(chunk)\n\n        found_txt = False\n        with zipfile.ZipFile(zip_path, \"r\") as zf:\n            for member in zf.namelist():\n                if re.search(r\"\\.txt$\", member, re.IGNORECASE):\n                    safe_name = sanitize_member_name(member)\n                    extract_tmp = SAVE_DIR / safe_name\n                    zf.extract(member, SAVE_DIR)\n                    # 抽出元がサブディレクトリでも safe_name で移動\n                    src = SAVE_DIR / member\n                    # srcが存在しない（ディレクトリ含む）場合に備えて\n                    if not src.exists() and extract_tmp.exists():\n                        src = extract_tmp\n                    shutil.move(str(src), txt_path)\n                    found_txt = True\n                    break\n\n        zip_path.unlink(missing_ok=True)\n\n        if not found_txt:\n            return (full_url, False, \"no .txt in zip\")\n\n        return (full_url, True, \"ok\")\n\n    except Exception as e:\n        # エラー時はZIPを片付ける\n        try:\n            zip_path.unlink(missing_ok=True)\n        except Exception:\n            pass\n        return (full_url, False, f\"error: {e}\")\n\n# ==============================\n# メイン処理（並列ダウンロード）\n# ==============================\ndef main():\n    driver = get_selenium_driver()\n    try:\n        # 1) 各ページからCSVリンクを収集\n        all_tasks: list[tuple[str, str]] = []\n        for i in tqdm(range(1, 9), desc=\"ページ巡回\"):\n            url = (\n                f\"https://www.e-stat.go.jp/gis/statmap-search?page={i}\"\n                \"&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H\"\n                \"&serveyId=H002005112020&statsId=T001141&datum=2011\"\n            )\n            html = read_html_live(\n                url,\n                driver,\n                wait_for_css=\"a[href*='data?statsId=T001141']\",\n                timeout=25,\n            )\n            csv_links = extract_csv_links(html)\n            full_urls = [BASE_URL + link for link in csv_links]\n\n            # ダウンロードタスク（(url, code)）を積む\n            for full_url, csv_link in zip(full_urls, csv_links):\n                m = re.search(r\"code=([0-9]+)\", csv_link)\n                code = m.group(1) if m else \"unknown\"\n                all_tasks.append((full_url, code))\n\n        # 2) 並列ダウンロード実行\n        successes = 0\n        failures = 0\n        skipped = 0\n\n        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as ex:\n            futures = [ex.submit(download_and_extract_zip_worker, task) for task in all_tasks]\n            for fut in tqdm(as_completed(futures), total=len(futures), desc=\"ダウンロード\"):\n                url, ok, msg = fut.result()\n                if ok and msg.startswith(\"ok\"):\n                    successes += 1\n                elif ok and \"skipped\" in msg:\n                    skipped += 1\n                else:\n                    failures += 1\n                # 進捗の詳細を見たい場合は次の行のコメントアウトを外す\n                # print(f\"[{ 'OK' if ok else 'NG' }] {msg} - {url}\")\n\n        print(f\"\\nDone. ok={successes}, skipped={skipped}, failed={failures}\")\n\n    finally:\n        driver.quit()\n\nif __name__ == \"__main__\":\n    main()\nPythonにしてもらうついでに並列処理を可能にし、高速でダウンロードできるようにしてもらったため、結構複雑な処理になっている。\nポイントとしてはJavaScriptに対応したスクレイピングをするためにSeleniumを使用しているところだと思う。Rで言えばread_html()ではなくread_html_live()を使用しているのと同じような違いだ。\nまた、僕がread_html_live()をもとに作るよう依頼したせいか、read_html_live()関数を定義して使用しているようだ。なんだかR訛りのあるPythonコードになっているような気がする。"
   },
   {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#ラスタデータについて",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#ラスタデータについて",
-    "title": "夜間光を可視化する",
-    "section": "ラスタデータについて",
-    "text": "ラスタデータについて\nこのTIFF形式のデータは、ラスタデータの一種です。ラスタデータとは、格子状のセル（ピクセル）で構成されるもので、各セルに値を持つグリッドデータです。例えばExcelでシート上に地図を書いて、土地に該当するセルにデータを入れていったようなイメージです。ピクセルの大きさによってデータの大きさも異なり、もちろん細かいピクセルにしたデータの方が大きくなります。\nちなみに、これまで扱ってきたシェープファイルやGeoJSON、Geopackageなどの点や線、ポリゴンなどの幾何学的な形で空間情報を表現するデータをベクタデータと言います。こちらは行政区域データのような境界線を表したり、線路などの線、駅などのポイントデータが該当します。"
+    "objectID": "pages/blog/250812_python_scraping/index.html#まとめ",
+    "href": "pages/blog/250812_python_scraping/index.html#まとめ",
+    "title": "Pythonでスクレイピングをやってみる",
+    "section": "まとめ",
+    "text": "まとめ\n実行してみたのだが、並列処理が可能になっているおかげでだいぶ高速でダウンロードできるようになった。\nこれまではR信者としてなんとかRで実行しようとしていたが、スピードも求められる仕事ではPythonの恩恵にあずかることになる気がしてきた。\n詳細をまとめようと思ったのだが、いかんせん見慣れないコードが並んでいるので、もう少し噛み砕いてからtipsの方でまとめようと思う。\nこんな感じでできるのか、というのがわかっただけでも収穫としよう。"
   },
   {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#rで読み込み可視化する",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#rで読み込み可視化する",
-    "title": "夜間光を可視化する",
-    "section": "Rで読み込み可視化する",
-    "text": "Rで読み込み可視化する\nダウンロードしたファイルを読み込みます。\n必要となるパッケージは以下の通りです。\n\n# 未インストールの場合\n# pak::pak(\"terra\")\n\nlibrary(terra)\n\n10GBもあるファイルですが、シェープファイル等と違って読み込み自体は素早くできます。terraパッケージのrast()関数で読み込んでいきます（ファイル名はオリジナルから変更しています）。ファイルまでのパスは各々変更してください。\nntl_24 &lt;- rast(here::here(\"data/nighttime_lights/nighttime_lights_2024.tif\"))\nTIFFファイルをプロットするには、terraパッケージのplot()関数を用います。ここでplot()はベースRの関数としても備わっているため、その関数と区別するためにterra::plot()と明示して使用します。\nterra::plot(ntl_24)\n\n\n\nほぼ認識できません\n\n\nご覧の通り、ほぼ紫になってしまっており、このままではどこがどこなのかさっぱり認識できません。これは外れ値ともいえるような極端に明るいところが点在しているため、その他の光量がほぼ0のようになってしまっていることが原因です。\nここで、右の凡例が光量の値を示しているのですが、この値を600などの大きい値ではなく、0から10のような狭い範囲でプロットしてみましょう。range引数で指定することができます。\nterra::plot(ntl_24, range = c(0, 10))\n\n\n\nだいぶ見やすくなりました\n\n\n今度はどうでしょうか。10以上のところは白飛びしていますが、それでもスケール調整によって見やすくなったと思いますし、地図が浮かび上がってきました。こういうことはプロットの際にはよくあるので、うまくスケール調整をしながらプロットしてみてください。"
+    "objectID": "pages/blog/250331_hanzai/index.html#いよいよ学生が終わる",
+    "href": "pages/blog/250331_hanzai/index.html#いよいよ学生が終わる",
+    "title": "学生最後にやってみたかったこと",
+    "section": "いよいよ学生が終わる",
+    "text": "いよいよ学生が終わる\n今日は3月31日ということで、今日をもって正式に学生生活が終わる。まさか大学院まで行って勉強することになるとは思っていなかったが、思ったより頑張れたし、同期や先輩後輩、先生にも恵まれてうまいことやってこれたと思う。\nところで先日の卒業式、総長が感受性の話をされていたのだが、その中でフィルターバブルの話にもなった。僕自身はこの言葉はつい最近まで全く知らなかったのだが、日経に最近は普通に使われる～といったようなことが書いてあったので焦って調べたのがつい2週間くらい前だ。まぁそんなことはどうでもよくて、ともかく最近は自分もフィルターバブルの中にいたのだと気づいて大いに反省し、スマホもあまり触らなくなった（おかげでメンタルがやられなくて幸福度が上がった気がする）。しかしどうしても最後にXで見た論調で気になることがあって、最後にどうしてもそれだけ自分でデータを集めてみたくなった。\nそれは、\n「（実質的な）移民を増やせば犯罪が増加する」\nというものである。保守（というよりネトウヨ）がずっと言っていることだが、特に大した根拠も示されていないのに、もしかしたらそうなのかな…とかこれまた根拠のない不安を覚えていた（大体みな敵意がすさまじく、とにかくこれがメンタルヘルスに悪い）。\n僕はとにかくアカデミアの世界に疎いので、どうせこの手の研究はごまんとあるのだろうと思ってはいる。しかしデータを集める、可視化するというのがそもそも好きなのと、（おまけ程度だが）仕事でいろいろな国のデータを見ることになると思うのでその練習という意味合いもある。\n直感的には日本は世界最高水準に治安が良いので、在留外国人が増えたら異なる価値基準の人が増えて犯罪は増えそうだ。しかし、実際には外国人の犯罪率は高くないという記事も見たことがある。なので根拠のない思い込みという可能性が大いにあるのかもしれないとも思う。\n何はともあれ、この学生最後の春休み最終日という、明日の準備しろよと言う時間に急ぎデータを集めプロットしてみることにした。さすがに分析までは無理そうだ。開始は16時。朝早く起きていたのに思い出したのが遅かった…。"
   },
   {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#日本を切り出す",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#日本を切り出す",
-    "title": "夜間光を可視化する",
-    "section": "日本を切り出す",
-    "text": "日本を切り出す\n今度はこの夜間光のファイルから日本を切り出してみます。\n日本を切り出すメリットとしては、プロットの際に日本にフォーカスできることはもちろん、ファイルサイズを大幅に縮小することができます。日本に切り取った場合、10GBから15MB程度までファイルサイズは小さくなります（！）。\nまずは切り取るための土台として日本の行政区域データを準備します。\n\n日本の市区町村データを準備\n以下のファイルを使用します。国土数値情報ダウンロードサイトからとってきた行政区域データを、各自治体が1オブジェクトになるように整理したデータです。これをmuniとして読み込んでおきます。\nGPKGファイル\n\nlibrary(sf)\n\nmuni &lt;- read_sf(here::here(\"data/jpn_geojson/municipality_summarise.gpkg\"))\n\n\n\nコード\nggplot2::ggplot(muni) + \n  ggplot2::geom_sf() + \n  ggplot2::theme_void()\n\n\n\n\n\nファイルをプロットするとこんな感じです\n\n\n\n\nポイント：夜間光のラスタデータと、行政区域のベクタデータの投影座標系を揃える必要があります。これをあらかじめ設定しておかないと、後々切り取る際の基準がバラバラになってしまい、ずれが生じてしまいます。この行政区域データを、夜間光データと同じ座標系に設定しましょう。\nmuni &lt;- muni |&gt; \n  sf::st_transform(terra::crs(ntl_24))\nわかりやすくパッケージも明示しましたが、ラスタデータの座標系（CRS）はterraパッケージのcrs()関数で取得でき、これをsfパッケージのst_transform()関数で読み込ませて座標系を上書きしています。ベクタデータの場合の座標系は、sf::st_crs()で取得できます1。\n\n\n切り取り\n切り取る際には大きく分けてcrop()関数とmask()関数の2つを使います。\ncrop()関数はある範囲でラスタデータを切り取り、mask()は指定したポリゴンの形状に基づいてその形で切る関数です。今回のイメージで言えば、日本を囲む四角形で一度切り取ったうえで、日本の形に添ってさらに切り取るという流れです。一度crop()を挟むことでmask()の計算を軽量化することができます。\n\ncrop()で四角形に切り取る\n\n切り取るうえで、基準は様々あります。例えば日本の東西南北の端の緯度経度を取得してその通りに切り取るというものであったり、日本がすっぽり埋まるような緯度経度を自分で指定して切り取るといったような方法です。今回は前者を採用して進めてみます。\nいま、ntl_24という夜間光のラスタデータと、muniという自治体のベクタデータがあります。ここでmuniがすっぽり収まるような四角形（外接矩形）に切り取るため、terra::ext()を用います。\njapan_extent &lt;- ext(muni)\nこれ自体はプロットしても日本は表示されません。外接矩形を切り出しただけで、範囲のみが出てきます。\n\n\n\nterra::plot(japan_extent)\n\n\nこれを使って、ntl_24を切り取ります。\ncropped &lt;- crop(ntl_24, japan_extent)\n\nterra::plot(cropped, range = c(0, 10))\n\n\n\n切り取れました\n\n\n先ほどと同様光量の範囲を0～10に絞ってプロットしました。日本がしっかり収まっているのがわかると思います。ぴったり切っているため、北海道の頭が上辺に接していますが、最終的にプロットを載せないのであれば特に問題ないかと思います。\n\n\n\n\n\n\nTip夜間光のプロットまで載せたい場合\n\n\n\n\n\n成果物にプロットまで載せたい場合は、もう少し北に幅を持たせたいかもしれません。その場合はext()を使う段階で調整をします。\njapan_extent &lt;- ext(muni)\n\n# バッファを加える\njapan_extent &lt;- ext(\n  xmin(japan_extent), \n  xmax(japan_extent), \n  ymin(japan_extent), \n  ymax(japan_extent) + 2\n)\nこのように、ext()で上書きします。経度の下限上限、緯度の下限上限の順に指定し、その中でプラス（あるいはマイナス）何度余白を持たせるかを設定します2。これでプロットすると以下のようになります。\n\n\n\n北に少し幅を持たせられました\n\n\n\n\n\n\nmask()で日本の形に沿って切り出す\n\nラスタデータの範囲を絞ることができたので、次は軽量化したこのデータから日本の形を切り出していきます。\n以下のコードで切り出せます。\nmasked &lt;- mask(cropped, vect(muni))\n\nterra::plot(masked, range = c(0, 10))\n\n\n\n日本の形に切り取られました\n\n\n外接矩形のデータと行政区域データを用いて、日本の領土上における夜間光をプロットすることができました。ポイントは、ラスタデータとベクタデータでそろっておらず計算できないため、vect()を用いてmuniをmask()で計算できる形に変更しているところです。\n以上で夜間光データから日本を切り出すことができました。"
+    "objectID": "pages/blog/250331_hanzai/index.html#e-statにあたってみる",
+    "href": "pages/blog/250331_hanzai/index.html#e-statにあたってみる",
+    "title": "学生最後にやってみたかったこと",
+    "section": "e-Statにあたってみる",
+    "text": "e-Statにあたってみる\n犯罪のデータなど見たことがなかったので、どのデータがよいのかもわからない。とりあえずe-Statで「犯罪」と打ち込んでヒットした犯罪統計をあたってみる。\nひとまず犯罪の種類ごとにデータがあったので、（レイプなどが増えるという話が特に吹き荒れているので）ひとまず不同意性交等のデータを集めてみた。不同意わいせつもあったのだが、とにかくデータが分析に不向きで時間がないため、このデータにした。こんなExcelファイル見て「ほぉほぉなるほど！」とかなる人いないのだから、せめて分析向きにしてほしい。切実に。\n\n\n\n元データ\n\n\nとりあえずコロナ前の2018年から2024年までのデータを収集した。\nあとは住民基本台帳から都道府県ごとの外国人人口を回収。同じく2018年から2024年。"
   },
   {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#市町村ごとに光量を計算する",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#市町村ごとに光量を計算する",
-    "title": "夜間光を可視化する",
-    "section": "市町村ごとに光量を計算する",
-    "text": "市町村ごとに光量を計算する\nここからは、切り出したデータを用い、市町村の平均光量を計算していきます。なお、本ページでは計算の厳密さは重視しませんので、あくまでも計算方法の提示にとどめます3。\n使用するデータは今計算したmaskedです。そして計算に使用する関数はterra::extract()です。\n\nntl_values &lt;- terra::extract(masked, muni, fun = mean, na.rm = TRUE)\n\nextract()関数を使い、maskedとmuniを重ね合わせながら、平均（mean）を計算しています4。欠損値がある場合でも対応できるように、na.rm = TRUEを指定しています。このときもし\nWarning: [extract] transforming vector data to the CRS of the raster\nというような警告が出てきた場合は座標系が揃っていないということなので、前に戻って座標系を設定してください。\n計算したものの中身は以下のようになっています。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                ID\n                nighttime_lights_2024\n              \n        \n        \n        \n                \n                  1\n                  10.530607\n                \n                \n                  2\n                  2.032149\n                \n                \n                  3\n                  2.897246\n                \n                \n                  4\n                  3.978741\n                \n                \n                  5\n                  6.942668\n                \n                \n                  6\n                  1.047370\n                \n        \n      \n    \n\n\n\nこのIDはmuniの行番号に対応しているので、muniにbind_cols()等すれば適切に結合できます5。\n例：\n\nlibrary(tidyverse)\n\nmuni_ntl &lt;- muni |&gt; \n  bind_cols(ntl_values) |&gt; \n  select(-ID) |&gt; \n  relocate(geom, .after = last_col())\n\nIDはもはや不要なので抜いて、個人的にgeomは最後に置きたいので移動させていますが、これらはなくても問題ありません。\nこれでできるのが以下です。\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                name_muni\n                id_muni\n                id_pref\n                nighttime_lights_2024\n                geom\n              \n        \n        \n        \n                \n                  札幌市\n                  01100\n                  01\n                  10.530607\n                  MULTIPOLYGON (((141.2828 43...\n                \n                \n                  函館市\n                  01202\n                  01\n                  2.032149\n                  MULTIPOLYGON (((141.1571 41...\n                \n                \n                  小樽市\n                  01203\n                  01\n                  2.897246\n                  MULTIPOLYGON (((140.8554 43...\n                \n                \n                  旭川市\n                  01204\n                  01\n                  3.978741\n                  MULTIPOLYGON (((142.2877 43...\n                \n                \n                  室蘭市\n                  01205\n                  01\n                  6.942668\n                  MULTIPOLYGON (((140.941 42....\n                \n                \n                  釧路市\n                  01206\n                  01\n                  1.047370\n                  MULTIPOLYGON (((144.3589 42...\n                \n        \n      \n    \n\n\n\n単純平均ではあるものの、札幌が大きな値をとっており、傾向はあっていそうな感じです。\n他の、例えばメッシュデータなどを組み合わせればもう少し詳細に計算もできると思いますが、今回はここまでとします。"
+    "objectID": "pages/blog/250331_hanzai/index.html#取り急ぎプロット",
+    "href": "pages/blog/250331_hanzai/index.html#取り急ぎプロット",
+    "title": "学生最後にやってみたかったこと",
+    "section": "取り急ぎプロット",
+    "text": "取り急ぎプロット\nとにかくデータ整備が煩わしく、思い立ってから整備を終えるだけで2時間近くかかってしまった。やっとデータフレーム化できたので、急いでプロットしてみよう。\n\n\nコード\nlibrary(tidyverse)\nlibrary(ggrepel)\ndata_dir &lt;- here::here(\"data/250331_hanzai\")\n\n# --------------------\n# 変数の整備\n# --------------------\ndf &lt;- read_csv(file.path(data_dir, \"dataframe.csv\")) |&gt; \n  mutate(\n    group = if_else(id_pref %in% c(13, 23, 27), \n                    as.factor(name_pref), \"other\"), \n    group_lab = if_else(id_pref %in% c(13, 23, 27) & year == 2024, \n                        name_pref, NA_character_)\n  )\n\n# --------------------\n# プロット\n# --------------------\nggplot(\n  df |&gt; filter(id_pref %in% c(13, 23, 27)), \n  aes(x = year, y = ninchi_total, group = id_pref)\n) + \n  theme_minimal() + \n  theme(\n    panel.grid = element_blank(), \n    legend.position = \"none\"\n  ) + \n  geom_vline(\n    xintercept = seq(2018, 2024, by = 1), \n    color = \"gray91\", \n    linewidth = .6\n  ) + \n  geom_segment(\n    data = tibble(y = seq(0, 600, by = 200), x1 = 2018, x2 = 2024), \n    aes(x = x1, xend = x2, y = y, yend = y), \n    inherit.aes = FALSE, \n    color = \"gray91\", \n    linewidth = .6\n  ) + \n  geom_segment(\n    data = tibble(y = seq(100, 500, by = 200), x1 = 2018, x2 = 2024), \n    aes(x = x1, xend = x2, y = y, yend = y), \n    inherit.aes = FALSE, \n    color = \"gray93\", \n    linewidth = .4\n  ) + \n  geom_line(\n    data = df |&gt; filter(group == \"other\"), \n    color = \"gray75\"\n  ) + \n  geom_line(\n    aes(color = group)\n  ) + \n  geom_text_repel(\n    aes(color = group, label = group_lab), \n    hjust = 0, \n    xlim = c(2024.4, NA), \n    size = 4, \n    segment.linetype = \"dotted\"\n  ) + \n  labs(x = \"年\", y = \"不同意性交等の認知件数\") + \n  scale_x_continuous(\n    expand = c(0, 0), \n    limits = c(2018, 2025), \n    breaks = seq(2018, 2024, by = 2)\n  ) + \n  scale_y_continuous(\n    expand = c(0, 0), \n    limits = c(0, 600), \n    breaks = seq(0, 600, by = 200)\n  )\n\n\n\n\n\n\n\n\n\nここまでプロットして、人口当たりにするのを忘れていたことに気づく…。そりゃ東京大阪名古屋が多いに決まってるよねー…という感じではある。\nしかし繰り返すが時間がない。ここで分かったこととしては、明確にコロナ以降に犯罪数が伸びていることである。東京なんかは前と比べて3倍弱になっているようだ。\nコロナで何かが変わったのか？という気がするが、ここで外国人が増えたからだとは論じることはできない。とはいえインバウンドが盛んになったのもコロナ以後であるから、犯罪が増加したのと時期が被っているのは確かなようである。"
   },
   {
-    "objectID": "pages/gis_in_r/4_nighttime_light/index.html#footnotes",
-    "href": "pages/gis_in_r/4_nighttime_light/index.html#footnotes",
-    "title": "夜間光を可視化する",
+    "objectID": "pages/blog/250331_hanzai/index.html#ここまできたら最後までやりたいが",
+    "href": "pages/blog/250331_hanzai/index.html#ここまできたら最後までやりたいが",
+    "title": "学生最後にやってみたかったこと",
+    "section": "ここまできたら最後までやりたいが…",
+    "text": "ここまできたら最後までやりたいが…\n今は19時15分。さっさと明日の準備して寝ないとという焦りも生じてきたので、せめて相関くらいは見ておこう。仕事が始まってもし時間ができたらさらに調べてみることにする。\n\n\nコード\ndf_ratio &lt;- df |&gt; \n  filter(year %in% c(2018, 2024)) |&gt; \n  select(id_pref, name_pref, year, ninchi_total, pop_gaikoku) |&gt; \n  pivot_wider(\n    names_from = year, \n    values_from = c(ninchi_total, pop_gaikoku), \n    names_sep = \"\"\n  ) |&gt; \n  mutate(\n    ninchi_inc = ninchi_total2024 / ninchi_total2018, \n    fpop_inc = pop_gaikoku2024 / pop_gaikoku2018\n  ) |&gt; \n  select(ends_with(c(\"_pref\", \"_inc\")))\n\nggplot(df_ratio, aes(x = fpop_inc, y = ninchi_inc)) + \n  geom_point() + \n  xlab(\"外国人人口増加率\") + \n  ylab(\"不同意性交等罪認知件数増加率\") + \n  stat_smooth(method = lm, se = FALSE, color = \"darkgreen\") + \n  annotate(\"text\", x = 1.75, y = 11, label = \"R^2 == 0.088\", \n           parse = TRUE) + \n  theme_bw()\n\n\n\n\n\n2018年から2024年の増加率で見た相関\n\n\n\n\nまぁ、正の相関は見られるが、大して強くはないな。しかも思いついた変数同士で適当に見ただけだから特に説得力もない。やってみただけになってしまった…（はじめからそのつもりではあったのだが）。\n時間も時間なのでここが限界かもしれない。"
+  },
+  {
+    "objectID": "pages/blog/250331_hanzai/index.html#力尽きた",
+    "href": "pages/blog/250331_hanzai/index.html#力尽きた",
+    "title": "学生最後にやってみたかったこと",
+    "section": "力尽きた",
+    "text": "力尽きた\nこんな簡単なプロットでも数時間かかると思うと恐ろしいものだ。しかも説得力を持たせようと思ったらさらに入念に変数を検討して、適切な手法を用いて分析せねばならない。\n研究者とはすごいなと改めて思った。僕はどちらかというとその環境整備というか、もちろんRで分析カタカタすることもあるとは思うのだが、使いやすいデータを普及させたり、一般市民が社会問題の概要を適切に把握できるようなプロットを作成したいという思いがある。エビデンスという言葉は一見説得力があるが、なんだかほんとにわかってるのかなと、未熟な僕でも思うことがある。\n今日もプロットを作っていて、これをこう切って貼ったら信じちゃう人もいるんじゃないかと感じた。上のプロットだって大した検討もしていないのに、これだけ持ってやっぱり外国人が増えると犯罪が増えるじゃないかと主張できかねない。何事も妄信はいけないなと、なぜか春休みの最後に考えることとなった。\nともかく明日からは社会人。まずは見習いだが、自分でも納得がいくいい仕事をできるように頑張っていきたい。"
+  },
+  {
+    "objectID": "pages/blog/250331_hanzai/index.html#最後に",
+    "href": "pages/blog/250331_hanzai/index.html#最後に",
+    "title": "学生最後にやってみたかったこと",
+    "section": "最後に",
+    "text": "最後に\n春休みはShinyアプリケーションも作ってみた。RESASに感化されてRでもやれたらどうかと思い、勢いで3つくらい作った（ついでに久しぶりにRESASみたらだいぶアップデートされてた）。\n春休みの自由課題ということで、ここまで読んでくれた方にはぜひそちらも少し見ていってほしい。お願いします。\n\n\n\n\n\n\nSoftware"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#はじめに",
+    "href": "pages/blog/241125_cite_drive/index.html#はじめに",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "section": "はじめに",
+    "text": "はじめに\n文献管理には何を使っていますか？\nZoteroやEndnote、Paperpileなど様々なツールがあると思いますが、最近CiteDriveなるものをR Markdown公式がツイートしていました。\n\n\n📚 Tired of juggling citations? Meet (CiteDrive?)—your ultimate solution for seamless citation and reference management with #RStudio, #RMarkdown, and #QuartoPub. Simplify your workflow today! 🚀 Learn more: https://t.co/tEQyezjwEa#RStats #DataScience #QuartoPub #BibTeX #LaTeX…\n\n— R Markdown ((rmarkdown?)) November 25, 2024\n\n\nどうやらOverleaf, R Markdown, Quartoに適した文献管理ツールのようで、Quartoユーザーの僕にとってはいい選択肢になるのでは？と思いました。\nとは言っても修士論文の文献管理はZoteroで行っており、それをいまさら変えるつもりはなかったので、とりあえずプレゼンスライド用にQuarto \\(\\times\\) CiteDriveで使ってみました。\n結果として、簡単で使いやすく、文献管理ツールを使ったことがない方でも大きな抵抗感なく使えると思い、今回まとめることにしました。"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#citedriveの準備",
+    "href": "pages/blog/241125_cite_drive/index.html#citedriveの準備",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "section": "CiteDriveの準備",
+    "text": "CiteDriveの準備\nCiteDriveのいいなと思った点に、アプリをインストールしなくてよいということが挙げられ、そのためブラウザ上ですべてが完結します。\nまずはCiteDriveにアクセスします。すると右上にSign upがあると思うので、そこからユーザー登録します。\nホーム画面へ行くので、New Projectより任意のプロジェクト名を入力し、Create New Projectを選択します。\n\n\n\n\n\n次に拡張機能をインストールします1。\nchrome ウェブストアやFirefox Browser ADD-ONSからCiteDriveと検索して出てきたものをインストールします。どちらも1番上に出てくることを確認したので、特に問題ないと思います。\n\n\n\nchromeウェブストアの場合\n\n\nちなみに上のツールバーにピン止めしておくと使いやすくお勧めです。\n\nユーザー登録\n拡張機能のインストール\n\nこれで準備は完了です。"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#文献を追加する",
+    "href": "pages/blog/241125_cite_drive/index.html#文献を追加する",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "section": "文献を追加する",
+    "text": "文献を追加する\n引用したい2論文のページに行きます。今回は Bassetto et al. (2024) を例に紹介します。\n追加の方法は2種類あります。\n\n拡張機能を使って追加する\n.bibファイルを使って追加する\n\n\n拡張機能を利用\nまず1つ目です。\n論文のページに行き、ツールバーの拡張機能ボタン、もしくは右下に出ているCiteDriveボタンをクリックします。\n\n\n\n右下にもボタンが出ています\n\n\nすると、次のような画面に進みます。\n\n\n\n一部おかしくなっています\n\n\nこのように出てきて、問題がなければ右上のSaveをクリックし、保存します。\nしかし、冒頭にも書いたようにまだ完璧ではないツールなので、たまにおかしくなることがあり、今回も文字化けのような現象が起きています。\nこのような場合は手で修正するのが早いでしょう。名前とページの部分で修正が必要なので、まず名前は「Marco Bassetto & Zhen Huo & José-Víctor Ríos-Rull」とFirst name Last name & …となるように&でつないでいきます。ページは-（ハイフン）が文字化けしているので、ハイフンに直します。「3427–68」といった具合です。\nどうしてもページ情報を読み取っているので、その過程でおかしくなってしまうみたいですね。\nできたら右上のSaveで保存します。\n\n\n.bibファイルを利用\n次に2つ目の手順です。\n論文のページでは、citationをexportできるようになっています。一般的にはRISやBibTeXを使うことが多いと思いますが、ここではBibTeXを使用します。例えばAEAのページでは、論文ページの下の方へ行くと、Citationというところがあり、そこから.bibファイルをダウンロードできます。\n\n\n\nBibTeXを選択します\n\n\n選択ボックスからBibTeXを選択し、「Download as .bib」をクリックし、ダウンロードします。\n次にCiteDriveの任意のプロジェクトから、「Add」\\(\\rightarrow\\)「Upload BibTeX / RIS files」を選択し、「参照…」から、今ダウンロードした.bibファイルをアップロードします。\n.bibファイルは必要な情報を正確に含んでいる（はず）なので、画面の情報から作成する1の手順より正確です。"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#限界に気づく",
+    "href": "pages/blog/241125_cite_drive/index.html#限界に気づく",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "section": "限界に気づく",
+    "text": "限界に気づく\n…とここまで書いて、CiteDriveの限界に気が付いた。\n.bibファイルを読み込んでも、それを正確に認識してくれないのだ。特に著者が複数人いる場合。\n.bibファイルの書かれ方は結構いろいろあり、「Last name, First name and …」みたいな書き方もあれば「First name Last name, …」みたいな書き方もある。しかし、CiteDriveはこれに対する認識力が欠如しており、「First name Last name & …」という書き方しか認識してくれないようだ（阿部調べ）。\nこれではせっかく正確な情報を写すために.bibファイルをダウンロードしてきているのに、手直しが必要なのでは元も子もない。\nここは今後改善されていくのだろうが、現段階ではあまりに不便すぎる。Zotero等は自動で認識して整理してくれるので大変ありがたい。\nしかしこれではZoteroでいい！となってしまう（実際なりそうなのだが）ので、引用が非常に便利という利点（これは本当にそう）を伝えるべく、この点には目をつむって書き進めていこうと思う。"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#citedrive内を整理",
+    "href": "pages/blog/241125_cite_drive/index.html#citedrive内を整理",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "section": "CiteDrive内を整理",
+    "text": "CiteDrive内を整理\n追加した文献は、プロジェクトに自動追加されるのではなく、ホームのリストにプールされます。そのため、使いたいプロジェクトに振り分けてやる必要があります。\n\n\n\n「mywebsite」というフォルダに入れています\n\n\n文献をプロジェクトに入れることができたら、左側のリストから使いたいプロジェクトを選択します。すると、画面右上に「.bib」というボタンがあるのでそこをクリックし、出てきたURLをコピーしておきます。\n続いてRStudioに移ります。"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#quarto内で引用",
+    "href": "pages/blog/241125_cite_drive/index.html#quarto内で引用",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "section": "Quarto内で引用",
+    "text": "Quarto内で引用\nRStudioで新しいQuartoファイルもしくはR Markdownファイルを開きます。\n---で囲まれたYAMLヘッダーと呼ばれる部分がありますが、ここにbibliography: \"コピーしたURL\"という感じで追加します。\n\n\n\nダブルクォーテーションで囲むのをお忘れなく\n\n\n長ったらしいですが、これでOKです。\n次にCiteDriveに戻り、プロジェクト内で引用したい論文にチェックを入れ、上の引用符をクリックします。\n\n\n\n\n\nこれで引用するためのコードがコピーされました。\nRStudioに戻り、任意の場所にペーストすると、[@bassetto_institution_2024]のように出てきますので、このままRenderすれば、(Bassetto et al. 2024) のように出力されます。Bassetto et al. (2024) のようにしたければ、四角括弧を外す必要がありますので、用途に応じて変えてみてください。"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#おわりに",
+    "href": "pages/blog/241125_cite_drive/index.html#おわりに",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
+    "section": "おわりに",
+    "text": "おわりに\nこのように、文献追加のところさえうまくいけば、ローカルにアプリをインストールする必要もなくブラウザ上で完結するし、.bibファイルをエクスポートする必要もないので非常に便利なツールなのです。\nしかし、その課題点が僕には大きく、本格採用には至っていません。僕は公式推奨のツールはなるべく使ってみたい人間なので、改善点が早期に修正され、満足いく使用感が得られるようになることを望みます。\n興味があれば、使ってみてください。"
+  },
+  {
+    "objectID": "pages/blog/241125_cite_drive/index.html#footnotes",
+    "href": "pages/blog/241125_cite_drive/index.html#footnotes",
+    "title": "【CiteDrive】オンラインで手軽に文献管理（？）",
     "section": "注",
-    "text": "注\n\n\n例：st_transform(st_crs(muni))↩︎\nxmin()は経度の下限、ymax()は緯度の上限を表しているといった感じです。↩︎\n単純平均では、面積が大きいかつごく一部のみ都市化しているような市町村は過小評価されると考えてよいと思います。↩︎\nここでもtidyrパッケージとの競合を避けるためterraを明記しています。↩︎\nidはmuni のどの列にも対応しない（行番号のみ）ので、left_join()ではなくbind_cols()しています。↩︎"
+    "text": "注\n\n\nサイト側からインストールするよう勧められるかもしれませんが、指示に従って大丈夫です。↩︎\n実際に論文で使うかはさておいて、メモとして記録しておくためだけでも使えます↩︎"
   },
   {
-    "objectID": "pages/research/notsu_et_al_2025.html",
-    "href": "pages/research/notsu_et_al_2025.html",
-    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
+    "objectID": "pages/blog/240918_github_copilot/index.html#copilotは強い",
+    "href": "pages/blog/240918_github_copilot/index.html#copilotは強い",
+    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
+    "section": "Copilotは強い",
+    "text": "Copilotは強い\n最近はAIの時代といっても過言じゃないほどスマホにもパソコンにもAIが搭載されるのが普通になっている。\n僕はM1の頃にGitHub Copilotの存在を知り、それを使い続けているのだが、結構すごくて役に立つ。特にVSCodeで作業するときに重宝している（RStudioでも使えるのだが、RStudioの良さが消えてしまうのであまり使っていない。）\n本来GitHub Copilotは有料だが、学生は無料で使えるため全大学院生が申請して損はないと思う。今回は申請方法をまとめてくれている記事の紹介とどんな感じで使えるのかを紹介したい。"
+  },
+  {
+    "objectID": "pages/blog/240918_github_copilot/index.html#申請方法",
+    "href": "pages/blog/240918_github_copilot/index.html#申請方法",
+    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
+    "section": "申請方法",
+    "text": "申請方法\n申請方法については、以下の記事がわかりやすくまとめてくれている。\n\n\n\n\n\n\n【GitHub】学生申請をして無料でGitHub Copilotを使う\n\n\n\n特に難しいところはない。学生証を英語にして書き直すところが面倒なくらいかと。\n後半に書いてあるように、VSCodeでGitHub Copilotの拡張機能を入れ、GitHubでログインすればVSCode上で使うことができる。"
+  },
+  {
+    "objectID": "pages/blog/240918_github_copilot/index.html#使い方のイメージ",
+    "href": "pages/blog/240918_github_copilot/index.html#使い方のイメージ",
+    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
+    "section": "使い方のイメージ",
+    "text": "使い方のイメージ\nVSCodeで空ファイルを作ると、以下のように出てくる。\n\n\n\n「何らかの操作を依頼」することができるようだ。\n\n\n早速Ctrl + Iを押して依頼してみる。\n\n\n\n\n\nこんな感じで依頼してみると、\n\n\n\n\n\nこんな感じで書いてくれた。「同意する」を押すと、コードが入力される。\nもっと丁寧に指示すれば、細かいコードも書いてくれる。\nまた、ChatGPTのように、チャット形式で依頼することも可能。GitHub Copilot Chatの拡張機能を入れると、左側のバーにチャットのアイコンが出てくるので、そこをクリック。\nチャットで聞くと、回答を出してくれる。\n\n\n\n\n\nいい感じに出してくれた。出してくれたコードにカーソルを合わせると星マークのようなものが出てくるが、それは「エディターで適用します」であり、クリックすれば書いていた文書にそのコードを適用してくれる。\nさらに、Copilotは書いている文章の候補も自動で提示してくれる。\n先ほどのコードの「はじめに」の部分を少しいじってみると、\n\n\n\n\n\n初めまして、と打ったら続けてグレーの文字で続きを提示してくれている。\nTabキーで一括採用できるし、Ctrl + →で一部採用もできる。文章によっては、超絶長い提示もしてくれることがあって、すげえな…と思うこともある。\n全然そういうことじゃないんだけどなーということもあれば、的を射た提示をしてくれることもある。場合にはよるが、結構頼りになる。"
+  },
+  {
+    "objectID": "pages/blog/240918_github_copilot/index.html#まとめ",
+    "href": "pages/blog/240918_github_copilot/index.html#まとめ",
+    "title": "【学生は申し込め】GitHub Copilotを申請しよう",
+    "section": "まとめ",
+    "text": "まとめ\n入れておいて損はなかったなと、1年使ってみて思う。\nもちろん文章だけでなくRやPython、LaTeXなどなどにも使えるし、むしろそっちが本業だと思う。\nぜひ紹介したサイトを参考にしながら、申請してみてほしい。"
+  },
+  {
+    "objectID": "pages/blog/240723_typst/index.html#typst",
+    "href": "pages/blog/240723_typst/index.html#typst",
+    "title": "もはや TinyTeX も要らないのか…？",
+    "section": "Typst…？",
+    "text": "Typst…？\nこれまで PDF 出力は Quarto × TinyTeX でやってきたけど、たまたま Typst なるものを見つけた。\n疲れたら Quarto 公式ドキュメントを読んでいるのだけど、PDF 出力 = \\(\\LaTeX\\) との先入観があったので、Typst に気が付かなかったのだ。\nどうやら \\(\\LaTeX\\) 出力よりは速いらしい。早速使ってみる。"
+  },
+  {
+    "objectID": "pages/blog/240723_typst/index.html#確かに早いし楽",
+    "href": "pages/blog/240723_typst/index.html#確かに早いし楽",
+    "title": "もはや TinyTeX も要らないのか…？",
+    "section": "確かに早いし、楽。",
+    "text": "確かに早いし、楽。\nとりあえず、以下のようにして書き始めてみる。\nYAML ヘッダーに keywords の項目あるのにPDFには出力できないのはなぜなんだろうか…。公式見ると HTML とかではいけそうなんだけどね。\n---\ntitle: Typst demo\nauthor: \n  - name: Yosuke Abe\n    affiliation: OSIPP\nabstract: |\n  Here is an abstract.\ndate: today\ndate-format: long\nlang: en\nformat: \n  typst: \n    keep-typ: true\n---\nそんで出力できたのがこちら\n結構いい感じですねー。そんなに \\(\\LaTeX\\) と比べても遜色ない。\nこれはもう少し丁寧にまとめて Tips に追加したい。\nそれでは。"
+  },
+  {
+    "objectID": "pages/blog/240708_positron/index.html#positron",
+    "href": "pages/blog/240708_positron/index.html#positron",
+    "title": "Positron は何者？",
+    "section": "Positron…?",
+    "text": "Positron…?\n先日後輩に教えられて「Positron」なるものの存在を知りました。\nどうやら RStudio に次ぐ IDE（統合開発環境）のようで、R には RStudio しか勝たんだろうと思っていた僕としては少し驚きました。\nというのも、VSCode での R 操作も試していたことがあり、その際に不便を感じることが多かったからです。特にキーボードショートカットで、は万能な VSCode であるがゆえに他の言語や機能と干渉してしまい、設定も面倒でした。その後は開発コンテナを使用している場合も RStudio Server を使用してきました。\nしかし今度は RStudio を提供する Posit 社が直々に新たな IDE を提供してきたと聞いて、大変興味を惹かれさっそくインストールすることにしました。\nとりあえず、R と Python のどちらとも親和性が高いことが売りみたいです！"
+  },
+  {
+    "objectID": "pages/blog/240708_positron/index.html#インストール",
+    "href": "pages/blog/240708_positron/index.html#インストール",
+    "title": "Positron は何者？",
+    "section": "インストール！",
+    "text": "インストール！\nまだ正式リリースはされていないようです。\nGitHub からリリースページに飛んでインストールをしてみます。ここからインストールできます。\nインストールに難しいことはなく、サクサクと進みました。"
+  },
+  {
+    "objectID": "pages/blog/240708_positron/index.html#開いてみる",
+    "href": "pages/blog/240708_positron/index.html#開いてみる",
+    "title": "Positron は何者？",
+    "section": "開いてみる",
+    "text": "開いてみる\n画面はこんな感じです。\n\nこれを開くまで知らなかったのですが、これは VSCode をフォークして作られているっぽいですね。\nVSCode での R に挫折した僕としては、少し不穏なスタートです😅"
+  },
+  {
+    "objectID": "pages/blog/240708_positron/index.html#コードを実行してみる",
+    "href": "pages/blog/240708_positron/index.html#コードを実行してみる",
+    "title": "Positron は何者？",
+    "section": "コードを実行してみる",
+    "text": "コードを実行してみる\n試しに ggplot2::ggplot() を使ってプロットしてみることにします。\n\nうーん、現段階では課題が多そうですね。プレリリース版なので仕方なしです。\n\nショートカットが違う\n\nVSCode ベースの時点でなんとなく察していましたが、いろいろと違います。設定の必要あり。\n例えばチャンクの挿入は RStudio では Ctrl + Alt + I でしたが、Positron では Alt ではなく Shift。\nパイプも Ctrl + Shift + M では入れられない。など…。\n\nインライン出力未対応\n\nRStudio ではコードの下に実行結果が出ていましたが、Positron では対応していないようです。\n後で触れますが、今後対応していくみたい。\n\nggplot() で日本語を使うと文字化けする\n\nRStudio では文字化けしないので、今後修正されるのかな？\n\n\n\n\n\nRStudio"
+  },
+  {
+    "objectID": "pages/blog/240708_positron/index.html#レンダリングしてみる",
+    "href": "pages/blog/240708_positron/index.html#レンダリングしてみる",
+    "title": "Positron は何者？",
+    "section": "レンダリングしてみる",
+    "text": "レンダリングしてみる\nではレンダリング（R Markdown で言うところの Knit）してみます。\n\nあれ、なんか普通に日本語出力できてますね…笑\n\nでも PDF だといつも通り文字化けします。ここは YAML ヘッダーの設定で対応できそうです。"
+  },
+  {
+    "objectID": "pages/blog/240708_positron/index.html#感想",
+    "href": "pages/blog/240708_positron/index.html#感想",
+    "title": "Positron は何者？",
+    "section": "感想",
+    "text": "感想\n\n今後の期待が高まる\n現時点では VSCode の時の不便さを解消しきれておらず、まだ乗り換えられないなというのが正直なところです。\nしかし、他ではコンソールで予測変換が使えるようになってて、それが結構いい感じです。install.packages() と書く時間が短縮できます(^^)（他にもっとないのか()）\n次の課題を乗り越えてきたら、僕は Positron に移行するかもしれません。\n\nインライン出力\n\n実行結果がコードの下に出てほしいです。\n\n拡張機能の充実\n\n現時点では主要な拡張機能が使えません。Microsoft が提供する拡張機能は純正 VSCode でしか使えないようです。\n\nリモート開発機能への対応\n\nTips でも紹介している通り、開発コンテナを使用した環境構築をしているので、ここへの対応は必須です。\n\n\nちなみに、Posit 公式が言っているように、現在は多くの課題を抱えていて、データサイエンティストにとってすぐに最適なものになるとは考えていないようです。\nまた、今後のビジョンも示されており、上に挙げたような課題も克服されると思います。\nこれからのアップデートに期待しましょう！"
+  },
+  {
+    "objectID": "index.html#highlights",
+    "href": "index.html#highlights",
+    "title": "Yosuke Abe",
+    "section": "🌟 Highlights",
+    "text": "🌟 Highlights\n🗓 2025/10/14\nSoftwareにデータセクションを追加しました！\n📌 第1弾として日本の夜間光データ（GeoTIFF形式）を追加しました！\n🗓 2025/09/28\nggplot2使い方ガイドをアップデートしました！（→ Tipsへ）\n📌 バージョン4.0.0に対応しています！\n🗓 2025/09/01\nPositronのおすすめ設定についての記事を追加しました！\n📌 新しい環境に移行して、Positronを盛り上げましょう！\n🗓 2025/07/21\nShinyアプリケーション「人口ヒートマップ」をアップデートしました！（→ Softwareへ）\n📌 サーバーを変更しました！\n🗓 2025/04/17\nNotsu, Abe, and Harada (2025)がApplied Economics Lettersに掲載されました！\n📌 Abstractはこちら\n🗓 2025/02/16\n「政令指定都市・中核市の整理」ページをアップデート（→ Tipsへ）\n📌 行政区を市単位で集計できるコードを追加しました。"
+  },
+  {
+    "objectID": "index.html#latest-posts",
+    "href": "index.html#latest-posts",
+    "title": "Yosuke Abe",
+    "section": "📜 Latest Posts",
+    "text": "📜 Latest Posts\n\n\n\n\n\n\n\n\n\n\n開発コンテナの環境について\n\n\nVSCodeの開発コンテナを用いたRの開発環境についての一案です。\n\n\n\n\n\n2025/10/11\n\n\n\n\n\n\n\n\n\n\n\n\n【R】仮想環境を設定する【Python】\n\n\nrenvとvenvを使います！\n\n\n\n\n\n2025/09/26\n\n\n\n\n\n\n\n\n\n\n\n\nDuckDBをRで使う\n\n\nR上でデータベース操作を行うために、DuckDBを利用する方法についてまとめます。\n\n\n\n\n\n2025/09/19\n\n\n\n\n\n\n\n\n\n\n\n\nバージョンアップしたggplot2を試す\n\n\nggplot2がバージョンアップしたので、新しい要素を試してみた\n\n\n\n\n\n2025/09/15\n\n\n\n\n\n\n\n\n\n\n\n\nPositronのおすすめ設定！【R | Python】\n\n\nRStudioからの移行もスムーズに進めましょう。\n\n\n\n\n\n2025/09/01\n\n\n\n\n\n一致なし"
+  },
+  {
+    "objectID": "pages/about.html",
+    "href": "pages/about.html",
+    "title": "阿部洋輔",
     "section": "",
-    "text": "Most studies have focused on the economic consequences of disaster shocks, but the broader impact on areas outside the disaster remains unclear. Using the shock of the Great East Japan Earthquake and cross-municipality variation in the locations of nuclear power plants unrelated to the earthquake, this paper shows the indirect impact of disasters on population dynamics. The earthquake triggered nuclear power plant accidents, which heightened residents’ risk perceptions of the plants. We find that population inflows to and outflows from municipalities with nuclear power plants decreased after the earthquake. The effects could also be driven by the residents’ risk perceptions and falling land prices. Our findings suggest that policymakers and researchers need to consider the broader extent of disaster effects more carefully.\nURL: https://www.tandfonline.com/doi/full/10.1080/13504851.2025.2493771"
+    "text": "X (Twitter)\n  \n  \n      Bluesky\n  \n  \n    \n     GitHub\n  \n\n  \n  \n\n\n\n福島県出身（福島市）\n学士（経済学）\n修士（国際公共政策）\n仕事：民間シンクタンク研究員\n\n\n\n\n\n (Base, Tidyverse)\n Quarto Markdown\n\\(\\LaTeX\\)\n Python （勉強中）"
   },
   {
-    "objectID": "pages/research/notsu_et_al_2025.html#abstract",
-    "href": "pages/research/notsu_et_al_2025.html#abstract",
-    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
+    "objectID": "pages/about.html#ざっくり",
+    "href": "pages/about.html#ざっくり",
+    "title": "阿部洋輔",
     "section": "",
-    "text": "Most studies have focused on the economic consequences of disaster shocks, but the broader impact on areas outside the disaster remains unclear. Using the shock of the Great East Japan Earthquake and cross-municipality variation in the locations of nuclear power plants unrelated to the earthquake, this paper shows the indirect impact of disasters on population dynamics. The earthquake triggered nuclear power plant accidents, which heightened residents’ risk perceptions of the plants. We find that population inflows to and outflows from municipalities with nuclear power plants decreased after the earthquake. The effects could also be driven by the residents’ risk perceptions and falling land prices. Our findings suggest that policymakers and researchers need to consider the broader extent of disaster effects more carefully.\nURL: https://www.tandfonline.com/doi/full/10.1080/13504851.2025.2493771"
+    "text": "福島県出身（福島市）\n学士（経済学）\n修士（国際公共政策）\n仕事：民間シンクタンク研究員"
   },
   {
-    "objectID": "pages/research/notsu_et_al_2025.html#bibtex",
-    "href": "pages/research/notsu_et_al_2025.html#bibtex",
-    "title": "The indirect effects of nuclear power plant accidents on population dynamics",
-    "section": "BibTeX",
-    "text": "BibTeX\n@article{notsu_indirect_2025,\n    author = {Notsu, Naruki and Abe, Yosuke and Harada, Shuko},\n    title = {The indirect effects of nuclear power plant accidents on population dynamics},\n    journal = {Applied Economics Letters},\n    volume = {0},\n    number = {0},\n    pages = {1--6},\n    year = {2025},\n    publisher = {Routledge},\n    doi = {10.1080/13504851.2025.2493771},\n\n    URL = {https://doi.org/10.1080/13504851.2025.2493771},\n    eprint = {https://doi.org/10.1080/13504851.2025.2493771}\n}"
+    "objectID": "pages/about.html#スキル",
+    "href": "pages/about.html#スキル",
+    "title": "阿部洋輔",
+    "section": "",
+    "text": "(Base, Tidyverse)\n Quarto Markdown\n\\(\\LaTeX\\)\n Python （勉強中）"
+  },
+  {
+    "objectID": "pages/about.html#research",
+    "href": "pages/about.html#research",
+    "title": "阿部洋輔",
+    "section": "Research",
+    "text": "Research\n\n\n  \n  \n    \n      \n        Notsu, Abe, and Harada (2025) \"The Indirect Effects of Nuclear Power Plant Accidents on Population Dynamics\" Applied Economics Letters,\n        \n          https://doi.org/10.1080/13504851.2025.2493771\n        \n      \n      \n      \n        \n           Abstract\n        \n      \n      \n    \n  \n  \n\n一致なし"
+  },
+  {
+    "objectID": "pages/blog/240723_typst/demo/demo.html",
+    "href": "pages/blog/240723_typst/demo/demo.html",
+    "title": "Typst demo",
+    "section": "",
+    "text": "Keywords: Keyword 1, Keyword 2, Keyword 3…"
+  },
+  {
+    "objectID": "pages/blog/240723_typst/demo/demo.html#subsection",
+    "href": "pages/blog/240723_typst/demo/demo.html#subsection",
+    "title": "Typst demo",
+    "section": "Subsection",
+    "text": "Subsection\nYou can also write mathematical expressions like Equation 1.\n\\[\nY_{it} = \\delta D_{it} + u_i + \\varepsilon_{it}, \\quad t = 1, 2, \\ldots, T\n\\tag{1}\\]"
+  },
+  {
+    "objectID": "pages/blog/240824_dvc/index.html#データはdvcで管理しているのだが",
+    "href": "pages/blog/240824_dvc/index.html#データはdvcで管理しているのだが",
+    "title": "DVCが使えない…？",
+    "section": "データはDVCで管理しているのだが…。",
+    "text": "データはDVCで管理しているのだが…。\nなんかDVCが使えなくなった。\ndvc pushやdvc pullをしようとするとはじめは認証が必要になると思うのだが、認証しようとするとこんなものが出る。\n\n\n\n\n\nえー、という感じ。\nDVCの公式を覗いてみたら、やっぱりこれは問題らしい。\n\n\n\n\n\n\n\nDVC公式ドキュメント\n\n\nちょっと読んでみると、Google Cloudプロジェクトを使えば何とかなるような感じがする。\nしばらくして治らなかったら、このやり方もまとめるとしようかなー。"
+  },
+  {
+    "objectID": "pages/blog/240824_dvc/index.html#結論",
+    "href": "pages/blog/240824_dvc/index.html#結論",
+    "title": "DVCが使えない…？",
+    "section": "結論",
+    "text": "結論\nこれまでのが楽でよかった。"
+  },
+  {
+    "objectID": "pages/blog/241112_copilot_gpt/index.html#github-copilotにgpt-4oがやってきた",
+    "href": "pages/blog/241112_copilot_gpt/index.html#github-copilotにgpt-4oがやってきた",
+    "title": "【念願】GitHub CopilotにGPT 4oが搭載",
+    "section": "GitHub CopilotにGPT 4oがやってきた",
+    "text": "GitHub CopilotにGPT 4oがやってきた\nもう多分１か月は前のことだと思うが、GitHub CopilotでGPT 4oが使えるようになり、そのウェイトリストに登録できますという旨のニュースを見かけた。\nついにやってきたかーという思いで早速登録ページに行き、登録したわけだが、どうやらそんなすぐに使えるようになるわけでもないらしく、しばらく待機とのこと…。\nしかし、まだかなーとボケーっとしていたとある日、VSCodeのGitHub Copilot拡張機能にアップデートが入り、仕様も大きく変わったことに気が付いた。\nおや？と思いCopilot Chatを見てみるとなんと！\n\n\n\n右下にありますね。チャット自体はページ上部の真ん中右にあるアイコンから開けます。\n\n\nGPT 4oが選択できるようになっている。\nもちろんコーディング支援の精度や反応速度は向上するだろう。頼もしい限りだ。ブラウザでChat GPTを開かなくてもいいというのは大きい。\nまだ使い込めてはいないので何とも言えないところだが、Copilotの今後のさらなる成長に期待したい！\nGitHub Copilotをまだお使いでない方、学生なら無料で使えるので、少し手間だが以下の記事も参照に申請してみることをお勧めします！\n\n\n\n\n\n\n【学生は申し込め】GitHub Copilotを申請しよう"
+  },
+  {
+    "objectID": "pages/blog/241112_copilot_gpt/index.html#おまけ",
+    "href": "pages/blog/241112_copilot_gpt/index.html#おまけ",
+    "title": "【念願】GitHub CopilotにGPT 4oが搭載",
+    "section": "おまけ",
+    "text": "おまけ\nところで、CopilotをRStudioで使えるようにする（と言ってもローカルのRStudioの場合はすぐできるけれども）tipsを近々公開しようと思うので、RStudio Serverをお使いの方は、また見てみてください。"
+  },
+  {
+    "objectID": "pages/blog/241112_copilot_gpt/index.html#追記",
+    "href": "pages/blog/241112_copilot_gpt/index.html#追記",
+    "title": "【念願】GitHub CopilotにGPT 4oが搭載",
+    "section": "追記",
+    "text": "追記\nTipsすぐ書けたので、記事を追加しました。以下をご覧ください。\n\n\n\n\n\n\nRStudio (Server)でGitHub Copilotを使う"
+  },
+  {
+    "objectID": "pages/blog/250323_fixes/index.html#春休みの成果",
+    "href": "pages/blog/250323_fixes/index.html#春休みの成果",
+    "title": "パッケージがCRANに公開された話",
+    "section": "春休みの成果",
+    "text": "春休みの成果\n自分の修士論文だったり先輩後輩との研究だったり、昨年末あたりからDID分析をすることがまぁまぁ多かった。DID自体は比較的簡単に分析を回せるから別にいいんだけど、いかんせんイベントスタディが面倒くさかった。fixestにi()関数があることは知っていたものの、あまり使い勝手が良くないなと思っていたので、修士論文が年始に書き終わったタイミングでイベントスタディ用のパッケージを開発しようと決めた。\n他のパッケージのソースコードを何個か見たことがあったのでその複雑さは知っていたものの、幸いにも今はAIが発展してきているので、なんとかなるだろうという楽観的な気持ちで始めてみた。\n結果的になんとか書き終わったものの、その道のりは思ったよりも大変だった。"
+  },
+  {
+    "objectID": "pages/blog/250323_fixes/index.html#意外と考えることは多い",
+    "href": "pages/blog/250323_fixes/index.html#意外と考えることは多い",
+    "title": "パッケージがCRANに公開された話",
+    "section": "意外と考えることは多い",
+    "text": "意外と考えることは多い\n何が大変だったかというと、変数の扱いがある。変数をダブルクォーテーションで囲んで指定するというのは個人的に面倒だな～と思っているので、なるべく囲まなくていいようにしたかったのだが、これがまぁ難しい。いくらAIが助けてくれるとはいっても、今の段階では「とはいえAI」だと思っているので、書いてくれたのが間違っていた時がしんどい。ダブルクォーテーションで囲まなくてよくするのがこんなに大変なのかと、これまでのパッケージの開発者の方々には尊敬の念を抱くばかりだ。\n次は条件分岐。もし存在しない変数が入力されたり、値が存在する範囲をはみ出していたりすると警告やエラーメッセージを出さなくてはならない。今も完璧ではないかもしれないが、ある程度は対処できているとは思う。しかし、自分の想像しない入力があったりすると、対応できていないことがあるかもしれない。今後もこうしたことが見つかってくると思うと、メンテナンスの意義をひしひしと感じる。"
+  },
+  {
+    "objectID": "pages/blog/250323_fixes/index.html#関数ができてからも長い",
+    "href": "pages/blog/250323_fixes/index.html#関数ができてからも長い",
+    "title": "パッケージがCRANに公開された話",
+    "section": "関数ができてからも長い",
+    "text": "関数ができてからも長い\n関数ができたまではいいものの、結構提出するまでが長かったりする。パッケージをビルドしてドキュメントを作成し、タイポをチェックしたりと、やることは多い。コード例やテストコードを書いたりしなくてもならない。RStudio上でコマンドが用意されているものの…という感じではある。\nこのあたり忘れそうだから、またtipsでまとめたいな。"
+  },
+  {
+    "objectID": "pages/blog/250323_fixes/index.html#けどcranに公開できたのは大きい",
+    "href": "pages/blog/250323_fixes/index.html#けどcranに公開できたのは大きい",
+    "title": "パッケージがCRANに公開された話",
+    "section": "けどCRANに公開できたのは大きい",
+    "text": "けどCRANに公開できたのは大きい\nしばらくはCRANに公開するつもりもなかったのでGitHub上で公開しているだけだったのだが、どうせならinstall.packages()でインストールできるようにしたいし、なんか実績っぽくていいかなという思いもあったので、やっぱり公開することにした。\n新しくNEWS.mdを書かなきゃいけなかったりいくつかステップは必要だったものの、提出自体はそこまで大変ではなかった。しかし、Windows, Mac, Linuxでしっかり動くことだったり、ドキュメントの中身が精査されたりと、ハードルはGitHubで公開するよりも厳しい。実際提出した後に一回送り返された。\nけど幸いにも送り返されたのは一回だけで、二回目の提出で承認された。あまりにもぬるっと掲載されていたのでしばらく気づかなかったのだが、これで春休みの頑張りが一つ結果になった気がしてちょっとうれしかった。\nというわけで、掲載されたページは以下。\nhttps://cran.r-project.org/web/packages/fixes/index.html\ninstall.packages(\"fixes\")\nでインストールできるようにもなっている。"
+  },
+  {
+    "objectID": "pages/blog/250323_fixes/index.html#これからも何か作るかも",
+    "href": "pages/blog/250323_fixes/index.html#これからも何か作るかも",
+    "title": "パッケージがCRANに公開された話",
+    "section": "これからも何か作るかも",
+    "text": "これからも何か作るかも\nとりあえず流れを知ることができたのは大きい。今後も仕事でRを使っていくことが多いと思うので、引き続きなにか効率化できそうなものがあったらパッケージ化していけたらいいなと思う。"
+  },
+  {
+    "objectID": "pages/blog/250728_parquet/index.html#はじめに",
+    "href": "pages/blog/250728_parquet/index.html#はじめに",
+    "title": "Parquetファイルについて調べてみる",
+    "section": "はじめに",
+    "text": "はじめに\n仕事ででかいサイズのファイルを扱うことがあるので、ファイルサイズを小さくしたいという需要が僕の中にはあるのだが、その需要を満たしてくれる候補にParquetファイルがある。\nhogehoge.parquetという拡張子で、そのままparquetである。\nなんとなくファイルサイズが小さいということは知っているのだが、なぜ小さいのかはまだ分かっていないので、今回調べてみようと思う。"
+  },
+  {
+    "objectID": "pages/blog/250728_parquet/index.html#parquetファイルとは何だ",
+    "href": "pages/blog/250728_parquet/index.html#parquetファイルとは何だ",
+    "title": "Parquetファイルについて調べてみる",
+    "section": "Parquetファイルとは何だ",
+    "text": "Parquetファイルとは何だ\nChat-GPTにまとめてもらったParquetファイルの説明は以下だ。\n\nParquetファイルは、Apache Parquetというカラム指向のデータフォーマットで、主に大規模データ処理や分析で使われます。特徴は以下の通りです：\n\nカラム指向：列ごとにデータを保存するため、特定の列だけを効率的に読み込める。\n圧縮効率が高い：同じ型のデータがまとまるので圧縮しやすく、ストレージ節約になる。\nスキーマ情報を持つ：データ型や構造がファイル内に記録され、互換性を保ちやすい。\n高速なI/O：大規模データを分散処理（SparkやHadoopなど）で扱うのに適している。\n広い対応環境：Python（pandas, PyArrow）、R、Spark、BigQueryなど多くのツールで利用可能。\n\n要するに、「大規模データを効率的かつ圧縮して扱える、分析向けのカラム型データフォーマット」です。\n\nもう少し調べたので補足すると、CSVのようなファイルは行志向ファイルと呼ばれ、1行ごとにすべての列のデータがまとめて格納されているのに対し、Parquetは列（カラム）志向ファイルであり、列ごとにデータをまとめて格納しているとのこと。\nこれを実際のデータフレームの形で見てみると、以下のようになる。\n# 行志向\n(1, Yosuke, 25), (2, Yusuke, 30), (3, Kosuke, 28)\n# 列志向\nID:   [1, 2, 3]\nName: [Yosuke, Yusuke, Kosuke]\nAge:  [25, 30, 28]\nこれをテーブルで見た場合、行志向の方は各観測（それぞれの括弧）が縦に積み重なり、列志向の方は各変数（ID, Name, Age）を縦にして横に並べられる形になるのがお分かりいただけると思う。\nこれらにはもちろんそれぞれメリットがあるから両方存在しているわけなのだが、列志向データが分析に向いている点はどこなのだろうか。"
+  },
+  {
+    "objectID": "pages/blog/250728_parquet/index.html#列志向データの強み",
+    "href": "pages/blog/250728_parquet/index.html#列志向データの強み",
+    "title": "Parquetファイルについて調べてみる",
+    "section": "列志向データの強み",
+    "text": "列志向データの強み\n\n処理の効率化\nそこまで大きくないファイルではあまり実感がわかないと思うが、分析に必要なデータを抽出してくる過程で強みが発揮されるようだ。\n1億行もあるような大きいデータにおいて、売上高の合計を計算したい場合、売上高の変数を読み込めばよいわけで、列志向データであればこの列だけを読み込むことができる。\n一方の行志向データであれば、一度すべての行を読み込んでから（すなわちすべての列も必然的に読み込まれた上で）売上高の列を取得することになり、ここで非効率が生じてしまう。\nつまり、必要な列だけを高速に処理できるため、大量データの集計や分析が効率的というのが強みと言える。\n\n\nデータサイズの削減\nまた、冒頭に書いた通り、データサイズが小さいというのもメリットである。各列には同じ型のデータ（数値型、文字型等）が揃っているため、効率よく圧縮できるそうだ（ランレングス圧縮）。圧縮について説明しているページによると、\n\n例えば、文字列 AAAABBBCCDAA をランレングス圧縮すると、 4A3B2C1D2A という形式になります。\nこのように、連続する同じデータを短縮して表現することで、データのサイズを削減することができます。\n\nということで、短縮して表現できることがファイルサイズを小さくできる要因らしい。\n個人的にはむしろこっちの方が実務的にはありがたいと思っているが、そこは仕事によるといったところだろうか。"
+  },
+  {
+    "objectID": "pages/blog/250728_parquet/index.html#まとめ",
+    "href": "pages/blog/250728_parquet/index.html#まとめ",
+    "title": "Parquetファイルについて調べてみる",
+    "section": "まとめ",
+    "text": "まとめ\nParquetファイルは処理を効率化できる点、ファイルサイズを小さくできる点が特徴として挙げられる。そしてこれは、列志向データであるという特徴がポイントであることが分かった。\n色々なデータを保管していると、気づいたらストレージが少なくなってきている…ということがよくあるので、個人的には重宝している。\n今回は特徴を知ることが目的だったが、使い方についてはまたtipsの方でまとめたいと思う。その際にどれくらいファイルサイズを小さくできるのか、ファイルの中身はどうなっているのかを見ていければと思う。"
+  },
+  {
+    "objectID": "pages/blog/250728_parquet/index.html#参考",
+    "href": "pages/blog/250728_parquet/index.html#参考",
+    "title": "Parquetファイルについて調べてみる",
+    "section": "参考",
+    "text": "参考\n\n\n\n\n\n\nランレングス圧縮とは？データ圧縮技術の一つとその応用"
+  },
+  {
+    "objectID": "pages/blog/250824_polars/index.html#はじめに",
+    "href": "pages/blog/250824_polars/index.html#はじめに",
+    "title": "Polarsを触ってみる",
+    "section": "はじめに",
+    "text": "はじめに\n先日仕事の用事でRAブートキャンプへ行ってきた。\nRAブートキャンプの目的は以下。\n\n社会科学領域の実証研究においてリサーチアシスタント(RA)として携わるための技能を学び、またお互いとの交流を深めることを目的としています。\n\nここでは経済学をはじめとしたさまざまな分野で実証分析をしている大学学部生・院生が集い、4泊5日でデータの処理や分析方法について学んでいる。\n僕自身も2023年度に参加した経験があり、当時は力不足を痛感したものの、そこで得た知識をもとにその後もいろいろ学び、結果としてこのWebサイトを運営するまでに至っている。\nということでもしこれを見ている学生がいたら、是非次年度以降の参加をお勧めしたい。\nというのはさておき、ここに参加する方々は皆さん大変豊富な知識を持っているので1、今回も学生オーガナイザーの方から有益な情報を得ることができた（僕が時代遅れなだけの可能性大）。\nそれはPythonのPolarsというライブラリで、これがbase RとTidyverseのように、Pandasの次世代版のようなものらしい。Quartoドキュメントのレンダリングがめっちゃ速いのも特徴とのこと。\n新しい物好きのミーハーな僕としては、是非とも触ってみたいと思い、今回勉強を兼ねてここで概要を見てみることにする。"
+  },
+  {
+    "objectID": "pages/blog/250824_polars/index.html#polarsとは",
+    "href": "pages/blog/250824_polars/index.html#polarsとは",
+    "title": "Polarsを触ってみる",
+    "section": "Polarsとは",
+    "text": "Polarsとは\nとりあえずPolarsの公式ページを覗いてみると、\n\nPolarsは、データ操作のためのオープンソースライブラリであり、単一マシン上で最速のデータ処理ソリューションの一つとして知られています。表現力豊かで使いやすい、構造化された型付きAPIを備えています。\n\nとのこと（Google翻訳済）。\nChatGPTにもPolarsについて説明してもらったところ、\n\nPolarsは、Rust製で高速かつメモリ効率の良い列指向エンジンを持ち、遅延評価や宣言的なチェーン式APIにより、大規模データを直感的かつ効率的に処理できる次世代のデータフレームライブラリです。\n\nらしい。\nこれだけ見ると速さや効率性が売りなようだが、言葉で説明されてもよくわからないので、とりあえず触ってみたい。"
+  },
+  {
+    "objectID": "pages/blog/250824_polars/index.html#使ってみる",
+    "href": "pages/blog/250824_polars/index.html#使ってみる",
+    "title": "Polarsを触ってみる",
+    "section": "使ってみる",
+    "text": "使ってみる\nとりあえずインストールから始めよう。\npip install polars\nそしたら公式のガイドに載っているサンプルコードをちょっといじって試してみる。\n\nimport polars as pl\n\nq = (\n    pl.scan_csv(\"../../../data/iris.csv\")\n    .filter(pl.col(\"Sepal.Length\") &gt; 5)\n    .group_by(\"Species\")\n    .agg(pl.all().sum())\n)\n\ndf = q.collect()\n\nprint(df)\n\nshape: (3, 5)\n┌────────────┬──────────────┬─────────────┬──────────────┬─────────────┐\n│ Species    ┆ Sepal.Length ┆ Sepal.Width ┆ Petal.Length ┆ Petal.Width │\n│ ---        ┆ ---          ┆ ---         ┆ ---          ┆ ---         │\n│ str        ┆ f64          ┆ f64         ┆ f64          ┆ f64         │\n╞════════════╪══════════════╪═════════════╪══════════════╪═════════════╡\n│ virginica  ┆ 324.5        ┆ 146.2       ┆ 273.1        ┆ 99.6        │\n│ setosa     ┆ 116.9        ┆ 81.7        ┆ 33.2         ┆ 6.1         │\n│ versicolor ┆ 281.9        ┆ 131.8       ┆ 202.9        ┆ 63.3        │\n└────────────┴──────────────┴─────────────┴──────────────┴─────────────┘\n\n\nしっかり出力できている。\nちなみにPandas版だとこんな感じ。\n\nimport pandas as pd\n\ndf = pd.read_csv(\"../../../data/iris.csv\")\n\ndf_filtered = df[df[\"Sepal.Length\"] &gt; 5]\n\ndf_grouped = df_filtered.groupby(\"Species\").sum(numeric_only=True).reset_index()\n\nprint(df_grouped)\n\n      Species  Sepal.Length  Sepal.Width  Petal.Length  Petal.Width\n0      setosa         116.9         81.7          33.2          6.1\n1  versicolor         281.9        131.8         202.9         63.3\n2   virginica         324.5        146.2         273.1         99.6\n\n\n僕はPythonがあまり使えないのでChatGPTにPandas版に変換してもらっただけなのだが、見た感じPolarsの方はRのパイプを使った書き方と似ており、個人的には使いやすそうに感じている。\nまた、出力結果が見やすくなっているのも特徴だろうか。Rのtibbleのように感じる。\n時間もあまりないのでこの程度にしておくが、いろいろと試し甲斐がありそうなので、また時間があるときにでも触ってみたい。"
+  },
+  {
+    "objectID": "pages/blog/250824_polars/index.html#おわりに",
+    "href": "pages/blog/250824_polars/index.html#おわりに",
+    "title": "Polarsを触ってみる",
+    "section": "おわりに",
+    "text": "おわりに\n今回はそんなものがあるということを綴っただけなので細かい点はまだよくわかっていないが、使えそうな関数も結構あるみたいなので、データハンドリングの際には是非とも使ってみたい。\nもう少し知識がたまってきたらtipsの方でも何か書いていこうと思う。"
+  },
+  {
+    "objectID": "pages/blog/250824_polars/index.html#footnotes",
+    "href": "pages/blog/250824_polars/index.html#footnotes",
+    "title": "Polarsを触ってみる",
+    "section": "注",
+    "text": "注\n\n\nとはいえデータハンドリングの経験がない方も参加できるのでご安心を！↩︎"
+  },
+  {
+    "objectID": "pages/blog/index.html",
+    "href": "pages/blog/index.html",
+    "title": "Blog",
+    "section": "",
+    "text": "バージョンアップしたggplot2を試す\n\n\n\nR\n\n\n\nggplot2がバージョンアップしたので、新しい要素を試してみた\n\n\n\n\n\n2025/09/15\n\n\n\n\n\n\n\n\n\n\n\n\nPolarsを触ってみる\n\n\n\nPython\n\n\n\nPython版のTidyverseのようなものらしい。\n\n\n\n\n\n2025/08/25\n\n\n\n\n\n\n\n\n\n\n\n\nPythonでスクレイピングをやってみる\n\n\n\nPython\n\n\n\nRでやったスクレイピングをPythonで再現してみたい\n\n\n\n\n\n2025/08/12\n\n\n\n\n\n\n\n\n\n\n\n\nParquetファイルについて調べてみる\n\n\nファイルサイズを小さくできるということだけは知っているが…\n\n\n\n\n\n2025/07/28\n\n\n\n\n\n\n\n\n\n\n\n\n学生最後にやってみたかったこと\n\n\nここから得られるエビデンスは特にないが。\n\n\n\n\n\n2025/03/31\n\n\n\n\n\n\n\n\n\n\n\n\nパッケージがCRANに公開された話\n\n\n\nR\n\n\n\n果たして分析者が使ってくれるほどになるだろうか…。\n\n\n\n\n\n2025/03/23\n\n\n\n\n\n\n\n\n\n\n\n\n【CiteDrive】オンラインで手軽に文献管理（？）\n\n\n\nQuarto\n\nR Markdown\n\nLaTeX\n\n\n\n結構いいと思ったけど、まだまだやな。\n\n\n\n\n\n2024/11/25\n\n\n\n\n\n\n\n\n\n\n\n\n【念願】GitHub CopilotにGPT 4oが搭載\n\n\n\nGitHub\n\nAI\n\n\n\n\n\n\n\n\n\n2024/11/12\n\n\n\n\n\n\n\n\n\n\n\n\n【学生は申し込め】GitHub Copilotを申請しよう\n\n\n\nGitHub\n\nAI\n\n\n\n\n\n\n\n\n\n2024/09/18\n\n\n\n\n\n\n\n\n\n\n\n\nDVCが使えない…？\n\n\n\nDVC\n\n\n\n\n\n\n\n\n\n2024/08/24\n\n\n\n\n\n\n\n\n\n\n\n\nもはや TinyTeX も要らないのか…？\n\n\n\nTypst\n\nQuarto\n\n\n\n\n\n\n\n\n\n2024/07/23\n\n\n\n\n\n\n\n\n\n\n\n\nPositron は何者？\n\n\n\nR\n\nPositron\n\n\n\nPosit社が出した新たなIDE！\n\n\n\n\n\n2024/07/08\n\n\n\n\n\n一致なし"
+  },
+  {
+    "objectID": "pages/gis_in_r/1_intro/index.html#データの抽出",
+    "href": "pages/gis_in_r/1_intro/index.html#データの抽出",
+    "title": "導入 + ハンドリング",
+    "section": "データの抽出",
+    "text": "データの抽出\n\nデータの読み込み\nsfパッケージのread_sf()関数を用います。\nShift_JISで書かれたような変なデータがたまにあるので、そのようなときはオプションで指定しましょう。options = \"ENCODING=Shift_JIS\"を追加してください。\n\n\n\n\n\n\nNote読み込みに使う関数について\n\n\n\n\n\nread_sf()は、st_read()の細かい設定を省いてくれた関数、というイメージです。\n具体的には、\nread_sf(dsn)\n\nst_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)\nこの2つが同じです2。詳しくは?st_read()をコンソールに打ち込みドキュメントを読んでみてください。\n基本的にはread_sf()で十分だと思います。\n\n\n\nまた、公園のデータはCRSが設定されていないようです。その設定も行います。CRSについては後の回で説明します。\n\nfukushima &lt;- read_sf(here(\"data/N03-20240101_07_GML/N03-20240101_07.shp\"))\n\npark &lt;- read_sf(here(\"data/P13-11_07_GML/P13-11_07.shp\"), \n                options = \"ENCODING=Shift_JIS\") |&gt; \n  st_set_crs(st_crs(4612)) |&gt;  # JGD2000/(B, L) データ本来のCRS\n  st_transform(st_crs(6668))   # JGD2011/(B, L) 変換したいCRS\n\n\n\nデータを見てみる\n公園のデータを見てみます。\n\n\n\n\n\n\n\n\n図 1: 公園のポイントデータ\n\n\n\n\n\n\n\n\n表 1: 公園データの中身（一部）\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                P13_001\n                P13_002\n                P13_003\n                P13_004\n                P13_005\n                P13_006\n                P13_007\n                P13_008\n                P13_009\n                P13_010\n                geometry\n              \n        \n        \n        \n                \n                  福島県\n                  NA\n                  福島空港公園            \n                  6\n                  福島県\n                  須賀川市  \n                  1993\n                  520900\n                  1\n                  NA\n                  POINT (140.4202 37.24667)\n                \n                \n                  福島県\n                  NA\n                  あづま総合運動公園      \n                  6\n                  福島県\n                  福島市    \n                  1980\n                  982000\n                  1\n                  NA\n                  POINT (140.362 37.722)\n                \n                \n                  福島県\n                  NA\n                  逢瀬公園                \n                  4\n                  福島県\n                  郡山市    \n                  1979\n                  346000\n                  1\n                  NA\n                  POINT (140.2739 37.41234)\n                \n                \n                  福島県\n                  NA\n                  会津レクリエーション公園\n                  6\n                  福島県\n                  会津若松市\n                  1998\n                  426000\n                  1\n                  NA\n                  POINT (140.0166 37.51643)\n                \n                \n                  福島県\n                  NA\n                  東ヶ丘公園              \n                  6\n                  福島県\n                  南相馬市  \n                  1995\n                  212000\n                  1\n                  NA\n                  POINT (140.9671 37.6326)\n                \n                \n                  福島県\n                  NA\n                  いわき公園              \n                  6\n                  福島県\n                  いわき市  \n                  1987\n                  713000\n                  1\n                  NA\n                  POINT (140.9216 37.01329)\n                \n        \n      \n    \n\n\n\n\n\n\n国土数値情報ダウンロードサイトの説明を見てみると、各列は以下のようになっています。\n\n\n\nP13_001：管理都道府県・整備局\nP13_002：管理市区町村\nP13_003：公園名\nP13_004：公園種別\nP13_005：所在地都道府県名\n\n\n\nP13_006：所在地市区町村名\nP13_007：供用開始年\nP13_008：供用済面積\nP13_009：都市計画決定\nP13_010：備考\n\n\n\n\n\n抽出\n今回は公園名、所在地都道府県、所在地市区町村、そしてポイントを表すgeometryの列だけが必要だとします。\ndplyr::select()関数を使って列を抽出し、同時に名前も変更します。\n\n\n\n\n\n\nNote\n\n\n\nselect()内で変換後と変換前をイコールで結ぶことにより、列名を変更できます。\n\n\n\npark_s &lt;- park |&gt; \n  select(\n    name_park = P13_003,  # 公園名\n    name_pref = P13_005,  # 都道府県名\n    name_muni = P13_006,  # 市区町村名\n    geometry              # プロットに必要\n  )\n\n\n\n\n\n表 2: 列抽出済みのデータ\n\n\n\n\n\n    \n\n    \n    \n      \n        \n        \n              \n                name_park\n                name_pref\n                name_muni\n                geometry\n              \n        \n        \n        \n                \n                  福島空港公園            \n                  福島県\n                  須賀川市  \n                  POINT (140.4202 37.24667)\n                \n                \n                  あづま総合運動公園      \n                  福島県\n                  福島市    \n                  POINT (140.362 37.722)\n                \n                \n                  逢瀬公園                \n                  福島県\n                  郡山市    \n                  POINT (140.2739 37.41234)\n                \n                \n                  会津レクリエーション公園\n                  福島県\n                  会津若松市\n                  POINT (140.0166 37.51643)\n                \n                \n                  東ヶ丘公園              \n                  福島県\n                  南相馬市  \n                  POINT (140.9671 37.6326)\n                \n                \n                  いわき公園              \n                  福島県\n                  いわき市  \n                  POINT (140.9216 37.01329)\n                \n        \n      \n    \n\n\n\n\n\n\nこのようにtidyverseの強みを活かしてデータハンドリングを行えます3。"
+  },
+  {
+    "objectID": "pages/gis_in_r/1_intro/index.html#可視化",
+    "href": "pages/gis_in_r/1_intro/index.html#可視化",
+    "title": "導入 + ハンドリング",
+    "section": "可視化",
+    "text": "可視化\ntidyverseに含まれるggplot2を使って、ここまでのデータをプロットしていきます。\n基本的な書き方は以下の通りです。データフレームからggplot()を繋いで記述していきます。\n\npark_s |&gt; \n  ggplot() + \n  geom_sf()   # 地図をプロットするためのコマンド\n\n\n\n\n\n\n\n図 2: シンプルなプロット\n\n\n\n\n\nこれだとやや分かりにくいので、背景を消しましょう。theme_void()やtheme_bw()、theme_classic()などがよいと思います。\n\npark_s |&gt; \n  ggplot() + \n  geom_sf() + \n  theme_void()\n\n\n\n\n\n\n\n図 3: 背景を削除\n\n\n\n\n\nこれだけだとどこなのかわからないので、先ほどダウンロードした福島県の行政区域を重ねてプロットします。\n\n\n\n\n\n\nNoteプロットするとき\n\n\n\nggplot を使うときは、記述した順に上に重なっていくので、場合によっては順番を意識しないとポイントなどが見えなくなることがあります。\n今回は行政区域をベースとし、その上に公園をプロットするので、先に行政区域をプロットします。\n\n\n\n\n\n\n\n\nImportantgeom_sf() の注意点\n\n\n\ngeom_sf() でデータを指定する引数は data であり、これは第2引数なので、シンプルに geom_sf(fukushima) と書くとプロットがうまくいきません4。geom_sf(data = fukushima) と書く必要がある点にご注意ください。\n\n\n\nggplot() + \n  geom_sf(data = fukushima) + \n  geom_sf(data = park_s, color = \"orange\") +  # 点の色も指定\n  theme_void()\n\n\n\n\n\n\n\n図 4: 行政区域と公園ポイントのプロット\n\n\n\n\n\nここまでがプロットの方法です。\n今後も可視化の際に ggplot2 を使いますので、その都度紹介します。"
+  },
+  {
+    "objectID": "pages/gis_in_r/1_intro/index.html#ファイルの出力",
+    "href": "pages/gis_in_r/1_intro/index.html#ファイルの出力",
+    "title": "導入 + ハンドリング",
+    "section": "ファイルの出力",
+    "text": "ファイルの出力\n先ほど作成したpark_sをShapefileとして出力します。\nGISデータは重いものが多いので、いちいち生データを読み込んで処理をすると時間がかかります。\n# フォルダがない場合に作成する\nif (!dir.exists(here(\"data/output/1_intro\"))) {\n  dir.create(here(\"data/output/1_intro\"), recursive = TRUE)\n}\n\nwrite_sf(park_s, here(\"data/output/1_intro/Park_selected.shp\"), \n         layer_options = \"ENCODING=UTF-8\")\n次回以降はPark_selected.shpを読み込めばここから作業を開始できます。"
+  },
+  {
+    "objectID": "pages/gis_in_r/1_intro/index.html#footnotes",
+    "href": "pages/gis_in_r/1_intro/index.html#footnotes",
+    "title": "導入 + ハンドリング",
+    "section": "注",
+    "text": "注\n\n\nR Projectと後述のhereについてはこちらを参照して下さい。↩︎\ndsnのところがデータです。↩︎\nデータハンドリングの基礎的な知識を身に付けるには、私たちのRがおすすめです。↩︎\n「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。↩︎"
+  },
+  {
+    "objectID": "pages/gis_in_r/3_adjust_map/index.html#はじめに",
+    "href": "pages/gis_in_r/3_adjust_map/index.html#はじめに",
+    "title": "地図の調整",
+    "section": "はじめに",
+    "text": "はじめに\n今回は地図を調整する方法を説明します。ここでいう調整というのは、日本地図で北海道を本州の左側に、沖縄を東に配置するというようなことを指します。\n図を挿入するスペースが限られており、通常の形で挿入すると地図が小さくなってしまうような場合に役立ちます。\n今回使用するデータは国土数値情報ダウンロードサイトの行政区域データから取得しています。\nhttps://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-2024.html"
+  },
+  {
+    "objectID": "pages/gis_in_r/3_adjust_map/index.html#ファイルデータの読み込み",
+    "href": "pages/gis_in_r/3_adjust_map/index.html#ファイルデータの読み込み",
+    "title": "地図の調整",
+    "section": "ファイル・データの読み込み",
+    "text": "ファイル・データの読み込み\n今回は都道府県のマップを使用します（ダウンロードした後にファイル名を変えています）。\n\nlibrary(tidyverse)\nlibrary(sf)\n\n# GISデータを保存しているフォルダ\ndata_dir &lt;- here::here(\"data/jpn_geojson\")\n\npref &lt;- read_sf(file.path(data_dir, \"prefecture.geojson\")) |&gt; \n  st_transform(st_crs(6668))\n\n平面にマッピングするのにCRSを6668に設定するとバランスが良いと感じるので、ついでに設定しています。\n今回は説明を簡単にするため、北海道のみを例にとって説明します。"
+  },
+  {
+    "objectID": "pages/gis_in_r/3_adjust_map/index.html#データの整理",
+    "href": "pages/gis_in_r/3_adjust_map/index.html#データの整理",
+    "title": "地図の調整",
+    "section": "データの整理",
+    "text": "データの整理\n今回の目標は北海道を本州の西側に配置することです。\nプロットに先立ち、データを北海道とそれ以外に分割する必要があります。\n\npref_no_hokkaido &lt;- pref |&gt; \n  filter(N03_001 != \"北海道\")\n\nhokkaido &lt;- pref |&gt; \n  filter(N03_001 == \"北海道\")\n\nN03_001に都道府県名が格納されています。\n試しに北海道だけプロットしてみると、\n\nggplot(hokkaido) + \n  geom_sf()\n\n\n\n\n\n\n\n図 1\n\n\n\n\n\nこのように北海道のみが抽出できています。"
+  },
+  {
+    "objectID": "pages/gis_in_r/3_adjust_map/index.html#北海道の移動",
+    "href": "pages/gis_in_r/3_adjust_map/index.html#北海道の移動",
+    "title": "地図の調整",
+    "section": "北海道の移動",
+    "text": "北海道の移動\n次に北海道を移動させます。\n先に日本全体をマッピングしておくと、どの程度移動させるべきかイメージが付きやすいと思います。\n\nggplot(pref) + \n  geom_sf()\n\n\n\n\n\n\n\n図 2\n\n\n\n\n\nこれを見ると、北海道を西に11度、南に4度くらい動かせばよいのではないかなと思います。ちなみに動かす単位は緯度経度です。\nそれでは先ほどのhokkaidoデータのgeometryを西と南にそれぞれ動かしていきます。\n\nhokkaido &lt;- hokkaido |&gt; \n  mutate(geometry = geometry + c(-11, -4)) |&gt; \n  st_set_crs(st_crs(pref))\n\nポイント：\n\ngeometryを上書き\n\ngeometryにc(-11, -4)のようにc(x, y)を加えることで動かすことができます。\n設定しているCRSによって動く幅が異なるので、そこは調節してください。\n\nCRSを設定\n\ngeometryを上書きするとマッピングの際に必要なCRSが失われますので、再度設定が必要です。\nst_set_crs()で設定できます。\nst_crs(pref)でprefと同じCRSを設定することが可能です。直接6668を設定することも可能です。st_crs()で設定されているCRSを確認できます。"
+  },
+  {
+    "objectID": "pages/gis_in_r/3_adjust_map/index.html#プロット",
+    "href": "pages/gis_in_r/3_adjust_map/index.html#プロット",
+    "title": "地図の調整",
+    "section": "プロット",
+    "text": "プロット\n\nベース\nでは、これをpref_no_hokkaidoと併せてプロットしてみましょう。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido)\n\n\n\n\n\n\n\n図 3\n\n\n\n\n\nいい感じですね。必要に応じて表示する範囲を絞りましょう。今回は東経127度から143度、北緯30度から上は自動調節にしましょう（外れた範囲の地域の方、申し訳ございません…）。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA)\n\n\n\n\n\n\n\n図 4\n\n\n\n\n\nうまい具合に絞ることができました。\nxlimとylimで調節ができます。上限や下限を特に指定しない場合はNAを設定すればよいです。\n\n\nセグメントの追加\n北海道と本州の間に線を引いて、区切りを入れていきます。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA) + \n  annotate(\"segment\", x = 128, xend = 133, \n           y = 37, color = \"gray50\") + \n  annotate(\"segment\", x = 133, xend = 139, \n           y = 37, yend = 41, color = \"gray50\")\n\n\n\n\n\n\n\n図 5\n\n\n\n\n\nannotate(\"segment\", ...)で線を追加できます。Xの開始点と終点、Yの開始点と終点をそれぞれ指定することができます。終点の方を指定しなければ、垂直線あるいは水平線になります。2本の線をつなげたい場合は、1本の終点が2本目の開始点になるように調節してください。\nannotate()については以下のページもご覧ください。\n\n\n\n\n\n\nggplot2ガイド\n\n\n\n\n\n調整\n最後に図の調整を行います。ここでは地図のテーマを変えたり、軸ラベルを消したりします。\n\nggplot() + \n  geom_sf(data = pref_no_hokkaido) + \n  geom_sf(data = hokkaido) + \n  xlim(127, 143) + \n  ylim(30, NA) + \n  annotate(\"segment\", x = 128, xend = 133, \n           y = 37, color = \"gray50\") + \n  annotate(\"segment\", x = 133, xend = 139, \n           y = 37, yend = 41, color = \"gray50\") + \n  labs(x = NULL, y = NULL) + \n  theme_bw() + \n  theme(\n    axis.text = element_blank(), \n    axis.ticks = element_blank(), \n    panel.grid = element_blank()\n  )\n\n\n\n\n\n\n\n図 6\n\n\n\n\n\nポイント：\n\nlabs(x = NULL, y = NULL)で各軸のラベルを消去\ntheme_bw()で白黒テーマの適用\ntheme()\n\naxis.textで軸のテキスト（今回は緯度経度）を消去\naxis.ticksで軸の目盛りを消去\npanel.gridで図内の罫線を消去\nelement_blank()は要素を消去する関数\n\n\nこれである程度きれいなプロットができました。\nもし地図の塗りつぶしの色を変えたければ、geom_sf()内でfill = \"white\"などを追加すれば変更することができます。"
+  },
+  {
+    "objectID": "pages/gis_in_r/index.html",
+    "href": "pages/gis_in_r/index.html",
+    "title": "GIS in R",
+    "section": "",
+    "text": "R で GIS を使う方法についてまとめています。\n\n\n\n\n   \n    \n    \n      並び替え\n      デフォルト\n      \n        公開日 - 日付（昇順）\n      \n      \n        公開日 - 日付（降順）\n      \n      \n        トピック\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\nトピック\n\n\n公開日\n\n\n\n\n\n\n導入 + ハンドリング\n\n\n2024/05/16\n\n\n\n\nプロットの応用\n\n\n2024/12/16\n\n\n\n\n地理データを集約\n\n\n2025/02/21\n\n\n\n\n地図の調整\n\n\n2025/04/06\n\n\n\n\n夜間光を可視化する\n\n\n2025/05/07\n\n\n\n\n一致なし"
+  },
+  {
+    "objectID": "pages/software/index.html#data",
+    "href": "pages/software/index.html#data",
+    "title": "Software",
+    "section": "Data",
+    "text": "Data\n\n\n\n  \n  \n    \n      \n      \n        \n          日本の夜間光データ (VIIRS)\n        \n      \n\n      \n      2012～2024年のVIIRS夜間光データから日本領域を抽出・処理したデータセット。\n\n\n      \n      \n        \n          Link:\n          \n            \n              \n                \n              \n                   詳細を見る\n                \n            \n          \n        \n      \n    \n  \n  \n\n\n一致なし\n\n\n\nShiny\n\nShinyアプリケーションの一覧です。人口ヒートマップをアップデートしました（2025/7/21）。\n\n\n\n\n  \n    \n      \n        地方財政状況マップ\n         \n        \n          \n        \n        \n        2014 ~ 2023\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        課税状況ヒートマップ\n         \n        \n          \n        \n        \n        \n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        人口ヒートマップ\n         \n        \n          \n        \n        \n        1980～2020\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        白地図 Japan\n         \n        \n          \n        \n        \n        全国版\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n\n\n一致なし"
+  },
+  {
+    "objectID": "pages/software/index.html#r",
+    "href": "pages/software/index.html#r",
+    "title": "Software",
+    "section": "R",
+    "text": "R\n\n\n\n  \n  \n      \n          \n              \n              fixes \n              \n          \n          TWFEを用いたDIDにおけるイベントスタディの計算とプロットを行う関数を提供しています。\n\n          \n              \n                  Link:\n                  \n                      \n                      \n                      \n                      \n                           CRAN\n                      \n                      \n                      \n                      \n                      \n                           GitHub\n                      \n                      \n                  \n              \n          \n      \n  \n  \n\n\n一致なし"
   },
   {
     "objectID": "pages/tips/240329_rmarkdown_pdf/index.html#はじめに",
@@ -2882,61 +2938,5 @@
     "title": "開発コンテナの環境について",
     "section": "おわりに",
     "text": "おわりに\n今回はdevcontainer.jsonとDockerfileを紹介することがメインだったので環境構築の手順についてはごく簡単に説明しました。\nもし興味があれば、以下の記事も参考にしてみてください。\n\n\n\n\n\n\n【改訂版】開発コンテナを使ってR環境を構築！\n\n\n\nそこまで大きくないデータでしたらGitHubを通じて管理できます。もしデータが大きくなればDVCなど他のツールを利用することも検討するのがよいと思います。\nご参考まで。"
-  },
-  {
-    "objectID": "pages/software/index.html#data",
-    "href": "pages/software/index.html#data",
-    "title": "Software",
-    "section": "Data",
-    "text": "Data\n\n\n\n  \n  \n    \n      \n      \n        \n          日本の夜間光データ (VIIRS)\n        \n      \n\n      \n      2012～2024年のVIIRS夜間光データから日本領域を抽出・処理したデータセット。\n\n\n      \n      \n        \n          Link:\n          \n            \n              \n                \n              \n                   詳細を見る\n                \n            \n          \n        \n      \n    \n  \n  \n\n\n一致なし\n\n\n\nShiny\n\nShinyアプリケーションの一覧です。人口ヒートマップをアップデートしました（2025/7/21）。\n\n\n\n\n  \n    \n      \n        地方財政状況マップ\n         \n        \n          \n        \n        \n        2014 ~ 2023\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        課税状況ヒートマップ\n         \n        \n          \n        \n        \n        \n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        人口ヒートマップ\n         \n        \n          \n        \n        \n        1980～2020\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        白地図 Japan\n         \n        \n          \n        \n        \n        全国版\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n\n\n一致なし"
-  },
-  {
-    "objectID": "pages/software/nighttime_lights/index.html",
-    "href": "pages/software/nighttime_lights/index.html",
-    "title": "日本の夜間光データ（2012～2024）",
-    "section": "",
-    "text": "このデータセットは、NASA/NOAAのVIIRS（Visible Infrared Imaging Radiometer Suite）夜間光データをもとに、Colorado School of MinesのEarth Observation Group（EOG）が公開するAnnual VNL V2.1およびV2.2データ（2012～2024 年）を使用して作成しており、2012年から2021年はVNL V2.1、2022年から2024年はVNL V2.2を使用しています。\nまた、本データでは、各年の平均光量を示すデータのみを使用しています。最大値や最小値は含んでおりません。\nオリジナルデータはグローバルスケールで提供されていますが、本データセットでは日本領域のみを抽出しており、大幅に軽量化しつつ研究等で利用しやすい範囲に絞っています。"
-  },
-  {
-    "objectID": "pages/software/nighttime_lights/index.html#概要",
-    "href": "pages/software/nighttime_lights/index.html#概要",
-    "title": "日本の夜間光データ（2012～2024）",
-    "section": "",
-    "text": "このデータセットは、NASA/NOAAのVIIRS（Visible Infrared Imaging Radiometer Suite）夜間光データをもとに、Colorado School of MinesのEarth Observation Group（EOG）が公開するAnnual VNL V2.1およびV2.2データ（2012～2024 年）を使用して作成しており、2012年から2021年はVNL V2.1、2022年から2024年はVNL V2.2を使用しています。\nまた、本データでは、各年の平均光量を示すデータのみを使用しています。最大値や最小値は含んでおりません。\nオリジナルデータはグローバルスケールで提供されていますが、本データセットでは日本領域のみを抽出しており、大幅に軽量化しつつ研究等で利用しやすい範囲に絞っています。"
-  },
-  {
-    "objectID": "pages/software/nighttime_lights/index.html#加工処理の内容",
-    "href": "pages/software/nighttime_lights/index.html#加工処理の内容",
-    "title": "日本の夜間光データ（2012～2024）",
-    "section": "加工・処理の内容",
-    "text": "加工・処理の内容\nEOG公開の年次データ（Annual VNL V2.1, V2.2）を基に、日本全域をカバーする範囲（日本の外接矩形±1度）で切り出しています。"
-  },
-  {
-    "objectID": "pages/software/nighttime_lights/index.html#データの仕様",
-    "href": "pages/software/nighttime_lights/index.html#データの仕様",
-    "title": "日本の夜間光データ（2012～2024）",
-    "section": "データの仕様",
-    "text": "データの仕様\n\n\n\n項目\n内容\n\n\n\n\nデータ形式\nGeoTIFF（拡張子 .tif.gz、gzip圧縮形式）\n\n\nファイル内容\n年次平均放射輝度\n\n\nデータ期間\n2012年～2024年\n\n\n単位\nnW/cm²/sr（放射輝度）\n\n\n座標参照系\nWGS84（EPSG:4326）\n\n\n解像度\n約500m（15 arc-second）\n\n\nデータ範囲\n日本全域（外接矩形＋1度）\n\n\nファイルサイズ\n約15MB（1ファイルあたり）"
-  },
-  {
-    "objectID": "pages/software/nighttime_lights/index.html#データ",
-    "href": "pages/software/nighttime_lights/index.html#データ",
-    "title": "日本の夜間光データ（2012～2024）",
-    "section": "データ",
-    "text": "データ\n以下のリンクからGoogle Driveに飛んで、データをダウンロードできます。\nGoogle Drive：nighttime_lights_jp"
-  },
-  {
-    "objectID": "pages/software/nighttime_lights/index.html#ライセンス",
-    "href": "pages/software/nighttime_lights/index.html#ライセンス",
-    "title": "日本の夜間光データ（2012～2024）",
-    "section": "ライセンス",
-    "text": "ライセンス\n\n\n\n項目\n内容\n\n\n\n\n出典\nEarth Observation Group (EOG), Payne Institute for Public Policy, Colorado School of Mines\n\n\n原データ\nVIIRS Nighttime Lights Annual VNL V2.1, V2.2 (2012–2024)\n\n\nライセンス\nCreative Commons Attribution 4.0 International (CC BY 4.0)\n\n\n加工・公開\n阿部 洋輔（Yosuke Abe）"
-  },
-  {
-    "objectID": "pages/software/nighttime_lights/index.html#参考",
-    "href": "pages/software/nighttime_lights/index.html#参考",
-    "title": "日本の夜間光データ（2012～2024）",
-    "section": "参考",
-    "text": "参考\n以下のページでRでGeoTIFFデータを扱う方法を紹介しています。\n\n\n\n\n\n\n夜間光を可視化する"
   }
 ]
