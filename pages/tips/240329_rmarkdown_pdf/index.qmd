@@ -1,43 +1,135 @@
 ---
-title: "Quarto & R MarkdownでPDF出力【LaTeX】"
+title: "【Typst】Quarto & R MarkdownでPDF出力【LaTeX】"
 description: |
   レポートでR Markdown、使ってますか？
 date: 2024-03-29
-date-modified: last-modified
+date-modified: 2025-10-18
 categories: 
   - R
   - R Markdown
   - Quarto
+  - Typst
   - LaTeX
 ---
 
 ## はじめに
 
+:::{.callout-important}
+以前このページは$\LaTeX$を用いた方法についてのみ紹介しておりましたが、最近はTypstなど他の組版システムも注目されてきています。正直言って、**R×PDFの主流はTypst出力に移ってもおかしくない**と思います。
+
+Typstは$\LaTeX$のような環境構築が不要で、より簡単にPDF出力が可能です。
+
+Quarto×Typstについての詳細は[Quarto公式ガイド](https://quarto.org/docs/output-formats/typst.html)をご覧ください。
+:::
+
 こんにちは。
 
-大学生、大学院生の方で、R を使う授業のレポートを作ったりする方は R Markdown 使うことが多いかもしれません。
+大学生、大学院生の方で、Rを使う授業のレポートを作ったりする方はR Markdownを使うことが多いかもしれません。
 
-しかし、私の周りでは PDF 出力で結構困っている人がいたのでここでまとめます。
+しかし、私の周りではPDF出力で結構困っている人がいたのでここでまとめます。
 
 環境構築、$\LaTeX$ については詳しく書かないので、そこは他のサイトなどを参照してください。
 
-目標は**とりあえず PDF で出力すること**です。
+目標は**とりあえずPDFで出力すること**です。
 
-<br>
+## ターゲット
 
-**ターゲット**
+- Rの経験が浅くQuartoやR Markdownに馴染みがない方 
+- Quarto, R Markdownを使っているが、PDF出力の仕方に困っている方
 
- - Rの経験が浅く R Markdown や Quarto に馴染みがない方
- 
- - R Markdown を使っているが、PDF 出力の仕方に困っている方
+## 結論（Typst × Quarto）（推奨）
 
- <br>
+Quartoファイル（`.qmd`）を準備し、YAMLヘッダの部分を以下のように設定してください。
 
-## 結論（R Markdown）
+```markdown
+---
+title: "レポートのデモ"
+author: "阿部洋輔"
+date: 2025-10-18
+date-format: "YYYY年M月d日"
+format: 
+  typst:
+    number-sections: true
+---
+```
+
+$\LaTeX$のような環境構築は不要です。後は本文を書いてレンダリングすればPDFが出力されます。
+
+`date-format: "YYYY年M月d日"`は日付のフォーマットを指定するオプションです。デフォルトだと「2025-10-18」のようにハイフン区切りになるので、日本語形式にしたい場合はこのオプションを追加してください。
+
+`number-sections: true`はセクション番号を振るオプションです。必要が無ければ消しても問題ありません。
+
+この設定の下でレンダリングすれば、以下のようなPDFが出力されます。
+
+[出力されたPDFのサンプル](demo/demo.pdf)
+
+:::{.callout-tip collapse="true"}
+## 書いたコード
+
+````markdown
+---
+title: "レポートのデモ"
+author: "阿部洋輔"
+date: 2025-10-18
+date-format: "YYYY年M月d日"
+format: 
+  typst:
+    number-sections: true
+---
+
+## はじめに
+
+こんにちは。これはQuartoでTypstを用いてPDF出力したデモページです。
+
+## 数式
+
+数式も以下のように書けます。
+
+$$
+E = mc^2
+$$
+
+### インライン数式
+
+インライン数式も $a^2 + b^2 = c^2$ のように書けます。
+
+## 箇条書き
+
+リストも以下のように書けます。
+
+- アイテム1
+    - サブアイテム1
+- アイテム2
+    1. サブアイテム2-1
+    2. サブアイテム2-2
+- アイテム3
+
+## コード
+
+Rのコードも以下のように書けます。
+
+```{{r}}
+summary(cars)
+```
+
+```{{r}}
+#| label: fig-car-plot
+
+# プロットも可能
+plot(cars)
+```
+
+## 相互参照
+
+図や表、セクションへの相互参照もサポートされています。例えば、上の図は @fig-car-plot に示されています。
+````
+:::
+
+## 結論（LaTeX × R Markdown）
 
 ### 事前準備
 
-以下を R のコンソールで実行してください。
+以下をRのコンソールで実行してください。
 
 ```{.r filename="TinyTeXパッケージをインストール"}
 # インストール済みの方は省略
@@ -53,9 +145,9 @@ tinytex::install_tinytex()
 install.packages("bookdown")
 ```
 
-### YAMLヘッダの設定
+### YAMLヘッダーの設定
 
-ヘッダの部分を以下のように変更してください。
+ヘッダーの部分を以下のように変更してください。
 
 ```{.yaml}
 ---
@@ -80,13 +172,13 @@ header-includes:
 以上を設定出来たら、knit してください。
 無事 PDF ファイルが出力されるはずです！
 
-## 結論（Quarto）
+## 結論（LaTeX × Quarto）
 
 ### 事前準備
 
 [R Markdown](#事前準備) と同じです。
 
-### YAML ヘッダ
+### YAML ヘッダー
 
 ```{.yaml}
 ---
@@ -114,7 +206,7 @@ language:
 
 やっていることはほとんど R Markdown の場合と同じですが、書き方は異なります。
 
-## 詳細
+## 詳細（LaTeX）
 
 ### Global Options
 
@@ -130,7 +222,7 @@ language:
 
 ### bookdown::pdf_document2 {#sec-bookdown}
 
-R Markdown のヘッダにおいて、`pdf_document` ではなく `bookdown::pdf_document2` を使用するのには理由があります。
+R Markdown のヘッダーにおいて、`pdf_document` ではなく `bookdown::pdf_document2` を使用するのには理由があります。
 
 それは**相互参照を使うため**です。
 
@@ -179,7 +271,7 @@ knitr::kable(mtcars[1:5, 1:5], caption = "mtcars データ")
 
 注意点は、`\@ref()`の中で図なら`fig:`、表なら`tab:`、数式なら`eq:`と始めないと引用できない点です。
 
-## よくあるエラーについて
+## LaTeXのよくあるエラーについて
 
 TinyTeX はコンパイルに必要なパッケージを自動でインストールしてくれるのが魅力ですが、よくエラーに直面します。
 
@@ -249,4 +341,4 @@ not found です。あるはずなんですけどね…。
 
 2024/5/6：「よくあるエラーについて」を追加
 
-2024/7/8：Quarto における YAML ヘッダを更新
+2024/7/8：Quarto における YAML ヘッダーを更新
