@@ -3,7 +3,7 @@ title: "【4.0.0対応！】[ggplot2]{.fira-code}使い方ガイド"
 description: |
   ggplotを使うのに役立つコマンドを紹介します！
 date: 2024-11-17
-date-modified: last-modified
+date-modified: 2025-10-18
 knitr: 
   opts_chunk: 
     dev: "ragg_png"
@@ -23,7 +23,7 @@ editor: visual
 
 書籍のリンクは以下です。
 
-::: {.callout-tip appearance="minimal" icon="false"}
+::: {.callout-tip appearance="minimal"}
 [Rグラフィックスクックブック 第2版 ―ggplot2によるグラフ作成のレシピ集](https://www.amazon.co.jp/R%E3%82%B0%E3%83%A9%E3%83%95%E3%82%A3%E3%83%83%E3%82%AF%E3%82%B9%E3%82%AF%E3%83%83%E3%82%AF%E3%83%96%E3%83%83%E3%82%AF-%E7%AC%AC2%E7%89%88-%E2%80%95ggplot2%E3%81%AB%E3%82%88%E3%82%8B%E3%82%B0%E3%83%A9%E3%83%95%E4%BD%9C%E6%88%90%E3%81%AE%E3%83%AC%E3%82%B7%E3%83%94%E9%9B%86-Winston-Chang/dp/4873118921)
 :::
 
@@ -31,7 +31,7 @@ editor: visual
 
 ぜひご参考になさってください！
 
-## `ggplot2`の基本
+## {ggplot2}の基本
 
 ::: callout-note
 使ったことがある方はこの辺はスキップしてください。
@@ -39,13 +39,16 @@ editor: visual
 今回使うデータは、デフォルトで用意されている`iris`と`Orange`です。
 :::
 
-ひとまず主要なパッケージである`ggplot2`を読み込みます。
+ひとまず主要なパッケージである{ggplot2}を読み込みます。{ggplot2}はTidyverseに含まれていますので、データを色々加工したうえでグラフを書きたい場合が多いことを考えると、{tidyverse}を読み込むのが便利だと思います。
 
 ```{r}
-# install.packages("ggplot2")
-library(ggplot2)
-```
+# install.packages("tidyverse")
+library(tidyverse)
 
+# {ggplot2}単体の場合
+# install.packages("ggplot2")
+# library(ggplot2)
+```
 
 基本的な使い方としては、`ggplot()`と`aes()`、そして図に応じて`geom_line()`（折れ線）や`geom_point()`（散布図）などを使っていきます。
 
@@ -59,13 +62,13 @@ library(ggplot2)
 #| label: fig-iris
 #| fig-cap: "irisデータフレームを使った散布図"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
   geom_point()
 
 ```
 
 1.  `ggplot(data, aes())`という形で使用するデータを指定
-2.  `aes()`内ではX軸とY軸をそれぞれ指定する。
+2.  `aes()`内ではX軸とY軸をそれぞれ指定
     -   例：`aes(x = Sepal.Length, y = Sepal.Width)`
     -   第1引数がX、第2引数がYと決まっているので、`x =`や`y =`は書かなくてもよいです。
 3.  ggplotのコマンドは`+`で繋ぐ
@@ -81,8 +84,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-iris-lm
 #| fig-cap: "回帰直線を引いた散布図"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   geom_smooth(method = lm)
 
 ```
@@ -97,8 +100,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-iris-loess
 #| fig-cap: "loessを使った散布図"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   geom_smooth(method = "loess", se = FALSE)
 
 ```
@@ -111,12 +114,16 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-iris-line
 #| fig-cap: "折れ線グラフ"
 
-d <- tibble::tibble(
-  a = 1:4, 
-  b = c(5, 3, 4, 2)
+# fmt: skip
+d <- tibble::tribble(
+  ~a, ~b,
+  1, 5,
+  2, 3,
+  3, 4,
+  4, 2
 )
 
-ggplot(d, aes(x = a, y = b)) + 
+ggplot(d, aes(x = a, y = b)) +
   geom_line()
 
 ```
@@ -141,14 +148,14 @@ ggplot(d, aes(x = a, y = b)) +
 #| label: fig-iris-bar
 #| fig-cap: "棒グラフ"
 
-ggplot(iris, aes(x = Species)) + 
+ggplot(iris, aes(x = Species)) +
   geom_bar()
 
 ```
 
 おっと…。まさかのすべて50個体ずつで、棒グラフが全部同じ高さになってしまいました。これはミスではありません！
 
-棒グラフを書く際には、縦は自動で個体数をカウントすることになるので、`aes(x = Species)`とXを指定するだけで横に種類、縦にカウントをとった棒グラフが描けてしまいます。
+`geom_bar()`を使って棒グラフを書く際には、縦は自動で個体数をカウントすることになるので、`aes(x = Species)`とXを指定するだけで横に種類、縦にカウントをとった棒グラフが描けてしまいます。
 
 もし横向きにしたければ、`aes(y = Species)`とYを指定すればOKです。
 
@@ -156,7 +163,7 @@ ggplot(iris, aes(x = Species)) +
 #| label: fig-iris-bar-horizontal
 #| fig-cap: "横向きの棒グラフ"
 
-ggplot(iris, aes(y = Species)) + 
+ggplot(iris, aes(y = Species)) +
   geom_bar()
 
 ```
@@ -167,7 +174,7 @@ ggplot(iris, aes(y = Species)) +
 #| label: fig-iris-bar-mean
 #| fig-cap: "種ごとのがく片の長さの平均"
 
-ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   geom_bar(stat = "summary", fun = "mean")
 
 ```
@@ -175,6 +182,25 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 今回は`geom_bar(stat = "summary", fun = "mean")`とすることで、`Species`ごとに`Sepal.Length`の平均を計算して棒グラフを描いています。種類ごとに集計をするのだけど、じゃあ集計するときには平均を使ってね、ということを`geom_bar()`内で指定しています。
 
 この場合は種類ごとにがく片の長さを計算する、ということでXもYもデータフレーム内の変数を使いますので`aes(x = Species, y = Sepal.Length)`とX, Y両方明示しています。
+
+既にプロットしたい値がデータフレーム内に入っている場合には`geom_col()`が活躍します。
+
+```{r}
+#| label: fig-iris-bar-col
+#| fig-cap: "geom_colを使った棒グラフ"
+
+mean_sepal_length <- iris |>
+  summarise(
+    mean_length = mean(Sepal.Length),
+    .by = Species
+  )
+
+ggplot(mean_sepal_length, aes(x = Species, y = mean_length)) +
+  geom_col()
+```
+
+ここでは`mean_sepal_length`というデータフレームを作成し、`Species`ごとに`Sepal.Length`の平均を計算して格納しています。つまり、既にプロットしたい値がデータフレーム内に入っている状態です。この場合、`geom_col()`を使うことで、XとY両方を指定して棒グラフを描くことができます（こちらの方が使用頻度は高いかもしれませんね）。
+
 
 ### 箱ひげ図
 
@@ -184,7 +210,7 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 #| label: fig-iris-box
 #| fig-cap: "箱ひげ図"
 
-ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   geom_boxplot()
 
 ```
@@ -199,7 +225,7 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 #| label: fig-iris-violin
 #| fig-cap: "バイオリンプロット"
 
-ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   geom_violin()
 
 ```
@@ -216,7 +242,7 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 #| label: fig-color
 #| fig-cap: "散布図の点を赤色に"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
   geom_point(color = "red")
 
 ```
@@ -229,7 +255,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-color-line
 #| fig-cap: "折れ線グラフの線を青色に"
 
-ggplot(d, aes(x = a, y = b)) + 
+ggplot(d, aes(x = a, y = b)) +
   geom_line(color = "blue")
 
 ```
@@ -241,14 +267,14 @@ ggplot(d, aes(x = a, y = b)) +
 ```{r}
 #| label: fig-color-bar
 #| layout-ncol: 2
-#| fig-cap: 
+#| fig-cap:
 #|   - "棒グラフの枠線が緑色に"
 #|   - "棒の色が緑色に"
 
-ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   geom_bar(stat = "summary", fun = "mean", color = "darkgreen")
 
-ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   geom_bar(stat = "summary", fun = "mean", fill = "darkgreen")
 
 ```
@@ -259,7 +285,7 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 #| label: fig-color-violin-both
 #| fig-cap: "枠線と塗りつぶしの両方を指定"
 
-ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
   geom_violin(color = "darkgreen", fill = "lightgreen")
 
 ```
@@ -274,7 +300,7 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 #| label: fig-point-shape
 #| fig-cap: "点の形と大きさが変わっています"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
   geom_point(shape = 17, color = "blue", size = 3)
 
 ```
@@ -290,7 +316,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-line-type
 #| fig-cap: "線の種類と太さが変わっています"
 
-ggplot(d, aes(x = a, y = b)) + 
+ggplot(d, aes(x = a, y = b)) +
   geom_line(color = "blue", linetype = 2, linewidth = 1.5)
 
 ```
@@ -312,8 +338,8 @@ ggplot(d, aes(x = a, y = b)) +
 #| label: fig-axis-label
 #| fig-cap: "軸ラベルを変更"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   labs(x = "Length of Sepal", y = "Width of Sepal")
 
 ```
@@ -337,13 +363,17 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-axis-font
 #| fig-cap: "文字の体裁が変わっています"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  labs(x = "Length of Sepal", y = "Width of Sepal") + 
-  theme(axis.title = element_text(
-    family = "Times New Roman", face = "italic", 
-    color = "red", size = 20
-  ))
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  labs(x = "Length of Sepal", y = "Width of Sepal") +
+  theme(
+    axis.title = element_text(
+      family = "Times New Roman",
+      face = "italic",
+      color = "red",
+      size = 20
+    )
+  )
 
 ```
 
@@ -364,9 +394,9 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-axis-scale
 #| fig-cap: "目盛りの間隔が変わっています"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  scale_x_continuous(breaks = seq(4.5, 8, .5)) + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  scale_x_continuous(breaks = seq(4.5, 8, .5)) +
   scale_y_continuous(breaks = seq(2, 4, 1))
 
 ```
@@ -379,10 +409,12 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-axis-scale-cat
 #| fig-cap: "カテゴリのラベルが変わっています"
 
-ggplot(iris, aes(x = Species, y = Sepal.Length)) + 
-  geom_bar(stat = "summary", fun = "mean") + 
-  scale_x_discrete(breaks = c("setosa", "versicolor", "virginica"), 
-                   labels = c("A", "B", "C"))
+ggplot(iris, aes(x = Species, y = Sepal.Length)) +
+  geom_bar(stat = "summary", fun = "mean") +
+  scale_x_discrete(
+    breaks = c("setosa", "versicolor", "virginica"),
+    labels = c("A", "B", "C")
+  )
 
 ```
 
@@ -394,12 +426,16 @@ ggplot(iris, aes(x = Species, y = Sepal.Length)) +
 #| label: fig-scale-font
 #| fig-cap: "数字のフォントが変わっています"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  theme(axis.text = element_text(
-    family = "Times New Roman", face = "bold", 
-    color = "red", size = 20
-  ))
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  theme(
+    axis.text = element_text(
+      family = "Times New Roman",
+      face = "bold",
+      color = "red",
+      size = 20
+    )
+  )
 
 ```
 
@@ -411,11 +447,15 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-delete-memori
 #| fig-cap: "目盛りが消えています"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme(
-    axis.text = element_text(family = "Times New Roman", face = "bold", 
-                             color = "red", size = 20), 
+    axis.text = element_text(
+      family = "Times New Roman",
+      face = "bold",
+      color = "red",
+      size = 20
+    ),
     axis.ticks = element_blank()
   )
 
@@ -431,13 +471,17 @@ X軸とY軸の範囲を設定する方法です。これまでの図ではだい
 #| label: fig-change-range
 #| fig-cap: "範囲を変えました"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  xlim(5, 7) + 
-  ylim(3, 4) + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  xlim(5, 7) +
+  ylim(3, 4) +
   theme(
-    axis.text = element_text(family = "Times New Roman", face = "bold", 
-                             color = "red", size = 20), 
+    axis.text = element_text(
+      family = "Times New Roman",
+      face = "bold",
+      color = "red",
+      size = 20
+    ),
     axis.ticks = element_blank()
   )
 
@@ -455,10 +499,17 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-annotate
 #| fig-cap: "表内に文字を入れられました"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  annotate("text", label = "ggplot is\nwonderful!", x = 6.5, y = 4, 
-           family = "Times New Roman", color = "#CC6666", size = 10)
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  annotate(
+    "text",
+    label = "ggplot is\nwonderful!",
+    x = 6.5,
+    y = 4,
+    family = "Times New Roman",
+    color = "#CC6666",
+    size = 10
+  )
 
 ```
 
@@ -480,10 +531,17 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-segment-1
 #| fig-cap: "斜めに棒線が入りました。"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  annotate("segment", x = 5, xend = 7, y = 4, yend = 2.5, 
-           linewidth = 2, color = "#CC6666")
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  annotate(
+    "segment",
+    x = 5,
+    xend = 7,
+    y = 4,
+    yend = 2.5,
+    linewidth = 2,
+    color = "#CC6666"
+  )
 
 ```
 
@@ -491,11 +549,18 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-segment-2
 #| fig-cap: "矢印になりました。"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  annotate("segment", x = 5, xend = 7, y = 4, yend = 2.5, 
-           linewidth = 2, color = "#CC6666", 
-           arrow = arrow(length = unit(2, units = "cm")))
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  annotate(
+    "segment",
+    x = 5,
+    xend = 7,
+    y = 4,
+    yend = 2.5,
+    linewidth = 2,
+    color = "#CC6666",
+    arrow = arrow(length = unit(2, units = "cm"))
+  )
 
 ```
 
@@ -512,7 +577,154 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 
 今回はわかりやすくでかでかと描きましたが、例えばグラフ内の特徴的な部分に注釈をつけたい場合などに役立ちます。
 
-## 複数のプロットと凡例
+## 時系列のプロット
+
+時系列データをプロットする際に、元データには年と月が別々に入っていることもあると思います。それらのデータをうまく使いながら時系列プロットを作成する方法について説明します。
+
+まずは年と月が別々に入っているデータを想定し、仮のデータフレームを作成します。
+
+```{r}
+# fmt: skip
+time_data <- tibble::tribble(
+  ~year, ~month, ~value,
+  2020, 4, 22,
+  2020, 5, 30,
+  2020, 6, 26,
+  2020, 7, 35,
+  2020, 8, 40,
+  2020, 9, 38,
+  2020, 10, 45,
+  2020, 11, 50,
+  2020, 12, 48,
+  2021, 1, 52,
+  2021, 2, 55,
+  2021, 3, 53
+)
+```
+
+このように、`year`と`month`が別々に入っているデータを想定します。
+
+このデータを時系列プロットにするためには、まず`year`と`month`を結合して日付データに変換する必要があります。これには`lubridate`パッケージを使うと便利です。
+
+```{r}
+# install.packages("lubridate")
+library(lubridate)
+
+time_data <- time_data |>
+  mutate(date = make_date(year, month, 1))
+```
+
+```{r}
+#| echo: false
+#| label: tbl-time-series-data
+#| tbl-cap: "日付データを追加したデータフレーム"
+
+time_data |>
+  tinytable::tt(width = 8)
+
+```
+
+ここで`make_date(year, month, 1)`を使って、各年と月の1日の日付データを作成しています。これで`date`列が追加されました。
+
+次に、この`date`列を使って時系列プロットを作成します。
+
+```{r}
+#| label: fig-time-series
+#| fig-cap: "時系列プロット"
+
+ggplot(time_data, aes(x = date, y = value)) +
+  geom_line() +
+  geom_point()
+
+```
+
+これで時系列がプロットできていることがわかるかと思います。
+
+ただ、このままだと目盛りが「4 2020」のようになっており、日本人には馴染みが薄い形式です。そこで、`scale_x_date()`を使って目盛りの形式を変更します。
+
+```{r}
+#| label: fig-time-series-format
+#| fig-cap: "目盛りの形式を変更しました"
+
+ggplot(time_data, aes(x = date, y = value)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date(
+    date_labels = "%Y-%m",
+    date_breaks = "2 month"
+  )
+
+```
+
+`date_labels = "%Y-%m"`で年-月の形式に変更し、`date_breaks = "2 month"`で2か月ごとに目盛りを設定しています。間隔を調整したいときは、`date_breaks`の値を変更してください。
+
+ラベルはいろいろ変更できます。
+
+```{r}
+#| label: fig-time-series-format-2
+#| fig-cap: "別の形式に変更しました"
+
+ggplot(time_data, aes(x = date, y = value)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date(
+    date_labels = "%Y年%m月",
+    date_breaks = "3 month"
+  )
+```
+
+`%Y`で年、`%m`で月を表します。
+
+ちなみにこの状態だと1桁の月は0埋めされてしまいます。1桁の月を0埋めせずに表示したい場合は、WindowsとMac/Linuxで異なるのですが、以下の方法で実装可能です。
+
+:::{.panel-tabset}
+## Windowsの場合
+
+Windowsの場合は少々複雑です。
+
+```{r}
+#| label: fig-time-series-format-3-win
+#| fig-cap: "1桁の月を0埋めしない形式（Windows）"
+
+ggplot(time_data, aes(x = date, y = value)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date(
+    breaks = "2 months",
+    labels = \(x) {
+      paste0(
+        format(x, "%Y年"),
+        as.integer(format(x, "%m")),
+        "月"
+      )
+    }
+  )
+```
+
+注目すべきところは`labels = \(x) { ... }`の部分です。`format(x, "%Y年")`で年を取得し、`as.integer(format(x, "%m"))`で月を取得したのち整数に変換しています。こうすることで1桁の月は0埋めされなくなります。最後に`paste0()`で年と月の整数、"月"を結合しています。
+
+## Mac/Linuxの場合
+
+MacやLinuxの場合はWindowsより簡単です。
+
+```{r}
+#| eval: false
+#| label: fig-time-series-format-3-mac
+#| fig-cap: "1桁の月を0埋めしない形式（Mac/Linux）"
+
+ggplot(time_data, aes(x = date, y = value)) +
+  geom_line() +
+  geom_point() +
+  scale_x_date(
+    date_labels = "%Y年%-m月",
+    date_breaks = "2 month"
+  )
+```
+
+僕の環境はWindowsなので実行できませんが、`%-m`とすることで1桁の月を0埋めせずに表示できます。
+:::
+
+## 複数のカテゴリのプロットと凡例
 
 ### 複数のカテゴリのプロット {#sec-multi-cat-plot}
 
@@ -525,8 +737,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: tbl-orange
 #| tbl-cap: "`Orangeデータセットの一部"
 
-Orange |> 
-  head(10) |> 
+Orange |>
+  head(10) |>
   tinytable::tt(width = 8)
 
 ```
@@ -539,7 +751,7 @@ Orange |>
 #| label: fig-orange-pool
 #| fig-cap: "すべてのデータを放り込みました"
 
-ggplot(Orange, aes(x = age, y = circumference)) + 
+ggplot(Orange, aes(x = age, y = circumference)) +
   geom_point()
 
 ```
@@ -552,7 +764,7 @@ ggplot(Orange, aes(x = age, y = circumference)) +
 #| label: fig-orange-color
 #| fig-cap: "色が分かれました"
 
-ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
   geom_point()
 
 ```
@@ -567,15 +779,15 @@ ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
 #| label: fig-orange-linetype
 #| fig-cap: "折れ線の種類も分かれました"
 
-ggplot(Orange, aes(x = age, y = circumference, color = Tree, linetype = Tree)) + 
-  geom_point() + 
+ggplot(Orange, aes(x = age, y = circumference, color = Tree, linetype = Tree)) +
+  geom_point() +
   geom_line()
 
 ```
 
 `linetype = Tree`を追加することで線の種類も木の種類ごとに変更することができました。
 
-このように`aes()`内で要素を追加することで種類ごとに分けることができます。
+このように`aes()`内で要素を追加することで種類ごとに分けることができます。他にも散布図の点の形をカテゴリごとに変えたければ`shape = Tree`のようにすれば可能です。
 
 まだ色遣いなどは不格好ですが、いったんこのまま進めます。
 
@@ -589,8 +801,8 @@ ggplot(Orange, aes(x = age, y = circumference, color = Tree, linetype = Tree)) +
 #| label: fig-orange-legend-position
 #| fig-cap: "凡例が下に来ました"
 
-ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
-  geom_point() + 
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
+  geom_point() +
   theme(legend.position = "bottom")
 
 ```
@@ -603,8 +815,8 @@ ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
 #| label: fig-orange-legend-delete
 #| fig-cap: "凡例を消しました"
 
-ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
-  geom_point() + 
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
+  geom_point() +
   theme(legend.position = "none")
 
 ```
@@ -621,8 +833,8 @@ ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
 #| label: fig-orange-legend-delte-title
 #| fig-cap: "凡例のタイトルを削除"
 
-ggplot(Orange, aes(x = age, y = circumference, color = Tree)) + 
-  geom_point() + 
+ggplot(Orange, aes(x = age, y = circumference, color = Tree)) +
+  geom_point() +
   guides(color = guide_legend(title = NULL))
 
 ```
@@ -641,15 +853,15 @@ ggplotではテーマを選ぶことができます。デフォルトではこ�
 
 いくつかのテーマが準備されています。代表的なものをいくつかご紹介します。
 
-::: panel-tabset
+:::{.panel-tabset}
 ## minimal
 
 ```{r}
 #| label: fig-theme-minimal
 #| fig-cap: "`theme_minimal()`"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme_minimal()
 
 ```
@@ -660,8 +872,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-bw
 #| fig-cap: "`theme_bw()`"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme_bw()
 
 ```
@@ -674,8 +886,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-classic
 #| fig-cap: "`theme_classic()`"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme_classic()
 
 ```
@@ -686,8 +898,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-linedraw
 #| fig-cap: "`theme_linedraw()`"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme_linedraw()
 
 ```
@@ -698,8 +910,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-light
 #| fig-cap: "`theme_light()`"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme_light()
 
 ```
@@ -710,8 +922,8 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-void
 #| fig-cap: "`theme_void()`"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme_void()
 
 ```
@@ -731,9 +943,9 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-miss
 #| fig-cap: "失敗例"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  theme(axis.title = element_text(color = "red")) + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  theme(axis.title = element_text(color = "red")) +
   theme_minimal()
 ```
 
@@ -745,9 +957,9 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-success
 #| fig-cap: "正しい例"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  theme_minimal() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  theme_minimal() +
   theme(axis.title = element_text(color = "red"))
 ```
 
@@ -759,13 +971,13 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-custom
 #| fig-cap: "カスタムテーマ"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  theme_minimal() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  theme_minimal() +
   theme(
-    panel.grid = element_blank(), 
-    legend.position = "none", 
-    axis.title = element_text(family = "Times New Roman", size = 18), 
+    panel.grid = element_blank(),
+    legend.position = "none",
+    axis.title = element_text(family = "Times New Roman", size = 18),
     axis.text = element_text(family = "Times New Roman", size = 14)
   )
 
@@ -791,8 +1003,8 @@ ggplot2のバージョン4.0.0からは、`theme_xxx()`内で色に関するデ�
 #| label: fig-theme-v4
 #| fig-cap: "theme()内での色のデフォルト設定"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
   theme_minimal(paper = "papayawhip", ink = "darkgreen")
 ```
 
@@ -808,9 +1020,9 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 #| label: fig-theme-v4-geom
 #| fig-cap: "geom内での色のデフォルト設定"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) + 
-  geom_point() + 
-  theme_minimal(paper = "papayawhip", ink = "darkgreen") + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
+  geom_point() +
+  theme_minimal(paper = "papayawhip", ink = "darkgreen") +
   theme(
     geom = element_geom(color = "coral", pointsize = 3)
   )
@@ -828,7 +1040,7 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width)) +
 ```{r}
 #| label: fig-theme-v4-from_theme
 #| layout-ncol: 2
-#| fig-cap: 
+#| fig-cap:
 #|   - "アクセントカラーを青に"
 #|   - "アクセントカラーをオレンジに"
 
@@ -858,22 +1070,26 @@ p + theme(geom = element_geom(accent = "orange"))
 
 ```{r}
 # 論文用のテーマ
-theme_paper <- theme_minimal(paper = "white",  ink = "black") + 
+theme_paper <- theme_minimal(paper = "white", ink = "black") +
   theme(geom = element_geom(accent = "navy"))
 
 # スライド用のテーマ
-theme_slide <- theme_minimal(paper = "black",  ink = "white") + 
+theme_slide <- theme_minimal(paper = "black", ink = "white") +
   theme(geom = element_geom(accent = "orange"))
 ```
 
 次に、テーマを除くプロット本体を作成します。
 
 ```{r}
-p <- ggplot(Orange, aes(age, circumference)) + 
+p <- ggplot(Orange, aes(age, circumference)) +
   # 散布図は灰色で固定
-  geom_point(color = "gray60", size = 2) + 
-  geom_smooth(aes(color = from_theme(accent)), 
-              method = lm, se = FALSE, size = 1) + 
+  geom_point(color = "gray60", size = 2) +
+  geom_smooth(
+    aes(color = from_theme(accent)),
+    method = lm,
+    se = FALSE,
+    size = 1
+  ) +
   labs(x = "Age (days)", y = "Circumference (mm)")
 ```
 
@@ -888,8 +1104,8 @@ p <- ggplot(Orange, aes(age, circumference)) +
 #|   - "論文用のテーマ"
 #|   - "スライド用のテーマ"
 
-p_paper  <- p + theme_paper
-p_slide  <- p + theme_slide
+p_paper <- p + theme_paper
+p_slide <- p + theme_slide
 
 p_paper
 p_slide
@@ -910,7 +1126,7 @@ p_slide
 #| label: fig-label-default
 #| fig-cap: "デフォルトのラベル"
 
-ggplot(Orange, aes(x = age, y = circumference)) + 
+ggplot(Orange, aes(x = age, y = circumference)) +
   geom_point()
 
 ```
@@ -940,7 +1156,7 @@ attr(df$circumference, "label") <- "Trunk circumference (mm)"
 #| label: fig-label-custom
 #| fig-cap: "カスタムラベル"
 
-ggplot(df, aes(x = age, y = circumference)) + 
+ggplot(df, aes(x = age, y = circumference)) +
   geom_point()
 
 ```
@@ -981,10 +1197,9 @@ ggplot2では、連続値やカテゴリ値を色で表現する際に「カラ�
 #| label: fig-color-default
 #| fig-cap: "scale_colour_continuous()を使った例"
 
-ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width,
-                 colour = Petal.Length)) + 
-  geom_point(size = 2) + 
-  scale_colour_continuous() + 
+ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width, colour = Petal.Length)) +
+  geom_point(size = 2) +
+  scale_colour_continuous() +
   labs(colour = "Petal length")
 
 ```
@@ -995,18 +1210,18 @@ ggplot(iris, aes(x = Sepal.Length, y = Sepal.Width,
 
 ```{r}
 #| label: fig-color-continuous-custom
-#| fig-cap: 
+#| fig-cap:
 #|   - "左: 青から赤へのグラデーション"
 #|   - "右: 指定した3色のグラデーション"
 
-ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) + 
-  geom_point(size = 2) + 
-  scale_colour_continuous(low = "blue", high = "red") + 
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) +
+  geom_point(size = 2) +
+  scale_colour_continuous(low = "blue", high = "red") +
   labs(colour = "Petal length")
 
-ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) + 
-  geom_point(size = 2) + 
-  scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26")) + 
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) +
+  geom_point(size = 2) +
+  scale_colour_continuous(palette = c("#FEE0D2", "#FC9272", "#DE2D26")) +
   labs(colour = "Petal length")
 
 ```
@@ -1019,9 +1234,9 @@ lowからhighまでの2色を指定する方法や、自分で3色以上を指�
 #| label: fig-color-viridis
 #| fig-cap: "scale_colour_viridis_c()を使った例"
 
-ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) + 
-  geom_point(size = 2) + 
-  scale_colour_viridis_c(option = "plasma") + 
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) +
+  geom_point(size = 2) +
+  scale_colour_viridis_c(option = "plasma") +
   labs(colour = "Petal length")
 
 ```
@@ -1038,9 +1253,9 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Petal.Length)) +
 #| label: fig-color-brewer
 #| fig-cap: "scale_colour_brewer()を使った例"
 
-ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
-  geom_point(size = 2) + 
-  scale_colour_brewer(palette = "Set1") + 
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
+  geom_point(size = 2) +
+  scale_colour_brewer(palette = "Set1") +
   labs(colour = "Species")
 
 ```
@@ -1053,9 +1268,9 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
 #| label: fig-color-discrete
 #| fig-cap: "scale_colour_discrete()を使った例"
 
-ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
-  geom_point(size = 2) + 
-  scale_colour_discrete() + 
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
+  geom_point(size = 2) +
+  scale_colour_discrete() +
   labs(colour = "Species")
 
 ```
@@ -1066,9 +1281,9 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
 #| label: fig-color-discrete-custom
 #| fig-cap: "指定した3色"
 
-ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
-  geom_point(size = 2) + 
-  scale_colour_manual(values = c("darkred", "darkblue", "darkgreen")) + 
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
+  geom_point(size = 2) +
+  scale_colour_manual(values = c("darkred", "darkblue", "darkgreen")) +
   labs(colour = "Species")
 
 ```
@@ -1079,9 +1294,9 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
 #| label: fig-color-viridis-d
 #| fig-cap: "scale_colour_viridis_d()を使った例"
 
-ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) + 
-  geom_point(size = 2) + 
-  scale_colour_viridis_d(option = "plasma") + 
+ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
+  geom_point(size = 2) +
+  scale_colour_viridis_d(option = "plasma") +
   labs(colour = "Species")
 
 ```
@@ -1102,7 +1317,7 @@ ggplot(iris, aes(Sepal.Length, Sepal.Width, colour = Species)) +
 #| label: fig-complex-plot
 #| layout-ncol: 2
 #| fig-cap: "作ってみました"
-#| fig-subcap: 
+#| fig-subcap:
 #|   - "カットと価格の関係"
 #|   - "カラットと価格の関係"
 
@@ -1112,30 +1327,38 @@ attr(df$cut, "label") <- "Cut"
 attr(df$price, "label") <- "Price (USD)"
 attr(df$carat, "label") <- "Carat"
 
-theme_use <- theme_minimal(paper = "gray98", ink = "navy") + 
+theme_use <- theme_minimal(paper = "gray98", ink = "navy") +
   theme(
-    geom = element_geom(accent = "purple", paper = "pink", 
-                        pointsize = 2, borderwidth = 1), 
-    axis.title = element_text(family = "Times New Roman", size = 16), 
-    axis.text = element_text(family = "Times New Roman", size = 12), 
-    legend.title = element_text(family = "Times New Roman"), 
+    geom = element_geom(
+      accent = "purple",
+      paper = "pink",
+      pointsize = 2,
+      borderwidth = 1
+    ),
+    axis.title = element_text(family = "Times New Roman", size = 16),
+    axis.text = element_text(family = "Times New Roman", size = 12),
+    legend.title = element_text(family = "Times New Roman"),
     legend.text = element_text(family = "Times New Roman")
   )
 
 ggplot(df, aes(cut, price)) +
-  geom_violin(aes(color = from_theme(accent))) + 
-  theme_minimal(paper = "gray98", ink = "navy") + 
+  geom_violin(aes(color = from_theme(accent))) +
+  theme_minimal(paper = "gray98", ink = "navy") +
   theme_use
 
-ggplot(df, aes(carat, price, color = cut)) + 
-  geom_point() + 
-  annotate("text", label = "Fair < Good < Very Good < Premium < Ideal", 
-           x = 3.4, y = 2500, family = "Times New Roman") + 
-  scale_color_viridis_d(option = "plasma") + 
-  guides(color = guide_legend(reverse = TRUE)) + 
+ggplot(df, aes(carat, price, color = cut)) +
+  geom_point() +
+  annotate(
+    "text",
+    label = "Fair < Good < Very Good < Premium < Ideal",
+    x = 3.4,
+    y = 2500,
+    family = "Times New Roman"
+  ) +
+  scale_color_viridis_d(option = "plasma") +
+  guides(color = guide_legend(reverse = TRUE)) +
   theme_use
 ```
-
 
 ## 発展：`ggrepel`
 
@@ -1154,10 +1377,9 @@ library(ggrepel)
 #| tbl-cap: "データの一部"
 #| echo: false
 
-library(tidyverse)
 set.seed(57)
 
-n_firms <- 30   # Reduce the number of firms
+n_firms <- 30 # Reduce the number of firms
 n_states <- 50
 T <- 36
 
@@ -1169,31 +1391,39 @@ fe_firm <- rnorm(n_firms, mean = 0, sd = .5)
 fe_year <- rnorm(T, mean = 0, sd = .5)
 error <- rnorm(n_firms * T, mean = 0, sd = .5)
 
-treated_1998 <- sample(c(1, 0), size = n_firms, 
-                       replace = TRUE, prob = c(1/5, 4/5))
+treated_1998 <- sample(
+  c(1, 0),
+  size = n_firms,
+  replace = TRUE,
+  prob = c(1 / 5, 4 / 5)
+)
 
-treated_year <- sample(c(1989, 1998, 2007), size = n_firms, 
-                       replace = TRUE, prob = c(17/50, 17/50, 16/50))
+treated_year <- sample(
+  c(1989, 1998, 2007),
+  size = n_firms,
+  replace = TRUE,
+  prob = c(17 / 50, 17 / 50, 16 / 50)
+)
 
 df <- tibble(
-  firm_id = rep(firm_id, each = T), 
-  state_id = rep(state_id, each = T), 
-  year = rep(year, times = n_firms), 
-  fe_firm = rep(fe_firm, each = T), 
-  fe_year = rep(fe_year, times = n_firms), 
-  error = error, 
-  treated_1998 = rep(treated_1998, each = T), 
-  is_treated = if_else(treated_1998 == 1 & year >= 1998, 1, 0), 
+  firm_id = rep(firm_id, each = T),
+  state_id = rep(state_id, each = T),
+  year = rep(year, times = n_firms),
+  fe_firm = rep(fe_firm, each = T),
+  fe_year = rep(fe_year, times = n_firms),
+  error = error,
+  treated_1998 = rep(treated_1998, each = T),
+  is_treated = if_else(treated_1998 == 1 & year >= 1998, 1, 0),
   y = case_when(
-    is_treated == 1 ~ 
-      rnorm(n_firms * T, mean = 2, sd = .2) + fe_firm + fe_year + error, 
+    is_treated == 1 ~
+      rnorm(n_firms * T, mean = 2, sd = .2) + fe_firm + fe_year + error,
     .default = fe_firm + fe_year + error
   )
 )
 
-df |> 
-  select(firm_id:year, treated_1998:y) |> 
-  head() |> 
+df |>
+  select(firm_id:year, treated_1998:y) |>
+  head() |>
   tinytable::tt()
 
 ```
@@ -1207,98 +1437,103 @@ df |>
 #| fig-cap: "ggrepelを使ったプロット"
 #| fig-align: center
 
-df <- df |> 
+df <- df |>
   mutate(
     # ハイライトする群とそれ以外に分ける
-    group = if_else(treated_1998 == 1, as.factor(firm_id), "other"), 
+    group = if_else(treated_1998 == 1, as.factor(firm_id), "other"),
     # 最後の年にだけラベルを付ける
-    group_lab = if_else(treated_1998 == 1 & year == 2015, 
-                        paste0("Firm ", firm_id), NA_character_)
+    group_lab = if_else(
+      treated_1998 == 1 & year == 2015,
+      paste0("Firm ", firm_id),
+      NA_character_
+    )
   )
 
 ggplot(
   # まずハイライトする群だけプロット
-  df |> filter(treated_1998 == 1), 
+  df |> filter(treated_1998 == 1),
   aes(x = year, y = y, group = firm_id)
-) + 
-  theme_minimal() + 
+) +
+  theme_minimal() +
   theme(
     # 罫線を削除
-    panel.grid = element_blank(), 
+    panel.grid = element_blank(),
     # 凡例を削除
-    legend.position = "none", 
+    legend.position = "none",
     # 軸のタイトルと文字のフォントとサイズを調整
-    axis.title = element_text(family = "Times", size = 18), 
-    axis.text = element_text(family = "Times", size = 14)
-  ) + 
+    axis.title = element_text(family = "Times", size = 18),
+    axis.text = element_text(family = "Times", size = 14),
+    # X軸タイトルを若干左寄せ
+    axis.title.x = element_text(hjust = 0.4)
+  ) +
   geom_vline(
     # 垂直線を描写
-    xintercept = seq(1980, 2015, by = 5), 
-    color = "gray91", 
+    xintercept = seq(1980, 2015, by = 5),
+    color = "gray91",
     linewidth = .6
-  ) + 
+  ) +
   geom_segment(
     # 水平線を描写
     # 描写のためにデータを準備
-    data = tibble(y = seq(-2.5, 5.0, by = 2.5), x1 = 1980, x2 = 2015), 
-    aes(x = x1, xend = x2, y = y, yend = y), 
-    inherit.aes = FALSE, 
-    color = "gray91", 
+    data = tibble(y = seq(-2.5, 5.0, by = 2.5), x1 = 1980, x2 = 2015),
+    aes(x = x1, xend = x2, y = y, yend = y),
+    inherit.aes = FALSE,
+    color = "gray91",
     linewidth = .6
-  ) + 
+  ) +
   geom_segment(
     # 薄い水平線を描写
-    data = tibble(y = seq(-2.0, 4.5, by = .5), x1 = 1980, x2 = 2015), 
-    aes(x = x1, xend = x2, y = y, yend = y), 
-    inherit.aes = FALSE, 
-    color = "gray97", 
+    data = tibble(y = seq(-2.0, 4.5, by = .5), x1 = 1980, x2 = 2015),
+    aes(x = x1, xend = x2, y = y, yend = y),
+    inherit.aes = FALSE,
+    color = "gray97",
     linewidth = .3
-  ) + 
+  ) +
   geom_segment(
     # 縦軸が0のところに水平線を描写
-    data = tibble(y = 0, x1 = 1980, x2 = 2015), 
-    aes(x = x1, xend = x2, y = y), 
-    inherit.aes = FALSE, 
-    linetype = "dashed", 
+    data = tibble(y = 0, x1 = 1980, x2 = 2015),
+    aes(x = x1, xend = x2, y = y),
+    inherit.aes = FALSE,
+    linetype = "dashed",
     color = "gray40"
-  ) + 
+  ) +
   geom_vline(
     # 処置年に垂直線を描写
-    xintercept = 1998, 
-    linetype = "dashed", 
+    xintercept = 1998,
+    linetype = "dashed",
     color = "gray40"
-  ) + 
+  ) +
   geom_line(
     # ハイライトしない群をプロット
-    data = df |> filter(group == "other"), 
-    color = "gray75", 
+    data = df |> filter(group == "other"),
+    color = "gray75",
     alpha = .5
-  ) + 
+  ) +
   geom_line(
     # ハイライトする群をプロット
     aes(color = group)
-  ) + 
+  ) +
   geom_text_repel(
     # ハイライトした線にラベルを追加
-    aes(color = group, label = group_lab), 
-    family = "Times", 
-    hjust = 0, 
+    aes(color = group, label = group_lab),
+    family = "Times",
+    hjust = 0,
     # 2017年の位置にラベルを書く
-    xlim = c(2017, NA), 
-    size = 4, 
+    xlim = c(2017, NA),
+    size = 4,
     segment.linetype = "dotted"
-  ) + 
-  xlab("Year") + 
-  ylab("Value") + 
+  ) +
+  xlab("Year") +
+  ylab("Value") +
   scale_x_continuous(
-    expand = c(0, 0), 
+    expand = c(0, 0),
     # ラベルが見えるように図の端の2015年より広くとる
-    limits = c(1980, 2021), 
+    limits = c(1980, 2021),
     breaks = seq(1980, 2015, by = 5)
-  ) + 
+  ) +
   scale_y_continuous(
-    expand = c(0, 0), 
-    limits = c(-2.5, 5.0), 
+    expand = c(0, 0),
+    limits = c(-2.5, 5.0),
     breaks = c(-2.5, 0, 2.5, 5.0)
   )
 ```
