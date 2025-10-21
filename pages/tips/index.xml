@@ -9,8 +9,435 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.9.5</generator>
-<lastBuildDate>Wed, 15 Oct 2025 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.9.8</generator>
+<lastBuildDate>Mon, 20 Oct 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【Typst】Quartoで論文を書く【PDF】</title>
+  <link>https://yo5uke.com/pages/tips/251021_quarto_typst/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+
+  <!-- Twitter (X) -->
+
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+
+
+  <!-- Bluesky -->
+
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+</div>
+
+
+
+<script>
+
+  const twitterUsername = "@5uke_y";
+
+  const blueskyUsername = "@5uke.bsky.social";
+
+
+
+  const share_url = encodeURIComponent(location.href);
+
+  const share_title = document.title;
+
+
+
+  // Twitter (X)
+
+  document.getElementById('js-share-twitter').setAttribute(
+
+    "href",
+
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+
+    "&hashtags=rstats"
+
+  );
+
+
+
+  // Bluesky
+
+  document.getElementById('js-share-bluesky').setAttribute(
+
+    "href",
+
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+
+  );
+
+</script>
+
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>以前TinyTeXを使ってRStudio×Quartoで論文を書く方法についてご紹介しました。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../pages/tips/240629_write_thesis/index.html">【PDF】Quarto で論文を書く</a></p>
+</div>
+</div>
+</div>
+<p>しかし、TinyTeXを使った方法はいくらTiny（軽量）とはいえLaTeX特有のエラーが発生することもあり、論文を書くとなると、どうせなら細かい設定をするためにローカルのTeXやOverleafで書くことが多いのではないかと思います<sup>1</sup>。</p>
+<p>そこで今回は、LaTeXも代わりうる新しい組版システムであるTypstを使ってQuartoで論文を書く方法をご紹介します。</p>
+<p>また、英語論文のバージョンではありますが、Quarto拡張機能を作成し経済学論文のテンプレートも用意しましたので、併せてご紹介します。</p>
+<p>Rの出力をシームレスにTypstに組み込むことが可能ですので、R（Python）ユーザーの方はぜひご活用ください。</p>
+</section>
+<section id="typstとは" class="level2">
+<h2 class="anchored" data-anchor-id="typstとは">Typstとは？</h2>
+<p>Typstは、新しいマークアップベースの組版システムで、オープンソースで提供されています。</p>
+<p>基本的にはLaTeXと同様に、学術論文に適した高品質なPDFを生成することができますが、TypstにはLaTeXに比べていくつかの利点があります。</p>
+<ul>
+<li><strong>シンプルな文法</strong>: Typstの文法はLaTeXに比べて直感的で、学びやすいという特徴があります。<br>
+</li>
+<li><strong>リアルタイムプレビュー</strong>: Typstの公式オンラインエディタはリアルタイムプレビュー機能を備えており、編集内容が即座に反映されるため、効率的に文書を作成できます。<br>
+※ただし、Quarto上ではリアルタイムプレビューは利用できません。<br>
+</li>
+<li><strong>高速なコンパイル</strong>: Typstは非常に高速なコンパイルを実現しており、LaTeXの数倍の速度でPDFを生成できます。</li>
+</ul>
+<p>TypstにはOverleafのような公式オンラインエディタが提供されており、柔軟に文書を編集できます。ただし、Typst独自の記法を学ぶ必要があります。</p>
+<p>一方で、<strong>Quartoを介してTypstを利用することで、Markdownベースの記述を保ちながらTypstの利点を活かす</strong>ことが可能です。</p>
+<p>繰り返しになりますが、特筆すべきはその<strong>コンパイル速度</strong>です。LaTeXのコンパイル時間にストレスを感じている方は、Typstの速さにきっと驚くでしょう（ガチ）。🚀</p>
+</section>
+<section id="quartoでtypstを使う方法" class="level2">
+<h2 class="anchored" data-anchor-id="quartoでtypstを使う方法">QuartoでTypstを使う方法</h2>
+<p>デフォルトの設定でよければ、以下のようにYAMLヘッダーを設定するだけでTypstを利用できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">---</span></span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ドキュメントのタイトル"</span></span>
+<span id="cb1-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">author</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"著者名"</span></span>
+<span id="cb1-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">date</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> 2025-10-21</span></span>
+<span id="cb1-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> typst</span></span>
+<span id="cb1-6"><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">---</span></span></code></pre></div></div>
+<p>課題のレポートであればこれで十分なドキュメントを生成できるはずです。{tinytex}のようなパッケージのインストールも不要です。</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>参考
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>自分の記事で恐縮ですが、以下をご覧いただければQuartoでの書き方がわかるかと思います。</p>
+<ul>
+<li><a href="../../../pages/tips/240329_rmarkdown_pdf/index.html">【Typst】Quarto &amp; R MarkdownでPDF出力【LaTeX】</a></li>
+<li><a href="../../../pages/tips/240509_chunk_option/index.html">【Quarto】チャンクオプションまとめてみた【R Markdown】</a></li>
+<li><a href="../../../pages/tips/240629_write_thesis/index.html">【PDF】Quarto で論文を書く</a></li>
+<li><a href="../../../pages/tips/240802_quarto_markdown/index.html">【Quarto】マークダウンでできること！</a></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="quarto拡張機能を使う" class="level2">
+<h2 class="anchored" data-anchor-id="quarto拡張機能を使う">Quarto拡張機能を使う</h2>
+<p>冒頭にも書きました通り、英語論文用のテンプレートであるQuarto拡張機能を作成しました。作成に当たっては、自分が修士論文をQuartoで書こうとしたときに対応できず挫折した部分をなるべく補うように努めました。</p>
+<section id="対応環境" class="level3">
+<h3 class="anchored" data-anchor-id="対応環境">対応環境</h3>
+<p>はじめに拡張機能を使うための対応環境について説明します。</p>
+<ul>
+<li>Quarto 1.8以上</li>
+</ul>
+<p>Rを使っていればQuartoはデフォルトで使えるのですが、現在はバージョンが1.8にはなっていないと思います。 その場合は、<a href="https://quarto.org/docs/get-started/">Quartoの公式サイト</a>から1.8以上をインストールしてください<sup>2</sup>。</p>
+<p>また、RStudioあるいはPositronの環境を想定しています。</p>
+</section>
+<section id="拡張機能のインストール" class="level3">
+<h3 class="anchored" data-anchor-id="拡張機能のインストール">拡張機能のインストール</h3>
+<p>拡張機能は以下のコマンドでインストールできます。<strong>作業フォルダを開いた状態で実行してください。</strong></p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>ターミナル</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="ターミナル" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">quarto</span> install extension yo5uke/econ-a4</span></code></pre></div></div>
+</div>
+<p>実行するとYse/Noの確認が求められますので、<code>Y</code>を入力して進めてください。最後の「? View documentation using default browser? (Y/n)」は<code>n</code>でもよいのですが、ドキュメントが見れますので<code>Y</code>から使い方を確認してください。</p>
+</section>
+<section id="拡張機能の利用" class="level3">
+<h3 class="anchored" data-anchor-id="拡張機能の利用">拡張機能の利用</h3>
+<p>拡張機能を利用するには、YAMLヘッダーの<code>format</code>フィールドを以下のように設定します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">format</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb3-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">econ-a4-typst</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> default</span></span></code></pre></div></div>
+<p>これで、経済学論文用のA4サイズのTypstテンプレートが利用できます。</p>
+<p>使い方はGitHubリポジトリのREADMEにも記載していますので、<a href="https://github.com/yo5uke/econ-a4#readme">そちら</a>もご覧ください。</p>
+</section>
+<section id="サンプルコード" class="level3">
+<h3 class="anchored" data-anchor-id="サンプルコード">サンプルコード</h3>
+<p>以下は、拡張機能を利用したサンプルコードです。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">---</span></span>
+<span id="cb4-2"><span class="an" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">title:</span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> "Writing Papers with Quarto and Typst"</span></span>
+<span id="cb4-3"><span class="an" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">author:</span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> </span></span>
+<span id="cb4-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">  - name: Your Name</span></span>
+<span id="cb4-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    affiliation: Your Affiliation</span></span>
+<span id="cb4-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    email: your-address@example.com</span></span>
+<span id="cb4-7"><span class="an" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">date:</span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> 2025-10-21</span></span>
+<span id="cb4-8"><span class="an" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">date-format:</span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> long</span></span>
+<span id="cb4-9"><span class="an" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">abstract:</span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> |</span></span>
+<span id="cb4-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">  This is a sample abstract.</span></span>
+<span id="cb4-11"><span class="an" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">keywords:</span><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"> [Quarto, Typst, Academic Writing, PDF Generation]</span></span>
+<span id="cb4-12"><span class="an" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">format:</span></span>
+<span id="cb4-13"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">  econ-a4-typst:</span></span>
+<span id="cb4-14"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    toc: true</span></span>
+<span id="cb4-15"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">    number-sections: true</span></span>
+<span id="cb4-16"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">---</span></span>
+<span id="cb4-17"></span>
+<span id="cb4-18"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">## Introduction</span></span>
+<span id="cb4-19"></span>
+<span id="cb4-20">@notsu_indirect_2025</span>
+<span id="cb4-21"></span>
+<span id="cb4-22">This is a sample introduction text.</span>
+<span id="cb4-23"></span>
+<span id="cb4-24"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">## Insert Figures</span></span>
+<span id="cb4-25"></span>
+<span id="cb4-26"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{r}</span></span>
+<span id="cb4-27"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#| echo: false</span></span>
+<span id="cb4-28"></span>
+<span id="cb4-29"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(ggplot2)</span>
+<span id="cb4-30"></span>
+<span id="cb4-31"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Create a simple plot</span></span>
+<span id="cb4-32"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">ggplot</span>(mtcars, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">aes</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> wt, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> mpg)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb4-33">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">geom_point</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb4-34">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(</span>
+<span id="cb4-35">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">title =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Scatter plot of MPG vs Weight"</span>,</span>
+<span id="cb4-36">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Weight (1000 lbs)"</span>,</span>
+<span id="cb4-37">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Miles per Gallon"</span></span>
+<span id="cb4-38">  )</span>
+<span id="cb4-39"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span>
+<span id="cb4-40"></span>
+<span id="cb4-41"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">## Insert Tables</span></span>
+<span id="cb4-42"></span>
+<span id="cb4-43"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{r}</span></span>
+<span id="cb4-44"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#| echo: false</span></span>
+<span id="cb4-45"></span>
+<span id="cb4-46"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(knitr)</span>
+<span id="cb4-47"></span>
+<span id="cb4-48"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Create a simple table</span></span>
+<span id="cb4-49"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">kable</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">head</span>(mtcars), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">caption =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Table 1: Sample of mtcars dataset"</span>)</span>
+<span id="cb4-50"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span>
+<span id="cb4-51"></span>
+<span id="cb4-52"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```{=typst}</span></span>
+<span id="cb4-53"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#bibliography("references.bib")</span></span>
+<span id="cb4-54"><span class="in" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">```</span></span></code></pre></div></div>
+<p>少しダミーテキストで文量を増やしていますが、出力結果は<a href="../../../pages/tips/251021_quarto_typst/demo/demo.html">こちら</a>からご確認ください。</p>
+<p>参考文献のセクションについては現状Typstチャンク内で指定する必要がありますので、例のように記述してください。見出しも自動で生成されます。</p>
+<p>もちろんRコードを使って図や表を挿入することも可能です。分析の結果を出力することなく挿入できるため、論文作成が非常に楽になります（もちろんレポートも！）。</p>
+</section>
+<section id="今後の展望" class="level3">
+<h3 class="anchored" data-anchor-id="今後の展望">今後の展望</h3>
+<p>今回は英語論文用のテンプレートを作成しましたが、今後は日本語でも使えるテンプレートを作成したいと考えています。</p>
+<p>やはり海外誌に出すような細かい設定を行う論文はQuartoを介さずTypstやLaTeXで書くことが多いと思いますが、学位論文はこの拡張機能で十分対応できるようになればと考えています（とはいえ将来は細かい設定も詰めたい…！）。</p>
+<p>テンプレートの限界については<a href="https://github.com/yo5uke/econ-a4#readme">README</a>にも記載していますので、ご覧ください。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はQuartoの記述方法自体はほぼ説明しませんでしたが、Typst（＆作成したテンプレート）を使うことで、MarkdownベースでTypstの利点を享受できるということをお伝えできたかと思います。</p>
+<p>ぜひTypstを使って快適な論文執筆ライフを送りましょう！🚀</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="https://typst.app/docs/">Typst Documentation</a></p>
+</div>
+</div>
+</div>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>かくいう僕も修士論文はローカルのTeXを使って書きました。↩︎</p></li>
+<li id="fn2"><p>2025/10/21時点では1.8.5ですので、表示されているものをインストールすればOKです。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>Typst</category>
+  <category>Quarto</category>
+  <category>R</category>
+  <guid>https://yo5uke.com/pages/tips/251021_quarto_typst/</guid>
+  <pubDate>Mon, 20 Oct 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【Positron】拡張機能「Air」を使う【フォーマッタ】</title>
   <link>https://yo5uke.com/pages/tips/251016_air/</link>
@@ -12536,184 +12963,6 @@ font-style: inherit;">quarto</span> publish gh-pages</span></code></pre></div></
   <guid>https://yo5uke.com/pages/tips/241213_create_website/</guid>
   <pubDate>Thu, 12 Dec 2024 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/241213_create_website/image/add_template.png" medium="image" type="image/png" height="75" width="144"/>
-</item>
-<item>
-  <title>Quartoでアイコンを挿入したい</title>
-  <link>https://yo5uke.com/pages/tips/241201_icon/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-
-  <!-- Twitter (X) -->
-
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-
-
-  <!-- Bluesky -->
-
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-</div>
-
-
-
-<script>
-
-  const twitterUsername = "@5uke_y";
-
-  const blueskyUsername = "@5uke.bsky.social";
-
-
-
-  const share_url = encodeURIComponent(location.href);
-
-  const share_title = document.title;
-
-
-
-  // Twitter (X)
-
-  document.getElementById('js-share-twitter').setAttribute(
-
-    "href",
-
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-
-    "&hashtags=rstats"
-
-  );
-
-
-
-  // Bluesky
-
-  document.getElementById('js-share-bluesky').setAttribute(
-
-    "href",
-
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-
-  );
-
-</script>
-
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>Quartoを使ってHTMLファイルを作成していると、時々アイコンを入れたい場合が出てきます。</p>
-<p>例えばソースコードを提示したいとき、「<i class="fa-solid fa-code" aria-label="code"></i>コード」としたいわけです。</p>
-<p>これはQuartoの拡張機能を使うことでできるようになります。</p>
-<p>今回は導入方法と記述方法を簡潔にまとめます。</p>
-</section>
-<section id="拡張機能" class="level2">
-<h2 class="anchored" data-anchor-id="拡張機能">拡張機能</h2>
-<section id="install" class="level3">
-<h3 class="anchored" data-anchor-id="install">インストール</h3>
-<p>使用するのは主に2つ、<strong>Font Awsome</strong>と<strong>Iconify</strong>です。Font Awsomeだけでもほとんど困ることはありませんが、Iconifyも使うとFont Awsomeの不足をだいぶ補完することができると思います。</p>
-<p>詳しくは以下のGitHubページを見てください。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://github.com/quarto-ext/fontawesome">Font Awsome</a></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://github.com/mcanouil/quarto-iconify">Iconify</a></p>
-</div>
-</div>
-</div>
-<p>まず、VSCodeなりRStudioなりでプロジェクトを作成して下さい<sup>1</sup><sup>2</sup>。</p>
-<p>次にVSCodeでは<code>Ctrl</code> + <code>J</code>でターミナルを開き、RStudioではConsole横のTerminalパネルを開いて、以下を打ち込みます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode default code-with-copy"><code class="sourceCode default"><span id="cb1-1"># Font Awsome</span>
-<span id="cb1-2">quarto add quarto-ext/fontawesome</span>
-<span id="cb1-3"></span>
-<span id="cb1-4"># Iconify</span>
-<span id="cb1-5">quarto add mcanouil/quarto-iconify</span></code></pre></div></div>
-<p>途中Yes/Noなど聞かれるかもしれませんが、全部Yesで大丈夫です。</p>
-<p>準備はこれだけです。</p>
-</section>
-<section id="書く" class="level3">
-<h3 class="anchored" data-anchor-id="書く"><i class="fa-solid fa-pen-to-square" aria-label="pen-to-square"></i> 書く</h3>
-<p>書き方は、以下です。本文に直接入れてください。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-shortcodes="false" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb2-1">Font Awsomeの場合</span>
-<span id="cb2-2">{{&lt; fa pen-to-square &gt;}}</span>
-<span id="cb2-3"></span>
-<span id="cb2-4">Iconifyの場合</span>
-<span id="cb2-5">{{&lt; iconify lucide:square-pen &gt;}}</span></code></pre></div></div>
-<p><i class="fa-solid fa-pen-to-square" aria-label="pen-to-square"></i>や<iconify-icon inline="" icon="lucide:square-pen" aria-label="Icon square-pen from lucide Iconify.design set." title="Icon square-pen from lucide Iconify.design set."></iconify-icon>が出力されます。</p>
-<p>書き方の注意として、まず、{{&lt; fa &gt;}}や{{&lt; iconify &gt;}}の部分に任意性はありません。ここは必ず上の通り書いてください。また、スペースがあることにも注意してください。</p>
-<p>アイコンの種類は、以下のページから探し、アイコンの名前をコピペすればOKです。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://fontawesome.com/search?m=free">Font Awsome 一覧</a></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://icon-sets.iconify.design/">Iconify 一覧</a></p>
-</div>
-</div>
-</div>
-<p>僕は基本Font Awsomeで探し、なければIconifyも見てみる、という方針でいつも使っています。使いやすさはほぼ同じだと思うので、いろいろ見比べてみてください。</p>
-</section>
-<section id="注意点" class="level3">
-<h3 class="anchored" data-anchor-id="注意点">注意点</h3>
-<p>細かい点は上で出したGitHubページを見てほしいのですが、よく使うブランドアイコンについての注意点をここでは述べます。</p>
-<p>例えばGitHubやXなどブランドのアイコンを使う際には、アイコン名の前に<code>brands</code>と入れる必要があります。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-shortcodes="false" style="background: #f1f3f5;"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb3-1">{{&lt; fa brands github &gt;}}を見てみてください。</span></code></pre></div></div>
-<p>とすると、</p>
-<p><i class="fa-brands fa-github" aria-label="github"></i>を見てみて下さい。</p>
-<p>と出力されます。</p>
-<p>Twitterは<code>twitter</code>、Xは<code>x-twitter</code>、Rは<code>r-project</code>です。いろいろ調べて試してみてください。</p>
-</section>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回はFont AwsomeとIconifyを使ったアイコンの挿入方法をご紹介しました。</p>
-<p>ウェブサイトを作る際にも重宝します。上手に使ってデザイン性を高めていきましょう<i class="fa-solid fa-champagne-glasses" aria-label="champagne-glasses"></i></p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>Rのプロジェクトについては<a href="../240515_rproj/index.html">こちら</a>を参照してください。↩︎</p></li>
-<li id="fn2"><p>VSCodeでは画面上部「フォルダ」→「フォルダーを開く」で作業フォルダを開く、RStudioではワーキングディレクトリを設定するだけでもできるかもしれませんが、僕はやったことないのでご了承ください。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>Quarto</category>
-  <category>VSCode</category>
-  <category>RStudio</category>
-  <category>備忘録</category>
-  <guid>https://yo5uke.com/pages/tips/241201_icon/</guid>
-  <pubDate>Sat, 30 Nov 2024 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
