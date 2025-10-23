@@ -1,8 +1,14 @@
 ---
 title: "夜間光を可視化する"
 date: 2025-05-07
-editor: visual
+date-modified: 2025-10-23
 ---
+
+:::{.callout-note}
+## データについて
+
+VIIRSの夜間光データについて、本ページで使用しているような日本のみを切り出したGeoTIFFファイルを[こちら](../../software/nighttime_lights/index.qmd)で提供しています。内容をお読みになったうえでご利用ください。
+:::
 
 ## はじめに
 
@@ -22,7 +28,7 @@ editor: visual
 
 Annual VNL V2のセクションから「Go to Download V2.2」をクリックし、ダウンロードページに飛びます。
 
-![V2.2には2022年から2024年のデータがあります](image/VIIRS_Nighttime_Light.png){fig-align="center" width="80%"}
+![V2.2には2022年から2024年のデータがあります](image/VIIRS_Nighttime_Light.png){fig-align="center"}
 
 任意の年（今回は2024年とします）のフォルダをクリックすると、`.gz`ファイル（gzipファイル）がいくつかあります。目的にもよりますが、今回は平均のデータを使うので、`~average.dat.tif.gz`というファイルをクリックしたダウンロードします。おそらく1番上に表示されていると思います。
 
@@ -97,16 +103,17 @@ terra::plot(ntl_24, range = c(0, 10))
 
 ```{r}
 library(sf)
+library(here)
 
-muni <- read_sf(here::here("data/jpn_geojson/municipality_summarise.gpkg"))
+muni <- read_sf(here("data/jpn_geojson/municipality_summarise.gpkg"))
 ```
 
 ```{r}
 #| code-fold: true
 #| fig-cap: "ファイルをプロットするとこんな感じです"
 
-ggplot2::ggplot(muni) + 
-  ggplot2::geom_sf() + 
+ggplot2::ggplot(muni) +
+  ggplot2::geom_sf() +
   ggplot2::theme_void()
 
 ```
@@ -118,9 +125,7 @@ muni <- muni |>
   sf::st_transform(terra::crs(ntl_24))
 ```
 
-わかりやすくパッケージも明示しましたが、ラスタデータの座標系（CRS）は`terra`パッケージの`crs()`関数で取得でき、これを`sf`パッケージの`st_transform()`関数で読み込ませて座標系を上書きしています。ベクタデータの場合の座標系は、`sf::st_crs()`で取得できます[^1]。
-
-[^1]: 例：`st_transform(st_crs(muni))`
+わかりやすくパッケージも明示しましたが、ラスタデータの座標系（CRS）は`terra`パッケージの`crs()`関数で取得でき、これを`sf`パッケージの`st_transform()`関数で読み込ませて座標系を上書きしています。ベクタデータの場合の座標系は、`sf::st_crs()`で取得できます^[例：`st_transform(st_crs(muni))`]。
 
 ### 切り取り
 
@@ -171,12 +176,10 @@ japan_extent <- ext(
 )
 ```
 
-このように、`ext()`で上書きします。経度の下限上限、緯度の下限上限の順に指定し、その中でプラス（あるいはマイナス）何度余白を持たせるかを設定します[^2]。これでプロットすると以下のようになります。
+このように、`ext()`で上書きします。経度の下限上限、緯度の下限上限の順に指定し、その中でプラス（あるいはマイナス）何度余白を持たせるかを設定します^[`xmin()`は経度の下限、`ymax()`は緯度の上限を表しているといった感じです。]。これでプロットすると以下のようになります。
 
 ![北に少し幅を持たせられました](image/cropped_japan_0to10_buffer.png){fig-align="center"}
 :::
-
-[^2]: `xmin()`は経度の下限、`ymax()`は緯度の上限を表しているといった感じです。
 
 2.  `mask()`で日本の形に沿って切り出す
 
@@ -198,9 +201,7 @@ terra::plot(masked, range = c(0, 10))
 
 ## 市町村ごとに光量を計算する
 
-ここからは、切り出したデータを用い、市町村の平均光量を計算していきます。なお、本ページでは計算の厳密さは重視しませんので、あくまでも計算方法の提示にとどめます[^3]。
-
-[^3]: 単純平均では、面積が大きいかつごく一部のみ都市化しているような市町村は過小評価されると考えてよいと思います。
+ここからは、切り出したデータを用い、市町村の平均光量を計算していきます。なお、本ページでは計算の厳密さは重視しませんので、あくまでも計算方法の提示にとどめます^[単純平均では、面積が大きいかつごく一部のみ都市化しているような市町村は過小評価されると考えてよいと思います。]。
 
 使用するデータは今計算した`masked`です。そして計算に使用する関数は`terra::extract()`です。
 
@@ -210,9 +211,11 @@ terra::plot(masked, range = c(0, 10))
 
 library(terra)
 library(sf)
+library(here)
 
-masked <- rast(here::here("data/nighttime_lights/japan_nighttime_lights_2024.tif"))
-muni <- read_sf(here::here("data/jpn_geojson/municipality_summarise.gpkg")) |> 
+masked <- rast(here("data/nighttime_lights/japan_nighttime_lights_2024.tif"))
+
+muni <- read_sf(here("data/jpn_geojson/municipality_summarise.gpkg")) |>
   st_transform(crs(masked))
 
 ```
@@ -221,9 +224,7 @@ muni <- read_sf(here::here("data/jpn_geojson/municipality_summarise.gpkg")) |>
 ntl_values <- terra::extract(masked, muni, fun = mean, na.rm = TRUE)
 ```
 
-`extract()`関数を使い、`masked`と`muni`を重ね合わせながら、平均（mean）を計算しています[^4]。欠損値がある場合でも対応できるように、`na.rm = TRUE`を指定しています。このときもし
-
-[^4]: ここでも`tidyr`パッケージとの競合を避けるため`terra`を明記しています。
+`extract()`関数を使い、`masked`と`muni`を重ね合わせながら、平均（mean）を計算しています^[ここでも`tidyr`パッケージとの競合を避けるため`terra`を明記しています。]。欠損値がある場合でも対応できるように、`na.rm = TRUE`を指定しています。このときもし
 
 ```         
 Warning: [extract] transforming vector data to the CRS of the raster
@@ -240,18 +241,16 @@ tinytable::tt(head(ntl_values))
 
 ```
 
-この`ID`は`muni`の行番号に対応しているので、`muni`に`bind_cols()`等すれば適切に結合できます[^5]。
-
-[^5]: `id`は`muni` のどの列にも対応しない（行番号のみ）ので、`left_join()`ではなく`bind_cols()`しています。
+この`ID`は`muni`の行番号に対応しているので、`muni`に`bind_cols()`等すれば適切に結合できます^[`id`は`muni` のどの列にも対応しない（行番号のみ）ので、`left_join()`ではなく`bind_cols()`しています。]。
 
 例：
 
 ```{r}
 library(tidyverse)
 
-muni_ntl <- muni |> 
-  bind_cols(ntl_values) |> 
-  select(-ID) |> 
+muni_ntl <- muni |>
+  bind_cols(ntl_values) |>
+  select(-ID) |>
   relocate(geom, .after = last_col())
 ```
 
