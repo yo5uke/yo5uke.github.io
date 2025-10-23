@@ -3,10 +3,10 @@ title: "e-Stat APIを使ってデータを取得しよう"
 description: |
   APIの第一歩についてまとめます！
 date: 2025-03-09
+date-modified: 2025-10-23
 categories:
   - R
   - データ処理
-editor: visual
 ---
 
 ## はじめに
@@ -21,9 +21,9 @@ editor: visual
 
 まずはじめにe-Statでユーザー登録をし、アプリケーションIDを取得する必要があります。
 
-ブラウザで[e-Stat](#0)を開き、画面右上の「新規登録」から登録します。難しい点はほとんどないと思うので詳細は省略しますが、登録できたらログインした状態にしておいてください。
+ブラウザで[e-Stat](https://www.e-stat.go.jp/)を開き、画面右上の「新規登録」から登録します。難しい点はほとんどないと思うので詳細は省略しますが、登録できたらログインした状態にしておいてください。
 
-![右上の「新規登録」から登録します](image/e-stat_home.png){fig-align="center" width="80%"}
+![右上の「新規登録」から登録します](image/e-stat_home.png){fig-align="center"}
 
 ログインできたら、上部の青いナビゲーションバーに「マイページ」が出てきますので、そこをクリックしてマイページに進みます。
 
@@ -33,7 +33,7 @@ editor: visual
 
 するとアプリケーションIDの取得ということで3つの欄が出てきますので、1番上の欄を使用していきます。名称の部分に任意の名前を入れ、URLはそのままにしておきます。右側の「発行」をクリックすれば「appId」の部分にアプリケーションIDが表示され、これを後ほど使うことになります。
 
-![名称は何でも大丈夫です](image/e-stat_get_appid.png){fig-align="center" width="80%"}
+![名称は何でも大丈夫です](image/e-stat_get_appid.png){fig-align="center"}
 
 ## 使用するパッケージ
 
@@ -50,9 +50,9 @@ library(xml2)
 library(tidyverse)
 ```
 
-`httr`はHTTPリクエストを送信してWeb APIからデータを取得するためのパッケージで、`xml2`はXMLデータを解析して必要な情報を抽出するためのパッケージです。XMLはデータを構造化して表現するためのフォーマットであり、APIなどでデータを受け取る際によく使われるようです。
+{httr}はHTTPリクエストを送信してWeb APIからデータを取得するためのパッケージで、{xml2}はXMLデータを解析して必要な情報を抽出するためのパッケージです。XMLはデータを構造化して表現するためのフォーマットであり、APIなどでデータを受け取る際によく使われるようです。
 
-`tidyverse`はおなじみのデータハンドリング用です。
+{tidyverse}はおなじみのデータハンドリング用です。
 
 ## APIでデータを取得
 
@@ -64,7 +64,7 @@ library(tidyverse)
 
 ページにAPIと書かれた青いアイコンがあるので、そこをクリックします。するとURLが表示されるので、表示されたURLをコピーしておきます。
 
-![左側にあるAPIと書かれた部分をクリックして出てきたURLをコピーします](image/e-stat_api_url.png){fig-align="center" width="80%"}
+![左側にあるAPIと書かれた部分をクリックして出てきたURLをコピーします](image/e-stat_api_url.png){fig-align="center"}
 
 次にRで今コピーしたURLを格納します。ダブルクォーテーションで囲んでください。
 
@@ -72,13 +72,26 @@ library(tidyverse)
 url <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=&lang=J&statsDataId=0003445078&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
 ```
 
-ここで注意ですが、**URLの中に`appId=`という部分があり、ここに先ほど作成したアプリケーションIDを入れる必要があります**。仮にアプリケーションIDを`hogehoge`とすると、
+ここで注意ですが、**URLの中に`appId=`という部分があり、ここに先ほど作成したアプリケーションIDを入れる必要があります**。仮にアプリケーションIDを`123456789`とすると、
 
 ``` r
-url <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=hogehoge&lang=J&statsDataId=0003445078&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+url <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=123456789&lang=J&statsDataId=0003445078&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
 ```
 
 となります。
+
+`appId`の部分を直接入れ替えることに不安がある方は、以下の方法でも可能です。
+
+``` r
+appId <- "123456789"  # ここにアプリケーションIDを入れます
+
+# コピーしてきたURL
+url_template <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=%s&lang=J&statsDataId=0003445078&metaGetFlg=Y&cntGetFlg=N&explanationGetFlg=Y&annotationGetFlg=Y&sectionHeaderFlg=1&replaceSpChars=0"
+
+url <- sprintf(url_template, appId)
+```
+
+`sprintf()`は文字列の中に変数を埋め込む関数です。`%s`の部分が`appId`で置き換えられるようになっています。
 
 ```{r}
 #| include: false
@@ -88,8 +101,6 @@ url_template <- "https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=%s&lan
 appId <- Sys.getenv("E_STAT_APP_ID")
 
 url <- sprintf(url_template, appId)
-
-print(url)
 
 ```
 
@@ -105,17 +116,20 @@ response <- GET(url)
 
 ```{r}
 if (status_code(response) == 200) {
-  
-  xml_data <- read_xml(content(response, as = "text", encoding = "UTF-8"))
-  
+  xml_data <- read_xml(
+    content(response, as = "text", encoding = "UTF-8")
+  )
+
   print(xml_data)
-  
 } else {
-  stop("データの取得に失敗しました。HTTPステータスコード: ", status_code(response))
+  stop(
+    "データの取得に失敗しました。HTTPステータスコード: ",
+    status_code(response)
+  )
 }
 ```
 
-ステータスコードが200になっていたので`{xml_document}`としていろいろ出てきました。また、`xml_data`に読み込んだXMLが保存されています。
+ステータスコードが200になっていたようなので`{xml_document}`としていろいろ出てきました。また、`xml_data`に読み込んだXMLが保存されています。
 
 ### XMLの構造確認
 
@@ -128,7 +142,7 @@ xml_structure(xml_data)
 
 ```
 
-結果の中には様々な情報が構造化されて格納されていることがわかります。僕たちが抽出したい情報は`{text}`と書かれているのでこのままでは確認することができませんが、この中には統計名やカテゴリ、更新日など、統計に関する様々な情報が含まれます。必要に応じてここから情報を取得することができるので、試しにいろいろやってみましょう。
+結果の中には様々な情報が構造化されて格納されていることがわかります。僕たちが抽出したい情報は`{text}`と表示されてしまっているので、このままでは`{text}`が何か確認することができませんが、この中には統計名や更新日など、統計に関する様々な情報（タグ）が含まれます^[[こちら](https://www.e-stat.go.jp/api/api-info/e-stat-manual3-0#api_3_4)からタグの種類を確認できます。]。必要に応じてここから情報を取得することができるので、試しにいろいろやってみましょう。
 
 1.  統計表の名前
 
@@ -144,7 +158,7 @@ survey_date <- xml_text(xml_find_first(xml_data, "//TABLE_INF/SURVEY_DATE"))
 print(survey_date)
 ```
 
-3.  カテゴリ
+3.  統計表の公開日
 
 ```{r}
 open_date <- xml_text(xml_find_first(xml_data, "//TABLE_INF/OPEN_DATE"))
@@ -153,18 +167,14 @@ print(open_date)
 
 いろいろ結果が出てきました。ここで、使用していた関数について説明します。
 
-まず`xml_text()`です。これはXML内の ノード[^1]のテキストを取得する関数です。内容をテキストとして抽出するものというようなイメージだと思ってください。
+まず`xml_text()`です。これはXML内の ノード^[XMLデータの中の要素（タグ）や属性、テキストなどの構成要素のことを言います。]のテキストを取得する関数です。内容をテキストとして抽出するものというようなイメージだと思ってください。
 
-[^1]: XMLデータの中の要素（タグ）や属性、テキストなどの構成要素のことを言います。
-
-次に`xml_find_first()`です。これは括弧内で指定したパスと合致する最初のものを抽出してくるという関数です。例えば1番では、`"//TABLE_INF/STATISTICS_NAME"`に一致する部分を探して、そこに書かれている内容を引っ張ってきます。最初ということは複数あるのか？と僕も最初は思ったのですが、どうやら1つしかない要素に対しても一般的に使うようです[^2]。
-
-[^2]: 今回取得してきたような要素は全体を見ても1か所にしか出てきません。
+次に`xml_find_first()`です。これは括弧内で指定したパスと合致する最初のものを抽出してくるという関数です。例えば上の1番では、`"//TABLE_INF/STATISTICS_NAME"`に一致する部分を探して、そこに書かれている内容を引っ張ってきます。最初ということは複数あるのか？と僕も最初は思ったのですが、どうやら1つしかない要素に対しても一般的に使うようです^[今回取得してきたような要素は全体を見ても1か所にしか出てきません。]。
 
 ::: callout-tip
 ## XPath（XML上のパス）について
 
-XMLの構造を丁寧に見た方の中には`TABLE_INF`は`GET_STATS_DATA`の中のさらに`STATISTICAL_DATA`の中に入っているがそれは指定しなくてよいのか、と思った方もいるかもしれません。そこは最初の2つのスラッシュ（`//`）で対応していて、これは全体のどこにあっても例えば`TABLE_INF/STATISTICS_NAME`となっている部分を見つけ出して中身を抽出するということを意味しています。つまり、上記の書き方は`"/GET_STATS_DATA/STATISTICAL_DATA/TABLE_INF/STATISTICS_NAME"`に等しいです。
+XMLの構造を丁寧に見た方の中には、`TABLE_INF`は実は`GET_STATS_DATA`の中のさらに`STATISTICAL_DATA`の中に入っているがそれは指定しなくてよいのか、と思った方もいるかもしれません。そこは最初の2つのスラッシュ（`//`）で対応していて、これは全体のどこにあっても、例えば`TABLE_INF/STATISTICS_NAME`となっている部分を見つけ出して中身を抽出するということを意味しています。つまり、上記の書き方で`"/GET_STATS_DATA/STATISTICAL_DATA/TABLE_INF/STATISTICS_NAME"`をヒットさせることができるわけです。
 :::
 
 ### データを取得
@@ -187,10 +197,11 @@ value_nodes <- xml_find_all(xml_data, "//DATA_INF/VALUE")
 
 df <- tibble(
   # xml_attr()で特定の属性を取得
-  area     = xml_attr(value_nodes, "area"),
-  time     = xml_attr(value_nodes, "time"),
+  area = xml_attr(value_nodes, "area"),
+  time = xml_attr(value_nodes, "time"),
   category = xml_attr(value_nodes, "cat01"),
-  value    = as.numeric(xml_text(value_nodes))
+  # valueはテキストとして取得したのち数値に変換
+  value = as.numeric(xml_text(value_nodes))
 )
 
 print(df)
@@ -202,7 +213,10 @@ print(df)
 
 ```{r}
 # xml_data内のノードを取得
-cat01_nodes <- xml_find_all(xml_data, "//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS")
+cat01_nodes <- xml_find_all(
+  xml_data,
+  "//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS"
+)
 
 # cat01のコードと対応する名前を取得
 df_cat01 <- tibble(
@@ -218,29 +232,29 @@ print(df_cat01)
 0が総数、1が男、2が女であることがわかりました。なのでここでカテゴリを書き換え、ついでに年も整理し並べ替えておきましょう。
 
 ```{r}
-df_clean <- df |> 
-  arrange(area, time, category) |> 
+df_cleaned <- df |>
+  arrange(area, time, category) |>
   mutate(
-    # timeの上4桁を整数として格納
-    time = as.integer(str_sub(time, 1, 4)), 
+    # timeは上4桁を取り出す
+    time = as.integer(substr(time, 1, 4)),
     # case_when()で条件分岐
     category = case_when(
       # 文字列として格納されているので""で囲みます
-      category == "0" ~ "population", 
-      category == "1" ~ "pop_male", 
+      category == "0" ~ "population",
+      category == "1" ~ "pop_male",
       category == "2" ~ "pop_female"
-      )
+    )
   )
 
-print(df_clean)
+print(df_cleaned)
 ```
 
 もしカテゴリの各種をそれぞれ列にしたければ`pivot_wider()`でできます。
 
 ```{r}
-df_wide <- df_clean |> 
+df_wide <- df_cleaned |>
   pivot_wider(
-    names_from = category, 
+    names_from = category,
     values_from = value
   )
 
@@ -257,13 +271,13 @@ print(df_wide)
 
 出てきた画面から地域を選択し、「確定」をクリックしたのち取得したいデータを選択し、再度「確定」をクリックします。
 
-![地域を選択します](image/e-stat_database_area.png){fig-align="center" width="80%"}
+![地域を選択します](image/e-stat_database_area.png){fig-align="center"}
 
-![取得したい統計項目を選択します](image/e-stat_database_category.png){fig-align="center" width="80%"}
+![取得したい統計項目を選択します](image/e-stat_database_category.png){fig-align="center"}
 
 するとデータが画面に表示されますが、ここで右上の「API」をクリックし、表示されたURLをコピーします。ここからは上で書いてきた手順と同様です。
 
-![URLの使い方はこれまでと同様です](image/e-stat_database_api.png){fig-align="center" width="80%"}
+![URLの使い方はこれまでと同様です](image/e-stat_database_api.png){fig-align="center"}
 
 ## おわりに
 
