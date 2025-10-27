@@ -1,0 +1,464 @@
+---
+title: "Typst 入門"
+description: |
+  LaTeXにも代わりうる新しい組版システムTypstの基本的な使い方を紹介します。
+date: 2024-10-26
+categories: Typst
+---
+
+## はじめに
+
+皆さん、Typstをご存知でしょうか？  
+Typstは、LaTeXにも代わりうる新しい組版システムで、美しいドキュメントを（比較的）簡単に作成できることができます。  
+Typstは、シンプルで直感的な構文を持ち、リアルタイムプレビュー機能も備えているため、初心者でも扱いやすいのが特徴です。
+
+これまでの僕の記事では、LaTeXを中心にドキュメント作成の方法を紹介してきましたが、Typstも非常に魅力的な選択肢です。  
+ローカルで環境を整えるというのはインターネット環境に左右されないという利点を強調してきた一方で、実際問題それほど問題になるケースが少なく、オンラインエディタで文書を作成するというのも十分に実用的です。
+
+TypstはOverleafのような**オンラインエディタを提供**しており、なおかつ**リアルタイムプレビューも備えている**ため、LaTeXのようにコンパイルを待つことなく書いた内容を確認することができます。
+
+この記事では、Typstの基本的な使い方を紹介します。  
+書き方がLaTeXとは異なるので最初は戸惑うかもしれませんが、慣れれば非常に便利ですので、ぜひ試してみてください。
+
+## Typstの準備
+
+Typstは**ローカルにインストールする必要がなく、オンラインエディタで直接ドキュメントを作成できます**。
+
+(@) [Typst](https://typst.app/)にアクセスし、アカウントを作成します。
+    - 初めてであればSign Upからアカウントを作成してください。
+(@) ログイン後、ダッシュボードから「Empty document」をクリックして新しいドキュメントを作成します。
+
+![Typstのダッシュボード](image/typst_dashboard.png)
+
+(@) ドキュメントエディタが開きます。ここでTypstのコードを記述します。
+    - ファイルの拡張子は`.typ`です。
+
+![Typstのドキュメントエディタ](image/typst_editor.png)
+
+## Typstの基本的な書き方
+
+:::{.callout-note}
+## 今回の方針
+今回は僕が作成したTypstテンプレートを使いながら説明します。経済学論文向けのテンプレートを作成しており、最低限の設定はテンプレート内で済ませていますが、もっと根本的に学びたい方は[Typstの公式ドキュメント](https://typst.app/docs/)を参照してください。
+:::
+
+Typstの基本的な書き方をいくつか紹介します。  
+最初はややこしいかもしれませんが、慣れてしまえばLaTeXよりもシンプルだと思いますので、ぜひ挑戦してみてください。
+
+### エディタを開く
+
+[オンラインエディタ](https://typst.app/)を開き、新しいドキュメントを作成します。
+
+### テンプレートの準備
+
+今回は僕が作成したTypstテンプレートを使いますので、以下の2ファイルをダウンロードするか、GitHubからご利用ください。
+
+- [template.typ](/data/251027_typst/template.typ){download="template.typ"}
+- [chicago_author_date.csl](/data/251027_typst/chicago-author-date.csl){download="chicago_author_date.csl"}
+- [GitHubリポジトリ](https://github.com/yo5uke/typst_econ_template)
+
+2つのファイルを準備できたら、Typstのエディタにアップロードします。サイドバーの「･･･」メニューから「Upload a new file」を選択してアップロードするか、ドラッグアンドドロップでアップロードします。  
+`template.typ`と`chicago_author_date.csl`が表示されている状態でスタートします。
+
+### 表紙
+
+まずは基本となる表紙の作成から始めます。表紙のイメージは以下です。
+
+![Typstで作成した表紙の例](image/hyoshi.png){width="50%"}
+
+これを目指していきたいと思います。
+
+1. サイドバーの {{< fa file >}} アイコンから新規ファイルを作成します。
+    - ファイル名は`main.typ`としますが、任意の名前で構いません。
+2. `main.typ`に以下のコードを記述します。
+
+```typst
+#import "template.typ": article
+```
+
+これは`template.typ`から`article`コンポーネントをインポートするコードです。この`article`に表紙の設定が含まれています。  
+今回は設定は既定のまま使用しますが、`template.typ`内の`article`コンポーネントを編集することで、諸々の細かい点を調整できます。
+
+3. 次に、表紙の内容を記述します。`main.typ`に以下のコードを追加します。
+
+```typst
+#show: article.with(
+  title: [Minimal Article Template (Test)#footnote[#lorem(150)]],
+  authors: (
+    (
+      name: "Yosuke Abe",
+      affiliation: "Example University",
+      email: "yosuke.abe0507@gmail.com"
+    ),
+    (
+      name: "Taro Yamada",
+      affiliation: "Example University",
+      email: "taro@example.jp"
+    )
+  ),
+  date: datetime.today().display("[month repr:long] [day], [year]"),
+  abstract: [
+    #lorem(150)
+  ],
+  jel-codes: (
+    "A1",
+    "A2",
+    "A3",
+    "A4"
+  ),
+  keywords: (
+    "Keyword 1",
+    "Keyword 2",
+    "Keyword 3"
+  )
+)
+```
+
+`#show: article.with(...)`は、`article`コンポーネントを表示するためのコードです。  
+`title`、`authors`、`date`、`abstract`、`jel-codes`、`keywords`などの引数を指定して、表紙の内容を設定します。  
+`tiele`には`#footnote[...]`を使って脚注を追加しています。謝辞を入れたい場合などに便利です。  
+著者は1人でも構いませんし、3人まで対応しています。また、`jel-codes`や`keywords`も任意です。  
+`date`は現在の日付を自動的に取得して表示します。文字列で直接指定することも可能です。  
+`abstract`内の`#lorem(150)`はダミーテキストを生成する関数ですので、実際の文章に置き換えてください。
+
+Typstはコンパイルが要りませんから、コードを記述するとリアルタイムでプレビューが表示されます。上の設定で先ほどの表紙が表示されるはずです^[もし何も表示されない場合、`template.typ`がプレビューに表示されているかもしれません。サイドバーの`.typ`ファイルの右に目のアイコンがあると思いますが、`main.typ`横の目をクリックして表示してください。]。
+
+### 本文
+
+次に本文を追加します。
+
+先に完成イメージを共有しておきます。
+
+[テンプレートを使って作成したサンプル文書（PDF）](/data/251027_typst/sample.pdf)
+
+ここからは基本的な書き方を紹介します。
+
+#### セクション
+
+セクションは`=`を使って作成し、サブセクションは`==`というようにイコールの数で階層を表現します^[すみません、本ページのフォントの設定上イコールの数が見にくいですが、サブセクションでは2つのイコールを使用しています。]。
+
+```typst
+= セクション1
+== サブセクション1.1
+```
+
+ちなみに今回の設定ではセクション番号が表示されるようになっているので、「1 セクション1」のように自動的に番号が振られます。
+
+#### 段落
+
+段落を改める場合、2通りの方法が使えます。
+
+1. 空行を挟む
+
+```typst
+これは1つ目の段落です。
+
+これは2つ目の段落です。
+```
+
+2. バックスラッシュを使う
+
+```typst
+これは1つ目の段落です。\
+これは2つ目の段落です。
+```
+
+この場合は空行を入れなくても段落が分かれます。
+
+#### 強調
+
+強調したい部分は`*`で囲みます。
+
+```typst
+これは*強調*されたテキストです。
+```
+
+また、イタリック体にしたい場合は`_`で囲みます。
+
+```typst
+これは_イタリック体_のテキストです。
+```
+
+#### 箇条書き
+
+箇条書きは`-`を使って作成します。
+
+```typst
+- アイテム1
+- アイテム2
+  - サブアイテム2.1
+  - サブアイテム2.2
+```
+
+#### 番号付きリスト
+
+番号付きリストは`1.`を使って作成します。
+
+```typst
+1. アイテム1
+2. アイテム2
+```
+
+#### 数式
+
+`$...$`で囲むことでインライン数式を作成できます。
+
+```typst
+これはインライン数式の例です：$E=mc^2$。
+```
+
+ブロック数式は同じく`$...$`で囲みますが、改行をしてください。
+
+```typst
+$
+E = m c^2
+$
+```
+
+文字を並べる場合にはスペースを空けてください。`mc^2`と詰めて書くと表示されなくなってしまいます。
+
+#### 図の挿入
+
+図は`#figure(...)`を使って挿入します。
+
+```typst
+#figure(
+  image(
+    "path_to_image.png",
+    width: 30%
+  ),
+  caption: [これは図のキャプションです。]
+)<my-fig>
+```
+
+`#figure(...)`内で`image(...)`を使って画像を指定し、`caption`引数でキャプションを設定します。`width`引数で画像の幅を指定できます。  
+また、`<my-fig>`のように任意のラベルを付けることで、後で参照することができます。文書内で引用したい場合は`@my-fig`と書きます。
+
+#### 表の挿入
+
+表は`#figure(...)`内で`table(...)`を使って挿入します。
+
+```typst
+#figure(
+  table(
+    columns: 12,
+    align: (left, right, right, right, right, right, right, right, right, right, right, right),
+    table.hline(),
+    table.header(repeat: true,
+      [model], [mpg], [cyl], [disp], [hp], [drat], [wt], [qsec], [vs], [am], [gear], [carb],
+    ),
+    table.hline(),
+    [Mazda RX4], [21.0], [6], [160], [110], [3.90], [2.620], [16.46], [0], [1], [4], [4],
+    [Mazda RX4 Wag], [21.0], [6], [160], [110], [3.90], [2.875], [17.02], [0], [1], [4], [4],
+    [Datsun 710], [22.8], [4], [108], [93], [3.85], [2.320], [18.61], [1], [1], [4], [1],
+    [Hornet 4 Drive], [21.4], [6], [258], [110], [3.08], [3.215], [19.44], [1], [0], [3], [1],
+    [Hornet Sportabout], [18.7], [8], [360], [175], [3.15], [3.440], [17.02], [0], [0], [3], [2],
+    [Valiant], [18.1], [6], [225], [105], [2.76], [3.460], [20.22], [1], [0], [3], [1],
+    table.hline(),
+    table.footer(repeat: false,
+      table.cell(align: left, colspan: 12,
+        text([
+          #text(style: "italic")[Note:] This table shows the first few rows of the mtcars dataset.
+        ])
+      ),
+    ),
+  ),
+  caption: [mtcars data],
+)<mtcars>
+```
+
+`table(...)`内で列数や配置、ヘッダー、フッター、データ行を指定します。  
+`columns`引数で列数を指定し、`align`引数で各列の配置を設定します。  
+`table.header(...)`でヘッダー行を、`table.footer(...)`でフッター行を設定します。フッターは複雑ですが、`colspan`とフッター文をうまく変えながら調整してください。  
+データ行はカンマ区切りで各セルの内容を指定します。  
+表も図と同様に`<mtcars>`のようにラベルを付けることができ、`@mtcars`で参照できます。
+
+表の設定は少々ややこしいのですが、Rで作った表をTypstで出力するというのが1つ手としてあるかと思います。  
+今回はその方法については書きませんが、必要であれば調べてみてください。
+
+また、Typstの公式ドキュメントのページも参考にしてみてください。
+
+:::{.callout-tip appearance="minimal"}
+[Table Function - Typst Documentation](https://typst.app/docs/reference/model/table/)
+:::
+
+#### 脚注
+
+脚注は`#footnote[...]`を使って挿入します。表紙でも挿入していましたが、本文中でも同様に使えます。
+
+```typst
+これは脚注の例です#footnote[これは脚注の内容です。]。
+```
+
+#### 引用文献
+
+引用文献は`#bibliography(...)`を使って挿入します。セクションタイトルも「References」と自動的に追加されるようにしてありますので、参考文献を挿入したい場所に以下のコードを追加します。
+
+```typst
+#bibliography("references.bib")
+```
+
+`references.bib`はBibTeX形式の文献データファイルです。自分で用意した`.bib`ファイルをアップロードして指定してください。
+
+文中で引用したい場合は、`#cite(<notsu_indirect_2025>, form: "prose")`のように書きます。`<notsu_indirect_2025>`は`.bib`ファイル内で指定したラベルです。`form: "prose"`は引用形式を指定するオプションで、省略可能です。この設定だと
+
+> Notsu et al. (2025)
+
+のように表示されます。
+
+> (Notsu et al., 2025)
+
+のように表示したい場合は`@notsu_indirect_2025`のように書きます。こちらは楽でいいですね。  
+2つ以上並べたい場合は`@notsu_indirect_2025 @martinez_how_2022`のようにスペースで区切ってください。
+
+引用スタイルは`template.typ`内で`chicago_author_date.csl`を指定しています。別のスタイルに変更したい場合は、他のCSLファイルをダウンロードしてアップロードし、`template.typ`内の該当部分を書き換えてください。
+
+#### Appendix
+
+アペンディクスは参考文献の後に差し込みたいかもしれません。その場合少々やっかいですが、以下のように記述し、その下に文章を書いていってください。
+
+```typst
+#block[
+  #heading(
+    level: 1,
+    numbering: none,
+    [Appendix]
+  )
+]
+```
+
+これでアペンディクスのセクションが作成されます。
+
+#### 改ページ
+
+改ページは`#page-break()`を使います。改行したい場所にこのコードを追加することで新しいページに移ることができます。
+
+### コード全文
+
+基本的な使い方は以上です。
+
+ご参考までに、はじめにご紹介したPDF作成に使用したコード全文を以下に示します。長いので折りたたんで置いておきますので、開いてご確認ください。
+
+:::{.callout-tip collapse="true"}
+## コード全文
+
+```typst
+#import "template.typ": article
+
+#show: article.with(
+  title: [Minimal Article Template (Test)#footnote[#lorem(150)]],
+  authors: (
+    (
+      name: "Yosuke Abe",
+      affiliation: "Example University",
+      email: "yosuke.abe0507@gmail.com"
+    ),
+    (
+      name: "Taro Yamada",
+      affiliation: "Example University",
+      email: "taro@example.jp"
+    )
+  ),
+  date: datetime.today().display("[month repr:long] [day], [year]"),
+  abstract: [
+    #lorem(150)
+  ],
+  jel-codes: (
+    "A1",
+    "A2",
+    "A3",
+    "A4"
+  ),
+  keywords: (
+    "Keyword 1",
+    "Keyword 2",
+    "Keyword 3"
+  )
+)
+
+
+= Introduction
+#lorem(500)#footnote[#lorem(100)]
+
+$
+E = m c^2
+$
+
+#lorem(500)
+
+= Section
+Insert an image. #lorem(100)
+
+#figure(
+  image(
+    "seiji_souridaijin_woman_kaiken.png",
+    width: 30%
+  ),
+  caption: [Prime Minister]
+)<prime-minister>
+
+@prime-minister depicts a _female_ prime minister. 
+
+- item 1
+- item 2
+  - item2.1
+
+1. item 1
+2. item 2
+
+#lorem(100)
+
+Insert an table. #lorem(100) According to  @notsu_indirect_2025 @martinez_how_2022, hogehoge.
+
+#figure(
+  table(
+    columns: 12,
+    align: (left, right, right, right, right, right, right, right, right, right, right, right),
+    table.hline(),
+    table.header(repeat: true,
+      [model], [mpg], [cyl], [disp], [hp], [drat], [wt], [qsec], [vs], [am], [gear], [carb],
+    ),
+    table.hline(),
+    [Mazda RX4], [21.0], [6], [160], [110], [3.90], [2.620], [16.46], [0], [1], [4], [4],
+    [Mazda RX4 Wag], [21.0], [6], [160], [110], [3.90], [2.875], [17.02], [0], [1], [4], [4],
+    [Datsun 710], [22.8], [4], [108], [93], [3.85], [2.320], [18.61], [1], [1], [4], [1],
+    [Hornet 4 Drive], [21.4], [6], [258], [110], [3.08], [3.215], [19.44], [1], [0], [3], [1],
+    [Hornet Sportabout], [18.7], [8], [360], [175], [3.15], [3.440], [17.02], [0], [0], [3], [2],
+    [Valiant], [18.1], [6], [225], [105], [2.76], [3.460], [20.22], [1], [0], [3], [1],
+    table.hline(),
+    table.footer(repeat: false,
+      table.cell(align: left, colspan: 12,
+        text([
+          #text(style: "italic")[Note:] This table shows the first few rows of the mtcars dataset.
+        ])
+      ),
+    ),
+  ),
+  caption: [mtcars data],
+)<mtcars>
+
+@mtcars is mtcars data. #lorem(500)
+
+#bibliography("references.bib")
+
+#pagebreak()
+
+#block[
+  #heading(
+    level: 1,
+    numbering: none,
+    [Appendix]
+  )
+]
+
+#lorem(500)
+```
+:::
+
+## おわりに
+
+ここまでTypstの基本的な使い方を紹介しました。
+
+ある程度の機能はご紹介できたかと思いますが、実際論文を書くとなるともっと細かい設定が必要になることもあるかと思います。
+
+Typst公式ドキュメントもご参考にしていただきつつ、気づいた点があれば随時テンプレートを更新していきたいと思います。
