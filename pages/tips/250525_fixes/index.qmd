@@ -1,18 +1,18 @@
 ---
 title: "【パッケージ開発】[fixes]{.fira-code}でイベントスタディを効率化"
 description: |
-  Staggered DiDにも対応しました。
+  バージョン0.7：バグを大幅に修正し、[plot_es_interactive()]{.fira-code}関数を追加しました。
 date: 2025-05-25
-date-modified: last-modified
+date-modified: 2025-11-02
 categories:
   - R
 ---
 
 ## はじめに
 
-本ページでは、two-way fixed effectsモデルのDiDにおけるイベントスタディを行うパッケージ、`fixes`について説明します。
+本ページでは、two-way fixed effects (TWFE)モデルのDifference-in-Differences (DiD)におけるイベントスタディを行うパッケージ、`fixes`について説明します。
 
-僕が今年の年始から地道に作成してきたパッケージで、一度tipsに書いたことがあるのですが、最近アップデートも重なってきたので再度書き直すことにしました。
+僕が今年（2025年）の年始から地道に作成してきたパッケージで、初のパッケージ作成で試行錯誤、紆余曲折を経ながらアップデートを重ねてきました。
 
 :::{.callout-note}
 ## ご意見待ってます
@@ -20,27 +20,25 @@ categories:
 実戦経験が足りないパッケージなので、挙動がおかしかったり、こういう機能にも対応してほしいということがあれば、ページ下のコメントからどしどしお寄せください。こぢんまりしたページなので、いただいたものは余裕で全部対応できると思います。
 :::
 
-これまでは処置個体において処置タイミングが同一のDiDにのみ対応していましたが、直近のアップデートで**各個体で処置タイミングが異なる、いわゆるStaggered DiDにも対応しました**。
+これまでは処置個体において処置タイミングが同一のベーシックなイベントスタディにのみ対応していましたが、アップデートを経て**各個体で処置タイミングが異なる、いわゆるStaggered DiDにおけるイベントスタディにも対応しました**。
 
-果たしてあらゆるケースに対応できているか、個人開発のパッケージとしては不安ではありますが、いくつかのデータセットでテストした分には問題なかったので、そのテストコードと併せて解説していきます。
+果たしてあらゆるケースに対応できているか、個人で開発しているパッケージとしては不安ではありますが、いくつかのデータセットでテストした分には問題なかったので、そのテストコードと併せて解説していきます。
 
 ## 使用するパッケージ
 
 使用するのは`fixes`です。インストールは以下のコマンドでできます。
 
 ``` r
-pak::pak("fixes")
-```
-
-もしくは
-
-``` r
 install.packages("fixes")
+
+# or
+# pak::pak("fixes")
 ```
 
 です。開発版はGitHubからインストールできます。
 
 ``` r
+# install.packages("pak")
 pak::pak("yo5uke/fixes")
 ```
 
@@ -53,78 +51,108 @@ library(fixes)
 library(tidyverse)
 ```
 
-データは`fixest`パッケージで用意されているものと、MixtapeのStaggered DiDの章で使用されているものを使います。
+データは`fixest`パッケージで用意されている`base_did`および`base_stagg`と、Mixtapeの[Staggered DiDの章](https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of)で使用されている`castle`を使います。
 
-また、不足している変数を追加し、使わない変数もあるのであらかじめ除いておきます。
+`df_castle`に関しては、Mixtape内で行われている処理をし、変数を使用するものに絞っておきます^[参考：[Mixtape](https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of)]。
 
-`df_stagg`は未処置の個体の処置年、処置からの相対年をNAに変更し、`df_castle`に関してはMixtape内で行われている処理をしておきます^[参考：[Mixtape](https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of)]
+また、少し後で述べる通り、never-treatedユニットの扱いに注意しながら、`year_treated`と`time_to_treatment`を作成しておきます。
 
 ```{r}
-df_base <- fixest::base_did
-df_stagg <- fixest::base_stagg
-castle <- haven::read_dta("https://github.com/scunning1975/mixtape/raw/master/castle.dta")
+library(fixest)
 
-
-df_stagg <- df_stagg |> 
-  mutate(
-    year_treated = if_else(year_treated == 10000, NA_real_, year_treated), 
-    time_to_treatment = if_else(time_to_treatment == -1000, NA_real_, time_to_treatment)
-  )
-
-# 以下Mixtape参考
-dropped_vars <- c("r20004", "r20014",
-                  "r20024", "r20034",
-                  "r20044", "r20054",
-                  "r20064", "r20074",
-                  "r20084", "r20094",
-                  "r20101", "r20102", "r20103",
-                  "r20104", "trend_9", "trend_46",
-                  "trend_49", "trend_50", "trend_51"
+castle <- haven::read_dta(
+  "https://github.com/scunning1975/mixtape/raw/master/castle.dta"
 )
 
-region <- castle |> 
-  select(starts_with("r20")) |> 
-  names() |> 
+# 以下Mixtape参考
+# fmt: skip
+dropped_vars <- c(
+  "r20004", "r20014", "r20024", "r20034", "r20044", "r20054", "r20064",
+  "r20074", "r20084", "r20094", "r20101", "r20102", "r20103", "r20104",
+  "trend_9", "trend_46", "trend_49", "trend_50", "trend_51"
+)
+
+region <- castle |>
+  select(starts_with("r20")) |>
+  names() |>
   setdiff(dropped_vars)
 
-df_castle <- castle |> 
-  select(state, sid, year, treatment_date, l_homicide, all_of(region), popwt) |> 
-  mutate(is_treated = if_else(!is.na(treatment_date), 1, 0), .after = treatment_date)
-
+df_castle <- castle |>
+  select(state, sid, year, treatment_date, l_homicide, all_of(region), popwt) |>
+  mutate(
+    is_treated = if_else(!is.na(treatment_date), 1, 0),
+    year_treated = if_else(is_treated == 1, treatment_date, 10000L),
+    time_to_treatment = if_else(is_treated == 1, year - treatment_date, -1000L)
+  )
 ```
 
-各データフレームは以下のような感じになっています。
+各データフレームは以下のような感じになっています。先頭の15行を見てみましょう。
 
 ::: {.panel-tabset}
-
-## df_base
+## base_did
 
 ```{r}
 #| echo: false
-tinytable::tt(head(df_base))
+tinytable::tt(head(base_did, n = 15))
 ```
 
-## df_stagg
+## base_stagg
 
 ```{r}
 #| echo: false
-tinytable::tt(head(df_stagg))
+tinytable::tt(head(base_stagg, n = 15))
 ```
 
 ## df_castle
 
 ```{r}
 #| echo: false
-tinytable::tt(head(df_castle))
+tinytable::tt(head(df_castle, n = 15))
 ```
-
 :::
 
-## パッケージの説明
+`base_stagg`に関して、`year_treated`が10000、`time_to_treatment`が-1000となっているユニットがありますが、これは**処置を受けないユニット（never-treated）**を示しています。
+
+fixesが内部的に使用している`fixest::sunab()`関数は、`year_treated`にデータの`year`の範囲外にある大きな値（ここでは10000）を設定することで、これらを自動的にnever-treatedとして認識し、**参照グループ（対照群）**として扱います。`time_to_treatment`にも同様に極端に小さい負の値（-1000）を設定しています。
+
+これは、Staggered DIDにおいてnever-treatedのユニットの値を`NA`にしてしまうと、推定から完全に除外されてしまい、処置群と比較する対照群が失われてしまうためです。Never-treatedは処置効果を識別するための重要な比較対象なので、データに含める必要があります。
+
+```{r}
+# never-treatedの確認
+base_stagg |> 
+  filter(year_treated == 10000) |> 
+  select(id, year, year_treated, time_to_treatment, treated) |> 
+  head()
+```
+
+:::{.callout-tip}
+## Never-treatedユニットの扱いについて
+
+Staggered DIDのデータセットをご自分で用意される場合も、never-treatedのユニットには同様の処理が必要です：
+
+``` r
+# 例：処置年がNAのユニットをnever-treatedとして設定
+df <- df |> 
+  mutate(
+    year_treated = if_else(
+      is.na(year_treated),
+      max(year, na.rm = TRUE) + 1000,  # または10000など
+      year_treated
+    ),
+    time_to_treatment = if_else(
+      year_treated > max(year),  # never-treatedの条件
+      -1000,
+      year - year_treated
+    )
+  )
+```
+
+**ポイント**：`year_treated`はデータの時間範囲外の大きな値（例：10000）、`time_to_treatment`は極端に小さい負の値（例：-1000）を設定します。これにより、fixesの内部処理（fixest）が適切にnever-treatedを認識します。
+:::
+
+## `run_es()`
 
 基本的な使い方と一緒にパッケージについて説明していきます。関数はイベントスタディを実行する`run_es()`関数とイベントスタディをggplotベースでプロットする`plot_es()`です。
-
-### `run_es()`
 
 ひとまず、`run_es()`の基本的な引数を説明します。
 
@@ -134,103 +162,115 @@ run_es(
   outcome,
   treatment,
   time,
-  staggered = FALSE,
   timing,
+  fe = NULL,
   lead_range = NULL,
   lag_range = NULL,
   covariates = NULL,
-  fe,
   cluster = NULL,
   weights = NULL,
-  baseline = -1,
+  baseline = -1L,
   interval = 1,
   time_transform = FALSE,
-  unit = NULL
+  unit = NULL,
+  staggered = FALSE,
+  method = c("classic", "sunab"),
+  conf.level = 0.95,
+  vcov = "HC1",
+  vcov_args = list()
 )
 ```
 
-- `data`：使用するデータフレーム
-- `outcome`：アウトカム変数
-- `treatment`：処置されていれば（時間によらず）1をとるダミー変数^[TRUE/FALSEでも可]
-- `time`：時間を示す変数（`year`など）
-- `timing`：処置タイミングを表す変数（`staggered`がFALSEの場合は数値、TRUEの場合は処置タイミングを示す変数）
-- `fe`：固定効果（`~ id + year`のように書く）
-- `lead_range`：処置前の期間（処置年は含まず、デフォルトでは最大の期間をとる）
-- `lag_range`：処置後の期間（処置年は含まず、デフォルトでは最大の期間をとる）
-- `covariates`：共変量（`~ cov1 + cov2`のように書く）
-- `cluster`：クラスタリングの単位（`~ id`のように書く）
-- `weights`：ウェイト（`~ weight`のように書く）
-- `baseline`：基準となる相対年（デフォルトでは処置の1期前）
-- `interval`：時間のインターバル（デフォルトでは1（1年ごとのデータ）、5にすれば国勢調査に対応（5年ごと））
-- `time_transform`：TRUEで時間変数に通し番号を振って処理。時間変数が文字列だったりイレギュラーな間隔の場合に対応（デフォルトはFALSE）
-- `unit`：`time_transform`がTRUEの場合に個体の単位を指定（`id`など）
-- `staggered`：処置タイミングが個体ごとに異なるモデルの場合はTRUE（デフォルトはFALSE）
-- `conf.level`：信頼区間を指定（0.90, 0.95, 0.99のいずれか。デフォルトは0.95）
-
----
+| 引数 | 説明 |
+|:-----|:-----|
+| `data` | パネルデータを含むデータフレーム |
+| `outcome` | 結果変数（変数名または式、例：`log(y)`のように記述） |
+| `treatment` | 処置変数（0/1または論理値）。`method = "classic"`の場合のみ使用 |
+| `time` | 時間変数（数値型またはDate型） |
+| `timing` | classicの場合：処置タイミング（全ユニット共通の数値/Dateまたは`staggered = TRUE`時は変数名）。sunabの場合：処置採用時点を示す変数 |
+| `fe` | 固定効果の指定（片側式、例：`~ id + year`）。固定効果なしの場合は`NULL` |
+| `lead_range`, `lag_range` | 処置前後の期間範囲を指定する整数。`NULL`の場合は自動決定 |
+| `covariates` | 追加の共変量（片側式、例：`~ x1 + log(x2)`） |
+| `cluster` | クラスター指定（片側式`~ id + year`、列名の文字列、または`nrow(data)`の長さのベクトル） |
+| `weights` | 観測ウェイト（変数名/片側式または`nrow(data)`の長さの数値ベクトル） |
+| `baseline` | ベースライン期間（デフォルト：-1）。"classic"と"sunab"の両方で、参照期間として結果から除外される |
+| `interval` | 時間変数の間隔（デフォルト：1。Date型の場合は内部で無視される） |
+| `time_transform` | `TRUE`の場合、ユニット内で連続した整数時間を作成 |
+| `unit` | ユニット識別変数（`time_transform = TRUE`の場合は必須。指定時はメタデータにも使用） |
+| `staggered` | `TRUE`の場合、timing変数を使用（classicの場合）またはsunabで利用 |
+| `method` | `"classic"`または`"sunab"`を指定（デフォルト：`"classic"`） |
+| `conf.level` | 信頼水準（デフォルト：0.95）。数値ベクトルで複数指定可能 |
+| `vcov` | 分散共分散行列の種類。`fixest::vcov()`または`broom::tidy(vcov = ...)`に渡される（デフォルト：`"HC1"`） |
+| `vcov_args` | `fixest::vcov()`に渡す追加引数のリスト |
+: {tbl-colwidths="[25,75]"}
 
 文字で見てもわかりにくいと思うので、読み込んだデータを使って関数を回してみましょう。
 
-#### 通常のDiDにおけるイベントスタディ {#sec-basic-es}
+### 通常のDiDにおけるイベントスタディ {#sec-basic-es}
 
 ```{r}
 es <- run_es(
-  data = df_base, 
-  outcome = y, 
-  treatment = treat, 
-  time = period, 
-  timing = 6, 
-  fe = ~ id + period, 
-  cluster = ~ id
+  data = base_did,
+  outcome = y,
+  treatment = treat,
+  time = period,
+  timing = 6,
+  fe = ~ id + period
 )
 ```
 
 基本的なケースであればこれくらいの指定で済みます。プロットは後のセクションでまとめて載せます。
 
-#### Staggered DiD 1
+### Staggered DiD 1
 
 ```{r}
 es_stagg1 <- run_es(
-  data = df_stagg, 
-  outcome = y, 
-  treatment = treated, 
-  time = year, 
-  timing = year_treated, 
-  fe = ~ id + year, 
-  cluster = ~ id, 
+  data = base_stagg,
+  outcome = y,
+  treatment = treated,
+  time = year,
+  timing = year_treated,
+  fe = ~ id + year,
   staggered = TRUE,
+  method = "sunab"
 )
 ```
 
-[先ほど](#sec-basic-es)と違う点は、`staggered`がTRUEになっており、`timing`が具体的な数値ではなく、処置年を示す変数を指定しているところです。
+[先ほど](#sec-basic-es)と違う点は、`staggered`がTRUE、`method`が"sunab"、`timing`が具体的な数値ではなく、処置年を示す変数を指定しているところです。
 
-#### Staggered DiD 2
+"sunab"は[Sun and Abraham (2021)](https://www.sciencedirect.com/science/article/abs/pii/S030440762030378X)で提唱されている方法を指し、Staggered DiDにおけるイベントスタディで有用です。裏では`fixest::sunab()`関数を使っています。
+
+### Staggered DiD 2
 
 ```{r}
 # 共変量の変数を式の形にしておく
 covariates <- as.formula(paste("~", paste(region, collapse = "+")))
 
 es_stagg2 <- run_es(
-  data = df_castle, 
-  outcome = l_homicide, 
-  treatment = is_treated, 
-  time = year, 
-  timing = treatment_date, 
-  fe = ~ state + year, 
-  covariates = covariates, 
-  cluster = ~ sid, 
-  weights = ~ popwt, 
-  staggered = TRUE
+  data = df_castle,
+  outcome = l_homicide,
+  treatment = is_treated,
+  time = year,
+  timing = year_treated,
+  fe = ~ state + year,
+  covariates = covariates,
+  cluster = ~ sid,
+  weights = ~ popwt,
+  baseline = 0,
+  staggered = TRUE,
+  vcov = "cluster"
 )
 ```
 
 今回の例は共変量が多いので事前に`as.formula()`を使って処理してしまっていますが、関数内で`covariates = ~ cov1 + cov2`のような指定の仕方で問題ありません。
 
-### `plot_es()`
+また、ここでは`vcov`も"cluster"に指定して、`sid`でクラスタリングした標準誤差を計算しています。`vcov`については、`?fixest::feols()`で詳細を確認できます。
+
+## `plot_es()`
 
 こだわりがなければ、`plot_es(es)`の程度の書き方でプロットを出力することができます。引数の説明は後に回して、一旦先ほどのイベントスタディの結果をプロットしてみましょう。
 
-#### 通常のDiDにおけるイベントスタディ
+### 通常のDiDにおけるイベントスタディ
 
 ```{r}
 plot_es(es)
@@ -238,13 +278,13 @@ plot_es(es)
 
 後の2つもそうですが、ベースラインがデフォルトのままなので、処置前年（-1）が抜けて値が0をとっています。
 
-#### Staggered DiD 1
+### Staggered DiD 1
 
 ```{r}
 plot_es(es_stagg1)
 ```
 
-#### Staggered DiD 2
+### Staggered DiD 2
 
 ```{r}
 plot_es(es_stagg2)
@@ -252,7 +292,7 @@ plot_es(es_stagg2)
 
 Staggeredの方もいい感じにプロットできています。この図はMixtape内でlead変数とlag変数を手作業で作って実装しプロットされていますが、[その図](https://mixtape.scunning.com/09-difference_in_differences#fig-event-cheng2)と見比べても同じ推移が示されていることがわかります。
 
-#### 使い方
+### 使い方
 
 基本的には上の使い方で十分ですが、ggplotベースで作ったこともあり、柔軟な対応も可能です。
 
@@ -305,12 +345,33 @@ plot_es(es_stagg2, type = "errorbar", color = "#000")
 ちなみに、ggplotベースということで、**ggplotの関数をつなげることも可能です**！
 
 ```{r}
-plot_es(es_stagg2, type = "errorbar", color = "#000") + 
-  geom_hline(yintercept = .08, color = "red") + 
-  annotate("text", x = 3, y = -.1, label = "DD Coefficient = 0.08\n(s.e. = 0.03)")
+plot_es(es_stagg2, type = "errorbar", color = "#000") +
+  geom_hline(yintercept = .08, color = "red") +
+  annotate(
+    "text",
+    x = 3,
+    y = -.1,
+    label = "DD Coefficient = 0.08\n(s.e. = 0.03)"
+  )
 ```
 
 Mixtape風に係数を示す水平線と注釈を追加してみました。このようにどんどん要素を追加していくことができます。
+
+## `plot_es_interactive()`
+
+`plot_es()`で作成したプロットをインタラクティブにする関数も用意しています。`plot_es_interactive()`です。
+
+この関数で表示したプロットは、マウスオーバーで各点の推定値と信頼区間が表示されたり、ズームイン・ズームアウトができたりします。
+
+論文に載せるための関数ではないものの、結果の確認やコミュニケーションの際に便利かと思います。
+
+```{r}
+plot_es_interactive(es_stagg2)
+```
+
+マウスオーバーすると値が表示されます。
+
+こちらも`plot_es()`と同様に、引数で色や線の太さなどを指定できますので、いろいろ試してみてください。
 
 ## おわりに
 
@@ -323,7 +384,7 @@ Mixtape風に係数を示す水平線と注釈を追加してみました。こ�
 データ出典：[Causal Inference: The Mixtape](https://mixtape.scunning.com/)（Scott Cunnningham, 2021）  
 データはGitHub上で公開されており、以下のリポジトリから入手可能です：
 
-> https://github.com/scunning1975/mixtape
+<https://github.com/scunning1975/mixtape>
 
 また、データはMITライセンスのもとで提供されています。
 
