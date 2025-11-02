@@ -1,0 +1,259 @@
+---
+title: "国勢調査データのクレンジング"
+description: |
+  人口データのファイルを一括で読み込んで、分析で使いやすくするためのクレンジングコードです。
+date: 2024-06-22
+date-modified: last-modified
+categories: 
+  - R
+  - データ処理
+execute: 
+  cache: true
+image: image/japan.png
+---
+
+## はじめに
+
+国勢調査のデータを使う際、そのままではR等で使えない場合が多いので、分析用にデータをクレンジングするコードをご紹介します。
+
+応用が利くと思うので、ぜひ。
+
+## 使用するデータ
+
+- 2020年国勢調査
+
+    - 4次メッシュ（500m四方メッシュ）データ
+  
+    - 人口及び世帯（JGD2011）
+  
+    - データ：[Googleドライブ](https://drive.google.com/drive/folders/1uAzsuXBnzCNeYrOTvnNDbdyduJkC4laW?usp=drive_link)
+    
+    - 出典：[e-Stat](https://www.e-stat.go.jp/gis/statmap-search?page=1&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H&serveyId=H002005112020&statsId=T001141&datum=2011)
+  
+## データの読み込み
+
+データを読み込みます。ダウンロードした時点では大量のテキストファイルがある状態なので、それを一括で読み込んで処理していきます。
+
+### パッケージ
+
+```{r}
+# データハンドリングのため
+library(tidyverse)
+# 相対パスを使うため
+library(here)
+```
+
+```{r}
+#| include: false
+
+library(gt)
+```
+
+### 読み込み
+
+**前提**：
+
+- ワーキングディレクトリを指定してあること^[Rプロジェクトを使用している場合は問題ありません。Rプロジェクトについては[こちら](../../05/240515_rproj/index.html)をご参照ください。]。
+
+- ワーキングディレクトリ内の`data/census_2020`にテキストファイルが入っていること。
+
+#### 確認
+
+まずはじめに、ファイルの中身がどのようになっているのか、一つのファイルを読み込んで確かめてみます。
+
+ちなみにファイルはShift_JISなので、ロケールも設定します。
+
+```{r}
+test <- read_csv(
+  here("data/census_2020/tblT001141H3622.txt"),
+  locale = locale(encoding = "Shift_JIS")
+)
+```
+
+```{r}
+#| eval: false
+
+head(test)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-file-check
+#| tbl-cap: "生データ"
+
+head(test) |>
+  gt()
+```
+
+これを見てみると、1行目には特に意味がなく、2行目が列名になっていることが分かります。
+
+そこで、1行目をスキップして読み込むために、`read_csv()`内でskipを指定します。
+
+```{r}
+test_skip1 <- read_csv(
+  here("data/census_2020/tblT001141H3622.txt"),
+  skip = 1,
+  locale = locale(encoding = "Shift_JIS")
+)
+```
+
+```{r}
+#| eval: false
+
+head(test_skip1)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-file-check-skip1
+#| tbl-cap: "1行目をスキップ"
+
+head(test_skip1) |>
+  gt()
+```
+
+この後必要な列をセレクトして名前を付け直すので、ここで一旦列名を確認してみましょう。
+
+```{r}
+colnames(test_skip1)
+```
+
+これはトラップで、よく見ると変数名の前に**全角スペースが空いています**。列名を変更するときはここに注意しないと、謎のエラーに苛まれます。
+
+### まとめて読み込む
+
+ではファイルの中身を確認できたところで、ファイルをまとめて読み込みます。
+
+結論から言うと、コードは以下です。
+
+```{r}
+#| message: false
+
+# 指定されたディレクトリ内のファイル名の文字ベクトルを生成
+census_files <- list.files(
+  here("data/census_2020"), # ファイルが入っているフォルダのパス
+  pattern = "\\.txt$",
+  full.names = TRUE
+)
+
+# lapplyで、ファイル一覧に対して読み込む関数を適用
+census_objects <- lapply(
+  census_files,
+  function(file) {
+    census_obj <- read_csv(
+      file,
+      locale = locale(encoding = "Shift_JIS"),
+      skip = 1
+    ) |>
+      # 使いたい列をセレクトする
+      select(
+        1:4,
+        "　人口（総数）",
+        "　０～１４歳人口　総数",
+        "　１５～６４歳人口　総数",
+        "　６５歳以上人口　総数"
+      ) |>
+      # 2列目が0であればデータがあり、1であれば他メッシュにデータを合算
+      filter(...2 == 0 | ...2 == 1) |>
+      # 2, 3, 4列目はもう使わないので除く
+      select(-c(...2, ...3, ...4)) |>
+      # 変数名は任意
+      rename(
+        KEY_CODE = ...1,
+        pop_total = "　人口（総数）",
+        pop_young = "　０～１４歳人口　総数",
+        pop_working = "　１５～６４歳人口　総数",
+        pop_old = "　６５歳以上人口　総数"
+      ) |>
+      # 変数のクラスを指定
+      mutate(
+        KEY_CODE = as.character(KEY_CODE),
+        pop_total = as.numeric(pop_total),
+        pop_young = as.numeric(pop_young),
+        pop_working = as.numeric(pop_working),
+        pop_old = as.numeric(pop_old)
+      )
+  }
+) |>
+  # 読み込んだデータをバインドする
+  bind_rows()
+```
+
+ポイントをいくつか挙げます。
+
+**ポイント**
+
+1. `list.files()`
+
+    - 指定したフォルダ内の`.txt`で終わるファイルを取得しています。
+  
+2. `lapply()`
+
+    - 第1引数（1で取得したファイル）に対し、第2引数（`function`）を適用します。
+  
+    - `function`では、ファイルの読み込みや変数名の変更など、いくつかの作業をして結果を返すよう指示しています。
+  
+3. `filter(...2 == 0 | ...2 == 1)`
+
+    - `...2`はもともと`HTKSYORI`（秘匿処理）という列名でした。これが0であると秘匿対象外（秘匿になっていない）であり、データが存在します。1だと合算先地域メッシュで、そのメッシュにはデータがないものの、ルールに基づいていずれかのメッシュにデータが合算されており、これを抜くと総数が減る場合があります。^[2だと秘匿対象地域メッシュです。詳しくは[e-Stat](https://www.e-stat.go.jp/gis/statmap-search?page=1&type=1&toukeiCode=00200521&toukeiYear=2020&aggregateUnit=H&serveyId=H002005112020&statsId=T001141&datum=2011)の定義書から確認してください。]。
+    
+    - 逆に秘匿対象だと @tbl-hitoku のようになります。
+  
+    - フィルターをかけてデータがあるところを抽出します。
+    
+```{r}
+#| echo: false
+#| label: tbl-hitoku
+#| tbl-cap: "データがアスタリスクで置き換えられています。"
+
+read_csv(
+  here("data/census_2020/tblT001141H3725.txt"),
+  skip = 1,
+  locale = locale(encoding = "Shift_JIS")
+) |>
+  filter(...2 == 0 | ...2 == 1) |>
+  head() |>
+  gt()
+```
+
+
+4. `rename()`
+
+    - 変数名を変更するときは、`colnames()`などで変数名を確認し、おかしなところはないか確認してから変えることをおすすめします（特に日本語列名の場合）。
+  
+5. `mutate()`
+
+    - `KEY_CODE`は文字列にしたくて、その他は数値にしたいので、`as.character()`と`as.numeric()`で変換します。
+  
+    - データによっては、この手順を踏まなくても問題ないかもしれません。
+
+6. `bind_rows()`
+
+    - `lapply()`でそれぞれのファイルを読み込んだので、最後にすべてのデータを結合します。
+  
+    - 列名もそろえてあるので、問題なく結合できます。
+  
+データは次のようになります。
+
+```{r}
+#| eval: false
+
+head(census_objects)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-after-cleansing
+#| tbl-cap: "クレンジング後"
+
+head(census_objects) |>
+  gt()
+```
+
+## まとめ
+
+今回は国勢調査のメッシュデータを使って、Rでデータクレンジングを行う方法をご紹介しました。
+
+複数年分のデータをまとめなければならないときなど、繰り返し作業をするときには特に重宝します。
+
+様々な場合で使えると思いますので、`list.files()`や`lapply()`をうまく使いながら効率的にデータをまとめていきましょう。

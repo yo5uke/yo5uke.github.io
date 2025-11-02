@@ -1,0 +1,118 @@
+---
+title: "【Quarto】論文の体裁を整える"
+description: |
+  Quarto × $\LaTeX$ で論文の体裁を整える方法について考えます。随時更新予定です。
+date: 2024-07-22
+date-modified: last-modified
+categories: 
+  - Quarto
+  - LaTeX
+image: image/LaTeX_logo.png
+---
+
+## はじめに
+
+以下の記事で、Quarto × $\LaTeX$ で論文を書く方法についてまとめました。
+
+::: {.callout-tip appearance="minimal"}
+[【PDF】Quarto で論文を書く](../../06/240629_write_thesis/index.html)
+:::
+
+今回はもう少し踏み込んで、論文の体裁を整える設定について考えます^[僕自身も試行錯誤中です。]。
+
+## YAML ヘッダーをいじる
+
+Quarto や R Markdown でお馴染みの YAML ヘッダーですが、以前の記事での設定は以下の通りでした。
+
+```yaml
+---
+title: "【PDF】Quarto で論文を書く"
+author: "阿部洋輔"
+date: 2024-07-08  # todayで今日の日付にできます
+date-format: "YYYY年M月D日" 
+format: 
+  pdf: 
+    documentclass: article
+    number-sections: true
+    include-in-header: 
+      - text: |
+          \usepackage{zxjatype}
+          \usepackage[ipaex]{zxjafont} 
+          # これらは日本語フォントの設定のために記述しています
+execute: 
+  echo: false  # コードを表示しない
+  warning: false # 警告とメッセージを表示しない
+language: 
+  crossref-fig-title: "図"
+  crossref-tbl-title: "表"
+  crossref-eq-prefix: "式"
+---
+```
+
+今回は簡単化のため英語で設定していきますが、さっそく今回の結論は次の通りです。
+
+```markdown
+---
+title: "Title"
+author: 
+  - "Yosuke Abe\\thanks{Osaka School of International Public Policy}"
+  - "Author 2\\thanks{Osaka School of International Public Policy}"
+date: 2024-07-22
+date-format: long
+lang: en
+abstract: >
+  Here is the abstract.
+format: 
+  pdf: 
+    documentclass: article
+    papersize: a4paper
+    geometry: 
+      - top=2.5cm
+      - bottom=2.5cm
+      - left=2.5cm
+      - right=2.5cm
+    keep-tex: true
+# bibliography: bibliography.bib
+# 必要に応じて入れる
+---
+
+**JEL classification:** C12, D24, E31
+
+**keywords:** Keyword 1, Keyword 2...
+
+\newpage
+# Section 1
+
+Write the text here.
+
+# Section 2
+
+@fig-cars is a plot of CARS data.
+```
+
+今回発見したのは、`abstract` が書けるところです。これは助かります。
+
+keyword と JEL classification の部分はもう少し工夫が必要そうです。
+
+出力すると[このような感じ](demo/demo.qmd)になります。
+
+とりあえず、ポイントとしては
+
+1. `author` に `\\thanks{}` を使って所属を書くことができる
+1. `abstract` が書ける
+    - `>` で改行を入れ、2スペース分インデントして書き始めるとよい。
+1. `format` で `pdf` の設定を変更できる
+    - `documentclass` で文書クラスを指定できる。`article` で十分だと思う。
+    - `papersize` で用紙サイズを指定できる。
+    - `geometry` で余白を設定できる。
+    - `keep-tex: true` で `.tex` ファイルを残すことができる。
+1. `bibliography` で参考文献を指定できる
+    - Zotero など使用して文献管理をしましょう。
+
+といったところでしょうか。
+
+## おわりに
+
+Quarto で論文を書く際の体裁について考えてみました。
+
+自分でも論文を書いていくうちに、また新しい発見があれば追記していきたいと思います。

@@ -25,7 +25,7 @@ library(sf)
 # GISデータを保存しているフォルダ
 data_dir <- here::here("data/jpn_geojson")
 
-pref <- read_sf(file.path(data_dir, "prefecture.geojson")) |> 
+pref <- read_sf(file.path(data_dir, "prefecture.geojson")) |>
   st_transform(st_crs(6668))
 ```
 
@@ -40,10 +40,10 @@ pref <- read_sf(file.path(data_dir, "prefecture.geojson")) |>
 プロットに先立ち、データを北海道とそれ以外に分割する必要があります。
 
 ```{r}
-pref_no_hokkaido <- pref |> 
+pref_no_hokkaido <- pref |>
   filter(N03_001 != "北海道")
 
-hokkaido <- pref |> 
+hokkaido <- pref |>
   filter(N03_001 == "北海道")
 ```
 
@@ -54,7 +54,7 @@ hokkaido <- pref |>
 ```{r}
 #| label: fig-hokkaido
 
-ggplot(hokkaido) + 
+ggplot(hokkaido) +
   geom_sf()
 
 ```
@@ -70,7 +70,7 @@ ggplot(hokkaido) +
 ```{r}
 #| label: fig-japan
 
-ggplot(pref) + 
+ggplot(pref) +
   geom_sf()
 
 ```
@@ -80,8 +80,8 @@ ggplot(pref) +
 それでは先ほどの`hokkaido`データの`geometry`を西と南にそれぞれ動かしていきます。
 
 ```{r}
-hokkaido <- hokkaido |> 
-  mutate(geometry = geometry + c(-11, -4)) |> 
+hokkaido <- hokkaido |>
+  mutate(geometry = geometry + c(-11, -4)) |>
   st_set_crs(st_crs(pref))
 ```
 
@@ -104,8 +104,8 @@ hokkaido <- hokkaido |>
 ```{r}
 #| label: fig-after-move
 
-ggplot() + 
-  geom_sf(data = pref_no_hokkaido) + 
+ggplot() +
+  geom_sf(data = pref_no_hokkaido) +
   geom_sf(data = hokkaido)
 
 ```
@@ -115,10 +115,10 @@ ggplot() +
 ```{r}
 #| label: fig-change-range
 
-ggplot() + 
-  geom_sf(data = pref_no_hokkaido) + 
-  geom_sf(data = hokkaido) + 
-  xlim(127, 143) + 
+ggplot() +
+  geom_sf(data = pref_no_hokkaido) +
+  geom_sf(data = hokkaido) +
+  xlim(127, 143) +
   ylim(30, NA)
 
 ```
@@ -134,15 +134,13 @@ ggplot() +
 ```{r}
 #| label: fig-segment
 
-ggplot() + 
-  geom_sf(data = pref_no_hokkaido) + 
-  geom_sf(data = hokkaido) + 
-  xlim(127, 143) + 
-  ylim(30, NA) + 
-  annotate("segment", x = 128, xend = 133, 
-           y = 37, color = "gray50") + 
-  annotate("segment", x = 133, xend = 139, 
-           y = 37, yend = 41, color = "gray50")
+ggplot() +
+  geom_sf(data = pref_no_hokkaido) +
+  geom_sf(data = hokkaido) +
+  xlim(127, 143) +
+  ylim(30, NA) +
+  annotate("segment", x = 128, xend = 133, y = 37, color = "gray50") +
+  annotate("segment", x = 133, xend = 139, y = 37, yend = 41, color = "gray50")
 
 ```
 
@@ -151,7 +149,7 @@ ggplot() +
 `annotate()`については以下のページもご覧ください。
 
 ::: {.callout-tip appearance="minimal"}
-[ggplot2ガイド](../../tips/241117_ggplot2/index.qmd)
+[ggplot2ガイド](../../tips/2024/11/241117_ggplot2/index.qmd)
 :::
 
 ### 調整
@@ -161,20 +159,25 @@ ggplot() +
 ```{r}
 #| label: fig-final
 
-ggplot() + 
-  geom_sf(data = pref_no_hokkaido) + 
-  geom_sf(data = hokkaido) + 
-  xlim(127, 143) + 
-  ylim(30, NA) + 
-  annotate("segment", x = 128, xend = 133, 
-           y = 37, color = "gray50") + 
-  annotate("segment", x = 133, xend = 139, 
-           y = 37, yend = 41, color = "gray50") + 
-  labs(x = NULL, y = NULL) + 
-  theme_bw() + 
+ggplot() +
+  geom_sf(data = pref_no_hokkaido) +
+  geom_sf(data = hokkaido) +
+  xlim(127, 143) +
+  ylim(30, NA) +
+  annotate("segment", x = 128, xend = 133, y = 37, color = "gray50") +
+  annotate(
+    "segment",
+    x = 133,
+    xend = 139,
+    y = 37,
+    yend = 41,
+    color = "gray50"
+  ) +
+  labs(x = NULL, y = NULL) +
+  theme_bw() +
   theme(
-    axis.text = element_blank(), 
-    axis.ticks = element_blank(), 
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
     panel.grid = element_blank()
   )
 

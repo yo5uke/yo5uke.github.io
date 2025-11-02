@@ -1,0 +1,157 @@
+---
+title: "[pins]{.fira-code}でデータ管理"
+description: |
+  R × Google Driveでデータ管理
+date: 2024-12-24
+date-modified: 2025-11-03
+categories:
+  - R
+execute:
+  cache: true
+editor: visual
+---
+
+```{r}
+#| echo: false
+
+library(tidyverse)
+library(pins)
+library(googledrive)
+
+```
+
+## はじめに
+
+`pins`というパッケージをご存じでしょうか。`pins`は、Rでデータやオブジェクトを簡単に共有・保存・再利用するためのパッケージです。
+
+このパッケージでは、Google Driveなど、様々なツールと連携してデータを管理することができます。
+
+これまでの記事[^1]ではDVCを用いた方法を紹介してきましたが、特にGoogle Cloud projectを使用しなければならなくなって以降、正直めんどくさいです。
+
+[^1]: 例えば[こちら](../241219_container/index.html)など。
+
+ここではなるべく簡単にデータを管理、共有できるツールとして`pins`をご紹介します。
+
+## 設定
+
+早速設定です。インストールされていない場合、以下のコードでパッケージをインストールしてください。Tidyverseを使っている場合は、`googledrive`はインストール済みです。
+
+``` r
+# install.packages("pak")
+pak::pak(c("pins", "googledrive"))
+```
+
+::: {.callout-tip collapse="true"}
+余談ですが、最近はパッケージのインストールに`pak::pak()`をメインで使用しています。`pak::pak()`は
+
+> A Fresh Approach to R Package Installation
+
+であり、`install.packages()`と`devtools::install_github()`を兼ね合わせています[^2]。~~ミーハーな僕としては使わずにはいられません。~~
+:::
+
+[^2]: [pakドキュメント](https://pak.r-lib.org/)
+
+続いて以下のコードでドライブと連携します。ブラウザ上でデータを保存したいフォルダを作成し、URLをコピーしておいてください。その後、以下のコードのリンク部分を置き換えて実行します。
+
+```{r}
+board <- board_gdrive(
+  "https://drive.google.com/drive/u/0/folders/1F3T0SUmdKBrYUvo180KqBf00yoRrzPdP"
+)
+```
+
+このコマンドを実行すると、
+
+```         
+Is it OK to cache OAuth access credentials in the folder ~/.cache/gargle between R sessions?
+1: Yes
+2: No
+```
+
+と出てくると思いますが、基本的に1を打って実行でいいと思います。これでセッションが切れても（RStudioを再起動しても）認証が継続されます。共用のPCなどの場合は2になると思いますが。
+
+続けてブラウザでGoogleに認証を求められると思いますが、必要な権限を与え（チェックボックスにチェックを入れ）、次へと進んでいきます。
+
+最後に以下の画面が出てきたら、下部のコードをコピーし、RStudioのコンソールに打ち込み、実行します。
+
+![](image/gdrive_auth.png){fig-align="center" width="60%"}
+
+これで認証は完了です。
+
+## データの管理
+
+### ピン留め
+
+`pins`では、パッケージ名通りデータをピン留めすることができます。例えばデフォルトで入っている`mtcars`データを例に、データをフォルダにピン留めします。
+
+```{r}
+#| message: true
+
+board |>
+  pin_write(mtcars, "mtcars")
+
+```
+
+メッセージに出ている通り、デフォルトでは`.rds`ファイルとして保存されるようです。試しに`head()`で行数を絞って、csvで保存してみます。その場合、
+
+```{r}
+#| message: true
+
+board |> pin_write(head(mtcars), "mtcars", type = "csv")
+
+```
+
+と、`type`を指定してください。
+
+### 読み込み
+
+保存したデータを読み込みたい場合は、
+
+```{r}
+board |> pin_read("mtcars")
+```
+
+で可能です。
+
+### バージョン管理
+
+ちなみに、バージョン管理も可能です。まずは`pin_versions()`でバージョンを確認します。
+
+```{r}
+board |> pin_versions("mtcars")
+```
+
+上は`mtcars`の全データ、下は`head()`を適用したデータです。
+
+現在は下のデータで上書きされている状態ですが、ここでやはり全データを読み込みたいとします。
+
+その場合、以下のようにして読み込みます。
+
+```{r}
+board |>
+  pin_read("mtcars", version = "20241223T131135Z-418c9") |>
+  tibble::as_tibble()
+```
+
+`version`引数に、上で出てきたバージョンをペーストしてやれば可能です。
+
+## まとめ
+
+今回は`pins`パッケージを使ったデータ管理の方法についてご紹介しました。
+
+Google Driveは多くの人がアカウントを所持しているため、アカウント設定に時間を割かなくてよい点が魅力的だと思います。
+
+僕が思う良い点としては、直接Google Driveにデータが保存されるため、PCの容量を食わなくていいことがあると思います。
+
+ぜひ使ってみてください。
+
+## 番外編
+
+ちなみに今回はGoogle Driveでご紹介しましたが、Dropbox等でも可能です。
+
+``` r
+board <- board_folder("~/Dropbox")
+```
+
+Dropboxのパスは環境によって異なると思いますが、Dropboxでの共有設定をしておき、各自そのフォルダへのパスを設定しておけば、Dropboxでも`pins`を使うことができます。
+
+Dropboxユーザーの方は是非お試しあれ。

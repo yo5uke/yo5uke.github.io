@@ -1,0 +1,205 @@
+---
+title: "【ウェブサイト】設定を追加する"
+description: |
+  Googleアナリティクス、SNSアイコン、フッターの設定を追加します。
+date: 2025-02-05
+categories:
+  - Quarto
+editor: visual
+---
+
+## はじめに
+
+2月に入りましたが、本年初の更新となります。今年は就職の年ですが、時間があるときに学びを備忘録がてら更新していきたいと思いますのでよろしくお願いします。
+
+今回は以前ご紹介したウェブサイトの作り方について、さらに設定を追加していこうと思います。
+
+追加する設定は、
+
+1.  Googleアナリティクス
+
+2.  SNSアカウント
+
+3.  フッター
+
+です。前提として、以下のページ等をもとにQuartoのウェブページが作成されているとします。
+
+::: {.callout-tip appearance="minimal"}
+[【Quarto & RStudio】ウェブサイトを作る！](../../../2024/12/241213_create_website/index.html)
+:::
+
+順を追ってみていきましょう。
+
+## Googleアナリティクス
+
+そもそもですが、Googleアナリティクスでは、ウェブサイトやアプリの訪問者の動向を分析することができます。例えば、昨日は何人がページを訪れて、どのページを見ていったか、といったことが把握できるようになります。
+
+### アナリティクスページ
+
+まずは、Googleアナリティクスのページでの設定を行います。
+
+![Googleアナリティクスの画面](image/analytics_top.png){fig-align="center" width="80%"}
+
+1.  <https://analytics.google.com/>へ移動し、使用するGoogleアカウントでログインする
+2.  「測定を開始」をクリック
+3.  任意のアカウント名を入力、データ共有設定で必要な項目にチェックを入れ、次へ
+    -   アカウント名は何でも大丈夫です。
+    -   チェックはそのままでも大丈夫です。
+4.  任意のプロパティ名を入力し、次へ
+    -   これはウェブページ名にした方がわかりやすいと思います。
+    -   例：「hogehoge.github.io」
+5.  ビジネスの説明を入力し、次へ
+    -   ここは適当で大丈夫だと思います。
+6.  ビジネス目標を選択し、「作成」を選択
+    -   「ウェブ/アプリのトラフィックの分析」や「ユーザーエンゲージメントとユーザーの維持率の把握」あたりが該当すると思います。
+7.  「ウェブ」を選択
+8.  URLとストリーム名を入力し、「作成して続行」をクリック
+    -   URLはGitHubページであれば「(ユーザー名).github.io」です。不安であればホームページからコピーしてきてください。
+    -   ストリーム名はプロパティ名と同じでいいと思います。
+
+「Googleタグの設定」という画面が出てくると思いますが、ここは×で閉じて大丈夫です。すると、「ウェブ ストリームの詳細」の画面が出てくるので、そこの**測定 ID**（Gで始まる）をコピーして下さい。
+
+画面を閉じてしまっても、表示されている画面で該当するページ部分をクリックすれば再度開くことができます。
+
+### Quartoの設定
+
+エディターに戻り、`_quarto.yml`を開きます。
+
+以下のように、`google-analytics`にコピーしたIDを追記してください。
+
+``` yaml
+project:
+  type: website
+  
+website:
+  title: "ホームページ"
+  google-analytics: "G-xxxxxxxxxx"
+  navbar:
+    right:
+      - about.qmd
+```
+
+これで保存して再度パブリッシュ[^1]し、しばらくすると追跡結果がみられるようになります。すぐは見れませんが、しばらくした後再度[Googleアナリティクス](https://analytics.google.com/)を訪れてみてください。
+
+[^1]: `quarto publish gh-pages`など。詳しくは「[【Quarto & RStudio】ウェブサイトを作る！](../../../2024/12/241213_create_website/index.html)」を参照してください。
+
+## SNSアカウントを追加
+
+ウェブサイトからXやFacebookなど他のページへ飛んでほしいこともあるかと思います。こうしたSNSアカウントやGitHubなどのアイコンの表示方法をご紹介します。
+
+### ナビゲーションバー
+
+まずは画面上部のナビゲーションバーに表示する方法です（本ページも右上にGitHubアイコンがあります）。
+
+`_quarto.yml`を開きます。以下のように`tools`を追記して下さい。
+
+``` yaml
+project:
+  type: website
+  
+website:
+  title: "ホームページ"
+  google-analytics: "G-xxxxxxxxxx"
+  navbar:
+    right:
+      - about.qmd
+    tools:
+      - icon: twitter-x
+        href: https://twitter.com/hogehoge
+        text: Twitter
+      - icon: github
+        href: https://github.com/hogehoge
+        text: GitHub
+```
+
+`icon`、`href`、`text`の3つがあります。Xは`twitter-x`となっていることに注意してください。Twitterアイコンがよければシンプルに`twitter`で表示できます。
+
+これで保存しページをレンダリングすると、アイコンが表示されていると思います。
+
+### ページ内で表示
+
+僕の[Aboutページ](../../about.html)にあるように、プロフィールとセットで表示したい場合は、次のように設定します。
+
+表示したいページの`.qmd`ファイルで、YAMLヘッダーを以下のように変更します。
+
+``` yaml
+---
+title: Hogehoge
+about:
+  template: trestles
+  links: 
+    - icon: twitter-x
+      text: X (Twitter)
+      url: https://x.com/5uke_y
+    - text: "{{< iconify simple-icons bluesky >}} Bluesky"
+      url: https://bsky.app/profile/5uke.bsky.social
+    - icon: github
+      text: GitHub
+      url: https://github.com/hogehoge
+---
+```
+
+`about`の`template`は`trestles`以外にもいろいろあります。[こちら](https://quarto.org/docs/websites/website-blog.html#about-page)を参照して下さい。
+
+肝心なのは`links`です。書き方はナビゲーションバーと同じです。`about`下に書くことで、以下のように表示できます。
+
+![名前の下に3つのアカウントが表示されています](image/about.png){fig-align="center" width="80%"}
+
+ちなみにBlueskyの部分の書き方が少々ややこしいですが、これはまだBlueskyのアイコンが提供されていないため、Iconifyのアイコンを使って代用しています。アイコンの挿入については[こちら](../../../2024/12/241201_icon/index.html)を参照してください。
+
+以上がSNSアイコンの説明になります。概ねこの2か所に表示することが多いかと思いますので、ご参考になれば幸いです。
+
+## フッターの設定
+
+大体のウェブページにはフッターが付いていますよね。「©2025 Hogehoge」みたいなものです。
+
+これもナビゲーションバーと同様に左、真ん中、右でそれぞれ設定できます。
+
+再び`_quarto.yml`を開いて、以下のように設定します。
+
+``` yaml
+project:
+  type: website
+  
+website:
+  title: "ホームページ"
+  navbar:
+    right:
+      - about.qmd
+  page-footer:
+    background: light
+    center: |
+      &#169; 2025 Hogehoge
+```
+
+`background`はフッター部分の背景に少し色が付きます。もちろん`dark`もあります。
+
+`center`部分は`left`と`right`もあります。また、`|`で改行することで次の行に書くことができます。`center: "&#169; 2025 Hogehoge"`みたいに1行で書くこともできるのですが、ダブルクォーテーションを忘れないで下さい。
+
+`&#169;`はHTMLエンティティといって、これを出力すると「©」となります。別に直接「©」を入れても大丈夫です。
+
+ちなみにフッター内で改行したい場合は、HTMLと同じで`<br>`を入れれば可能です。`&#169; 2025 Hogehoge <br> This website is created with Quarto`のように書けます。
+
+## おわりに
+
+今回はGoogleアナリティクス、SNSアカウント、フッターについての設定をご紹介しました。
+
+これらは[Quarto公式ガイド](https://quarto.org/docs/guide/)を読んだり、人の`_quarto.yml`を真似するのがおすすめです。
+
+最後に僕がこれまで参考にした方々のコードと、僭越ながら自分のコードのリンクも並べておきます。
+
+::: {.callout-tip appearance="minimal"}
+[Simon P. Couch](https://github.com/simonpcouch/website/blob/main/_quarto.yml)氏（Posit）
+:::
+
+::: {.callout-tip appearance="minimal"}
+[Garrick Aden-Buie](https://github.com/gadenbuie/garrickadenbuie-com/blob/main/_quarto.yml)氏（Posit）
+:::
+
+::: {.callout-tip appearance="minimal"}
+[柳本和春](https://github.com/kazuyanagimoto/kazuyanagimoto.github.io/blob/main/_quarto.yml)さん（CEMFI）
+:::
+
+::: {.callout-tip appearance="minimal"}
+[阿部洋輔](https://github.com/yo5uke/yo5uke.github.io/blob/main/_quarto.yml)
+:::
