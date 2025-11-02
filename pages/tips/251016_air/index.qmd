@@ -3,7 +3,7 @@ title: "【Positron】拡張機能「Air」を使う【フォーマッタ】"
 description: |
   Rのコードを自動で整えてくれる拡張機能です。
 date: 2025-10-16
-date-modified: 2025-10-23
+date-modified: 2025-11-02
 categories:
   - R
   - Positron
@@ -26,13 +26,13 @@ Airは一定の規則に則りコードを整形してくれるので、コー�
 
 AirはPositronに標準でインストールされているので、特にインストールする必要はありません。ただし、有効化はされていないので、設定から有効化していきましょう。
 
-(@) Positronの設定を開きます。
+1. Positronの設定を開きます。
     - 左下の歯車アイコンから開くか、{{< kbd Ctrl-, >}}で開きます。
-(@) 画面右上の「設定 (JSON) を開く」から設定ファイルを開きます。
+2. 画面右上の「設定 (JSON) を開く」から設定ファイルを開きます。
 
 ![1番左のアイコンです](image/open_json.png){fig-align="center" width="30%"}
 
-(@) 設定ファイルに以下のコードを追加します。
+3. 設定ファイルに以下のコードを追加します。
     - 既に`[ ]`の中に記載があれば、その中に追記してください。
 
 ```json
@@ -44,9 +44,9 @@ AirはPositronに標準でインストールされているので、特にイン
 ]
 ```
 
-(@) 保存します。
+4. 保存します。
 
-これで設定は完了です。`.R`ファイル内で、Rのコードは保存するたびに自動で整形されるようになります。
+これで設定は完了です。`.R`ファイル内で、Rのコードは**保存するたびに自動で整形**されるようになります。
 
 ## 実際の例
 
@@ -61,8 +61,9 @@ if(x>y){return(x+y)}else{return(x-y)}
 result<-my_function(10,5)print(result)
 ```
 
-このコードはインデントがなく、スペースの使い方も一貫していません。また、1行が長すぎて読みにくいです。
-このコードを保存すると、Airが自動で整形してくれます。
+このコードはインデントがなく、スペースの使い方も一貫していません。これを修正したいわけですが、手作業だと面倒ですし、ミスも起こり得ます。  
+
+フォーマッタはコードの保存時に整形してくれますから、早速保存してみましょう。すると上のコードは以下のようになります。
 
 ```r
 my_function <- function(x, y) {
@@ -78,7 +79,7 @@ print(result)
 
 インデントの追加やスペースの挿入など、コードが格段に読みやすくなりました。
 
-リストなどで中身が多く1行に収まりきらない場合も、適切に改行してくれます。
+リストなどで中身が多く1行に収まりきらない場合でも、適切に改行してくれます。
 
 ```r
 my_vector <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
@@ -86,7 +87,7 @@ my_data_frame <- data.frame(id = 1:10, value = rnorm(10),
                             category = sample(letters[1:3], 10, replace = TRUE))
 ```
 
-無くはなさそうなコードですが、やや右に比重がかかっている印象ですね。これをフォーマッタにかけると以下のようになります。
+このコードも悪いコードではないのですが、やや右に比重がかかっている印象ですね。これをフォーマッタにかけると以下のようになります。
 
 ```r
 my_vector <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
@@ -114,6 +115,39 @@ my_vector <- c(
 ```
 
 このように最初だけ改行しておけば、1行が短い場合でも残りの要素を改行してくれます。フォーマッタの力を借りるのであれば、スペースも気にせず書き連ね、必要に応じて1か所改行して保存するだけで整形することができ、非常に楽かもしれません。
+
+:::{.callout-tip}
+## コードのスタイルについて
+Tidyverseの生みの親であるHadley Wickhamは、『[R for Data Science](https://r4ds.hadley.nz/workflow-style.html)』の中で、コードのスタイルについて以下のように述べています。
+
+> If the function you’re piping into has named arguments (like `mutate()` or `summarize()`), put each argument on a new line. If the function doesn’t have named arguments (like `select()` or `filter()`), keep everything on one line unless it doesn’t fit, in which case you should put each argument on its own line.
+
+つまり、引数に名前がついている関数（`dplyr::mutate()`や`summarize()`など）では各引数を改行し、名前がついていない関数（`dplyr::select()`や`filter()`など）では1行にまとめるべきだとしています。
+
+```{r}
+#| code-fold: true
+#| output: false
+
+library(dplyr)
+library(nycflights13)
+
+# Strive for
+flights |>
+  group_by(tailnum) |>
+  summarize(
+    delay = mean(arr_delay, na.rm = TRUE),
+    n = n()
+  )
+
+# Avoid
+flights |>
+  group_by(
+    tailnum
+  ) |>
+  summarize(delay = mean(arr_delay, na.rm = TRUE), n = n())
+```
+
+:::
 
 ## フォーマットを回避
 
