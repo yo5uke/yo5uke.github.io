@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.9">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="xml2パッケージを使います。">
+
+<title>XMLファイルから情報を抽出する – Yosuke Abe</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../../../">
+<link href="../../../../../assets/icons/favicon.ico" rel="icon">
+<script src="../../../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-5d254f1e278c2921d96b26102a150bb1.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-530b29c22fe67fc61ace1451aaa50055.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-5d254f1e278c2921d96b26102a150bb1.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../../../site_libs/bootstrap/bootstrap-d43a645695419797cfac10b6ecd37bfe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../../site_libs/bootstrap/bootstrap-dark-38d5a410e1db51b19cae921dc4c5de56.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../../../site_libs/bootstrap/bootstrap-d43a645695419797cfac10b6ecd37bfe.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/all.min.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/latex-fontsize.css" rel="stylesheet">
+<script src="../../../../../site_libs/quarto-contrib/iconify-3.0.0/iconify-icon.min.js"></script>
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "一致なし",
+    "search-matching-documents-text": "一致した文書",
+    "search-copy-link-title": "検索へのリンクをコピー",
+    "search-hide-matches-text": "追加の検索結果を非表示",
+    "search-more-match-text": "追加の検索結果",
+    "search-more-matches-text": "追加の検索結果",
+    "search-clear-button-title": "消去",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "キャンセル",
+    "search-submit-button-title": "検索",
+    "search-label": "サーチ"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
+</script>
+
+
+<meta property="og:title" content="XMLファイルから情報を抽出する – Yosuke Abe">
+<meta property="og:description" content="xml2パッケージを使います。">
+<meta property="og:image" content="https://yo5uke.com/pages/tips/2025/08/250826_xml/image/thumbnail.png">
+<meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="1170">
+<meta property="og:image:width" content="1734">
+<meta name="twitter:title" content="XMLファイルから情報を抽出する – Yosuke Abe">
+<meta name="twitter:description" content="xml2パッケージを使います。">
+<meta name="twitter:image" content="https://yo5uke.com/pages/tips/2025/08/250826_xml/image/thumbnail.png">
+<meta name="twitter:creator" content="@5uke_y">
+<meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="1170">
+<meta name="twitter:image-width" content="1734">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../../../index.html">
+    <span class="navbar-title">Yosuke Abe</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="サーチ"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="ナビゲーションを切り替える" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/tips/index.html"> 
+<span class="menu-text">Tips</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/gis_in_r/index.html"> 
+<span class="menu-text">GIS in <i class="fa-brands fa-r-project" aria-label="r-project"></i></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools tools-wide">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            ソースコード
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            問題を報告
+            </a>
+          </li>
+      </ul>
+    </div>
+    <a href="../../../../../pages/tips/index.xml" title="RSS" class="quarto-navigation-tool px-1" aria-label="RSS"><i class="bi bi-rss"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="ダークモードの切り替え"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">XMLファイルから情報を抽出する</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i></button></div></div>
+                  <div>
+        <div class="description">
+          <p><span class="fira-code">xml2</span>パッケージを使います。</p>
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">R</div>
+                <div class="quarto-category">データ処理</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">公開</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2025年8月26日</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目次</h2>
+   
+  <ul>
+  <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
+  <li><a href="#準備" id="toc-準備" class="nav-link" data-scroll-target="#準備">準備</a></li>
+  <li><a href="#データの取得" id="toc-データの取得" class="nav-link" data-scroll-target="#データの取得">データの取得</a></li>
+  <li><a href="#ファイルを巡回してデータフレームを作る" id="toc-ファイルを巡回してデータフレームを作る" class="nav-link" data-scroll-target="#ファイルを巡回してデータフレームを作る">ファイルを巡回してデータフレームを作る</a></li>
+  <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+<div class="social-share-buttons">
+
+  <!-- Twitter (X) -->
+
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+
+
+  <!-- Bluesky -->
+
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+</div>
+
+
+
+<script>
+
+  const twitterUsername = "@5uke_y";
+
+  const blueskyUsername = "@5uke.bsky.social";
+
+
+
+  const share_url = encodeURIComponent(location.href);
+
+  const share_title = document.title;
+
+
+
+  // Twitter (X)
+
+  document.getElementById('js-share-twitter').setAttribute(
+
+    "href",
+
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+
+    "&hashtags=rstats"
+
+  );
+
+
+
+  // Bluesky
+
+  document.getElementById('js-share-bluesky').setAttribute(
+
+    "href",
+
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+
+  );
+
+</script>
+
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>今度は仕事でXMLファイルを扱う機会がやってきました。</p>
+<p>XMLファイルは、データを「タグ」で階層的に記述するテキスト形式のファイルで、構造化された情報を表現・交換するための標準仕様であり、システム間でデータ連携や保存に広く利用されています。</p>
+<p>見たことがない方にはとんとイメージがわかないと思うのですが、XMLは以下のような構造をしています。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode xml code-with-copy"><code class="sourceCode xml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span><span class="ot"> version=</span><span class="st">"1.0"</span><span class="ot"> encoding=</span><span class="st">"UTF-8"</span><span class="fu">?&gt;</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">Library</span>&gt;</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">Book</span><span class="ot"> id=</span><span class="st">"B001"</span>&gt;</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Title</span>&gt;データ分析入門&lt;/<span class="kw">Title</span>&gt;</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Author</span>&gt;山田太郎&lt;/<span class="kw">Author</span>&gt;</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Year</span>&gt;2021&lt;/<span class="kw">Year</span>&gt;</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">Book</span>&gt;</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">Book</span><span class="ot"> id=</span><span class="st">"B002"</span>&gt;</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Title</span>&gt;XML活用ガイド&lt;/<span class="kw">Title</span>&gt;</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Author</span>&gt;佐藤花子&lt;/<span class="kw">Author</span>&gt;</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Year</span>&gt;2023&lt;/<span class="kw">Year</span>&gt;</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">Book</span>&gt;</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">Magazine</span><span class="ot"> id=</span><span class="st">"M001"</span><span class="ot"> category=</span><span class="st">"Technology"</span>&gt;</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Title</span>&gt;Tech Monthly&lt;/<span class="kw">Title</span>&gt;</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Issue</span>&gt;2024-08&lt;/<span class="kw">Issue</span>&gt;</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">Magazine</span>&gt;</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">Library</span>&gt;</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>Library</code>の中に<code>Book</code>や<code>Magazine</code>が入っていることがわかります。インデントされているので少しはわかりやすいのではないでしょうか。</p>
+<p>さらにその中にはタイトルや著者等の情報が含まれています。</p>
+<p>これが簡単なXMLの例です。</p>
+<p>これがもっと長くずらーっと書かれているものの中から情報を取ってくる作業が仕事で必要になったので、その方法についてまとめたいと思います。</p>
+</section>
+<section id="準備" class="level2">
+<h2 class="anchored" data-anchor-id="準備">準備</h2>
+<p>必要なパッケージは<code>xml2</code>です。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xml2)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>また、解析に使用するXMLは以下です。著作権の問題で、データはいかにもそれっぽいですが、中身は架空のものに置き換えています。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode xml code-with-copy"><code class="sourceCode xml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span><span class="ot"> version=</span><span class="st">"1.0"</span><span class="ot"> encoding=</span><span class="st">"UTF-8"</span><span class="fu">?&gt;</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">Mdevices</span><span class="ot"> xmlns=</span><span class="st">"http://info.pmda.go.jp/namespace/medical_devices/package_insert"</span><span class="ot"> version=</span><span class="st">"1.0"</span>&gt;</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PackageInsertNo</span>&gt;99Z9Z99999999999_1_00_01&lt;/<span class="kw">PackageInsertNo</span>&gt;</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">CompanyIdentifier</span>&gt;999999&lt;/<span class="kw">CompanyIdentifier</span>&gt;</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">DateOfPreparationOrRevisionArray</span>&gt;</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DateOfPreparationOrRevisionDetail</span><span class="ot"> id=</span><span class="st">"初版"</span>&gt;</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">YearMonth</span>&gt;2025-08&lt;/<span class="kw">YearMonth</span>&gt;</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">Version</span>&gt;1.0&lt;/<span class="kw">Version</span>&gt;</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ReasonForRevision</span>&gt;新規作成&lt;/<span class="kw">ReasonForRevision</span>&gt;</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">DateOfPreparationOrRevisionDetail</span>&gt;</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">DateOfPreparationOrRevisionArray</span>&gt;</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">ApprovalEtcArray</span>&gt;</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">ApprovalEtcDetail</span>&gt;</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ApprovalAndLicenseNo</span><span class="ot"> approvalType=</span><span class="st">"1"</span>&gt;99Z9Z99999999999&lt;/<span class="kw">ApprovalAndLicenseNo</span>&gt;</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ApprovalBrandNameDetail</span>&gt;</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">ApprovalBrandName</span><span class="ot"> id=</span><span class="st">"BRD_ApprovalBrandName_01"</span>&gt;サンプルデバイスα&lt;/<span class="kw">ApprovalBrandName</span>&gt;</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">AccessoriesOrCompositionArticle</span>&gt;架空データ&lt;/<span class="kw">AccessoriesOrCompositionArticle</span>&gt;</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">ApprovalBrandNameReading</span>&gt;さんぷるでばいすあるふぁ&lt;/<span class="kw">ApprovalBrandNameReading</span>&gt;</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">ApprovalBrandNameDetail</span>&gt;</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">DoNotReuse</span>&gt;No&lt;/<span class="kw">DoNotReuse</span>&gt;</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">ApprovalEtcDetail</span>&gt;</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">ApprovalEtcArray</span>&gt;</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">CategoryAndGeneralName</span>&gt;</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Category</span>&gt;A9999&lt;/<span class="kw">Category</span>&gt;</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">GeneralName</span>&gt;</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">PrimaryGeneralNameDetail</span>&gt;</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">PrimaryGeneralName</span><span class="ot"> id=</span><span class="st">"GNN_Main_PrimaryGeneralName"</span>&gt;架空一般医療機器&lt;/<span class="kw">PrimaryGeneralName</span>&gt;</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">JMDNCode</span>&gt;99999999&lt;/<span class="kw">JMDNCode</span>&gt;</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">Classification</span>&gt;2&lt;/<span class="kw">Classification</span>&gt;</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">PrimaryGeneralNameDetail</span>&gt;</span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">GeneralName</span>&gt;</span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DiscernmentOfMaintenanceInstallation</span>&gt;None&lt;/<span class="kw">DiscernmentOfMaintenanceInstallation</span>&gt;</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DiscernmentOfTheLivingThingOriginEtc</span>&gt;None&lt;/<span class="kw">DiscernmentOfTheLivingThingOriginEtc</span>&gt;</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">TransgenicsMaterial</span>&gt;None&lt;/<span class="kw">TransgenicsMaterial</span>&gt;</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">CategoryAndGeneralName</span>&gt;</span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">FormAndStructureDetail</span><span class="ot"> id=</span><span class="st">"HDR_FormAndStructure"</span>/&gt;</span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">InfoIndicationsOrEfficacy</span><span class="ot"> id=</span><span class="st">"HDR_InfoIndicationsOrEfficacy"</span><span class="ot"> wordingPatternOfInfoIndicationsOrEfficacy=</span><span class="st">"1"</span>/&gt;</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PrecautionsForUseDetail</span><span class="ot"> id=</span><span class="st">"HDR_PrecautionsForUse"</span>/&gt;</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">AManufacturingAndSellingContractorsNameOrANameEtc</span><span class="ot"> id=</span><span class="st">"HDR_AManufacturingAndSellingContractorsNameOrANameEtc"</span>&gt;</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">AManufacturingAndSellingContractorsNameOrANameDetail</span><span class="ot"> id=</span><span class="st">"HDR_AManufacturingAndSellingContractorsNameOrAName"</span>&gt;</span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ANameOfManufacturerEtc</span>&gt;株式会社サンプル医療&lt;/<span class="kw">ANameOfManufacturerEtc</span>&gt;</span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">Phonenumber</span>&gt;000-0000-0000&lt;/<span class="kw">Phonenumber</span>&gt;</span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">AManufacturingAndSellingContractorsNameOrANameDetail</span>&gt;</span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryArray</span><span class="ot"> id=</span><span class="st">"HDR_ANameOrAnOverseasNameEtcOfAFactory"</span>&gt;</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">ANameOfManufacturerEtc</span>&gt;サンプル工場&lt;/<span class="kw">ANameOfManufacturerEtc</span>&gt;</span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">Phonenumber</span>&gt;000-1111-2222&lt;/<span class="kw">Phonenumber</span>&gt;</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;Sample Factory Inc.&lt;/<span class="kw">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;</span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">TheCountryCode</span>&gt;888&lt;/<span class="kw">TheCountryCode</span>&gt;</span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">NameOfACountry</span>&gt;架空国&lt;/<span class="kw">NameOfACountry</span>&gt;</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryArray</span>&gt;</span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">AManufacturingAndSellingContractorsNameOrANameEtc</span>&gt;</span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PleaseSeeTechnicalManual</span>&gt;False&lt;/<span class="kw">PleaseSeeTechnicalManual</span>&gt;</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">Mdevices</span>&gt;</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>これを<code>sample.xml</code>とします。人によってファイルへのパスは異なるかと思いますが、今回は<code>here::here("data/xml_sample/sample.xml</code>に格納されているとして進めます。</p>
+<p>一応サンプルファイルを以下からダウンロードできるようにしておきました。</p>
+<p><a href="../../../../..\data/xml_sample/sample.zip" download="sample.zip">XMLファイル</a></p>
+</section>
+<section id="データの取得" class="level2">
+<h2 class="anchored" data-anchor-id="データの取得">データの取得</h2>
+<p>それでは早速XMLファイルを読み込んで、必要な情報を抽出したいと思います。</p>
+<p>抽出したい情報は、</p>
+<ul>
+<li><p>承認番号（<code>&lt;ApprovalAndLicenseNo&gt;</code>）</p></li>
+<li><p>一般名称（<code>&lt;PrimaryGeneralName&gt;</code>）</p></li>
+<li><p>日本医療機器名コード（<code>&lt;JMDNCode&gt;</code>）</p></li>
+</ul>
+<p>とします。他のタグについても同様の方法で取得できるので、一旦この3つに絞ります。</p>
+<p>まずはファイルを読み込みましょう。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ファイルのパスは適宜変更</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>xml_sample <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data/xml_sample/sample.xml"</span>))</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>次に、タグを検索し、該当するものを引っ張ってきます。タグは上の括弧内で記したとおりです。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>xml_sample <span class="sc">|&gt;</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xml_find_all</span>(<span class="st">"//*[local-name()='ApprovalAndLicenseNo']"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xml_text</span>()</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "99Z9Z99999999999"</code></pre>
+</div>
+</div>
+<p><code>xml_find_all()</code>はXML内の要素を探してくるための関数です。複数ヒットすればすべて返してきますが、<code>xml_find_first()</code>であれば最初の一つを返します。今回はタグは重複がないのでどちらでも同じ結果が返ってきます。</p>
+<p>ところで見慣れない書き方が出てきています。<code>//</code>も<code>local-name</code>などです。これらについて1つずつまとめます。</p>
+<ol type="1">
+<li><code>//</code>
+<ul>
+<li>これはXMLのタグがどの階層にあっても探す、ということです。</li>
+<li>特定の階層のみを探すこともできるのですが、今回は全体から探してきたいのでこれを使います。</li>
+</ul></li>
+<li><code>*</code>
+<ul>
+<li>これはワイルドカードと呼ばれ、どんな要素でも問わない、ということを示します。</li>
+<li>この後に条件を指定しているのですが、その条件を満たすあらゆる要素、ということを示すイメージです。</li>
+</ul></li>
+<li><code>[local-name()=]</code>
+<ul>
+<li>ここがややこしいのですが、XMLの冒頭2行目に<code>xmlns="http://info.pmda.go.jp/namespace/medical_devices/package_insert"</code>という表記があります。</li>
+<li>これがあるとこの後に出てくるタグはこれの後に続くことになる、ということを意味します。</li>
+<li>例：<code>http://info.pmda.go.jp/namespace/medical_devices/package_insert/ApprovalAndLicenseNo</code></li>
+<li>すなわち、一見<code>ApprovalAndLicenseNo</code>でヒットしそうですが、実際はこの例のように長い表記が正しいので、<code>ApprovalAndLicenseNo</code>単体だとヒットしません。</li>
+<li><code>xmlns</code>の部分を「名前空間」というのですが、名前空間がない場合でもこの書き方でヒットしますので、これを書いておけば間違いないといった感じです<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</li>
+</ul></li>
+</ol>
+<p>ややこしい書き方でしたが、これで注目しているタグを引っ張ってこれます。</p>
+<p>最後に<code>xml_text()</code>で、タグの中身のテキストを取得でき、今回であれば<code>99Z9Z99999999999</code>が表示できています。</p>
+<p>XMLファイルから情報を取得する方法については以上です。</p>
+</section>
+<section id="ファイルを巡回してデータフレームを作る" class="level2">
+<h2 class="anchored" data-anchor-id="ファイルを巡回してデータフレームを作る">ファイルを巡回してデータフレームを作る</h2>
+<p>複数のXMLファイルを巡回して、同じ要素を引っ張ってきたいことがありますよね。</p>
+<p>その方法についてもまとめます。今回はXMLファイルが2つ、<code>here::here("data/xml_sample")</code>内にあると仮定します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># `tibble()`や`map_dfr()`のため</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>xml_files <span class="ot">&lt;-</span> <span class="fu">list.files</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data/xml_sample"</span>), <span class="at">pattern =</span> <span class="st">"*.xml$"</span>, </span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>extract_info <span class="ot">&lt;-</span> <span class="cf">function</span>(fp) {</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  doc <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(fp)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    承認番号 <span class="ot">=</span> <span class="fu">xml_text</span>(<span class="fu">xml_find_all</span>(doc, <span class="st">"//*[local-name()='ApprovalAndLicenseNo']"</span>)), </span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    一般名称 <span class="ot">=</span> <span class="fu">xml_text</span>(<span class="fu">xml_find_all</span>(doc, <span class="st">"//*[local-name()='PrimaryGeneralName']"</span>)), </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    日本医療機器名コード <span class="ot">=</span> <span class="fu">xml_text</span>(<span class="fu">xml_find_all</span>(doc, <span class="st">"//*[local-name()='JMDNCode']"</span>))</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(xml_files, extract_info)</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(df)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 3
+  承認番号         一般名称          日本医療機器名コード
+  &lt;chr&gt;            &lt;chr&gt;             &lt;chr&gt;               
+1 99Z9Z99999999999 架空一般医療機器  99999999            
+2 88Y8Y88888888888 架空一般医療機器B 88888888            </code></pre>
+</div>
+</div>
+<p>ポイントをまとめます。</p>
+<ol type="1">
+<li><code>list.files()</code>でディレクトリ内のXMLファイルのファイル名（パス込み）を取得します。
+<ul>
+<li>ワイルドカード<code>*</code>が使われています。前が何であれ、<code>.xml</code>という条件にマッチする要素を取得するということです。</li>
+<li>また、<code>$</code>はそれで終わるということを指します。<code>.xml.csv</code>みたいに、<code>.xml</code>の後に別の要素が続くものは取得しないということです。</li>
+</ul></li>
+<li><code>function</code>で要素をデータフレームに入れる関数を作ります。
+<ul>
+<li><code>doc</code>に読み込んだXMLを格納し、そこからこれまでに見てきた方法で要素を抽出し、<code>tibble</code>（要はデータフレーム）の各列に格納します。</li>
+<li>パイプを使っていないので関数の出てくる順が先ほどと逆ですが、<code>doc |&gt; xml_find_all() |&gt; xml_text()</code>の流れと同じです。</li>
+</ul></li>
+<li><code>map_dfr()</code>で順番に処理しデータフレームを作成
+<ul>
+<li>そもそも<code>map()</code>関数はリストやベクトルに対して関数を適用するものです。</li>
+<li><code>map_dfr()</code>の<code>dfr</code>はdata frame row-bindの略で、<code>map()</code>の結果を行方向に結合することを指します。</li>
+<li>すなわち、各ファイルを読み込んで要素を抽出、1行3列（今回の場合）のデータフレームを作成し、それをどんどん下に結合していくというイメージです。</li>
+</ul></li>
+</ol>
+<p>ちなみに<code>for</code>ループでもできますが、そちらは今回は省略します。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はXMLファイルの扱い方について取り上げました。</p>
+<p>私は繰り返し処理までこれからやることになりそうなので、出番が増えそうです。</p>
+<p>ご参考になれば幸いです。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>名前空間がない場合は<code>//ApprovalAndLicenseNo</code>でもヒットします。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "コピーしました");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "コピーしました");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yo5uke\.com");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<input type="hidden" id="giscus-base-theme" value="light_high_contrast">
+<input type="hidden" id="giscus-alt-theme" value="light_high_contrast">
+<script>
+  function loadGiscus() {
+    // Function to get the theme based on body class
+    const getTheme = () => {
+      let baseTheme = document.getElementById('giscus-base-theme').value;
+      let altTheme = document.getElementById('giscus-alt-theme').value;
+      if (authorPrefersDark) {
+          [baseTheme, altTheme] = [altTheme, baseTheme];
+      }
+      return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+    };
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "yo5uke/yo5uke.github.io";
+    script.dataset.repoId = "R_kgDOLsORUQ";
+    script.dataset.category = "General";
+    script.dataset.categoryId = "DIC_kwDOLsORUc4CfJ93";
+    script.dataset.mapping = "title";
+    script.dataset.reactionsEnabled = "1";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "top";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "en";
+    script.crossOrigin = "anonymous";
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  }
+  loadGiscus();
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "XMLファイルから情報を抽出する"</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">  [xml2]{.fira-code}パッケージを使います。</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2025-08-26</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - データ処理</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> image/thumbnail.png</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>今度は仕事でXMLファイルを扱う機会がやってきました。</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>XMLファイルは、データを「タグ」で階層的に記述するテキスト形式のファイルで、構造化された情報を表現・交換するための標準仕様であり、システム間でデータ連携や保存に広く利用されています。</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>見たことがない方にはとんとイメージがわかないと思うのですが、XMLは以下のような構造をしています。</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="in">``` xml</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span><span class="ot"> version=</span><span class="st">"1.0"</span><span class="ot"> encoding=</span><span class="st">"UTF-8"</span><span class="fu">?&gt;</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">Library</span>&gt;</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">Book</span><span class="ot"> id=</span><span class="st">"B001"</span>&gt;</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Title</span>&gt;データ分析入門&lt;/<span class="kw">Title</span>&gt;</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Author</span>&gt;山田太郎&lt;/<span class="kw">Author</span>&gt;</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Year</span>&gt;2021&lt;/<span class="kw">Year</span>&gt;</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">Book</span>&gt;</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">Book</span><span class="ot"> id=</span><span class="st">"B002"</span>&gt;</span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Title</span>&gt;XML活用ガイド&lt;/<span class="kw">Title</span>&gt;</span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Author</span>&gt;佐藤花子&lt;/<span class="kw">Author</span>&gt;</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Year</span>&gt;2023&lt;/<span class="kw">Year</span>&gt;</span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">Book</span>&gt;</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">Magazine</span><span class="ot"> id=</span><span class="st">"M001"</span><span class="ot"> category=</span><span class="st">"Technology"</span>&gt;</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Title</span>&gt;Tech Monthly&lt;/<span class="kw">Title</span>&gt;</span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Issue</span>&gt;2024-08&lt;/<span class="kw">Issue</span>&gt;</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">Magazine</span>&gt;</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">Library</span>&gt;</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a><span class="in">`Library`</span>の中に<span class="in">`Book`</span>や<span class="in">`Magazine`</span>が入っていることがわかります。インデントされているので少しはわかりやすいのではないでしょうか。</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>さらにその中にはタイトルや著者等の情報が含まれています。</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a>これが簡単なXMLの例です。</span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>これがもっと長くずらーっと書かれているものの中から情報を取ってくる作業が仕事で必要になったので、その方法についてまとめたいと思います。</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a><span class="fu">## 準備</span></span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>必要なパッケージは<span class="in">`xml2`</span>です。</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(xml2)</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a>また、解析に使用するXMLは以下です。著作権の問題で、データはいかにもそれっぽいですが、中身は架空のものに置き換えています。</span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-61"><a href="#cb9-61" aria-hidden="true" tabindex="-1"></a><span class="in">``` xml</span></span>
+<span id="cb9-62"><a href="#cb9-62" aria-hidden="true" tabindex="-1"></a><span class="fu">&lt;?xml</span><span class="ot"> version=</span><span class="st">"1.0"</span><span class="ot"> encoding=</span><span class="st">"UTF-8"</span><span class="fu">?&gt;</span></span>
+<span id="cb9-63"><a href="#cb9-63" aria-hidden="true" tabindex="-1"></a>&lt;<span class="kw">Mdevices</span><span class="ot"> xmlns=</span><span class="st">"http://info.pmda.go.jp/namespace/medical_devices/package_insert"</span><span class="ot"> version=</span><span class="st">"1.0"</span>&gt;</span>
+<span id="cb9-64"><a href="#cb9-64" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PackageInsertNo</span>&gt;99Z9Z99999999999_1_00_01&lt;/<span class="kw">PackageInsertNo</span>&gt;</span>
+<span id="cb9-65"><a href="#cb9-65" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">CompanyIdentifier</span>&gt;999999&lt;/<span class="kw">CompanyIdentifier</span>&gt;</span>
+<span id="cb9-66"><a href="#cb9-66" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">DateOfPreparationOrRevisionArray</span>&gt;</span>
+<span id="cb9-67"><a href="#cb9-67" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DateOfPreparationOrRevisionDetail</span><span class="ot"> id=</span><span class="st">"初版"</span>&gt;</span>
+<span id="cb9-68"><a href="#cb9-68" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">YearMonth</span>&gt;2025-08&lt;/<span class="kw">YearMonth</span>&gt;</span>
+<span id="cb9-69"><a href="#cb9-69" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">Version</span>&gt;1.0&lt;/<span class="kw">Version</span>&gt;</span>
+<span id="cb9-70"><a href="#cb9-70" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ReasonForRevision</span>&gt;新規作成&lt;/<span class="kw">ReasonForRevision</span>&gt;</span>
+<span id="cb9-71"><a href="#cb9-71" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">DateOfPreparationOrRevisionDetail</span>&gt;</span>
+<span id="cb9-72"><a href="#cb9-72" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">DateOfPreparationOrRevisionArray</span>&gt;</span>
+<span id="cb9-73"><a href="#cb9-73" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">ApprovalEtcArray</span>&gt;</span>
+<span id="cb9-74"><a href="#cb9-74" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">ApprovalEtcDetail</span>&gt;</span>
+<span id="cb9-75"><a href="#cb9-75" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ApprovalAndLicenseNo</span><span class="ot"> approvalType=</span><span class="st">"1"</span>&gt;99Z9Z99999999999&lt;/<span class="kw">ApprovalAndLicenseNo</span>&gt;</span>
+<span id="cb9-76"><a href="#cb9-76" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ApprovalBrandNameDetail</span>&gt;</span>
+<span id="cb9-77"><a href="#cb9-77" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">ApprovalBrandName</span><span class="ot"> id=</span><span class="st">"BRD_ApprovalBrandName_01"</span>&gt;サンプルデバイスα&lt;/<span class="kw">ApprovalBrandName</span>&gt;</span>
+<span id="cb9-78"><a href="#cb9-78" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">AccessoriesOrCompositionArticle</span>&gt;架空データ&lt;/<span class="kw">AccessoriesOrCompositionArticle</span>&gt;</span>
+<span id="cb9-79"><a href="#cb9-79" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">ApprovalBrandNameReading</span>&gt;さんぷるでばいすあるふぁ&lt;/<span class="kw">ApprovalBrandNameReading</span>&gt;</span>
+<span id="cb9-80"><a href="#cb9-80" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">ApprovalBrandNameDetail</span>&gt;</span>
+<span id="cb9-81"><a href="#cb9-81" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">DoNotReuse</span>&gt;No&lt;/<span class="kw">DoNotReuse</span>&gt;</span>
+<span id="cb9-82"><a href="#cb9-82" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">ApprovalEtcDetail</span>&gt;</span>
+<span id="cb9-83"><a href="#cb9-83" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">ApprovalEtcArray</span>&gt;</span>
+<span id="cb9-84"><a href="#cb9-84" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">CategoryAndGeneralName</span>&gt;</span>
+<span id="cb9-85"><a href="#cb9-85" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">Category</span>&gt;A9999&lt;/<span class="kw">Category</span>&gt;</span>
+<span id="cb9-86"><a href="#cb9-86" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">GeneralName</span>&gt;</span>
+<span id="cb9-87"><a href="#cb9-87" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">PrimaryGeneralNameDetail</span>&gt;</span>
+<span id="cb9-88"><a href="#cb9-88" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">PrimaryGeneralName</span><span class="ot"> id=</span><span class="st">"GNN_Main_PrimaryGeneralName"</span>&gt;架空一般医療機器&lt;/<span class="kw">PrimaryGeneralName</span>&gt;</span>
+<span id="cb9-89"><a href="#cb9-89" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">JMDNCode</span>&gt;99999999&lt;/<span class="kw">JMDNCode</span>&gt;</span>
+<span id="cb9-90"><a href="#cb9-90" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">Classification</span>&gt;2&lt;/<span class="kw">Classification</span>&gt;</span>
+<span id="cb9-91"><a href="#cb9-91" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">PrimaryGeneralNameDetail</span>&gt;</span>
+<span id="cb9-92"><a href="#cb9-92" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">GeneralName</span>&gt;</span>
+<span id="cb9-93"><a href="#cb9-93" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DiscernmentOfMaintenanceInstallation</span>&gt;None&lt;/<span class="kw">DiscernmentOfMaintenanceInstallation</span>&gt;</span>
+<span id="cb9-94"><a href="#cb9-94" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">DiscernmentOfTheLivingThingOriginEtc</span>&gt;None&lt;/<span class="kw">DiscernmentOfTheLivingThingOriginEtc</span>&gt;</span>
+<span id="cb9-95"><a href="#cb9-95" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">TransgenicsMaterial</span>&gt;None&lt;/<span class="kw">TransgenicsMaterial</span>&gt;</span>
+<span id="cb9-96"><a href="#cb9-96" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">CategoryAndGeneralName</span>&gt;</span>
+<span id="cb9-97"><a href="#cb9-97" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">FormAndStructureDetail</span><span class="ot"> id=</span><span class="st">"HDR_FormAndStructure"</span>/&gt;</span>
+<span id="cb9-98"><a href="#cb9-98" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">InfoIndicationsOrEfficacy</span><span class="ot"> id=</span><span class="st">"HDR_InfoIndicationsOrEfficacy"</span><span class="ot"> wordingPatternOfInfoIndicationsOrEfficacy=</span><span class="st">"1"</span>/&gt;</span>
+<span id="cb9-99"><a href="#cb9-99" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PrecautionsForUseDetail</span><span class="ot"> id=</span><span class="st">"HDR_PrecautionsForUse"</span>/&gt;</span>
+<span id="cb9-100"><a href="#cb9-100" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">AManufacturingAndSellingContractorsNameOrANameEtc</span><span class="ot"> id=</span><span class="st">"HDR_AManufacturingAndSellingContractorsNameOrANameEtc"</span>&gt;</span>
+<span id="cb9-101"><a href="#cb9-101" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">AManufacturingAndSellingContractorsNameOrANameDetail</span><span class="ot"> id=</span><span class="st">"HDR_AManufacturingAndSellingContractorsNameOrAName"</span>&gt;</span>
+<span id="cb9-102"><a href="#cb9-102" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ANameOfManufacturerEtc</span>&gt;株式会社サンプル医療&lt;/<span class="kw">ANameOfManufacturerEtc</span>&gt;</span>
+<span id="cb9-103"><a href="#cb9-103" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">Phonenumber</span>&gt;000-0000-0000&lt;/<span class="kw">Phonenumber</span>&gt;</span>
+<span id="cb9-104"><a href="#cb9-104" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">AManufacturingAndSellingContractorsNameOrANameDetail</span>&gt;</span>
+<span id="cb9-105"><a href="#cb9-105" aria-hidden="true" tabindex="-1"></a>    &lt;<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryArray</span><span class="ot"> id=</span><span class="st">"HDR_ANameOrAnOverseasNameEtcOfAFactory"</span>&gt;</span>
+<span id="cb9-106"><a href="#cb9-106" aria-hidden="true" tabindex="-1"></a>      &lt;<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
+<span id="cb9-107"><a href="#cb9-107" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">ANameOfManufacturerEtc</span>&gt;サンプル工場&lt;/<span class="kw">ANameOfManufacturerEtc</span>&gt;</span>
+<span id="cb9-108"><a href="#cb9-108" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">Phonenumber</span>&gt;000-1111-2222&lt;/<span class="kw">Phonenumber</span>&gt;</span>
+<span id="cb9-109"><a href="#cb9-109" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;Sample Factory Inc.&lt;/<span class="kw">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;</span>
+<span id="cb9-110"><a href="#cb9-110" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">TheCountryCode</span>&gt;888&lt;/<span class="kw">TheCountryCode</span>&gt;</span>
+<span id="cb9-111"><a href="#cb9-111" aria-hidden="true" tabindex="-1"></a>        &lt;<span class="kw">NameOfACountry</span>&gt;架空国&lt;/<span class="kw">NameOfACountry</span>&gt;</span>
+<span id="cb9-112"><a href="#cb9-112" aria-hidden="true" tabindex="-1"></a>      &lt;/<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
+<span id="cb9-113"><a href="#cb9-113" aria-hidden="true" tabindex="-1"></a>    &lt;/<span class="kw">ANameOrAnOverseasNameEtcOfAFactoryArray</span>&gt;</span>
+<span id="cb9-114"><a href="#cb9-114" aria-hidden="true" tabindex="-1"></a>  &lt;/<span class="kw">AManufacturingAndSellingContractorsNameOrANameEtc</span>&gt;</span>
+<span id="cb9-115"><a href="#cb9-115" aria-hidden="true" tabindex="-1"></a>  &lt;<span class="kw">PleaseSeeTechnicalManual</span>&gt;False&lt;/<span class="kw">PleaseSeeTechnicalManual</span>&gt;</span>
+<span id="cb9-116"><a href="#cb9-116" aria-hidden="true" tabindex="-1"></a>&lt;/<span class="kw">Mdevices</span>&gt;</span>
+<span id="cb9-117"><a href="#cb9-117" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-118"><a href="#cb9-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-119"><a href="#cb9-119" aria-hidden="true" tabindex="-1"></a>これを<span class="in">`sample.xml`</span>とします。人によってファイルへのパスは異なるかと思いますが、今回は<span class="in">`here::here("data/xml_sample/sample.xml`</span>に格納されているとして進めます。</span>
+<span id="cb9-120"><a href="#cb9-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-121"><a href="#cb9-121" aria-hidden="true" tabindex="-1"></a>一応サンプルファイルを以下からダウンロードできるようにしておきました。</span>
+<span id="cb9-122"><a href="#cb9-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-123"><a href="#cb9-123" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">XMLファイル</span><span class="co">](/data/xml_sample/sample.zip)</span>{download="sample.zip"}</span>
+<span id="cb9-124"><a href="#cb9-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-125"><a href="#cb9-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## データの取得</span></span>
+<span id="cb9-126"><a href="#cb9-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-127"><a href="#cb9-127" aria-hidden="true" tabindex="-1"></a>それでは早速XMLファイルを読み込んで、必要な情報を抽出したいと思います。</span>
+<span id="cb9-128"><a href="#cb9-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-129"><a href="#cb9-129" aria-hidden="true" tabindex="-1"></a>抽出したい情報は、</span>
+<span id="cb9-130"><a href="#cb9-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-131"><a href="#cb9-131" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>承認番号（<span class="in">`&lt;ApprovalAndLicenseNo&gt;`</span>）</span>
+<span id="cb9-132"><a href="#cb9-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-133"><a href="#cb9-133" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>一般名称（<span class="in">`&lt;PrimaryGeneralName&gt;`</span>）</span>
+<span id="cb9-134"><a href="#cb9-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-135"><a href="#cb9-135" aria-hidden="true" tabindex="-1"></a><span class="ss">-   </span>日本医療機器名コード（<span class="in">`&lt;JMDNCode&gt;`</span>）</span>
+<span id="cb9-136"><a href="#cb9-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-137"><a href="#cb9-137" aria-hidden="true" tabindex="-1"></a>とします。他のタグについても同様の方法で取得できるので、一旦この3つに絞ります。</span>
+<span id="cb9-138"><a href="#cb9-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-139"><a href="#cb9-139" aria-hidden="true" tabindex="-1"></a>まずはファイルを読み込みましょう。</span>
+<span id="cb9-140"><a href="#cb9-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-143"><a href="#cb9-143" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-144"><a href="#cb9-144" aria-hidden="true" tabindex="-1"></a><span class="co"># ファイルのパスは適宜変更</span></span>
+<span id="cb9-145"><a href="#cb9-145" aria-hidden="true" tabindex="-1"></a>xml_sample <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data/xml_sample/sample.xml"</span>))</span>
+<span id="cb9-146"><a href="#cb9-146" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-147"><a href="#cb9-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-148"><a href="#cb9-148" aria-hidden="true" tabindex="-1"></a>次に、タグを検索し、該当するものを引っ張ってきます。タグは上の括弧内で記したとおりです。</span>
+<span id="cb9-149"><a href="#cb9-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-152"><a href="#cb9-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-153"><a href="#cb9-153" aria-hidden="true" tabindex="-1"></a>xml_sample <span class="sc">|&gt;</span> </span>
+<span id="cb9-154"><a href="#cb9-154" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xml_find_all</span>(<span class="st">"//*[local-name()='ApprovalAndLicenseNo']"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb9-155"><a href="#cb9-155" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xml_text</span>()</span>
+<span id="cb9-156"><a href="#cb9-156" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-157"><a href="#cb9-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-158"><a href="#cb9-158" aria-hidden="true" tabindex="-1"></a><span class="in">`xml_find_all()`</span>はXML内の要素を探してくるための関数です。複数ヒットすればすべて返してきますが、<span class="in">`xml_find_first()`</span>であれば最初の一つを返します。今回はタグは重複がないのでどちらでも同じ結果が返ってきます。</span>
+<span id="cb9-159"><a href="#cb9-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-160"><a href="#cb9-160" aria-hidden="true" tabindex="-1"></a>ところで見慣れない書き方が出てきています。<span class="in">`//`</span>も<span class="in">`local-name`</span>などです。これらについて1つずつまとめます。</span>
+<span id="cb9-161"><a href="#cb9-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-162"><a href="#cb9-162" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="in">`//`</span></span>
+<span id="cb9-163"><a href="#cb9-163" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>これはXMLのタグがどの階層にあっても探す、ということです。</span>
+<span id="cb9-164"><a href="#cb9-164" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>特定の階層のみを探すこともできるのですが、今回は全体から探してきたいのでこれを使います。</span>
+<span id="cb9-165"><a href="#cb9-165" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span><span class="in">`*`</span></span>
+<span id="cb9-166"><a href="#cb9-166" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>これはワイルドカードと呼ばれ、どんな要素でも問わない、ということを示します。</span>
+<span id="cb9-167"><a href="#cb9-167" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>この後に条件を指定しているのですが、その条件を満たすあらゆる要素、ということを示すイメージです。</span>
+<span id="cb9-168"><a href="#cb9-168" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span><span class="in">`[local-name()=]`</span></span>
+<span id="cb9-169"><a href="#cb9-169" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ここがややこしいのですが、XMLの冒頭2行目に<span class="in">`xmlns="http://info.pmda.go.jp/namespace/medical_devices/package_insert"`</span>という表記があります。</span>
+<span id="cb9-170"><a href="#cb9-170" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>これがあるとこの後に出てくるタグはこれの後に続くことになる、ということを意味します。</span>
+<span id="cb9-171"><a href="#cb9-171" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>例：<span class="in">`http://info.pmda.go.jp/namespace/medical_devices/package_insert/ApprovalAndLicenseNo`</span></span>
+<span id="cb9-172"><a href="#cb9-172" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>すなわち、一見<span class="in">`ApprovalAndLicenseNo`</span>でヒットしそうですが、実際はこの例のように長い表記が正しいので、<span class="in">`ApprovalAndLicenseNo`</span>単体だとヒットしません。</span>
+<span id="cb9-173"><a href="#cb9-173" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`xmlns`</span>の部分を「名前空間」というのですが、名前空間がない場合でもこの書き方でヒットしますので、これを書いておけば間違いないといった感じです<span class="ot">[^1]</span>。</span>
+<span id="cb9-174"><a href="#cb9-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-175"><a href="#cb9-175" aria-hidden="true" tabindex="-1"></a><span class="ot">[^1]: </span>名前空間がない場合は<span class="in">`//ApprovalAndLicenseNo`</span>でもヒットします。</span>
+<span id="cb9-176"><a href="#cb9-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-177"><a href="#cb9-177" aria-hidden="true" tabindex="-1"></a>ややこしい書き方でしたが、これで注目しているタグを引っ張ってこれます。</span>
+<span id="cb9-178"><a href="#cb9-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-179"><a href="#cb9-179" aria-hidden="true" tabindex="-1"></a>最後に<span class="in">`xml_text()`</span>で、タグの中身のテキストを取得でき、今回であれば<span class="in">`99Z9Z99999999999`</span>が表示できています。</span>
+<span id="cb9-180"><a href="#cb9-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-181"><a href="#cb9-181" aria-hidden="true" tabindex="-1"></a>XMLファイルから情報を取得する方法については以上です。</span>
+<span id="cb9-182"><a href="#cb9-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-183"><a href="#cb9-183" aria-hidden="true" tabindex="-1"></a><span class="fu">## ファイルを巡回してデータフレームを作る</span></span>
+<span id="cb9-184"><a href="#cb9-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-185"><a href="#cb9-185" aria-hidden="true" tabindex="-1"></a>複数のXMLファイルを巡回して、同じ要素を引っ張ってきたいことがありますよね。</span>
+<span id="cb9-186"><a href="#cb9-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-187"><a href="#cb9-187" aria-hidden="true" tabindex="-1"></a>その方法についてもまとめます。今回はXMLファイルが2つ、<span class="in">`here::here("data/xml_sample")`</span>内にあると仮定します。</span>
+<span id="cb9-188"><a href="#cb9-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-191"><a href="#cb9-191" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb9-192"><a href="#cb9-192" aria-hidden="true" tabindex="-1"></a><span class="co"># `tibble()`や`map_dfr()`のため</span></span>
+<span id="cb9-193"><a href="#cb9-193" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb9-194"><a href="#cb9-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-195"><a href="#cb9-195" aria-hidden="true" tabindex="-1"></a>xml_files <span class="ot">&lt;-</span> <span class="fu">list.files</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"data/xml_sample"</span>), <span class="at">pattern =</span> <span class="st">"*.xml$"</span>, </span>
+<span id="cb9-196"><a href="#cb9-196" aria-hidden="true" tabindex="-1"></a>                        <span class="at">full.names =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-197"><a href="#cb9-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-198"><a href="#cb9-198" aria-hidden="true" tabindex="-1"></a>extract_info <span class="ot">&lt;-</span> <span class="cf">function</span>(fp) {</span>
+<span id="cb9-199"><a href="#cb9-199" aria-hidden="true" tabindex="-1"></a>  doc <span class="ot">&lt;-</span> <span class="fu">read_xml</span>(fp)</span>
+<span id="cb9-200"><a href="#cb9-200" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb9-201"><a href="#cb9-201" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>(</span>
+<span id="cb9-202"><a href="#cb9-202" aria-hidden="true" tabindex="-1"></a>    承認番号 <span class="ot">=</span> <span class="fu">xml_text</span>(<span class="fu">xml_find_all</span>(doc, <span class="st">"//*[local-name()='ApprovalAndLicenseNo']"</span>)), </span>
+<span id="cb9-203"><a href="#cb9-203" aria-hidden="true" tabindex="-1"></a>    一般名称 <span class="ot">=</span> <span class="fu">xml_text</span>(<span class="fu">xml_find_all</span>(doc, <span class="st">"//*[local-name()='PrimaryGeneralName']"</span>)), </span>
+<span id="cb9-204"><a href="#cb9-204" aria-hidden="true" tabindex="-1"></a>    日本医療機器名コード <span class="ot">=</span> <span class="fu">xml_text</span>(<span class="fu">xml_find_all</span>(doc, <span class="st">"//*[local-name()='JMDNCode']"</span>))</span>
+<span id="cb9-205"><a href="#cb9-205" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-206"><a href="#cb9-206" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb9-207"><a href="#cb9-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-208"><a href="#cb9-208" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">map_dfr</span>(xml_files, extract_info)</span>
+<span id="cb9-209"><a href="#cb9-209" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(df)</span>
+<span id="cb9-210"><a href="#cb9-210" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb9-211"><a href="#cb9-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-212"><a href="#cb9-212" aria-hidden="true" tabindex="-1"></a>ポイントをまとめます。</span>
+<span id="cb9-213"><a href="#cb9-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-214"><a href="#cb9-214" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span><span class="in">`list.files()`</span>でディレクトリ内のXMLファイルのファイル名（パス込み）を取得します。</span>
+<span id="cb9-215"><a href="#cb9-215" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>ワイルドカード<span class="in">`*`</span>が使われています。前が何であれ、<span class="in">`.xml`</span>という条件にマッチする要素を取得するということです。</span>
+<span id="cb9-216"><a href="#cb9-216" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>また、<span class="in">`$`</span>はそれで終わるということを指します。<span class="in">`.xml.csv`</span>みたいに、<span class="in">`.xml`</span>の後に別の要素が続くものは取得しないということです。</span>
+<span id="cb9-217"><a href="#cb9-217" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span><span class="in">`function`</span>で要素をデータフレームに入れる関数を作ります。</span>
+<span id="cb9-218"><a href="#cb9-218" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`doc`</span>に読み込んだXMLを格納し、そこからこれまでに見てきた方法で要素を抽出し、<span class="in">`tibble`</span>（要はデータフレーム）の各列に格納します。</span>
+<span id="cb9-219"><a href="#cb9-219" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>パイプを使っていないので関数の出てくる順が先ほどと逆ですが、<span class="in">`doc |&gt; xml_find_all() |&gt; xml_text()`</span>の流れと同じです。</span>
+<span id="cb9-220"><a href="#cb9-220" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span><span class="in">`map_dfr()`</span>で順番に処理しデータフレームを作成</span>
+<span id="cb9-221"><a href="#cb9-221" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>そもそも<span class="in">`map()`</span>関数はリストやベクトルに対して関数を適用するものです。</span>
+<span id="cb9-222"><a href="#cb9-222" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span><span class="in">`map_dfr()`</span>の<span class="in">`dfr`</span>はdata frame row-bindの略で、<span class="in">`map()`</span>の結果を行方向に結合することを指します。</span>
+<span id="cb9-223"><a href="#cb9-223" aria-hidden="true" tabindex="-1"></a><span class="ss">    -   </span>すなわち、各ファイルを読み込んで要素を抽出、1行3列（今回の場合）のデータフレームを作成し、それをどんどん下に結合していくというイメージです。</span>
+<span id="cb9-224"><a href="#cb9-224" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-225"><a href="#cb9-225" aria-hidden="true" tabindex="-1"></a>ちなみに<span class="in">`for`</span>ループでもできますが、そちらは今回は省略します。</span>
+<span id="cb9-226"><a href="#cb9-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-227"><a href="#cb9-227" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb9-228"><a href="#cb9-228" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-229"><a href="#cb9-229" aria-hidden="true" tabindex="-1"></a>今回はXMLファイルの扱い方について取り上げました。</span>
+<span id="cb9-230"><a href="#cb9-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-231"><a href="#cb9-231" aria-hidden="true" tabindex="-1"></a>私は繰り返し処理までこれからやることになりそうなので、出番が増えそうです。</span>
+<span id="cb9-232"><a href="#cb9-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-233"><a href="#cb9-233" aria-hidden="true" tabindex="-1"></a>ご参考になれば幸いです。</span>
+</code></pre></div><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2025 Yosuke Abe <br> Content on this site is licensed under a <br> <i class="fa-brands fa-creative-commons" aria-label="creative-commons"></i> <i class="fa-brands fa-creative-commons-by" aria-label="creative-commons-by"></i> <i class="fa-brands fa-creative-commons-sa" aria-label="creative-commons-sa"></i> <a href="https://creativecommons.org/licenses/by-sa/4.0/">Creative Commons BY-SA 4.0</a></p>
+</div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/5uke_y">
+      <i class="bi bi-twitter-x" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="../../../../../pages/tips/index.xml">
+      <i class="bi bi-rss" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+    <div class="nav-footer-right">
+<p>This website is created with <i class="fa-brands fa-r-project" aria-label="r-project"></i> and <iconify-icon role="img" inline="" icon="simple-icons:quarto" style="color:#74aadb;" aria-label="Quarto icon" title="Quarto icon"></iconify-icon> <a href="https://quarto.org">Quarto</a> <br> <i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/yo5uke/yo5uke.github.io">Source code</a> <br> <i class="fa-solid fa-location-dot" aria-label="location-dot"></i> <a href="https://maps.app.goo.gl/XFHvBiCdkQK4YXku9">Yokohama</a>, Kanagawa, Japan</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
