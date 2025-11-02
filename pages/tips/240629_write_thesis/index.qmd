@@ -3,7 +3,7 @@ title: "【PDF】Quarto で論文を書く"
 description: |
     Quarto を使って論文を書く方法（マークダウン、表、図）をまとめました。
 date: 2024-06-29
-date-modified: last-modified
+date-modified: 2025-11-02
 categories:
   - Quarto
   - R
@@ -13,6 +13,13 @@ execute:
   cache: true
   echo: false
 ---
+
+:::{.callout-note}
+## Typstを用いたQuarto×PDF出力
+本ページでは{tinytex}を使ってLaTeX経由でPDF出力していますが、Typstを用いてPDF出力する方法についてもまとめました。興味がある方はぜひご覧ください。
+
+[【Typst】Quartoで論文を書く【PDF】](../251021_quarto_typst/index.qmd)
+:::
 
 ## はじめに
 
@@ -223,35 +230,43 @@ library(tinytable)
 
 # リスト形式で保存すると複数の分析結果を1つの表に表示可能
 regression <- list(
-  "(1)" = iris |> 
-    feols(Sepal.Length ~ Sepal.Width, se = "hetero"), 
-  "(2)" = iris |> 
-    feols(Sepal.Length ~ Sepal.Width + Petal.Length, se = "hetero"), 
-  "(3)" = iris |> 
-    feols(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, se = "hetero")
+  "(1)" = iris |>
+    feols(Sepal.Length ~ Sepal.Width, se = "hetero"),
+  "(2)" = iris |>
+    feols(Sepal.Length ~ Sepal.Width + Petal.Length, se = "hetero"),
+  "(3)" = iris |>
+    feols(
+      Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width,
+      se = "hetero"
+    )
 )
 
 # ここで変数名の表記を変更
 cm <- c(
-  "Sepal.Width" = "がく片の幅（cm）", 
-  "Petal.Length" = "花弁の長さ（cm）", 
-  "Petal.Width" =  "花弁の幅（cm）", 
+  "Sepal.Width" = "がく片の幅（cm）",
+  "Petal.Length" = "花弁の長さ（cm）",
+  "Petal.Width" = "花弁の幅（cm）",
   "Species" = "アイリスの種類"
 )
 
 # 表に加える統計量を整理
 gm <- tibble(
-  "raw" = c("nobs", "r.squared"), 
-  "clean" = c("観測数", "R\u00B2"), 
+  "raw" = c("nobs", "r.squared"),
+  "clean" = c("観測数", "R\u00B2"),
   "fmt" = c(0, 2)
 )
 
 # フットノートを書く
 fn <- "注：標準誤差は括弧内に記載。+p < 10%, *p < 5%, **p < 1%"
 
-msummary(regression, estimate = "{estimate}{stars}", 
-         notes = fn, coef_map = cm, gof_map = gm, 
-         stars = c("+" = .1, "*" = .05, "**" = .01)) |> 
+msummary(
+  regression,
+  estimate = "{estimate}{stars}",
+  notes = fn,
+  coef_map = cm,
+  gof_map = gm,
+  stars = c("+" = .1, "*" = .05, "**" = .01)
+) |>
   group_tt(j = list("がく片の長さ（cm）" = 2:4))
 ```
 
@@ -357,11 +372,10 @@ ggsave("iris_plot.pdf", p, device = cairo_pdf)
 
 library(tidyverse)
 
-iris |> 
-  ggplot(aes(x = Sepal.Length, y = Petal.Length)) + 
-  geom_point() + 
-  labs(x = "がく片の長さ（cm）", 
-       y = "花弁の長さ（cm）") + 
+iris |>
+  ggplot(aes(x = Sepal.Length, y = Petal.Length)) +
+  geom_point() +
+  labs(x = "がく片の長さ（cm）", y = "花弁の長さ（cm）") +
   theme_minimal()
 ```
 
