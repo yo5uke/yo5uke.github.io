@@ -1,26 +1,23 @@
 ---
 title: "導入 + ハンドリング"
 date: 2024-05-16
-date-modified: last-modified
-editor: visual
+date-modified: 2025-11-03
 ---
 
 # はじめに
 
 このページでは、RでGISを使う上での基本について説明します。
 
-R 言語では主に`sf`パッケージを使ってGISを扱います。また、`tidyverse`パッケージ群を使うことで、データの前処理や可視化を行うことができます。
+R言語では主に{sf}パッケージを使ってGISを扱います。また、{tidyverse}パッケージを使うことで、データの前処理や可視化を行うことができます。
 
-また、**R Projectを作成し使用することを前提**とします[^1]。
-
-[^1]: R Projectと後述の`here`については[こちら](../../tips/2024/05/240515_rproj/index.html)を参照して下さい。
+また、**R Projectを作成し使用することを前提**とします^[R Projectと後述の`here`については[こちら](/pages/tips/2024/05/240515_rproj/index.qmd)を参照して下さい。]。
 
 # パッケージ
 
 `sf`, `tidyverse`と`here`の3つを使用します。
 
 ``` r
-# インストール
+# install.packages("pak")
 pak::pak(c("sf", "tidyverse", "here"))
 ```
 
@@ -67,22 +64,22 @@ read_sf(dsn)
 st_read(dsn, quiet = TRUE, stringsAsFactors = FALSE, as_tibble = TRUE)
 ```
 
-この2つが同じです[^2]。詳しくは`?st_read()`をコンソールに打ち込みドキュメントを読んでみてください。
+この2つが同じです^[`dsn`のところがデータです。]。詳しくは`?st_read()`をコンソールに打ち込みドキュメントを読んでみてください。
 
 基本的には`read_sf()`で十分だと思います。
 :::
-
-[^2]: `dsn`のところがデータです。
 
 また、公園のデータはCRSが設定されていないようです。その設定も行います。CRSについては後の回で説明します。
 
 ```{r}
 fukushima <- read_sf(here("data/N03-20240101_07_GML/N03-20240101_07.shp"))
 
-park <- read_sf(here("data/P13-11_07_GML/P13-11_07.shp"), 
-                options = "ENCODING=Shift_JIS") |> 
-  st_set_crs(st_crs(4612)) |>  # JGD2000/(B, L) データ本来のCRS
-  st_transform(st_crs(6668))   # JGD2011/(B, L) 変換したいCRS
+park <- read_sf(
+  here("data/P13-11_07_GML/P13-11_07.shp"),
+  options = "ENCODING=Shift_JIS"
+) |>
+  st_set_crs(st_crs(4612)) |> # JGD2000/(B, L) データ本来のCRS
+  st_transform(st_crs(6668)) # JGD2011/(B, L) 変換したいCRS
 ```
 
 ### データを見てみる
@@ -145,12 +142,12 @@ tinytable::tt(head(park))
 :::
 
 ```{r}
-park_s <- park |> 
+park_s <- park |>
   select(
-    name_park = P13_003,  # 公園名
-    name_pref = P13_005,  # 都道府県名
-    name_muni = P13_006,  # 市区町村名
-    geometry              # プロットに必要
+    name_park = P13_003, # 公園名
+    name_pref = P13_005, # 都道府県名
+    name_muni = P13_006, # 市区町村名
+    geometry # プロットに必要
   )
 ```
 
@@ -162,9 +159,7 @@ park_s <- park |>
 tinytable::tt(head(park_s))
 ```
 
-このように`tidyverse`の強みを活かしてデータハンドリングを行えます[^3]。
-
-[^3]: データハンドリングの基礎的な知識を身に付けるには、[私たちのR](https://www.jaysong.net/RBook/)がおすすめです。
+このように`tidyverse`の強みを活かしてデータハンドリングを行えます^[データハンドリングの基礎的な知識を身に付けるには、[私たちのR](https://www.jaysong.net/RBook/)がおすすめです。]。
 
 ## 可視化
 
@@ -176,9 +171,9 @@ tinytable::tt(head(park_s))
 #| label: fig-simple-plot
 #| fig-cap: "シンプルなプロット"
 
-park_s |> 
-  ggplot() + 
-  geom_sf()   # 地図をプロットするためのコマンド
+park_s |>
+  ggplot() +
+  geom_sf() # 地図をプロットするためのコマンド
 ```
 
 これだとやや分かりにくいので、背景を消しましょう。`theme_void()`や`theme_bw()`、`theme_classic()`などがよいと思います。
@@ -187,9 +182,9 @@ park_s |>
 #| label: fig-delete-back
 #| fig-cap: "背景を削除"
 
-park_s |> 
-  ggplot() + 
-  geom_sf() + 
+park_s |>
+  ggplot() +
+  geom_sf() +
   theme_void()
 ```
 
@@ -206,18 +201,16 @@ park_s |>
 ::: callout-important
 ## geom_sf() の注意点
 
-`geom_sf()` でデータを指定する引数は `data` であり、これは第2引数なので、シンプルに `geom_sf(fukushima)` と書くとプロットがうまくいきません[^4]。`geom_sf(data = fukushima)` と書く必要がある点にご注意ください。
+`geom_sf()` でデータを指定する引数は `data` であり、これは第2引数なので、シンプルに `geom_sf(fukushima)` と書くとプロットがうまくいきません^[「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。]。`geom_sf(data = fukushima)` と書く必要がある点にご注意ください。
 :::
-
-[^4]: 「○○ =」を省略できるのは、第1引数であるとき、もしくは引数順に書いている場合のみです。
 
 ```{r}
 #| label: fig-plot-all
 #| fig-cap: "行政区域と公園ポイントのプロット"
 
-ggplot() + 
-  geom_sf(data = fukushima) + 
-  geom_sf(data = park_s, color = "orange") +  # 点の色も指定
+ggplot() +
+  geom_sf(data = fukushima) +
+  geom_sf(data = park_s, color = "orange") + # 点の色も指定
   theme_void()
 ```
 

@@ -1,0 +1,131 @@
+---
+title: "バージョンアップした[ggplot2]{.fira-code}を試す"
+description: |
+  [ggplot2]{.fira-code}がバージョンアップしたので、新しい要素を試してみた
+date: 2025-09-15
+categories:
+  - R
+editor: visual
+---
+
+## はじめに
+
+::: callout-important
+## Tipsの更新
+
+Tipsのページでバージョン4に対応した[ggplot2]{.fira-code}の内容をまとめたので、よければそちらも参照ください。
+
+[【4.0.0対応！】[ggplot2]{.fira-code}使い方ガイド](/pages/tips/2024/11/241117_ggplot2/index.qmd)
+:::
+
+Rのプロットでおなじみ`ggplot2`がバージョン4.0.0にアップデートされたようだ。
+
+ここでは簡単にどのような変更がなされたのかを確認したい。
+
+詳細については以下などを参照。
+
+::: {.callout-tip appearance="minimal"}
+[ggplot2 4.0.0 - Tidyverse](https://www.tidyverse.org/blog/2025/09/ggplot2-4-0-0/)
+:::
+
+## テーマの色遣い
+
+一番に目を引いたのはテーマの色に関するアップデートだ。
+
+`theme_xxx()`系の引数に`paper`や`ink`、`accent`が追加されている。
+
+公式のサンプルコードを見てみる。
+
+```{r}
+library(tidyverse)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x) +
+  theme_gray(paper = "cornsilk", ink = "navy", accent = "tomato")
+```
+
+ご覧いただいてわかるように、背景がcornsilk（とうもろこしの髭の色らしい…）、文字や点がネイビー、直線がトマト色になっている。
+
+要は、背景色、前景色、アクセントカラーの設定が`theme_xxx()`から設定できるようになったということだ。
+
+```{r}
+ggplot(mpg, aes(class, displ)) +
+  geom_boxplot(aes(colour = from_theme(accent))) +
+  theme(
+    geom = element_geom(accent = "tomato", paper = "cornsilk")
+  )
+```
+
+上記のように、`from_theme(accent)`で`theme()`内の`geom`よりアクセントカラーを参照できる。
+
+今回の例では一度しか参照していないが、何度も色を設定する際に`theme()`で設定しておけば効率的だと思う。
+
+自分でもなにか適当に書いてみる。
+
+```{r}
+ggplot(iris, aes(Sepal.Length, Sepal.Width)) +
+  geom_point(size = 3) +
+  geom_smooth(
+    aes(fill = from_theme(accent)),
+    method = "lm",
+    formula = y ~ x,
+    alpha = 0.3
+  ) +
+  theme_bw(paper = "black", ink = "white") +
+  theme(
+    geom = element_geom(
+      accent = "magenta"
+    )
+  )
+```
+
+なんだかキモいのは置いておいて、背景が黒、文字が白、回帰直線がマゼンタになっている。
+
+## 図形の枠線
+
+またまた公式からの引用。
+
+```{r}
+ggplot(faithful, aes(waiting)) +
+  geom_histogram(bins = 30, colour = "black") +
+  geom_freqpoly(bins = 30) +
+  theme(
+    geom = element_geom(
+      bordertype = "dashed",
+      borderwidth = 0.2,
+      linewidth = 2,
+      linetype = "solid"
+    )
+  )
+```
+
+上記のように、`theme()`内で`geom`を指定することで、図形の枠線を一括で設定できる。境界線として`bordertype`、`borderwidth`、また、線に関しては`linewidth`、`linetype`を設定できる。
+
+先ほどの色の設定と組み合わせると、`theme()`内でかなり多くの設定ができるようになりそう。
+
+```{r}
+ggplot(faithful, aes(waiting)) +
+  geom_histogram(aes(fill = from_theme(accent)), bins = 30, colour = "black") +
+  geom_freqpoly(bins = 30) +
+  theme_bw(paper = "lightyellow", ink = "darkgreen") +
+  theme(
+    geom = element_geom(
+      bordertype = "dashed",
+      borderwidth = 0.2,
+      linewidth = 2,
+      linetype = "solid",
+      accent = "tomato"
+    )
+  )
+```
+
+今回は書かないが、地図の方でもいろいろ設定できると思うので、GISと絡めて使うのが楽しみだ。
+
+## おわりに
+
+他にもいろいろアップデートはあるようだが、今回は`ggplot2`のバージョン4.0.0で追加されたテーマの色遣いと図形の枠線について見てみた。
+
+なにやら結構重大な変更になるみたいなことを若干耳にしていたが、今回見てみたところ安全に使えそうな気がする。
+
+今後もいろいろ試していきたいと思う。

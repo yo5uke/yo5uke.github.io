@@ -23,12 +23,12 @@ GIS を R 上で実行するメリットは、再現性が担保できること�
 
 `sf` パッケージを使用します。また、これらのデータを通常のデータと同様 `tidyverse` でハンドリングできるので、これら2つを主に使います。
 
-また、ここでは詳しく紹介しませんが、私は `here` パッケージも使用します。[こちらの記事](../240504_container/index.html)で紹介しているような方法でプロジェクトを実行している場合、相対パスを使用すると便利です。詳しくは作業の流れで見てみてください。
+また、ここでは詳しく紹介しませんが、私は `here` パッケージも使用します。[こちらの記事](/pages/tips/2024/05/240504_container/index.html)で紹介しているような方法でプロジェクトを実行している場合、相対パスを使用すると便利です。詳しくは作業の流れで見てみてください。
 
 ::: {.callout-note collapse="true"}
 ## Docker で環境を構築する場合
 
-[Docker を用いた環境構築の記事](../240504_container/index.html)で紹介している方法で環境を構築する場合、1つ注意点があります。Dockerfile の1行目を以下のように変更してください。
+[Docker を用いた環境構築の記事](/pages/tips/2024/05/240504_container/index.html)で紹介している方法で環境を構築する場合、1つ注意点があります。Dockerfile の1行目を以下のように変更してください。
 
 ```{.markdown}
 FROM rocker/geospatial:latest
@@ -104,8 +104,8 @@ R のプロジェクトを使用している場合、`.Rproj` ファイルがあ
 #| label: fig-station
 #| fig-cap: "日本の駅"
 
-station |> 
-  ggplot() + 
+station |>
+  ggplot() +
   geom_sf() + # GIS 用
   theme_void() # 背景や罫線を除去
 ```
@@ -118,9 +118,9 @@ station |>
 #| label: fig-rail
 #| fig-cap: "日本の鉄道路線"
 
-rail |> 
-  ggplot() + 
-  geom_sf() + 
+rail |>
+  ggplot() +
+  geom_sf() +
   theme_void()
 ```
 
@@ -139,8 +139,8 @@ rail |>
 ここで、`tidyverse` パッケージを使用しながら、東北新幹線の駅だけを抽出してみましょう。また、列名を変更しながら必要な変数のみ抽出します。
 
 ```{r}
-sta_tohoku <- station |> 
-  filter(N02_002 == 1, N02_003 == "東北新幹線") |> 
+sta_tohoku <- station |>
+  filter(N02_002 == 1, N02_003 == "東北新幹線") |>
   select("路線名" = N02_003, "駅名" = N02_005, geometry)
 ```
 
@@ -151,8 +151,8 @@ sta_tohoku <- station |>
 
 library(gt)
 
-sta_tohoku |> 
-  head() |> 
+sta_tohoku |>
+  head() |>
   gt(auto_align = FALSE)
 ```
 
@@ -174,7 +174,7 @@ mapview::mapviewOptions(fgb = FALSE)
 ```{r}
 #| echo: false
 
-sta_tohoku |> 
+sta_tohoku |>
   mapview(color = "red")
 ```
 
@@ -185,7 +185,7 @@ sta_tohoku |>
 コードは以下です。
 
 ```{r}
-sta_tohoku_c <- sta_tohoku |> 
+sta_tohoku_c <- sta_tohoku |>
   st_centroid(geometry)
 ```
 
@@ -194,7 +194,7 @@ sta_tohoku_c <- sta_tohoku |>
 ```{r}
 #| echo: false
 
-sta_tohoku_c |> 
+sta_tohoku_c |>
   mapview(col.regions = "red")
 ```
 
@@ -220,9 +220,9 @@ fukushima <- read_sf(here("data/N03-20240101_07_GML/N03-20240101_07.shp"))
 #| label: fig-fukushima
 #| fig-cap: "福島県"
 
-fukushima |> 
-  ggplot() + 
-  geom_sf() + 
+fukushima |>
+  ggplot() +
+  geom_sf() +
   theme_void()
 ```
 
@@ -243,10 +243,10 @@ fukushima |>
 コードは以下のようになります。
 
 ```{r}
-sta_07_a <- sta_tohoku_c |> 
+sta_07_a <- sta_tohoku_c |>
   filter(
-    row_number() %in% 
-      st_intersects(fukushima, sta_tohoku_c) |> 
+    row_number() %in%
+      st_intersects(fukushima, sta_tohoku_c) |>
       unlist()
   )
 ```
@@ -278,7 +278,7 @@ sta_07_b <- st_intersection(fukushima, sta_tohoku_c)
 #| tbl-cap: "st_intersects() を用いた場合"
 #| echo: false
 
-sta_07_a |> 
+sta_07_a |>
   gt()
 ```
 
@@ -287,7 +287,7 @@ sta_07_a |>
 #| tbl-cap: "st_intersection() を用いた場合"
 #| echo: false
 
-sta_07_b |> 
+sta_07_b |>
   gt()
 ```
 
