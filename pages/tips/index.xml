@@ -10,7 +10,631 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.9.9</generator>
-<lastBuildDate>Sat, 25 Oct 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Wed, 05 Nov 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【R】無名関数とmap系関数について</title>
+  <link>https://yo5uke.com/pages/tips/2025/11/251106_anonymous/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+
+  <!-- Twitter (X) -->
+
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+
+
+  <!-- Bluesky -->
+
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+</div>
+
+
+
+<script>
+
+  const twitterUsername = "@5uke_y";
+
+  const blueskyUsername = "@5uke.bsky.social";
+
+
+
+  const share_url = encodeURIComponent(location.href);
+
+  const share_title = document.title;
+
+
+
+  // Twitter (X)
+
+  document.getElementById('js-share-twitter').setAttribute(
+
+    "href",
+
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+
+    "&hashtags=rstats"
+
+  );
+
+
+
+  // Bluesky
+
+  document.getElementById('js-share-bluesky').setAttribute(
+
+    "href",
+
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+
+  );
+
+</script>
+
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>Rでは、関数を定義する際に名前を付けることが一般的ですが、特定の場面では名前を持たない無名関数（匿名関数）を使用することがあります。無名関数は、一時的に使用される関数や、他の関数に引数として渡される関数を定義する際に便利です。</p>
+<p>今回は、Rにおける無名関数の使い方についてまとめます。</p>
+</section>
+<section id="無名関数とは" class="level2">
+<h2 class="anchored" data-anchor-id="無名関数とは">無名関数とは？</h2>
+<p>無名関数は名前を持たない関数のことで、以下のように定義します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 無名関数の例</span></span>
+<span id="cb1-2">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> (<span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">function</span>(x) {</span>
+<span id="cb1-3">  x<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">^</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb1-4">})(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)</span></code></pre></div></div>
+</div>
+<p>この関数は<code>x</code>を引数として受け取り、その2乗を返します。関数定義の直後に<code>(5)</code>と続けることで、5を引数として渡し、結果を<code>result</code>に格納しています。</p>
+<p>また、この例において<code>x</code>を2乗する関数には名前（<code>mutate</code>や<code>select</code>など）が付いていません。名前を付ける場合であれば、</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 名前付き関数の例</span></span>
+<span id="cb2-2">square_function <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">function</span>(x) {</span>
+<span id="cb2-3">  x<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">^</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb2-4">}</span>
+<span id="cb2-5">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">square_function</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)</span></code></pre></div></div>
+</div>
+<p>となります。<code>square_function</code>という名前で関数を定義し、その後で呼び出しています。<code>square_function(5)</code>の<code>square_function</code>の部分に<code>function(x) { x^2 }</code>を代入すると、無名関数の例に戻ることがおわかりいただけると思います。</p>
+<p>これらはともに同じことをしていますが、無名関数は一時的に使用する場合に使い捨てのように扱えるので便利です。</p>
+<p>また、R 4.1.0以降では、<code>\(x) x^2</code>のように短縮記法も使用できます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 短縮記法の無名関数の例</span></span>
+<span id="cb3-2">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> (\(x) x<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">^</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>)(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)</span></code></pre></div></div>
+</div>
+<p><code>function(x)</code>が<code>\(x)</code>に置き換えられていますが、機能は同じです。</p>
+</section>
+<section id="無名関数はどんな時に必要" class="level2">
+<h2 class="anchored" data-anchor-id="無名関数はどんな時に必要">無名関数はどんな時に必要？</h2>
+<p>無名関数は、以下のような場面で役立ちます。</p>
+<ul>
+<li><strong>一時的な処理</strong>: 一度だけ使用する関数を定義する場合。</li>
+<li><strong>関数の引数として渡す</strong>: 他の関数に処理を渡す際に、簡潔に記述できる。</li>
+<li><strong>コードの可読性向上</strong>: 簡単な処理を行う場合に、コードを短く保つ。</li>
+</ul>
+<p>これだけではよくわからないと思いますので、実例をいくつか示します。</p>
+</section>
+<section id="無名関数の例" class="level2">
+<h2 class="anchored" data-anchor-id="無名関数の例">無名関数の例</h2>
+<p>無名関数は、<code>map()</code>や<code>across()</code>などの関数と組み合わせて使用されることが多いです。先ほど簡単な例を挙げましたが、少し実用性を意識した例を示します。</p>
+<p>どちらの関数も複数の値や列に対して同じ処理を適用するために使用され、それぞれの処理の内容を無名関数で定義することができます。<br>
+例えば、全ての列に対して2乗して100を加える処理を行う、みたいな場合には既存の関数では対応できないため、自分で使い捨ての関数を定義して渡すことで処理します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb4-2"></span>
+<span id="cb4-3">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">a =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">b =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb4-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">across</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">everything</span>(), \(x) x<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">^</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>))</span>
+<span id="cb4-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+      a     b
+  &lt;dbl&gt; &lt;dbl&gt;
+1   101   136
+2   104   149
+3   109   164
+4   116   181
+5   125   200</code></pre>
+</div>
+</div>
+<p>そもそもですが…</p>
+<ul>
+<li><code>across()</code>は第一引数に対象の列を指定し、第二引数に適用する関数を指定します。</li>
+<li><code>everything()</code>は全ての列を選択するためのヘルパー関数です。
+<ul>
+<li>他の例で言えば<code>starts_with("a")</code>や<code>ends_with("b")</code>など、特定の文字列で始まったり終わったりする列を一括選択するための関数もあります。</li>
+</ul></li>
+</ul>
+<p><code>\(x) x^2 + 100</code>の部分が無名関数で、<code>x</code>を引数として受け取り、<code>x^2 + 100</code>を返します。<code>x</code>である必要はありませんが、一般的です。</p>
+<p>もっと複雑な例で言うと、<code>map()</code>関数を使ってリスト内の各要素に対して無名関数を適用することもできます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">numbers <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">11</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">15</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">16</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>)</span>
+<span id="cb6-2">squared_plus_ten <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">map</span>(numbers, \(x) x<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">^</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>)</span>
+<span id="cb6-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(squared_plus_ten)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] 11 14 19 26 35
+
+[[2]]
+[1]  46  59  74  91 110
+
+[[3]]
+[1] 131 154 179 206 235
+
+[[4]]
+[1] 266 299 334 371 410</code></pre>
+</div>
+</div>
+<p><code>map()</code>関数はリストの各要素に対して無名関数を適用し、その結果を新しいリストとして返します。<code>numberes</code>リストは4つの整数ベクトルを含んでおり、各ベクトルに対して2乗して10を加える処理が行われているのが確認できます。</p>
+<p>実は<code>map</code>系関数には他にも色々なバリエーションがあります。</p>
+</section>
+<section id="map系関数" class="level2">
+<h2 class="anchored" data-anchor-id="map系関数">map系関数</h2>
+<p><code>map()</code>関数には、返り値の型に応じて様々なバリエーションがあります。以下に代表的なものを示します。</p>
+<ul>
+<li><code>map()</code>: 常にリストを返す（最も汎用的）。</li>
+<li><code>map_lgl()</code>: 論理値（TRUE/FALSE）のベクトルを返す。</li>
+<li><code>map_int()</code>: 整数のベクトルを返す。</li>
+<li><code>map_dbl()</code>: 数値のベクトルを返す。</li>
+<li><code>map_chr()</code>: 文字列のベクトルを返す。</li>
+<li><code>map_dfr()</code>: 行方向に結合したデータフレームを返す。</li>
+<li><code>map_dfc()</code>: 列方向に結合したデータフレームを返す。</li>
+</ul>
+<p>これらの関数を使うことで、返り値の型を明示的に指定でき、コードの意図がより明確になります。</p>
+<p>今回はこの中で割と使用頻度が高い<code>map_dfr()</code>について簡単に説明します。</p>
+<section id="map_dfr" class="level3">
+<h3 class="anchored" data-anchor-id="map_dfr">map_dfr()</h3>
+<p><code>map_dfr()</code>関数は、リストの各要素に対して無名関数を適用し、その結果を行方向に結合したデータフレームとして返します。例えば、複数のデータフレームを一括で処理し、結果を一つのデータフレームにまとめたい場合に便利です。</p>
+<p>具体的には、国勢調査のメッシュデータなどの読み込みに役立ちます。メッシュデータは一定の範囲ごとに分割されているため、複数のファイルを一括で読み込み、結合する必要があります。<br>
+一応<code>for</code>ループで読み込んで結合することもできますが、<code>map_dfr()</code>を使うとより簡潔に書けます。</p>
+<p>ここでは<code>data/census_2020</code>フォルダに複数のテキストファイルがあると仮定し、それらを一括で読み込む例を示します。<br>
+ファイルのリストを作るために<code>fs</code>パッケージも使用します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb8-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(fs)</span>
+<span id="cb8-3"></span>
+<span id="cb8-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ファイルパスのリストを取得</span></span>
+<span id="cb8-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># glob引数で特定の拡張子のファイルのみを対象にする</span></span>
+<span id="cb8-6">file_paths <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dir_ls</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/census_2020"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">glob =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"*.txt"</span>)</span>
+<span id="cb8-7"></span>
+<span id="cb8-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 各ファイルを読み込み、行方向に結合</span></span>
+<span id="cb8-9">census_data <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">map_dfr</span>(file_paths, \(file) {</span>
+<span id="cb8-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_csv</span>(</span>
+<span id="cb8-11">    file,</span>
+<span id="cb8-12">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">locale =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">locale</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">encoding =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SHIFT_JIS"</span>),</span>
+<span id="cb8-13">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">skip =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb8-14">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-15">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(</span>
+<span id="cb8-16">      <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>,</span>
+<span id="cb8-17">      <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　人口（総数）"</span>,</span>
+<span id="cb8-18">      <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　０～１４歳人口　総数"</span>,</span>
+<span id="cb8-19">      <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　１５～６４歳人口　総数"</span>,</span>
+<span id="cb8-20">      <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　６５歳以上人口　総数"</span></span>
+<span id="cb8-21">    ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-22">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(...<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> ...<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-23">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(...<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, ...<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, ...<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-24">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rename</span>(</span>
+<span id="cb8-25">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">KEY_CODE =</span> ...<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>,</span>
+<span id="cb8-26">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pop_total =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　人口（総数）"</span>,</span>
+<span id="cb8-27">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pop_young =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　０～１４歳人口　総数"</span>,</span>
+<span id="cb8-28">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pop_working =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　１５～６４歳人口　総数"</span>,</span>
+<span id="cb8-29">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pop_old =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"　６５歳以上人口　総数"</span></span>
+<span id="cb8-30">    ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-31">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb8-32">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">KEY_CODE =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.character</span>(KEY_CODE),</span>
+<span id="cb8-33">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">across</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">starts_with</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pop_"</span>), as.integer)</span>
+<span id="cb8-34">    )</span>
+<span id="cb8-35">})</span></code></pre></div></div>
+</div>
+<p>このように、<code>map_dfr()</code>を使用することで、各ファイルを読み込み、必要な列を選択・フィルタリング・リネーム・型変換などの処理を一括で行い、最終的に一つのデータフレームとしてまとめることができます。<code>file_paths</code>に<code>\(file) { ... }</code>の無名関数が適用され、各ファイルに対して同じ処理が実行されています。</p>
+<p>内部的には最後に<code>bind_rows()</code>が呼ばれているので、ひと手間省けます。ただ、各ファイルで列の型が異なる<sup>1</sup>とエラーになるので注意してください。</p>
+<p>ちなみに最後に<code>across(starts_with("pop_"), as.integer)</code>としており、<code>pop_</code>で始まる列全てに対して<code>as.integer</code>を適用しています。処理内容が関数名で済む場合はこのように簡潔に書けるので便利です。<br>
+整数型にして1000で割りたい、みたいな場合には<code>\(x) as.integer(x) / 1000</code>のようにできますね。</p>
+</section>
+</section>
+<section id="さらに一例" class="level2">
+<h2 class="anchored" data-anchor-id="さらに一例">さらに一例</h2>
+<p>パイプ処理の途中に無名関数を挟んで処理をしてみます。</p>
+<p>先日仕事でこんな場面がありました。</p>
+<p>「うわぁ、今処理しているところで一旦保存して、ここからフィルターかけたものを<code>bind_rows()</code>したいなあ」</p>
+<p>いったいどんな場面だよと言う感じではありますが、事情はいろいろあって、実際もっと複雑ではありますがこんなシーンがあったんですね。</p>
+<p>別に一旦オブジェクトを保存してから別で処理してもよいのですが、そんなにオブジェクトを増やしたくないということもあり、なんとかパイプで処理をすることにしました。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb9-2">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">group =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rep</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">each =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>),</span>
+<span id="cb9-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">value =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span></span>
+<span id="cb9-4">)</span>
+<span id="cb9-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 2
+   group value
+   &lt;chr&gt; &lt;int&gt;
+ 1 A         1
+ 2 A         2
+ 3 A         3
+ 4 A         4
+ 5 A         5
+ 6 B         6
+ 7 B         7
+ 8 B         8
+ 9 B         9
+10 B        10</code></pre>
+</div>
+</div>
+<p>これを使って…</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb11-2">  (\(data) {</span>
+<span id="cb11-3">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">bind_rows</span>(</span>
+<span id="cb11-4">      data,</span>
+<span id="cb11-5">      data <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(group <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">value =</span> value <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>)</span>
+<span id="cb11-6">    )</span>
+<span id="cb11-7">  })() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb11-8">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">arrange</span>(group, value)</span>
+<span id="cb11-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 15 × 2
+   group value
+   &lt;chr&gt; &lt;dbl&gt;
+ 1 A         1
+ 2 A         2
+ 3 A         3
+ 4 A         4
+ 5 A         5
+ 6 A        10
+ 7 A        20
+ 8 A        30
+ 9 A        40
+10 A        50
+11 B         6
+12 B         7
+13 B         8
+14 B         9
+15 B        10</code></pre>
+</div>
+</div>
+<p>こう。</p>
+<p>おわかりいただけますでしょうか。<br>
+パイプの途中で無名関数を定義し、<code>data</code>という引数でパイプの直前のデータフレームを受け取っています。<br>
+その中で<code>bind_rows()</code>を使って、元のデータフレームと、<code>group</code>が<code>A</code>の行に対して<code>value</code>を10倍した行を結合しています。<br>
+最後に<code>()</code>を付けることで、無名関数を即座に実行しています。</p>
+<p><code>data</code>の部分にはその直前間で処理していたデータフレームが入るので、無名関数の中でそれを利用してさらに処理を行うことができます。</p>
+<p>最後に<code>()</code>を付けないとコードが途中と判断され実行されませんので、注意してください。</p>
+<p>（今日の目的はこの処理方法について書いておきたかったということで、実はそれまでは前振りでした！）</p>
+</section>
+<section id="まとめ" class="level2">
+<h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
+<p>無名関数は、Rにおいて一時的な処理や関数の引数として使用される便利な機能です。<code>map()</code>や<code>across()</code>などの関数と組み合わせることで、コードを簡潔かつ可読性の高いものにすることができます。</p>
+<p>類似する変数がたくさんある場合や、複数のデータセットに同じ処理を適用したい場合などには、無名関数を<code>map()</code>系関数や<code>across()</code>などと組み合わせて使用していきましょう！</p>
+<p>そして機会があれば、パイプの途中に無名関数を挟んで処理する方法も試してみてください。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>例えばあるファイルは数値型、あるファイルは文字型など。特に全ての行が欠損していると勝手に型を判定されてエラーが起きる場合があるので、明示的に型を指定しておくとよいかもしれません。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/2025/11/251106_anonymous/</guid>
+  <pubDate>Wed, 05 Nov 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>Typst 入門</title>
   <link>https://yo5uke.com/pages/tips/2025/10/251026_typst/</link>
@@ -13735,1005 +14359,6 @@ font-style: inherit;">"~/Dropbox"</span>)</span></code></pre></div></div>
   <category>R</category>
   <guid>https://yo5uke.com/pages/tips/2024/12/241224_pins/</guid>
   <pubDate>Mon, 23 Dec 2024 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【改訂版】開発コンテナを使ってR環境を構築！</title>
-  <link>https://yo5uke.com/pages/tips/2024/12/241219_container/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-
-  <!-- Twitter (X) -->
-
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-
-
-  <!-- Bluesky -->
-
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-</div>
-
-
-
-<script>
-
-  const twitterUsername = "@5uke_y";
-
-  const blueskyUsername = "@5uke.bsky.social";
-
-
-
-  const share_url = encodeURIComponent(location.href);
-
-  const share_title = document.title;
-
-
-
-  // Twitter (X)
-
-  document.getElementById('js-share-twitter').setAttribute(
-
-    "href",
-
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-
-    "&hashtags=rstats"
-
-  );
-
-
-
-  // Bluesky
-
-  document.getElementById('js-share-bluesky').setAttribute(
-
-    "href",
-
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-
-  );
-
-</script>
-
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>DVCの設定について
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p><a href="../../../../../pages/tips/2025/06/250601_dvc/index.html">こちらの記事</a>でより簡便なDVCの設定について解説しました。このページを書き直す時間がないためまだ修正できていませんが、もしDVCを採用するということであれば、ぜひ参考にしてみてください。</p>
-</div>
-</div>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>本記事について
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>本記事は以前投稿した同タイトルの記事をアップデートしたものです。</p>
-<p>変更点としては、</p>
-<ol type="1">
-<li>Dockerfileの見直し</li>
-<li>Rのアップデートとそれに伴うPython仮想環境の追加</li>
-<li>全体的にコードを整理</li>
-</ol>
-<p>です。</p>
-<p>記事の構成もブラッシュアップしました。</p>
-</div>
-</div>
-<p>DockerとVSCodeを使ってRの環境を構築する方法を説明します。</p>
-<p>開発コンテナを使うメリットは、環境を簡単に共有でき、他の環境に影響を受けずに作業ができることです。</p>
-<p>あまり環境構築に詳しくなくても実装できるよう意識して書いていますので、最後まで自分のPCでも実装してみてください。</p>
-</section>
-<section id="sec-pre" class="level2">
-<h2 class="anchored" data-anchor-id="sec-pre">事前準備</h2>
-<p>まず、WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, そしてGitHubの準備をします。WindowsとMacでの設定が異なるため、それぞれについて説明します。</p>
-<p>全体的に、導入済みの箇所は飛ばしてください。</p>
-<section id="sec-wsl2-setting" class="level3">
-<h3 class="anchored" data-anchor-id="sec-wsl2-setting">WSL2（Windowsユーザーのみ）</h3>
-<ol type="1">
-<li>PowerShellまたはWindowsコマンドプロンプトを管理者権限で開く
-<ul>
-<li>右クリックで管理者権限を使えます。</li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/powershell.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:70.0%"></p>
-</figure>
-</div>
-<ol start="2" type="1">
-<li>以下のコマンドを入力して実行
-<ul>
-<li>これでインストールはできるはずですが、詳しくは<a href="https://learn.microsoft.com/ja-jp/windows/wsl/install">こちらのサイト</a>を参照してください。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>PowerShell</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-filename="PowerShell" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">wsl</span> <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--install</span></span></code></pre></div></div>
-</div>
-<ol start="3" type="1">
-<li>ユーザー名とパスワードを設定
-<ul>
-<li>インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます<sup>1</sup>。</li>
-<li>ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。</li>
-<li>パスワードは<strong>画面上には表示されませんが、ちゃんと入力されています</strong>。慌てて何回も入力しないようにしてください。</li>
-</ul></li>
-</ol>
-<p>エクスプローラーからLinuxに入り<sup>2</sup>、Ubuntu→home→[ユーザー名]と入ったところがメインとなるディレクトリです。</p>
-</section>
-<section id="homebrewmacユーザーのみ" class="level3">
-<h3 class="anchored" data-anchor-id="homebrewmacユーザーのみ">Homebrew（Macユーザーのみ）</h3>
-<p>MacユーザーはHomebrewを使って諸々インストールしていくので、まだの方はここでインストールしてください。</p>
-<ol type="1">
-<li>ターミナルを開く
-<ul>
-<li>アプリ一覧から「ターミナル」を探してください。</li>
-</ul></li>
-<li>以下のコマンドを入力して実行
-<ul>
-<li>パスワードを求められるので、入力してください。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">/bin/bash</span> <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">-c</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">$(</span><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">curl</span> <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh<span class="va" style="color: #111111;
-background-color: null;
-font-style: inherit;">)</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span></span></code></pre></div></div>
-</div>
-</section>
-<section id="sec-vscode-setting" class="level3">
-<h3 class="anchored" data-anchor-id="sec-vscode-setting">VSCode</h3>
-<ol type="1">
-<li>VSCodeの<a href="https://code.visualstudio.com/">ダウンロードサイト</a>からダウンロード、インストール
-<ul>
-<li>Download for Windows<sup>3</sup>をクリックしてダウンロードできます。</li>
-<li>インストールができたら、VSCodeを開いてください。</li>
-</ul></li>
-<li>（任意）日本語の拡張機能をインストール
-<ul>
-<li>画面左側に拡張機能のアイコン<iconify-icon inline="" icon="gg:extension" aria-label="Icon extension from gg Iconify.design set." title="Icon extension from gg Iconify.design set."></iconify-icon>があります。ここの検索ボックスに<code>MS-CEINTL.vscode-language-pack-ja</code>と入力し、1番上に出てきたものをインストールします<sup>4</sup>。</li>
-<li>インストール後、VSCodeを再起動すれば日本語が反映されていると思います。</li>
-</ul></li>
-</ol>
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/vscode-ja.png" class="img-fluid"></p>
-<ol start="3" type="1">
-<li>拡張機能のインストール
-<ul>
-<li>拡張機能の検索ボックスで、次のIDを入力し、インストールします。</li>
-<li><code>ms-vscode-remote.remote-containers</code> (Dev Containers)</li>
-<li><code>ms-vscode-remote.remote-wsl</code> (WSL, Windowsユーザーのみ)<br>
-</li>
-</ul></li>
-<li>WSLに接続（Windowsユーザーのみ）
-<ul>
-<li>VSCodeから先ほどインストールしたWSLに接続します。</li>
-<li>画面左下の青い<iconify-icon inline="" icon="gg:remote" aria-label="Icon remote from gg Iconify.design set." title="Icon remote from gg Iconify.design set."></iconify-icon>をクリックして、「WSLへの接続」をクリックします。</li>
-</ul></li>
-</ol>
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/vscode-wsl.png" class="img-fluid"></p>
-</section>
-<section id="docker" class="level3">
-<h3 class="anchored" data-anchor-id="docker">Docker</h3>
-<p>Dockerをインストールします。</p>
-<ol type="1">
-<li>Windowsの方は<a href="https://docs.docker.com/desktop/install/windows-install/">ここ</a>からDocker Desktop for Windowsを、Macの方は<a href="https://docs.docker.com/desktop/install/mac-install/">こちら</a>からダウンロード＆インストール</li>
-<li>設定の確認（Windowsのみ）
-<ul>
-<li>インストール出来たら、画面上部の設定ボタンからResources、WSL integrationと進み、チェックボックスにチェック、Ubuntuがオンになっていることを確認してください。</li>
-<li>たまに、何もしていないのにここがオフになっていて、トラブることがあります。</li>
-<li>詳しくは<a href="https://docs.docker.jp/docker-for-windows/install.html">こちら</a>をご覧ください。日本語で書いてあります。</li>
-</ul></li>
-</ol>
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/docker-desktop.png" class="img-fluid"></p>
-<ol start="3" type="1">
-<li>画面左側のVolumesに進み、Createからボリュームを作成
-<ul>
-<li>次の4つを作成します（大文字小文字に注意！）。</li>
-<li><code>TinyTeX</code>, <code>cache</code>, <code>fonts</code>, <code>venv</code></li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/create_volume_mac.png" class="img-fluid figure-img"></p>
-<figcaption>Macでの画面</figcaption>
-</figure>
-</div>
-</section>
-<section id="git" class="level3">
-<h3 class="anchored" data-anchor-id="git">Git</h3>
-<section id="windows" class="level4">
-<h4 class="anchored" data-anchor-id="windows">Windows</h4>
-<ol type="1">
-<li>UbuntuでGitをインストール
-<ul>
-<li>Windowsのアプリ一覧からUbuntuを探し、開いてください。開いたら、以下のコマンドを入力して実行します。</li>
-<li><code>sudo</code>を使うとパスワードを求められますが、最初に設定したものです。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Ubuntu</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="Ubuntu" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sudo</span> apt-get install git</span></code></pre></div></div>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/ubuntu-git.png" class="img-fluid figure-img" style="width:70.0%"></p>
-<figcaption>Ubuntu</figcaption>
-</figure>
-</div>
-<ol start="2" type="1">
-<li>設定
-<ul>
-<li>以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。</li>
-<li>ここに限らずですが、特に注意がない限り<code>[]</code>ごと置き換えてください。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Ubuntu</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-filename="Ubuntu" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">git</span> config <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--global</span> user.name <span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">[</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">任意のユーザ名</span><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">]</span></span>
-<span id="cb4-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">git</span> config <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--global</span> user.email <span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">[</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">任意のメールアドレス</span><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">]</span></span></code></pre></div></div>
-</div>
-</section>
-<section id="mac" class="level4">
-<h4 class="anchored" data-anchor-id="mac">Mac</h4>
-<ol type="1">
-<li>HomebrewでGitをインストール
-<ul>
-<li>ターミナルを開いて、以下のコマンドを入力して実行します。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">brew</span> install git</span></code></pre></div></div>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/homebrew.png" class="img-fluid figure-img" style="width:70.0%"></p>
-<figcaption>このMacでは2回目なのでgit is already installedと表示されてます…。</figcaption>
-</figure>
-</div>
-<ol start="2" type="1">
-<li>設定
-<ul>
-<li>以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">git</span> config <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--global</span> user.name <span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">[</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">任意のユーザ名</span><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">]</span></span>
-<span id="cb6-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">git</span> config <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--global</span> user.email <span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">[</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">任意のメールアドレス</span><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">]</span></span></code></pre></div></div>
-</div>
-</section>
-</section>
-<section id="githubアカウントの作成" class="level3">
-<h3 class="anchored" data-anchor-id="githubアカウントの作成">GitHubアカウントの作成</h3>
-<p>ファイルは基本的にGitHubで管理するので、<a href="https://github.com/">ここ</a>からアカウントを作成してください。</p>
-<p><strong>ポイント：</strong></p>
-<p>GitHubアカウントを作成したら、VSCodeにログインしておきましょう。</p>
-<ol type="1">
-<li>VSCodeを開く</li>
-<li>画面左下のアイコンをクリック
-<ul>
-<li>GitHubでサインインを行う</li>
-</ul></li>
-</ol>
-<p>GitHubにログインすることで、その後の作業がスムーズに進みます。</p>
-<p>事前準備は以上です！</p>
-</section>
-</section>
-<section id="開発環境の構築" class="level2">
-<h2 class="anchored" data-anchor-id="開発環境の構築">開発環境の構築</h2>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>RStudioで出てくる警告について
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>RStudioでこの後作業することになりますが、コマンドを打つと以下の警告が出てくるかもしれません。</p>
-<p><code>警告メッセージ: Character set is not UTF-8; please change your locale</code></p>
-<p>しかし、警告は出るものの、実際の作業には特に問題ありません。これに対処しようと試みましたが、できませんでした…。</p>
-<p>もし詳しくて対処できた方は、コメントから教えていただけると幸いです。</p>
-</div>
-</div>
-<p>まずは基本設定<sup>5</sup>から説明します。</p>
-<section id="基本設定" class="level3">
-<h3 class="anchored" data-anchor-id="基本設定">基本設定</h3>
-<section id="githubリポジトリを作成" class="level4">
-<h4 class="anchored" data-anchor-id="githubリポジトリを作成">GitHubリポジトリを作成</h4>
-<ol type="1">
-<li>テンプレートの<a href="https://github.com/yo5uke/R-template">GitHub リポジトリ</a>にアクセス</li>
-<li>画面右の「Use this template」から「Create a new repository」を選択</li>
-<li>Repository nameを記入</li>
-<li>Privateを選択
-<ul>
-<li>通常の研究プロジェクトならPrivateでOK</li>
-</ul></li>
-<li>「Create repository」をクリック</li>
-</ol>
-</section>
-<section id="sec-host-vscode" class="level4">
-<h4 class="anchored" data-anchor-id="sec-host-vscode">リポジトリをクローン</h4>
-<ol type="1">
-<li>VSCodeを開く</li>
-<li>画面左側の<i class="fa-solid fa-code-branch" aria-label="code-branch"></i>を開く</li>
-<li>「リポジトリの複製」を選択し、さらに「GitHubから複製」を選ぶ</li>
-<li>リポジトリを選択し、クローン
-<ul>
-<li>リポジトリは、「ユーザー名/リポジトリ名」の形式で表示されます。</li>
-<li>基本的に表示されると思いますが、表示されない場合は手入力してください。</li>
-<li>クローンしたリポジトリを開くか問われるので、開いてください。</li>
-</ul></li>
-<li>画面右下に「コンテナーで再度開く」と出たらクリック
-<ul>
-<li>出ない場合、画面左下「<iconify-icon inline="" icon="gg:remote" aria-label="Icon remote from gg Iconify.design set." title="Icon remote from gg Iconify.design set."></iconify-icon> WSL: Ubuntu」<sup>6</sup>をクリックし、「コンテナーで再度開く」を選択してください。</li>
-<li>初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。</li>
-</ul></li>
-</ol>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/reopen.png" class="img-fluid figure-img"></p>
-<figcaption>「コンテナーで再度開く」をクリック</figcaption>
-</figure>
-</div>
-<p>エクスプローラーを開き、<code>\Ubuntu\home\ユーザー名</code>の中を確認してみてください。リポジトリ名と同じフォルダができていると思います。</p>
-<p>Macの場合は、ユーザー名の下にできているはずです。</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>Macでファイルが見当たらない？
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-4" class="callout-4-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>クローンしたフォルダを見てみると、リポジトリにはあるはずのファイルやフォルダが見当たらないかもしれません。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/finder_mac_after_clone.png" class="img-fluid figure-img" style="width:70.0%"></p>
-<figcaption>ファイルが見当たらない…？</figcaption>
-</figure>
-</div>
-<p>このようなときは、Finderの隠しファイルを表示する設定を変更する必要があります。</p>
-<p>以下をターミナルで実行してください。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">defaults</span> write com.apple.finder AppleShowAllFiles TRUE</span>
-<span id="cb7-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">killall</span> Finder</span></code></pre></div></div>
-</div>
-<p>これで、隠しファイルも表示されるようになります。</p>
-<p>正直なところ、この設定は隠しファイルが邪魔であればしなくてもよいと思います<sup>7</sup>。VSCode上ではきちんと表示されますので。</p>
-</div>
-</div>
-</div>
-</section>
-<section id="rstudioで開く" class="level4">
-<h4 class="anchored" data-anchor-id="rstudioで開く">RStudioで開く</h4>
-<p>ここで、ブラウザを用いてRStudioを開きます。毎度この手順を踏む前に、VSCode上で開発コンテナに接続していることを確認してください。開いていないと、次のリンクは無効なものになってしまいます。</p>
-<ol type="1">
-<li>任意のブラウザで、アドレスバーに<code>localhost:8787</code>と入力して開く</li>
-<li>右上の <img src="https://yo5uke.com/pages/tips/2024/12/241219_container/data:image/png;base64,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" class="img-fluid"> をクリックし、「New Project…」を選択</li>
-<li>「Existing Directory」を選択</li>
-<li>「Browse…」より「work」を選択して「Choose」をクリック
-<ul>
-<li>「Create project」をクリックするとプロジェクトが作成されます。</li>
-</ul></li>
-<li>コンソールに以下を入力して実行
-<ul>
-<li><code>renv</code>はパッケージを管理するためのパッケージです。</li>
-<li>Dockerfileでインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です<sup>8</sup>。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">renv<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">init</span>()</span></code></pre></div></div>
-</div>
-</section>
-<section id="pythonの設定任意" class="level4">
-<h4 class="anchored" data-anchor-id="pythonの設定任意">Pythonの設定（任意）</h4>
-<p>Pythonを使う場合、以下のパッケージをインストールしておきます。</p>
-<p>使わない場合はスキップしてください。</p>
-<p>使い方としては、Quarto上でPythonのコードを書く or <code>.ipynb</code>で書くことを想定しています。そのために必要なパッケージですが、その他のパッケージを使用する場合も同様の方法でインストールしてください。</p>
-<ol type="1">
-<li>VSCodeに戻る</li>
-<li>画面上部「ターミナル」より「新しいターミナル」を選択</li>
-<li>以下のコマンドを入力して実行</li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">pip</span> install ipykernel jupyter</span></code></pre></div></div>
-</div>
-<p>パッケージはcacheにキャッシュがあるので、1回インストールすれば、2回目以降の環境構築では不要です。</p>
-</section>
-<section id="sec-dvc-setting" class="level4">
-<h4 class="anchored" data-anchor-id="sec-dvc-setting">DVCの設定</h4>
-<p>DVCはデータを管理するためのツールです。</p>
-<p>事前準備として、自分のGoogleドライブの任意の場所で、データを入れる用のフォルダを作成しておいてください。</p>
-<p>また、共同プロジェクトの場合は、フォルダの共有も設定してください。</p>
-<ol type="1">
-<li>VSCodeに戻る</li>
-<li>画面上部「ターミナル」より「新しいターミナル」を選択
-<ul>
-<li>既に画面下部にターミナルが表示されている場合はスキップしてください。</li>
-</ul></li>
-<li>以下のコマンドを入力して実行
-<ul>
-<li>初めて環境構築するときに1回実行しておけば、2回目以降の環境構築では不要です。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">pip</span> install dvc dvc-gdrive</span></code></pre></div></div>
-</div>
-<ol start="4" type="1">
-<li>Googleドライブで作成したフォルダのIDをコピー
-<ul>
-<li>IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（~/folders/）より右側の部分です。</li>
-</ul></li>
-<li>次のコマンドを入力して実行
-<ul>
-<li>最後の部分（四角括弧ごと）をコピーしたIDに変更してください。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> init <span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">&amp;&amp;</span> <span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote add <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">-d</span> myremote gdrive://[Google DriveのフォルダID]</span></code></pre></div></div>
-</div>
-</section>
-<section id="latexの設定" class="level4">
-<h4 class="anchored" data-anchor-id="latexの設定">LaTeXの設定</h4>
-<p>R Markdownなどで<img src="https://latex.codecogs.com/png.latex?%5CLaTeX">を使用するために、TinyTeXをインストールします。</p>
-<p>RStudioのコンソールに以下のコマンドを入力して実行してください。</p>
-<p>また、TinyTeXもキャッシュされるので、1回インストールすれば、2回目以降の環境構築では実行不要です。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"tinytex"</span>)</span>
-<span id="cb12-2">tinytex<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install_tinytex</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">force =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">dir =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/home/rstudio/.TinyTeX"</span>)</span></code></pre></div></div>
-</div>
-<p>TinyTeXは、<img src="https://latex.codecogs.com/png.latex?%5CLaTeX">コードをコンパイルする際に必要なパッケージを自動でダウンロードしてくれるので、ローカルに面倒な設定をしなくて良いのが魅力です。</p>
-<p>R MarkdownやQuartoでのPDF出力の仕方については、<a href="https://yo5uke.github.io/tips/240329_rmarkdown_pdf/">こちらの記事</a>もご覧ください。</p>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Warning</span>VSCode上でのファイル等の作成
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-5" class="callout-5-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>VSCode上でファイルやフォルダを作成するためには、左側のアイコン一番上の「エクスプローラー」をクリックし、その中の上部にあるアイコンの「新しいファイル…」や「新しいファイル…」を選択することでできます。</p>
-<p>ここで注意点ですが、状況によっては意図せずフォルダの中に作ってしまうことがあります。</p>
-<p>ワーキングディレクトリにファイルを作成したい場合は、まずエクスプローラーの空き部分をクリックします。すると、枠全体が青い線で囲まれると思います。</p>
-<p>この状態であれば、ワーキングディレクトリにファイルやフォルダが新規作成されます。下の画像の左側に注目してください。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/vscode-explorer1.png" class="img-fluid figure-img"></p>
-<figcaption>エクスプローラーの空いている部分をクリックすると、全体が青枠で囲まれます。</figcaption>
-</figure>
-</div>
-<p>一方、特定のフォルダの中に作成したい場合は、そのフォルダをクリックしてから新規作成を行ってください。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2024/12/241219_container/image/vscode-explorer2.png" class="img-fluid figure-img"></p>
-<figcaption>特定のフォルダをクリックすると、そのフォルダが青枠で囲まれます。</figcaption>
-</figure>
-</div>
-</div>
-</div>
-</div>
-</section>
-<section id="共同プロジェクトの場合" class="level4">
-<h4 class="anchored" data-anchor-id="共同プロジェクトの場合">共同プロジェクトの場合</h4>
-<p>共同プロジェクトの場合は、GitHubで共有するため、以下の手順を踏んでおいてください。</p>
-<ul>
-<li>GitHubリポジトリでコラボレーターを追加
-<ul>
-<li>リポジトリのSettingsからCollaboratorsに進み、コラボレーターを追加してください。</li>
-<li>Add peopleから招待できます。</li>
-</ul></li>
-</ul>
-<p>ホスト側の環境構築はここで一区切りです！</p>
-</section>
-</section>
-<section id="共同作業者の設定" class="level3">
-<h3 class="anchored" data-anchor-id="共同作業者の設定">共同作業者の設定</h3>
-<p><strong>前提：</strong>事前準備を終わらせている</p>
-<ol type="1">
-<li>GitHubで招待を受ける
-<ul>
-<li>メールが届いているはずですので、そこからGitHubにログインしてください。</li>
-<li>リポジトリにアクセスできるようになります。</li>
-</ul></li>
-<li>リポジトリをクローン
-<ul>
-<li>ホスト側が作成したリポジトリをクローンします。</li>
-<li>ホスト側の設定と同様にしてクローンし、開いてください。</li>
-</ul></li>
-</ol>
-<p>一旦ここまでで、共同作業者の設定は終わりです。</p>
-</section>
-</section>
-<section id="研究作業ワークフロー" class="level2">
-<h2 class="anchored" data-anchor-id="研究作業ワークフロー">研究作業（ワークフロー）</h2>
-<p>研究における作業の流れについて説明します。</p>
-<p>GitHub関連<sup>9</sup>については<a href="https://yo5uke.github.io/tips/240525_vscode_github/">こちらの記事</a>で詳しめに解説しましたので、そちらも参考にしてください。</p>
-<section id="rのパッケージ" class="level3">
-<h3 class="anchored" data-anchor-id="rのパッケージ">Rのパッケージ</h3>
-<p>基本的にはブラウザ上のRStudio ServerでローカルのRStudioと同様に作業できます。ここではプロジェクトを管理する観点から説明します。</p>
-<p>作業中新たにパッケージを使用した場合、それを<code>renv.lock</code>ファイルに記録することで、必要なパッケージを記録することができます。記録することで環境を移したときに必要なパッケージをすぐインストールできたり、共同研究者と必要なパッケージを（バージョン込みで）共有することができます。</p>
-<p>バージョンごと記録できるので、全く同じ環境を再現することが可能です。</p>
-<p>新しいパッケージをインストールし、コード内で使用したら、以下のコードを実行し、lockファイルに記録してください<sup>10</sup>。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1">renv<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">snapshot</span>()</span></code></pre></div></div>
-</div>
-<p>異なる環境に移行した場合、ディレクトリに<code>renv.lock</code>ファイルがあれば、以下のコードで記録したパッケージを一括インストールできます。</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>R</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" data-filename="R" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">renv<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">restore</span>()</span></code></pre></div></div>
-</div>
-<p>これでRの開発環境を揃えることができます。PCを変えた場合などにも役立ちます。</p>
-<p>また、新しいパッケージを使ったら、その作業が終わるごとに<code>renv::snapshot()</code>で記録しましょう。</p>
-</section>
-<section id="python-のパッケージ" class="level3">
-<h3 class="anchored" data-anchor-id="python-のパッケージ">Python のパッケージ</h3>
-<p>設定ではPythonの設定も加えていますので、必要に応じてPythonも使用できます。</p>
-<p>また、そもそもDVCがPythonのパッケージなので、それも<code>renv</code>と同様に記録できます。Pythonの場合はvenvを用いてパッケージを管理します。</p>
-<ol type="1">
-<li>Pythonのパッケージを追加
-<ul>
-<li>先ほどと同様に、新しいターミナルを開いて、以下のコードでパッケージをインストールします。</li>
-<li>DVC以外特に使うものがなければ、ここはスキップしてください。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">pip</span> install <span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">[</span><span class="ss" style="color: #20794D;
-background-color: null;
-font-style: inherit;">パッケージ名</span><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">]</span></span></code></pre></div></div>
-</div>
-<ol start="2" type="1">
-<li>パッケージを記録
-<ul>
-<li>Rと同様に、作業が終わったら以下のコードでパッケージを記録します。</li>
-<li><code>requirements.txt</code>は<code>renv.lock</code>と同じような役割です。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">pip</span> freeze <span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> requirements.txt</span></code></pre></div></div>
-</div>
-<ol start="3" type="1">
-<li>パッケージをインストール（異なる環境に移行した場合）
-<ul>
-<li>次のコードで、<code>requirements.txt</code>に記録したパッケージをインストールできます。</li>
-<li>つまり<code>renv::restore()</code>と同じ役割です。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">pip</span> install <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
-</div>
-</section>
-<section id="データの管理" class="level3">
-<h3 class="anchored" data-anchor-id="データの管理">データの管理</h3>
-<p>データはDVCで管理、Google Drive上で保管します。</p>
-<p>DVCでデータを管理するメリットとしては、GitHub上のデータ容量の制限を受けずに管理できることが大きいと思います。GitHubは100MiBを超えるデータをブロックしますので、注意が必要です。</p>
-<p>まずは<a href="../../../../..\pages/tips/2024/08/240831_google_cloud_project/index.html">この記事</a>を見ていただき、Google Cloudでの設定をしてください。</p>
-<ol type="1">
-<li>ワーキングディレクトリに、<code>data</code>というフォルダを作成</li>
-<li>データが入ったら、以下のコードを実行
-<ul>
-<li><code>data</code>フォルダごとドライブに追加します。</li>
-<li><code>data</code>フォルダは<code>.gitignore</code>に記載されているため、GitHubにはアップロードされません。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> add data/</span></code></pre></div></div>
-</div>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>データの入れ方
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-6" class="callout-6-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>データは、WindowsのエクスプローラーやMacのFinderから直接フォルダに入れて大丈夫です（通常のWindowsやMacでの作業のように）。</p>
-<p>ちなみにWindowsユーザーの方で、一回ローカルに落としてからLinuxにデータやコードを入れたら<code>Zone.Identifier</code>というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。</p>
-</div>
-</div>
-</div>
-<ol start="3" type="1">
-<li>以下のコードを実行
-<ul>
-<li><code>'client-id'</code>と<code>'client-secret'</code>は<a href="../../../../..\pages/tips/2024/08/240831_google_cloud_project/index.html">こちら</a>を参考に変更してください。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote modify <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--local</span> myremote gdrive_client_id <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'client-id'</span></span>
-<span id="cb19-2"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote modify <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--local</span> myremote gdrive_client_secret <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">'client-secret'</span></span>
-<span id="cb19-3"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> remote modify <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">--local</span> myremote gdrive_user_credentials_file ~/.cache/myremote-credentials.json</span></code></pre></div></div>
-</div>
-<ol start="4" type="1">
-<li><p>データをアップロード</p>
-<ul>
-<li>以下のコードでデータをプッシュします。</li>
-<li>最初はpushをする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> push</span></code></pre></div></div>
-</div>
-<ol start="5" type="1">
-<li>データのダウンロード
-<ul>
-<li>プッシュしたデータをダウンロードしたい場合は、以下を実行します。</li>
-</ul></li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Terminal</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">dvc</span> pull</span></code></pre></div></div>
-</div>
-</section>
-<section id="juliaのパッケージ" class="level3">
-<h3 class="anchored" data-anchor-id="juliaのパッケージ">Juliaのパッケージ</h3>
-<p>Julia はパッケージが自動で<code>Project.toml</code>に保存されるため、共同作業者がインストールするだけで大丈夫です。</p>
-<ol type="1">
-<li>先ほどと同じ手順で環境をアクティベートする</li>
-<li>以下のコードでパッケージをインストール</li>
-</ol>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>Julia</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22" data-filename="Julia" style="background: #f1f3f5;"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb22-1"><span class="bu" style="color: null;
-background-color: null;
-font-style: inherit;">Pkg</span>.<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">instantiate</span>()</span></code></pre></div></div>
-</div>
-</section>
-<section id="まとめ" class="level3">
-<h3 class="anchored" data-anchor-id="まとめ">まとめ</h3>
-<p>以上の作業を通じて、再現可能な研究を行うことができます。</p>
-<p>環境を揃えるためには、コミット、プッシュ、プルを行い、記録したファイルを共有することが重要です。</p>
-<p>以上がワークフローです。お疲れ様でした！</p>
-</section>
-</section>
-<section id="環境構築まとめ" class="level2">
-<h2 class="anchored" data-anchor-id="環境構築まとめ">環境構築まとめ</h2>
-<p>作業フローは、<del>超適当にまとめると</del>次のようになります。</p>
-<section id="ホスト" class="level3">
-<h3 class="anchored" data-anchor-id="ホスト">ホスト</h3>
-<ol start="0" type="1">
-<li>必要なソフト等をインストールし、事前準備を行う。
-<ul>
-<li>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</li>
-</ul></li>
-<li>GitHubでリポジトリをインポート、クローン</li>
-<li>RStudio Serverでプロジェクトを作成
-<ul>
-<li><code>renv::init()</code> でrenvを開始</li>
-<li><code>renv::snapshot()</code>で適宜パッケージを記録</li>
-</ul></li>
-<li><code>data</code>フォルダを作成し、DVCで管理
-<ul>
-<li>データは<code>data</code>内に追加</li>
-<li><code>dvc add data/</code>と<code>dvc push</code>を使用</li>
-</ul></li>
-<li>VSCode上でコミット、プッシュ</li>
-</ol>
-</section>
-<section id="共同作業者" class="level3">
-<h3 class="anchored" data-anchor-id="共同作業者">共同作業者</h3>
-<ol start="0" type="1">
-<li>必要なソフト等をインストールし、事前準備を行う。
-<ul>
-<li>WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub</li>
-</ul></li>
-<li>GitHubでリポジトリをクローン</li>
-<li>RStudio Serverでプロジェクトを開く
-<ul>
-<li><code>renv::restore()</code> でパッケージをインストール</li>
-</ul></li>
-<li>VSCode上で<code>pip install -r requirements.txt</code>を実行
-<ul>
-<li>Pythonパッケージをインストール</li>
-</ul></li>
-<li><code>dvc pull</code>でデータをダウンロード</li>
-<li>VSCode上でコミット、プッシュ</li>
-</ol>
-</section>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回はDocker &amp; VSCodeを用いた開発環境を説明しました。</p>
-<p>個人的な経験として、環境構築はエラーとの戦いです。できるだけエラーに遭遇しないよう丁寧に書いたつもりですが、まだまだ把握していないエラーがたくさんあると思います。</p>
-<p>何かエラー等ありましたら、コメントしていただけると幸いです。</p>
-</section>
-<section id="参考文献" class="level2">
-<h2 class="anchored" data-anchor-id="参考文献">参考文献</h2>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://zenn.dev/nicetak/articles/vscode-docker-2023">VSCode + Dockerでよりミニマルでポータブルな研究環境を</a></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://qiita.com/tommy_g/items/771ac45b89b02e8a5d64">UbuntuにGitをインストールする</a></p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://qiita.com/future_kame/items/9fa256aea09faa28b357">githubを使った共同作業の手順</a></p>
-</div>
-</div>
-</div>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>求められない場合は、続けて<code>wsl</code>とだけ入力して実行してください。↩︎</p></li>
-<li id="fn2"><p>左のサイドバーの1番下です。↩︎</p></li>
-<li id="fn3"><p>もしくは Mac↩︎</p></li>
-<li id="fn4"><p>単にJapaneseでも出てきます。笑↩︎</p></li>
-<li id="fn5"><p>単独研究ならここのみでOK、共同研究ならホストが行う設定。↩︎</p></li>
-<li id="fn6"><p>Mac なら<iconify-icon inline="" icon="gg:remote" aria-label="Icon remote from gg Iconify.design set." title="Icon remote from gg Iconify.design set."></iconify-icon>↩︎</p></li>
-<li id="fn7"><p>TRUE のところを FALSE にして再度実行すれば消せます。↩︎</p></li>
-<li id="fn8"><p>余談ですが、<code>renv::init()</code>のように<code>パッケージ名::関数</code>のような書き方をすれば、<code>library(パッケージ名)</code>をせずとも関数を使えます。1度だけ使いたいようなときに便利です。↩︎</p></li>
-<li id="fn9"><p>コミット、プッシュやブランチなど↩︎</p></li>
-<li id="fn10"><p>インストールしただけでコード内で使用していない場合は記録されません。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>Docker</category>
-  <category>Windows</category>
-  <category>Mac</category>
-  <category>Ubuntu</category>
-  <category>VSCode</category>
-  <category>GitHub</category>
-  <guid>https://yo5uke.com/pages/tips/2024/12/241219_container/</guid>
-  <pubDate>Wed, 18 Dec 2024 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.com/pages/tips/2024/12/241219_container/image/Rlogo.png" medium="image" type="image/png" height="112" width="144"/>
 </item>
 </channel>
 </rss>
