@@ -1,0 +1,447 @@
+---
+title: "座標参照系について"
+date: 2025-11-22
+---
+
+## はじめに
+
+今回はGISにおいて重要な概念である**座標参照系（Coordinate Reference System：CRS）**について説明します。
+
+CRSは地理データを扱う上で非常に重要な概念です。適切なCRSを設定しないと、地図の見た目がおかしくなったり、距離や面積の計算結果が不正確になったりします。
+
+本ページでは、CRSとは何か、どのように地図の見た目に影響するか、そして計算結果にどのような違いが生じるかを、実例を交えて説明します。
+
+## 使用するパッケージ・データ
+
+今回は日本全国の市町村データを使用します^[使用しているデータについては[こちら](/pages/tips/2025/04/250413_municipality/index.qmd)をご覧ください。]。
+
+```{r}
+library(tidyverse)
+library(sf)
+library(here)
+
+# 日本全国の市町村データの読み込み
+jp_muni <- read_sf(here("data/jpn_geojson/jp_muni_simplified.gpkg"))
+```
+
+## CRSとは
+
+### 基本概念
+
+CRS（座標参照系）とは、**地球上の位置を数値で表現するためのルール**のことです。
+
+座標というものは数学のグラフなどと同様に原点を基準としてある点を表すもので、座標参照系によってその座標の考え方が異なるというイメージを持っていただければと思います。
+
+地球は球体ですが、地図は平面です。球体を平面に変換するには何らかの方法が必要で、その変換方法を定めたものがCRSです。
+
+:::{.callout-note}
+## 地図と同じ
+
+メルカトル図法やモルワイデ図法、正距方位図法など様々な地図を社会で学んだと思いますが、それと同じで、何を優先するのかによって使うCRSが変わります。
+:::
+
+### CRSの種類
+
+CRSは大きく分けて2種類あります。
+
+1.  **地理座標系（Geographic CRS）**
+    -   緯度（Latitude）と経度（Longitude）で位置を表現
+    -   単位は「度」
+    -   球体上の座標
+    -   例：JGD2011（EPSG:6668）、WGS84（EPSG:4326）
+
+2.  **投影座標系（Projected CRS）**
+    -   平面上のX座標とY座標で位置を表現
+    -   単位は「メートル」などの距離単位
+    -   地理座標系を平面に投影したもの
+    -   例：UTM座標系、平面直角座標系
+
+### CRSの確認
+
+データのCRSは`st_crs()`関数で確認できます。
+
+```{r}
+st_crs(jp_muni)
+```
+
+この出力から、以下のことがわかります。
+
+-   **ID["EPSG",6668]**：EPSG番号が6668
+-   **"JGD2011"**：日本測地系2011^[測地系には大きく分けて日本測地系と世界測地系があります。ややこしいのですが、世界測地系の中にも日本測地系があり、ここでいう日本測地系2011はこちらを指しています。前者の日本測地系は現在使われていません。]を使用
+-   **AXIS["geodetic latitude (Lat)"**：緯度経度を使用する地理座標系
+
+:::{.callout-note}
+## EPSG番号について
+
+EPSG番号は、CRSを識別するための国際的な番号です。例えば、
+
+-   `4326`：WGS84（GPSで使われる世界測地系）
+-   `6668`：JGD2011（日本測地系2011、緯度経度）
+-   `6677`：JGD2011 / 平面直角座標系 第9系
+-   `6691`：JGD2011 / UTM座標系 Zone 54N
+
+EPSG番号を指定すれば、世界中どこでも同じCRSを参照できます。
+:::
+
+## CRSが地図の見た目に与える影響
+
+それでは実際に、異なるCRSで同じデータをプロットして、見た目の違いを確認してみましょう。
+
+### 地理座標系（JGD2011）でのプロット
+
+まずは現在のCRS（JGD2011、緯度経度）でプロットします。
+
+```{r}
+#| label: fig-crs-jgd2011
+#| fig-cap: "JGD2011（EPSG:6668）でのプロット"
+
+ggplot() +
+  geom_sf(data = jp_muni) +
+  ggtitle("JGD2011 (EPSG:6668)") +
+  theme_void()
+```
+
+### 投影座標系（UTM）でのプロット
+
+次に、UTM座標系（Universal Transverse Mercator）に変換してプロットします。東日本の大部分はUTM Zone 54Nに位置しています。
+
+CRSを変換するには、`st_transform()`関数を使います。
+
+```{r}
+#| label: fig-crs-utm
+#| fig-cap: "UTM Zone 54N（EPSG:6691）でのプロット"
+
+jp_muni_utm <- jp_muni |>
+  st_transform(st_crs(6691)) # UTM Zone 54N
+
+ggplot() +
+  geom_sf(data = jp_muni_utm) +
+  ggtitle("UTM Zone 54N (EPSG:6691)") +
+  theme_void()
+```
+
+### Webメルカトル図法でのプロット
+
+Web地図（Google Maps等）でよく使われるWebメルカトル図法でもプロットしてみます。
+
+```{r}
+#| label: fig-crs-webmercator
+#| fig-cap: "Webメルカトル図法（EPSG:3857）でのプロット"
+
+jp_muni_webmercator <- jp_muni |>
+  st_transform(st_crs(3857)) # Webメルカトル図法
+
+ggplot() +
+  geom_sf(data = jp_muni_webmercator) +
+  ggtitle("Web Mercator (EPSG:3857)") +
+  theme_void()
+```
+
+### 平面直角座標系でのプロット
+
+日本独自の座標系である平面直角座標系も試してみましょう。ここでは第9系を例に示します^[平面直角座標系は日本全国を19の系に分割しており、各系は限られた地域をカバーします。そのため全国データを第9系で表示すると大きく歪みます。]。
+
+```{r}
+#| label: fig-crs-jpr
+#| fig-cap: "平面直角座標系 第9系（EPSG:6677）でのプロット"
+
+jp_muni_jpr <- jp_muni |>
+  st_transform(st_crs(6677)) # 平面直角座標系 第9系
+
+ggplot() +
+  geom_sf(data = jp_muni_jpr) +
+  ggtitle("平面直角座標系 第9系 (EPSG:6677)") +
+  theme_void()
+```
+
+:::: {.callout-important}
+## プロットの見た目の違い
+
+同じデータでも、CRSによって地図の形が微妙に異なることが確認できます。
+
+-   地理座標系（緯度経度）では、緯線と経線が直交するように見えます
+-   投影座標系では、地球の丸みを考慮した平面投影が行われます
+-   投影方法によって、どの部分が正確に保たれるか（距離、面積、角度など）が異なります
+
+このことを確認するために、パネル表示で比較してみましょう。
+
+:::{.panel-tabset}
+## 地理座標系
+
+```{r}
+ggplot() +
+  geom_sf(data = jp_muni) +
+  ggtitle("JGD2011 (EPSG:6668)") +
+  theme_void()
+```
+
+## UTM座標系
+
+```{r}
+ggplot() +
+  geom_sf(data = jp_muni_utm) +
+  ggtitle("UTM Zone 54N (EPSG:6691)") +
+  theme_void()
+```
+
+## Webメルカトル図法
+
+```{r}
+ggplot() +
+  geom_sf(data = jp_muni_webmercator) +
+  ggtitle("Web Mercator (EPSG:3857)") +
+  theme_void()
+```
+
+## 平面直角座標系
+```{r}
+ggplot() +
+  geom_sf(data = jp_muni_jpr) +
+  ggtitle("平面直角座標系 第9系 (EPSG:6677)") +
+  theme_void()
+```
+
+:::
+::::
+
+## CRSが計算結果に与える影響
+
+CRSの選択は、距離や面積の計算結果にも大きく影響します。
+
+### 面積の計算
+
+日本全国の面積を、異なるCRSで計算してみます。
+
+`st_area()`関数を使って面積を計算します。
+
+:::{.callout-note}
+## GPKGファイルのジオメトリ情報
+
+通常、シェープファイルやGeoJSONファイルを読み込むと、ジオメトリ情報は`geometry`列に格納されますが、GPKGファイルの場合は`geom`列に格納されます。
+
+今回は軽量化のためにGPKGファイルを使っているので`geom`列を使用していますが、他の形式を使う場合は`geometry`列を使用してください。
+:::
+
+```{r}
+# 日本全国を1つのポリゴンに集約
+jp_union <- jp_muni |>
+  summarise(geom = st_union(geom))
+
+# JGD2011（地理座標系）での面積
+area_jgd2011 <- jp_union |>
+  st_area() |>
+  units::set_units(km^2) |>
+  as.numeric()
+
+# UTM座標系での面積
+area_utm <- jp_union |>
+  st_transform(st_crs(6691)) |>
+  st_area() |>
+  units::set_units(km^2) |>
+  as.numeric()
+
+# 平面直角座標系での面積（参考：第9系）
+area_jpr <- jp_union |>
+  st_transform(st_crs(6677)) |>
+  st_area() |>
+  units::set_units(km^2) |>
+  as.numeric()
+```
+
+```{r}
+#| eval: false
+
+tibble(
+  CRS = c("JGD2011 (緯度経度)", "UTM Zone 54N", "平面直角座標系 第9系"),
+  面積_km2 = c(area_jgd2011, area_utm, area_jpr)
+) |>
+  mutate(差異_パーセント = (面積_km2 / area_utm - 1) * 100)
+```
+
+```{r}
+#| echo: false
+
+tibble(
+  CRS = c("JGD2011 (緯度経度)", "UTM Zone 54N", "平面直角座標系 第9系"),
+  面積_km2 = c(area_jgd2011, area_utm, area_jpr)
+) |>
+  mutate(差異_パーセント = (面積_km2 / area_utm - 1) * 100) |>
+  tinytable::tt()
+```
+
+面積が異なっているのが確認いただけるかと思います。
+
+::: {.callout-important}
+## 面積計算の注意点
+
+-   **地理座標系（緯度経度）で直接計算すると、結果が不正確**になります
+-   **投影座標系（メートル単位）で計算するのが正確**です
+-   `sf`パッケージの`st_area()`は、地理座標系の場合でも地球の曲率を考慮して計算しますが、投影座標系を使う方がより正確です
+:::
+
+### 距離の計算
+
+東京都と大阪府の中心点間の距離を計算してみます。
+
+```{r}
+# 東京都と大阪府を抽出
+tokyo <- jp_muni |>
+  filter(id_pref == "13") |>
+  st_union() |>
+  st_centroid()
+
+osaka <- jp_muni |>
+  filter(id_pref == "27") |>
+  st_union() |>
+  st_centroid()
+
+# JGD2011（地理座標系）での距離
+distance_jgd2011 <- st_distance(tokyo, osaka) |>
+  units::set_units(km) |>
+  as.numeric()
+
+# UTM座標系での距離
+distance_utm <- st_distance(
+  tokyo |> st_transform(6691),
+  osaka |> st_transform(6691)
+) |>
+  units::set_units(km) |>
+  as.numeric()
+
+# 結果の比較
+tibble(
+  CRS = c("JGD2011 (緯度経度)", "UTM Zone 54N"),
+  距離_km = c(distance_jgd2011, distance_utm),
+  差異_m = (距離_km - distance_utm) * 1000
+)
+```
+
+::: {.callout-note}
+## 距離計算の推奨
+
+-   小さな範囲での計算であれば、CRSによる差は小さい
+-   広域での計算や高精度が必要な場合は、投影座標系を使用する
+-   `st_distance()`も`st_area()`と同様に、地理座標系の場合は地球の曲率を考慮して計算します
+:::
+
+## CRSの変換
+
+### 基本的な変換方法
+
+CRSの変換には`st_transform()`関数を使います。
+
+EPSG番号を用いて変換することはもちろん、他のデータのCRSを参照して変換することも可能です。
+
+```{r}
+#| eval: false
+
+# EPSG番号を指定して変換
+data_transformed <- data |>
+  st_transform(st_crs(6691)) # UTM Zone 54Nに変換
+
+# 他のデータのCRSに合わせる
+data_transformed <- data |>
+  st_transform(st_crs(other_data)) # other_dataのCRSに変換
+```
+
+### CRSを設定する場合
+
+データにCRSが設定されていない場合は、`st_set_crs()`で設定します。
+
+```{r}
+#| eval: false
+
+# CRSが未設定のデータにCRSを設定
+data_with_crs <- data |>
+  st_set_crs(st_crs(6668)) # JGD2011を設定
+```
+
+::: {.callout-warning}
+## st_transform() と st_set_crs() の違い
+
+-   `st_transform()`：座標値を変換する（投影変換）
+-   `st_set_crs()`：CRS情報を付与・上書きする（座標値は変わらない）
+
+**間違ったCRSを`st_set_crs()`で設定すると、位置がずれてしまう**ので注意してください。設定に当たっては元データの仕様をよく確認し、正しいCRSを設定してください。
+
+[導入 + ハンドリング](/pages/gis_in_r/1_intro/index.html)で行った公園データの処理を思い出してください。
+:::
+
+## 日本でよく使われるCRS
+
+日本国内でGISを扱う際によく使われるCRSをまとめます。
+
+| CRS名 | EPSG番号 | 種類 | 用途 |
+|-------|---------|------|------|
+| JGD2011（緯度経度） | 6668 | 地理座標系 | 汎用的な地図表示 |
+| JGD2000（緯度経度） | 4612 | 地理座標系 | 古いデータで使用 |
+| WGS84 | 4326 | 地理座標系 | GPS、国際的な利用 |
+| UTM Zone 54N | 6691 | 投影座標系 | おおよそ東日本と北海道の西半分（東経138度～144度） |
+| UTM Zone 55N | 6692 | 投影座標系 | おおよそ北海道の東半分（東経144度～150度） |
+| 平面直角座標系 第1系 | 6669 | 投影座標系 | 長崎県・鹿児島県の一部 |
+| 平面直角座標系 第9系 | 6677 | 投影座標系 | 東京都の一部・福島県・栃木県・茨城県・埼玉県・千葉県・群馬県・神奈川県 |
+| Webメルカトル | 3857 | 投影座標系 | Web地図（Google Maps等） |
+
+::: {.callout-tip}
+## CRSの選び方
+
+-   **可視化のみ**：JGD2011（EPSG:6668）で問題なし
+-   **距離・面積計算**：投影座標系（UTMや平面直角座標系）を使用
+-   **Web地図との連携**：Webメルカトル（EPSG:3857）に変換
+-   **複数データの統合**：すべて同じCRSに揃える
+:::
+
+## 実践例：異なるCRSのデータを重ね合わせる
+
+異なるCRSを持つ2つのデータを重ね合わせてプロットする際の注意点を確認します。
+
+```{r}
+#| eval: false
+
+# データ1はJGD2011、データ2はWGS84だとする
+data1_jgd2011 <- read_sf("data1.shp") # CRS: 6668
+data2_wgs84 <- read_sf("data2.shp") # CRS: 4326
+
+# CRSが異なる場合は、片方に合わせる
+data2_transformed <- data2_wgs84 |>
+  st_transform(st_crs(data1_jgd2011))
+
+# これで正しく重ね合わせができる
+ggplot() +
+  geom_sf(data = data1_jgd2011) +
+  geom_sf(data = data2_transformed, color = "red") +
+  theme_void()
+```
+
+::: {.callout-important}
+## CRSを揃える重要性
+
+異なるCRSのデータを変換せずに重ね合わせると、位置がずれてしまいます。
+
+**必ずCRSを確認し、統一してから作業を進めてください。**
+:::
+
+## おわりに
+
+今回はCRS（座標参照系）について説明しました。
+
+CRSは地理データを扱う上で最も基本的かつ重要な概念です。適切なCRSを選択し、必要に応じて変換することで、正確な地図表示と計算が可能になります。
+
+**ポイントのまとめ：**
+
+1.  CRSには地理座標系（緯度経度）と投影座標系（メートル等）がある
+2.  CRSによって地図の見た目が変わる
+3.  距離・面積の計算では投影座標系を使うのが正確
+4.  複数のデータを扱う際は、CRSを統一する
+5.  `st_transform()`で変換、`st_set_crs()`で設定
+6.  データを読み込んだら、まず`st_crs()`でCRSを確認する習慣をつける
+
+次回以降も、このCRSの知識を活用しながらGISを扱っていきます。
+
+## おまけ
+
+今回は座標参照系の概念を中心に説明しましたが、各CRSの詳細な特徴や適用範囲については、以下の書籍がおすすめです。
+
+:::{.callout-tip appearance="minimal"}
+[事例で学ぶ 経済・政策分析のためのGIS入門](https://amzn.asia/d/dtgfcsz)
+:::
