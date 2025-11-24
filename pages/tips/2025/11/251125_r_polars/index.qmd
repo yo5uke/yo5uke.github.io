@@ -1,0 +1,277 @@
+---
+title: "【R】[polars]{.fira-code}でデータ処理を高速化する"
+description: |
+  Rustベースの高速データ処理ライブラリ{polars}をRで使う方法と、tidyverseライクに使える{tidypolars}について解説します。
+date: 2025-11-25
+categories:
+  - R
+  - データ処理
+---
+
+## はじめに
+
+Rでデータ処理を行う際、メモリ不足や処理速度の問題に悩まされることがあります。特に大規模データを扱う場合、{tidyverse}の関数だけでは限界を感じることも少なくありません。
+
+そこで注目されているのが**{polars}**です。{polars}はRustで書かれた高速なデータフレームライブラリで、大規模データの処理を効率的に行うことができます。この記事では、Rで{polars}を使う方法と、tidyverseの文法で使える{tidypolars}について解説します。
+
+## polarsとは
+
+polarsは、Rustで実装されたデータフレームライブラリです。Pythonでよく知られていますが、R版も提供されており、以下のような特徴があります：
+
+- **高速な処理**: Rustベースで実装されており、{dplyr}や{data.table}よりも高速
+- **遅延評価**: クエリを最適化してから実行するため、効率的
+- **メモリ効率**: 列指向フォーマットのApache Arrowを内部で使用
+- **並列処理**: マルチコアを活用した並列処理が自動的に行われる
+
+{polars}の独自の文法は、メソッドチェーンを使ったものですが、{tidyverse}に慣れた人には少し馴染みにくいかもしれません。そこで登場するのが{tidypolars}です。
+
+## インストール
+
+### polarsのインストール
+
+{polars}はCRANにはまだ登録されていないため、以下のコマンドでインストールします。
+
+```{r}
+#| eval: false
+
+Sys.setenv(NOT_CRAN = "true")
+install.packages("polars", repos = "https://community.r-multiverse.org")
+
+# または開発版
+# install.packages('polars', repos = c("https://rpolars.r-universe.dev", "https://cloud.r-project.org"))
+```
+
+### tidypolarsのインストール
+
+{tidypolars}もCRANには登録されていないため、同様にインストールします。
+
+```{r}
+#| eval: false
+
+Sys.setenv(NOT_CRAN = "true")
+install.packages("tidypolars", repos = c("https://community.r-multiverse.org", "https://cloud.r-project.org"))
+
+# または開発版
+# pak::pak("etiennebacher/tidypolars")
+```
+
+## polarsの基本的な使い方
+
+まずはpolars本来の文法で基本的な使い方を見ていきます。
+
+そもそも{polars}はPythonで一般的に使われており、R版はそのラッパーとして提供されています。Rで使う場合も、Python版と似たようなメソッドチェーンのスタイルを採用しています。
+
+Pythonの場合は`import polars as pl`として`pl.read_csv()`のように使いますが、Rでは`pl$read_csv()`のように`$`でアクセスします。
+
+```{r}
+library(polars)
+
+# データの読み込み（CSVファイルから）
+df <- pl$read_csv(here::here("data/251125_r_polars/data.csv"))
+
+# 遅延評価を使う場合（LazyFrame）
+lf <- pl$scan_csv(here::here("data/251125_r_polars/data.csv"))
+
+# データ処理の例
+result <- lf$
+  filter(pl$col("age") > 30)$
+  select(c("name", "age", "city"))$
+  group_by("city")$
+  agg(pl$col("age")$mean())$
+  collect() # ここで初めて実行される
+
+print(result)
+```
+
+### 主な関数
+
+- `pl$read_csv()`: CSVファイルを即座に読み込む（Eager evaluation）
+- `pl$scan_csv()`: CSVファイルをスキャンする（Lazy evaluation）
+- `filter()`: 行のフィルタリング
+- `select()`: 列の選択
+- `group_by()`: グループ化
+- `agg()`: 集計
+- `collect()`: 遅延評価の結果を取得
+
+## tidypolarsで使いやすく
+
+{tidypolars}を使うと、{polars}の高速性を保ちながら、{tidyverse}の文法で書くことができます。
+
+ここでは例として、irisデータセットを使って{tidypolars}の基本的な使い方を見ていきます^[`iris.csv`はデフォルトで使える`iris`データフレームをCSV化しただけです。]。
+
+```{r}
+library(tidypolars)
+library(tidyverse)
+
+# データの読み込み
+df <- read_csv_polars(here::here("data/iris.csv"))
+
+result <- df |>
+  filter(Sepal.Length > 5.0) |>
+  select(Sepal.Length, Sepal.Width, Species) |>
+  group_by(Species) |>
+  summarise(
+    avg_sepal_length = mean(Sepal.Length),
+    avg_sepal_width = mean(Sepal.Width)
+  )
+
+print(result)
+```
+
+### tidypolarsの利点
+
+1. **tidyverseの文法が使える**: {dplyr}に慣れている人はすぐに使える
+2. **高速性は維持**: 内部的には{polars}のエンジンを使用
+3. **学習コストが低い**: 新しい文法を覚える必要がない
+
+### 対応している関数
+
+{tidypolars}は{dplyr}および{tidyr}のS3メソッドとして実装されているため、**これらのパッケージを読み込む必要があります**（{tidyverse}を一緒に読み込んでおけば安心です！）。
+この点を踏まえた上で、{tidypolars}では以下の主要な動詞がサポートされています：
+
+- `filter()`: 行のフィルタリング
+- `select()`: 列の選択
+- `mutate()`: 列の追加・変更
+- `summarise()` / `summarize()`: 集計
+- `arrange()`: 並び替え
+- `group_by()`: グループ化
+- `left_join()`, `inner_join()`など: 結合操作
+
+### DataFrameとLazyFrameの使い分け
+
+{tidypolars}では、2つのデータ読み込み方法があります：
+
+**DataFrame（即座に評価）**
+
+```r
+# データを即座に読み込む
+df <- read_csv_polars("data.csv")
+```
+
+- 小〜中規模データに適している
+- 即座に結果を確認できる
+- メモリに全データが読み込まれる
+
+**LazyFrame（遅延評価）**
+
+```r
+# データをスキャンするだけで、まだ読み込まれない
+lf <- scan_csv_polars("data.csv")
+
+result <- lf |>
+  filter(...) |> 
+  collect()
+```
+
+- 大規模データに適している  
+- クエリ最適化の恩恵を受けられる
+- 必要な部分だけメモリに読み込む
+
+大規模データの場合は**LazyFrameを使うことを推奨**します。この場合は、最後に`collect()`を呼び出して結果を取得してください。
+
+## 実践例
+
+### 例1: 大規模CSVファイルの処理
+
+```{r}
+library(tidypolars)
+library(tidyverse)
+
+# 大規模CSVファイルを効率的に処理
+result <- read_csv_polars(here::here("data/251125_r_polars/large_dataset.csv")) |>
+  filter(!is.na(value)) |>
+  mutate(
+    value_log = log(value),
+    value_category = case_when(
+      value < 100 ~ "small",
+      value < 1000 ~ "medium",
+      TRUE ~ "large"
+    )
+  ) |>
+  summarise(
+    count = n(),
+    mean_value = mean(value),
+    median_value = median(value),
+    .by = value_category
+  ) |>
+  arrange(desc(mean_value))
+
+print(result)
+```
+
+### 例2: データの書き出し
+
+```{r}
+#| eval: false
+
+# 処理結果をParquet形式で保存
+result |>
+  write_parquet_polars("output/result.parquet")
+
+# 処理結果をCSV形式で保存
+result |>
+  write_csv_polars("output/result.csv")
+```
+
+Parquet形式については以下の記事もご覧ください。
+
+:::{.callout-tip appearance="minimal"}
+[Parquetファイルについて調べてみる](/pages/blog/2025/07/250728_parquet/index.qmd)
+:::
+
+## polarsとtidyverseの使い分け
+
+### polars/tidypolarsの使用が適しているケース
+
+- **大規模データ**: 数百MB以上のデータを扱う場合
+- **処理速度が重要**: パフォーマンスが求められる場合
+- **メモリ制限**: メモリが限られている環境での処理
+
+## 注意点
+
+### tidypolarsの制約
+
+{tidypolars}は{polars}のラッパーなので、一部の{dplyr}/{tidyr}機能は未対応です：
+
+- `rowwise()`を使った行ごとの操作
+- 一部の複雑なウィンドウ関数
+- カスタム関数の中での一部の集計関数
+
+ただし、`across()`、`pivot_longer()`、`pivot_wider()`などの主要な関数は**サポートされています**。
+
+### データ型の違い
+
+{polars}とRのデータフレームでは、データ型の扱いが異なる場合があります。必要に応じて`as.data.frame()`で通常のデータフレームに変換してください。
+
+```{r}
+#| eval: false
+
+# polarsのDataFrameをRのdata.frameに変換
+df_r <- as.data.frame(df_polars)
+
+# tibbleに変換する場合
+df_tibble <- tibble::as_tibble(df_polars)
+
+# または collect() を使う方法（LazyFrameの場合）
+df_r <- df_polars |>
+  collect() |> # まずDataFrameに変換
+  as.data.frame() # 次にR data.frameに変換
+```
+
+## おわりに
+
+この記事では、Rで{polars}を使う方法と、tidyverseライクな文法で使える{tidypolars}について解説しました。
+
+大規模データを扱う際は、{polars}の高速性が大きなメリットになります。特に{tidypolars}を使えば、既存の{tidyverse}の知識を活かしながら高速なデータ処理が実現できます。
+
+すべてのケースで{polars}が最適とは限りませんが、データサイズや処理内容に応じて、{tidyverse}や{polars}などを使い分けることが重要だと思います。
+
+ぜひ{polars}を試してみてください！
+
+## 参考
+
+:::{.callout-tip appearance="minimal"}
+- [polars - R package](https://pola-rs.github.io/r-polars/)
+- [tidypolars](https://github.com/etiennebacher/tidypolars)
+- [Polars User Guide](https://pola-rs.github.io/polars-book/)
+:::
