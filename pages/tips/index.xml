@@ -12,590 +12,6 @@
 <generator>quarto-1.9.12</generator>
 <lastBuildDate>Mon, 24 Nov 2025 15:00:00 GMT</lastBuildDate>
 <item>
-  <title>【R】case_match()でデータフレームの中身を置き換える</title>
-  <link>https://yo5uke.com/pages/tips/2025/11/251124_case_match/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>この記事では、<code>dplyr</code>パッケージの<code>case_match()</code>関数を使ったデータの置き換え方法について解説します。</p>
-<p>以前「<a href="../../../../../pages/tips/2025/07/250727_recode/index.html"><span class="fira-code">recode</span>関数でデータフレームの中身を置き換える</a>」という記事で<code>recode()</code>関数を紹介しましたが、現在<code>recode()</code>はsuperseded（推奨されない・代替がある）となっています。そこで、より効率的な書き方として<code>case_match()</code>関数の使い方をまとめます。</p>
-</section>
-<section id="dplyrcase_matchの基本" class="level2">
-<h2 class="anchored" data-anchor-id="dplyrcase_matchの基本"><span class="fira-code">dplyr::case_match()</span>の基本</h2>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb1-2"></span>
-<span id="cb1-3">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb1-4">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">x =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>)</span>
-<span id="cb1-5">)</span>
-<span id="cb1-6"></span>
-<span id="cb1-7"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 5 × 1
-      x
-  &lt;dbl&gt;
-1     1
-2     2
-3     3
-4     4
-5     5</code></pre>
-</div>
-</div>
-<p><code>case_match()</code>関数は、指定した列の値に基づいて新しい値を割り当てることができます。</p>
-<p>例えば、<code>x</code>列の値が1, 2, 3の場合は”A”、4, 5の場合は”B”という新しい列<code>y</code>を作成する場合、以下のように書きます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb3-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb3-3">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">y =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">case_match</span>(x, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"A"</span>, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">5</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"B"</span>)</span>
-<span id="cb3-4">  )</span>
-<span id="cb3-5"></span>
-<span id="cb3-6"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 5 × 2
-      x y    
-  &lt;dbl&gt; &lt;chr&gt;
-1     1 A    
-2     2 A    
-3     3 A    
-4     4 B    
-5     5 B    </code></pre>
-</div>
-</div>
-<p>似たような関数に<code>case_when()</code>がありますが、<code>case_when()</code>は複数の条件式を評価して条件に応じた値を返すのに対して、<code>case_match()</code>は1つの変数に着目したうえで値を置き換えるという働きをします。</p>
-<section id="例文字列の置き換え都道府県コードから地域名へ" class="level3">
-<h3 class="anchored" data-anchor-id="例文字列の置き換え都道府県コードから地域名へ">例：文字列の置き換え（都道府県コードから地域名へ）</h3>
-<p>実務ではよく、コードを人間が読みやすい形に変換することがあります。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 都道府県コードから地方名へ変換</span></span>
-<span id="cb5-2">prefecture_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb5-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">pref_code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"01"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"13"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"27"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"40"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"47"</span>)</span>
-<span id="cb5-4">)</span>
-<span id="cb5-5"></span>
-<span id="cb5-6">prefecture_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> prefecture_df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb5-7">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb5-8">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">region =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">case_match</span>(</span>
-<span id="cb5-9">      pref_code,</span>
-<span id="cb5-10">      <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"01"</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"北海道"</span>,</span>
-<span id="cb5-11">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"02"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"03"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"04"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"05"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"06"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"07"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"東北"</span>,</span>
-<span id="cb5-12">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"08"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"09"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"10"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"11"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"12"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"13"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"14"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"関東"</span>,</span>
-<span id="cb5-13">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"21"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"22"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"23"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"24"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"25"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"26"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"27"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"28"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"29"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"30"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"近畿"</span>,</span>
-<span id="cb5-14">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"40"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"41"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"42"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"43"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"44"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"45"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"46"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"47"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"九州・沖縄"</span>,</span>
-<span id="cb5-15">      <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">.default =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"その他"</span></span>
-<span id="cb5-16">    )</span>
-<span id="cb5-17">  )</span>
-<span id="cb5-18"></span>
-<span id="cb5-19"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(prefecture_df)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 5 × 2
-  pref_code region    
-  &lt;chr&gt;     &lt;chr&gt;     
-1 01        北海道    
-2 13        関東      
-3 27        近畿      
-4 40        九州・沖縄
-5 47        九州・沖縄</code></pre>
-</div>
-</div>
-<p><code>.default</code>引数を使うことで、マッチしなかった値にデフォルト値を割り当てることができます。</p>
-</section>
-<section id="名前付きベクトルを使った方法" class="level3">
-<h3 class="anchored" data-anchor-id="名前付きベクトルを使った方法">名前付きベクトルを使った方法</h3>
-<p>マッピングルールが複雑な場合や再利用したい場合は、あらかじめ名前付きベクトルを定義しておくと便利です。</p>
-<p>ただ、この場合は以前紹介したような<code>dplyr::recode()</code>ではなく、今回の<code>case_match()</code>でもなく、名前付きベクトルを<code>[]</code>でインデックス参照する方法で解決できます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 商品カテゴリコードから日本語名へのマッピングを定義</span></span>
-<span id="cb7-2">category_mapping <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(</span>
-<span id="cb7-3">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"A"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"食品"</span>,</span>
-<span id="cb7-4">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"B"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"衣料品"</span>,</span>
-<span id="cb7-5">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"C"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"家電"</span>,</span>
-<span id="cb7-6">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"D"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"書籍"</span>,</span>
-<span id="cb7-7">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"E"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"その他"</span></span>
-<span id="cb7-8">)</span>
-<span id="cb7-9"></span>
-<span id="cb7-10">product_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb7-11">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">product_id =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>,</span>
-<span id="cb7-12">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category_code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"B"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"C"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"D"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"F"</span>)</span>
-<span id="cb7-13">)</span>
-<span id="cb7-14"></span>
-<span id="cb7-15"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 方法1: 名前付きベクトルを使ってインデックス参照</span></span>
-<span id="cb7-16">product_df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> product_df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb7-17">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb7-18">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category_name =</span> category_mapping[category_code],</span>
-<span id="cb7-19">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category_name =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">if_else</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">is.na</span>(category_name), <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"未分類"</span>, category_name)</span>
-<span id="cb7-20">  )</span>
-<span id="cb7-21"></span>
-<span id="cb7-22"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(product_df)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 6 × 3
-  product_id category_code category_name
-       &lt;int&gt; &lt;chr&gt;         &lt;chr&gt;        
-1          1 A             食品         
-2          2 B             衣料品       
-3          3 C             家電         
-4          4 A             食品         
-5          5 D             書籍         
-6          6 F             未分類       </code></pre>
-</div>
-</div>
-<p>意外にも簡単でした。</p>
-<p>名前付きベクトルを<code>[]</code>でインデックス参照することで、キーから値への変換が簡潔に書けます。マッチしない値は<code>NA</code>になるため、<code>if_else()</code>でデフォルト値を設定します<sup>1</sup>。この方法は、マッピングルールが多い場合や、複数の場所で同じマッピングを使いたい場合に特に有効です。</p>
-<section id="逆引きマッピング" class="level4">
-<h4 class="anchored" data-anchor-id="逆引きマッピング">逆引きマッピング</h4>
-<p>今度は同じ<code>category_mapping</code>を使って、カテゴリ名からカテゴリコードへの逆引きマッピングを行う方法についてまとめます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 逆引きマッピング用の名前付きベクトルを作成</span></span>
-<span id="cb9-2">reverse_mapping <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">setNames</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">names</span>(category_mapping), category_mapping)</span>
-<span id="cb9-3"></span>
-<span id="cb9-4">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb9-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category_name =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"食品"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"家電"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"書籍"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"未分類"</span>)</span>
-<span id="cb9-6">)</span>
-<span id="cb9-7"></span>
-<span id="cb9-8">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb9-9">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb9-10">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category_code =</span> reverse_mapping[category_name],</span>
-<span id="cb9-11">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category_code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">if_else</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">is.na</span>(category_code), <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"不明"</span>, category_code)</span>
-<span id="cb9-12">  )</span>
-<span id="cb9-13"></span>
-<span id="cb9-14"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4 × 2
-  category_name category_code
-  &lt;chr&gt;         &lt;chr&gt;        
-1 食品          A            
-2 家電          C            
-3 書籍          D            
-4 未分類        不明         </code></pre>
-</div>
-</div>
-<p>ここでは<code>setNames()</code>関数を使って、元の<code>category_mapping</code>の名前と値を入れ替えた新しい名前付きベクトル<code>reverse_mapping</code>を作成しています。</p>
-<p>その後、同様に<code>[]</code>でインデックス参照を使ってカテゴリ名からカテゴリコードへの変換を行い、マッチしない場合は<code>if_else()</code>でデフォルト値を設定しています<sup>2</sup>。</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span><span class="fira-code">setNames()</span>の動き
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p><code>setNames()</code>関数は、ベクトルに名前を付けるための関数です。以下のように使います。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">x <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span></span>
-<span id="cb11-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">setNames</span>(x, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"a"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"b"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"c"</span>))</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>a b c 
-1 2 3 </code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 結果:</span></span>
-<span id="cb13-2"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#  a b c</span></span>
-<span id="cb13-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">#  1 2 3</span></span></code></pre></div></div>
-</div>
-<p>この例では、数値ベクトル<code>x</code>に対して、名前ベクトル<code>c("a", "b", "c")</code>を使って名前を付けています。結果として、<code>x</code>の各要素に対応する名前が付与されます。</p>
-<p>さらに今回のように<code>names()</code>では<code>A</code>, <code>B</code>, <code>C</code>などの名前を取得し、それに対応する値を逆に設定する<sup>3</sup>ことで、逆引きマッピング用の名前付きベクトルを作成できます。</p>
-<p>特に長いマッピングルールを扱う場合に、また1から名前付きベクトルを作成しなくてよくなるため便利だと思います。</p>
-</div>
-</div>
-</div>
-</section>
-</section>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>この記事では、<code>dplyr::case_match()</code>を使ったデータの置き換え方法について解説しました。</p>
-<p><code>case_match()</code>は単一の列の値を置き換える際に直感的で読みやすいコードが書けます。また、名前付きベクトルを使ったインデックス参照を組み合わせることで、複雑なマッピングルールも効率的に管理できます。</p>
-<p>データクリーニングや前処理の際にぜひ活用してみてください。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>全部マッチすることがわかっているなら2行目は要りません。↩︎</p></li>
-<li id="fn2"><p>ここも同様に全部マッチすることがわかっているなら2行目は要りません。↩︎</p></li>
-<li id="fn3"><p>ここもややこしい点ですが、<code>category_mapping</code>はA→食品、B→衣料品のように対応関係が含まれているものの、値は”食品”や”衣料品”の方に該当します。データフレームのような感じで、“A”や”B”は列名、“食品”や”衣料品”は値、というイメージを持っていただければと思います。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <guid>https://yo5uke.com/pages/tips/2025/11/251124_case_match/</guid>
-  <pubDate>Mon, 24 Nov 2025 15:00:00 GMT</pubDate>
-</item>
-<item>
   <title>【R】polarsでデータ処理を高速化する</title>
   <link>https://yo5uke.com/pages/tips/2025/11/251125_r_polars/</link>
   <description><![CDATA[ 
@@ -1284,6 +700,590 @@ font-style: inherit;"># 次にR data.frameに変換</span></span></code></pre></
   <category>データ処理</category>
   <guid>https://yo5uke.com/pages/tips/2025/11/251125_r_polars/</guid>
   <pubDate>Mon, 24 Nov 2025 15:00:00 GMT</pubDate>
+</item>
+<item>
+  <title>【R】case_match()でデータフレームの中身を置き換える</title>
+  <link>https://yo5uke.com/pages/tips/2025/11/251124_case_match/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>この記事では、<code>dplyr</code>パッケージの<code>case_match()</code>関数を使ったデータの置き換え方法について解説します。</p>
+<p>以前「<a href="../../../../../pages/tips/2025/07/250727_recode/index.html"><span class="fira-code">recode</span>関数でデータフレームの中身を置き換える</a>」という記事で<code>recode()</code>関数を紹介しましたが、現在<code>recode()</code>はsuperseded（推奨されない・代替がある）となっています。そこで、より効率的な書き方として<code>case_match()</code>関数の使い方をまとめます。</p>
+</section>
+<section id="dplyrcase_matchの基本" class="level2">
+<h2 class="anchored" data-anchor-id="dplyrcase_matchの基本"><span class="fira-code">dplyr::case_match()</span>の基本</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb1-2"></span>
+<span id="cb1-3">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb1-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)</span>
+<span id="cb1-5">)</span>
+<span id="cb1-6"></span>
+<span id="cb1-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 1
+      x
+  &lt;dbl&gt;
+1     1
+2     2
+3     3
+4     4
+5     5</code></pre>
+</div>
+</div>
+<p><code>case_match()</code>関数は、指定した列の値に基づいて新しい値を割り当てることができます。</p>
+<p>例えば、<code>x</code>列の値が1, 2, 3の場合は”A”、4, 5の場合は”B”という新しい列<code>y</code>を作成する場合、以下のように書きます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb3-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb3-3">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">case_match</span>(x, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span>)</span>
+<span id="cb3-4">  )</span>
+<span id="cb3-5"></span>
+<span id="cb3-6"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+      x y    
+  &lt;dbl&gt; &lt;chr&gt;
+1     1 A    
+2     2 A    
+3     3 A    
+4     4 B    
+5     5 B    </code></pre>
+</div>
+</div>
+<p>似たような関数に<code>case_when()</code>がありますが、<code>case_when()</code>は複数の条件式を評価して条件に応じた値を返すのに対して、<code>case_match()</code>は1つの変数に着目したうえで値を置き換えるという働きをします。</p>
+<section id="例文字列の置き換え都道府県コードから地域名へ" class="level3">
+<h3 class="anchored" data-anchor-id="例文字列の置き換え都道府県コードから地域名へ">例：文字列の置き換え（都道府県コードから地域名へ）</h3>
+<p>実務ではよく、コードを人間が読みやすい形に変換することがあります。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 都道府県コードから地方名へ変換</span></span>
+<span id="cb5-2">prefecture_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb5-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">pref_code =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"01"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"13"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"27"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"40"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"47"</span>)</span>
+<span id="cb5-4">)</span>
+<span id="cb5-5"></span>
+<span id="cb5-6">prefecture_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> prefecture_df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb5-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb5-8">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">region =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">case_match</span>(</span>
+<span id="cb5-9">      pref_code,</span>
+<span id="cb5-10">      <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"01"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"北海道"</span>,</span>
+<span id="cb5-11">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"02"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"03"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"04"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"05"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"06"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"07"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"東北"</span>,</span>
+<span id="cb5-12">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"08"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"09"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"10"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"11"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"12"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"13"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"14"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"関東"</span>,</span>
+<span id="cb5-13">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"21"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"22"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"23"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"24"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"25"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"26"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"27"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"28"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"29"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"30"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"近畿"</span>,</span>
+<span id="cb5-14">      <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"40"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"41"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"42"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"43"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"44"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"45"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"46"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"47"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"九州・沖縄"</span>,</span>
+<span id="cb5-15">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">.default =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"その他"</span></span>
+<span id="cb5-16">    )</span>
+<span id="cb5-17">  )</span>
+<span id="cb5-18"></span>
+<span id="cb5-19"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(prefecture_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+  pref_code region    
+  &lt;chr&gt;     &lt;chr&gt;     
+1 01        北海道    
+2 13        関東      
+3 27        近畿      
+4 40        九州・沖縄
+5 47        九州・沖縄</code></pre>
+</div>
+</div>
+<p><code>.default</code>引数を使うことで、マッチしなかった値にデフォルト値を割り当てることができます。</p>
+</section>
+<section id="名前付きベクトルを使った方法" class="level3">
+<h3 class="anchored" data-anchor-id="名前付きベクトルを使った方法">名前付きベクトルを使った方法</h3>
+<p>マッピングルールが複雑な場合や再利用したい場合は、あらかじめ名前付きベクトルを定義しておくと便利です。</p>
+<p>ただ、この場合は以前紹介したような<code>dplyr::recode()</code>ではなく、今回の<code>case_match()</code>でもなく、名前付きベクトルを<code>[]</code>でインデックス参照する方法で解決できます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 商品カテゴリコードから日本語名へのマッピングを定義</span></span>
+<span id="cb7-2">category_mapping <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(</span>
+<span id="cb7-3">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"食品"</span>,</span>
+<span id="cb7-4">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"衣料品"</span>,</span>
+<span id="cb7-5">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"家電"</span>,</span>
+<span id="cb7-6">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"D"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"書籍"</span>,</span>
+<span id="cb7-7">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"E"</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"その他"</span></span>
+<span id="cb7-8">)</span>
+<span id="cb7-9"></span>
+<span id="cb7-10">product_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb7-11">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">product_id =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span>,</span>
+<span id="cb7-12">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category_code =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"D"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"F"</span>)</span>
+<span id="cb7-13">)</span>
+<span id="cb7-14"></span>
+<span id="cb7-15"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 方法1: 名前付きベクトルを使ってインデックス参照</span></span>
+<span id="cb7-16">product_df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> product_df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb7-17">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb7-18">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category_name =</span> category_mapping[category_code],</span>
+<span id="cb7-19">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category_name =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">if_else</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">is.na</span>(category_name), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"未分類"</span>, category_name)</span>
+<span id="cb7-20">  )</span>
+<span id="cb7-21"></span>
+<span id="cb7-22"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(product_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 3
+  product_id category_code category_name
+       &lt;int&gt; &lt;chr&gt;         &lt;chr&gt;        
+1          1 A             食品         
+2          2 B             衣料品       
+3          3 C             家電         
+4          4 A             食品         
+5          5 D             書籍         
+6          6 F             未分類       </code></pre>
+</div>
+</div>
+<p>意外にも簡単でした。</p>
+<p>名前付きベクトルを<code>[]</code>でインデックス参照することで、キーから値への変換が簡潔に書けます。マッチしない値は<code>NA</code>になるため、<code>if_else()</code>でデフォルト値を設定します<sup>1</sup>。この方法は、マッピングルールが多い場合や、複数の場所で同じマッピングを使いたい場合に特に有効です。</p>
+<section id="逆引きマッピング" class="level4">
+<h4 class="anchored" data-anchor-id="逆引きマッピング">逆引きマッピング</h4>
+<p>今度は同じ<code>category_mapping</code>を使って、カテゴリ名からカテゴリコードへの逆引きマッピングを行う方法についてまとめます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 逆引きマッピング用の名前付きベクトルを作成</span></span>
+<span id="cb9-2">reverse_mapping <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">setNames</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">names</span>(category_mapping), category_mapping)</span>
+<span id="cb9-3"></span>
+<span id="cb9-4">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tibble</span>(</span>
+<span id="cb9-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category_name =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"食品"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"家電"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"書籍"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"未分類"</span>)</span>
+<span id="cb9-6">)</span>
+<span id="cb9-7"></span>
+<span id="cb9-8">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb9-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb9-10">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category_code =</span> reverse_mapping[category_name],</span>
+<span id="cb9-11">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">category_code =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">if_else</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">is.na</span>(category_code), <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"不明"</span>, category_code)</span>
+<span id="cb9-12">  )</span>
+<span id="cb9-13"></span>
+<span id="cb9-14"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 2
+  category_name category_code
+  &lt;chr&gt;         &lt;chr&gt;        
+1 食品          A            
+2 家電          C            
+3 書籍          D            
+4 未分類        不明         </code></pre>
+</div>
+</div>
+<p>ここでは<code>setNames()</code>関数を使って、元の<code>category_mapping</code>の名前と値を入れ替えた新しい名前付きベクトル<code>reverse_mapping</code>を作成しています。</p>
+<p>その後、同様に<code>[]</code>でインデックス参照を使ってカテゴリ名からカテゴリコードへの変換を行い、マッチしない場合は<code>if_else()</code>でデフォルト値を設定しています<sup>2</sup>。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span><span class="fira-code">setNames()</span>の動き
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p><code>setNames()</code>関数は、ベクトルに名前を付けるための関数です。以下のように使います。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">x <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span></span>
+<span id="cb11-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">setNames</span>(x, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"a"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"b"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"c"</span>))</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>a b c 
+1 2 3 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 結果:</span></span>
+<span id="cb13-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#  a b c</span></span>
+<span id="cb13-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#  1 2 3</span></span></code></pre></div></div>
+</div>
+<p>この例では、数値ベクトル<code>x</code>に対して、名前ベクトル<code>c("a", "b", "c")</code>を使って名前を付けています。結果として、<code>x</code>の各要素に対応する名前が付与されます。</p>
+<p>さらに今回のように<code>names()</code>では<code>A</code>, <code>B</code>, <code>C</code>などの名前を取得し、それに対応する値を逆に設定する<sup>3</sup>ことで、逆引きマッピング用の名前付きベクトルを作成できます。</p>
+<p>特に長いマッピングルールを扱う場合に、また1から名前付きベクトルを作成しなくてよくなるため便利だと思います。</p>
+</div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>この記事では、<code>dplyr::case_match()</code>を使ったデータの置き換え方法について解説しました。</p>
+<p><code>case_match()</code>は単一の列の値を置き換える際に直感的で読みやすいコードが書けます。また、名前付きベクトルを使ったインデックス参照を組み合わせることで、複雑なマッピングルールも効率的に管理できます。</p>
+<p>データクリーニングや前処理の際にぜひ活用してみてください。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>全部マッチすることがわかっているなら2行目は要りません。↩︎</p></li>
+<li id="fn2"><p>ここも同様に全部マッチすることがわかっているなら2行目は要りません。↩︎</p></li>
+<li id="fn3"><p>ここもややこしい点ですが、<code>category_mapping</code>はA→食品、B→衣料品のように対応関係が含まれているものの、値は”食品”や”衣料品”の方に該当します。データフレームのような感じで、“A”や”B”は列名、“食品”や”衣料品”は値、というイメージを持っていただければと思います。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/2025/11/251124_case_match/</guid>
+  <pubDate>Sun, 23 Nov 2025 15:00:00 GMT</pubDate>
 </item>
 <item>
   <title>【R】無名関数とmap系関数について</title>
