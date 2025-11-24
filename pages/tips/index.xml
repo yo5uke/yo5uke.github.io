@@ -596,6 +596,696 @@ font-style: inherit;">#  1 2 3</span></span></code></pre></div></div>
   <pubDate>Mon, 24 Nov 2025 15:00:00 GMT</pubDate>
 </item>
 <item>
+  <title>【R】polarsでデータ処理を高速化する</title>
+  <link>https://yo5uke.com/pages/tips/2025/11/251125_r_polars/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>Rでデータ処理を行う際、メモリ不足や処理速度の問題に悩まされることがあります。特に大規模データを扱う場合、{tidyverse}の関数だけでは限界を感じることも少なくありません。</p>
+<p>そこで注目されているのが<strong>{polars}</strong>です。{polars}はRustで書かれた高速なデータフレームライブラリで、大規模データの処理を効率的に行うことができます。この記事では、Rで{polars}を使う方法と、tidyverseの文法で使える{tidypolars}について解説します。</p>
+</section>
+<section id="polarsとは" class="level2">
+<h2 class="anchored" data-anchor-id="polarsとは">polarsとは</h2>
+<p>polarsは、Rustで実装されたデータフレームライブラリです。Pythonでよく知られていますが、R版も提供されており、以下のような特徴があります：</p>
+<ul>
+<li><strong>高速な処理</strong>: Rustベースで実装されており、{dplyr}や{data.table}よりも高速</li>
+<li><strong>遅延評価</strong>: クエリを最適化してから実行するため、効率的</li>
+<li><strong>メモリ効率</strong>: 列指向フォーマットのApache Arrowを内部で使用</li>
+<li><strong>並列処理</strong>: マルチコアを活用した並列処理が自動的に行われる</li>
+</ul>
+<p>{polars}の独自の文法は、メソッドチェーンを使ったものですが、{tidyverse}に慣れた人には少し馴染みにくいかもしれません。そこで登場するのが{tidypolars}です。</p>
+</section>
+<section id="インストール" class="level2">
+<h2 class="anchored" data-anchor-id="インストール">インストール</h2>
+<section id="polarsのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="polarsのインストール">polarsのインストール</h3>
+<p>{polars}はCRANにはまだ登録されていないため、以下のコマンドでインストールします。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Sys.setenv</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">NOT_CRAN =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"true"</span>)</span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"polars"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">repos =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://community.r-multiverse.org"</span>)</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># または開発版</span></span>
+<span id="cb1-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># install.packages('polars', repos = c("https://rpolars.r-universe.dev", "https://cloud.r-project.org"))</span></span></code></pre></div></div>
+</div>
+</section>
+<section id="tidypolarsのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="tidypolarsのインストール">tidypolarsのインストール</h3>
+<p>{tidypolars}もCRANには登録されていないため、同様にインストールします。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Sys.setenv</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">NOT_CRAN =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"true"</span>)</span>
+<span id="cb2-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"tidypolars"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">repos =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://community.r-multiverse.org"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"https://cloud.r-project.org"</span>))</span>
+<span id="cb2-3"></span>
+<span id="cb2-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># または開発版</span></span>
+<span id="cb2-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pak::pak("etiennebacher/tidypolars")</span></span></code></pre></div></div>
+</div>
+</section>
+</section>
+<section id="polarsの基本的な使い方" class="level2">
+<h2 class="anchored" data-anchor-id="polarsの基本的な使い方">polarsの基本的な使い方</h2>
+<p>まずはpolars本来の文法で基本的な使い方を見ていきます。</p>
+<p>そもそも{polars}はPythonで一般的に使われており、R版はそのラッパーとして提供されています。Rで使う場合も、Python版と似たようなメソッドチェーンのスタイルを採用しています。</p>
+<p>Pythonの場合は<code>import polars as pl</code>として<code>pl.read_csv()</code>のように使いますが、Rでは<code>pl$read_csv()</code>のように<code>$</code>でアクセスします。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(polars)</span>
+<span id="cb3-2"></span>
+<span id="cb3-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データの読み込み（CSVファイルから）</span></span>
+<span id="cb3-4">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> pl<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_csv</span>(here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/251125_r_polars/data.csv"</span>))</span>
+<span id="cb3-5"></span>
+<span id="cb3-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 遅延評価を使う場合（LazyFrame）</span></span>
+<span id="cb3-7">lf <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> pl<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scan_csv</span>(here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/251125_r_polars/data.csv"</span>))</span>
+<span id="cb3-8"></span>
+<span id="cb3-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データ処理の例</span></span>
+<span id="cb3-10">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> lf<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span></span>
+<span id="cb3-11">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(pl<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">col</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"age"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span>)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span></span>
+<span id="cb3-12">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"name"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"age"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"city"</span>))<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span></span>
+<span id="cb3-13">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">group_by</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"city"</span>)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span></span>
+<span id="cb3-14">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">agg</span>(pl<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">col</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"age"</span>)<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>())<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span></span>
+<span id="cb3-15">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">collect</span>() <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ここで初めて実行される</span></span>
+<span id="cb3-16"></span>
+<span id="cb3-17"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(result)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (4, 2)
+┌─────────┬───────────┐
+│ city    ┆ age       │
+│ ---     ┆ ---       │
+│ str     ┆ f64       │
+╞═════════╪═══════════╡
+│ Fukuoka ┆ 36.0      │
+│ Osaka   ┆ 39.666667 │
+│ Tokyo   ┆ 42.25     │
+│ Nagoya  ┆ 39.0      │
+└─────────┴───────────┘</code></pre>
+</div>
+</div>
+<section id="主な関数" class="level3">
+<h3 class="anchored" data-anchor-id="主な関数">主な関数</h3>
+<ul>
+<li><code>pl$read_csv()</code>: CSVファイルを即座に読み込む（Eager evaluation）</li>
+<li><code>pl$scan_csv()</code>: CSVファイルをスキャンする（Lazy evaluation）</li>
+<li><code>filter()</code>: 行のフィルタリング</li>
+<li><code>select()</code>: 列の選択</li>
+<li><code>group_by()</code>: グループ化</li>
+<li><code>agg()</code>: 集計</li>
+<li><code>collect()</code>: 遅延評価の結果を取得</li>
+</ul>
+</section>
+</section>
+<section id="tidypolarsで使いやすく" class="level2">
+<h2 class="anchored" data-anchor-id="tidypolarsで使いやすく">tidypolarsで使いやすく</h2>
+<p>{tidypolars}を使うと、{polars}の高速性を保ちながら、{tidyverse}の文法で書くことができます。</p>
+<p>ここでは例として、irisデータセットを使って{tidypolars}の基本的な使い方を見ていきます<sup>1</sup>。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidypolars)</span>
+<span id="cb5-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb5-3"></span>
+<span id="cb5-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データの読み込み</span></span>
+<span id="cb5-5">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_csv_polars</span>(here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/iris.csv"</span>))</span>
+<span id="cb5-6"></span>
+<span id="cb5-7">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb5-8">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(Sepal.Length <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5.0</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb5-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(Sepal.Length, Sepal.Width, Species) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb5-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">group_by</span>(Species) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb5-11">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarise</span>(</span>
+<span id="cb5-12">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">avg_sepal_length =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(Sepal.Length),</span>
+<span id="cb5-13">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">avg_sepal_width =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(Sepal.Width)</span>
+<span id="cb5-14">  )</span>
+<span id="cb5-15"></span>
+<span id="cb5-16"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(result)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (3, 3)
+┌────────────┬──────────────────┬─────────────────┐
+│ Species    ┆ avg_sepal_length ┆ avg_sepal_width │
+│ ---        ┆ ---              ┆ ---             │
+│ str        ┆ f64              ┆ f64             │
+╞════════════╪══════════════════╪═════════════════╡
+│ versicolor ┆ 5.997872         ┆ 2.804255        │
+│ virginica  ┆ 6.622449         ┆ 2.983673        │
+│ setosa     ┆ 5.313636         ┆ 3.713636        │
+└────────────┴──────────────────┴─────────────────┘</code></pre>
+</div>
+</div>
+<section id="tidypolarsの利点" class="level3">
+<h3 class="anchored" data-anchor-id="tidypolarsの利点">tidypolarsの利点</h3>
+<ol type="1">
+<li><strong>tidyverseの文法が使える</strong>: {dplyr}に慣れている人はすぐに使える</li>
+<li><strong>高速性は維持</strong>: 内部的には{polars}のエンジンを使用</li>
+<li><strong>学習コストが低い</strong>: 新しい文法を覚える必要がない</li>
+</ol>
+</section>
+<section id="対応している関数" class="level3">
+<h3 class="anchored" data-anchor-id="対応している関数">対応している関数</h3>
+<p>{tidypolars}は{dplyr}および{tidyr}のS3メソッドとして実装されているため、<strong>これらのパッケージを読み込む必要があります</strong>（{tidyverse}を一緒に読み込んでおけば安心です！）。 この点を踏まえた上で、{tidypolars}では以下の主要な動詞がサポートされています：</p>
+<ul>
+<li><code>filter()</code>: 行のフィルタリング</li>
+<li><code>select()</code>: 列の選択</li>
+<li><code>mutate()</code>: 列の追加・変更</li>
+<li><code>summarise()</code> / <code>summarize()</code>: 集計</li>
+<li><code>arrange()</code>: 並び替え</li>
+<li><code>group_by()</code>: グループ化</li>
+<li><code>left_join()</code>, <code>inner_join()</code>など: 結合操作</li>
+</ul>
+</section>
+<section id="dataframeとlazyframeの使い分け" class="level3">
+<h3 class="anchored" data-anchor-id="dataframeとlazyframeの使い分け">DataFrameとLazyFrameの使い分け</h3>
+<p>{tidypolars}では、2つのデータ読み込み方法があります：</p>
+<p><strong>DataFrame（即座に評価）</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データを即座に読み込む</span></span>
+<span id="cb7-2">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_csv_polars</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data.csv"</span>)</span></code></pre></div></div>
+<ul>
+<li>小〜中規模データに適している</li>
+<li>即座に結果を確認できる</li>
+<li>メモリに全データが読み込まれる</li>
+</ul>
+<p><strong>LazyFrame（遅延評価）</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データをスキャンするだけで、まだ読み込まれない</span></span>
+<span id="cb8-2">lf <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scan_csv_polars</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data.csv"</span>)</span>
+<span id="cb8-3"></span>
+<span id="cb8-4">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> lf <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-5">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(...) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> </span>
+<span id="cb8-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">collect</span>()</span></code></pre></div></div>
+<ul>
+<li>大規模データに適している<br>
+</li>
+<li>クエリ最適化の恩恵を受けられる</li>
+<li>必要な部分だけメモリに読み込む</li>
+</ul>
+<p>大規模データの場合は<strong>LazyFrameを使うことを推奨</strong>します。この場合は、最後に<code>collect()</code>を呼び出して結果を取得してください。</p>
+</section>
+</section>
+<section id="実践例" class="level2">
+<h2 class="anchored" data-anchor-id="実践例">実践例</h2>
+<section id="例1-大規模csvファイルの処理" class="level3">
+<h3 class="anchored" data-anchor-id="例1-大規模csvファイルの処理">例1: 大規模CSVファイルの処理</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidypolars)</span>
+<span id="cb9-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb9-3"></span>
+<span id="cb9-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 大規模CSVファイルを効率的に処理</span></span>
+<span id="cb9-5">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_csv_polars</span>(here<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/251125_r_polars/large_dataset.csv"</span>)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb9-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">is.na</span>(value)) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb9-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb9-8">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">value_log =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">log</span>(value),</span>
+<span id="cb9-9">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">value_category =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">case_when</span>(</span>
+<span id="cb9-10">      value <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"small"</span>,</span>
+<span id="cb9-11">      value <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"medium"</span>,</span>
+<span id="cb9-12">      <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"large"</span></span>
+<span id="cb9-13">    )</span>
+<span id="cb9-14">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb9-15">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarise</span>(</span>
+<span id="cb9-16">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">count =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">n</span>(),</span>
+<span id="cb9-17">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">mean_value =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(value),</span>
+<span id="cb9-18">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">median_value =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">median</span>(value),</span>
+<span id="cb9-19">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">.by =</span> value_category</span>
+<span id="cb9-20">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb9-21">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">arrange</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">desc</span>(mean_value))</span>
+<span id="cb9-22"></span>
+<span id="cb9-23"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(result)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (3, 4)
+┌────────────────┬───────┬────────────┬──────────────┐
+│ value_category ┆ count ┆ mean_value ┆ median_value │
+│ ---            ┆ ---   ┆ ---        ┆ ---          │
+│ str            ┆ u32   ┆ f64        ┆ f64          │
+╞════════════════╪═══════╪════════════╪══════════════╡
+│ large          ┆ 4     ┆ 1100.0     ┆ 1075.0       │
+│ medium         ┆ 31    ┆ 472.741935 ┆ 490.0        │
+│ small          ┆ 15    ┆ 79.6       ┆ 82.0         │
+└────────────────┴───────┴────────────┴──────────────┘</code></pre>
+</div>
+</div>
+</section>
+<section id="例2-データの書き出し" class="level3">
+<h3 class="anchored" data-anchor-id="例2-データの書き出し">例2: データの書き出し</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 処理結果をParquet形式で保存</span></span>
+<span id="cb11-2">result <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb11-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">write_parquet_polars</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"output/result.parquet"</span>)</span>
+<span id="cb11-4"></span>
+<span id="cb11-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 処理結果をCSV形式で保存</span></span>
+<span id="cb11-6">result <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb11-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">write_csv_polars</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"output/result.csv"</span>)</span></code></pre></div></div>
+</div>
+<p>Parquet形式については以下の記事もご覧ください。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../../../pages/blog/2025/07/250728_parquet/index.html">Parquetファイルについて調べてみる</a></p>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="polarsとtidyverseの使い分け" class="level2">
+<h2 class="anchored" data-anchor-id="polarsとtidyverseの使い分け">polarsとtidyverseの使い分け</h2>
+<section id="polarstidypolarsの使用が適しているケース" class="level3">
+<h3 class="anchored" data-anchor-id="polarstidypolarsの使用が適しているケース">polars/tidypolarsの使用が適しているケース</h3>
+<ul>
+<li><strong>大規模データ</strong>: 数百MB以上のデータを扱う場合</li>
+<li><strong>処理速度が重要</strong>: パフォーマンスが求められる場合</li>
+<li><strong>メモリ制限</strong>: メモリが限られている環境での処理</li>
+</ul>
+</section>
+</section>
+<section id="注意点" class="level2">
+<h2 class="anchored" data-anchor-id="注意点">注意点</h2>
+<section id="tidypolarsの制約" class="level3">
+<h3 class="anchored" data-anchor-id="tidypolarsの制約">tidypolarsの制約</h3>
+<p>{tidypolars}は{polars}のラッパーなので、一部の{dplyr}/{tidyr}機能は未対応です：</p>
+<ul>
+<li><code>rowwise()</code>を使った行ごとの操作</li>
+<li>一部の複雑なウィンドウ関数</li>
+<li>カスタム関数の中での一部の集計関数</li>
+</ul>
+<p>ただし、<code>across()</code>、<code>pivot_longer()</code>、<code>pivot_wider()</code>などの主要な関数は<strong>サポートされています</strong>。</p>
+</section>
+<section id="データ型の違い" class="level3">
+<h3 class="anchored" data-anchor-id="データ型の違い">データ型の違い</h3>
+<p>{polars}とRのデータフレームでは、データ型の扱いが異なる場合があります。必要に応じて<code>as.data.frame()</code>で通常のデータフレームに変換してください。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># polarsのDataFrameをRのdata.frameに変換</span></span>
+<span id="cb12-2">df_r <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.data.frame</span>(df_polars)</span>
+<span id="cb12-3"></span>
+<span id="cb12-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># tibbleに変換する場合</span></span>
+<span id="cb12-5">df_tibble <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> tibble<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as_tibble</span>(df_polars)</span>
+<span id="cb12-6"></span>
+<span id="cb12-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># または collect() を使う方法（LazyFrameの場合）</span></span>
+<span id="cb12-8">df_r <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> df_polars <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb12-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">collect</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># まずDataFrameに変換</span></span>
+<span id="cb12-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.data.frame</span>() <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 次にR data.frameに変換</span></span></code></pre></div></div>
+</div>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>この記事では、Rで{polars}を使う方法と、tidyverseライクな文法で使える{tidypolars}について解説しました。</p>
+<p>大規模データを扱う際は、{polars}の高速性が大きなメリットになります。特に{tidypolars}を使えば、既存の{tidyverse}の知識を活かしながら高速なデータ処理が実現できます。</p>
+<p>すべてのケースで{polars}が最適とは限りませんが、データサイズや処理内容に応じて、{tidyverse}や{polars}などを使い分けることが重要だと思います。</p>
+<p>ぜひ{polars}を試してみてください！</p>
+</section>
+<section id="参考" class="level2">
+<h2 class="anchored" data-anchor-id="参考">参考</h2>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<ul>
+<li><a href="https://pola-rs.github.io/r-polars/">polars - R package</a></li>
+<li><a href="https://github.com/etiennebacher/tidypolars">tidypolars</a></li>
+<li><a href="https://pola-rs.github.io/polars-book/">Polars User Guide</a></li>
+</ul>
+</div>
+</div>
+</div>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p><code>iris.csv</code>はデフォルトで使える<code>iris</code>データフレームをCSV化しただけです。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/2025/11/251125_r_polars/</guid>
+  <pubDate>Mon, 24 Nov 2025 15:00:00 GMT</pubDate>
+</item>
+<item>
   <title>【R】無名関数とmap系関数について</title>
   <link>https://yo5uke.com/pages/tips/2025/11/251106_anonymous/</link>
   <description><![CDATA[ 
@@ -13451,664 +14141,6 @@ font-style: inherit;">print</span>(df_wide)</span></code></pre></div></div>
   <category>データ処理</category>
   <guid>https://yo5uke.com/pages/tips/2025/03/250309_estat_api/</guid>
   <pubDate>Sat, 08 Mar 2025 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【ウェブサイト】設定を追加する</title>
-  <link>https://yo5uke.com/pages/tips/2025/02/250205_website_tools/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>2月に入りましたが、本年初の更新となります。今年は就職の年ですが、時間があるときに学びを備忘録がてら更新していきたいと思いますのでよろしくお願いします。</p>
-<p>今回は以前ご紹介したウェブサイトの作り方について、さらに設定を追加していこうと思います。</p>
-<p>追加する設定は、</p>
-<ol type="1">
-<li><p>Googleアナリティクス</p></li>
-<li><p>SNSアカウント</p></li>
-<li><p>フッター</p></li>
-</ol>
-<p>です。前提として、以下のページ等をもとにQuartoのウェブページが作成されているとします。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="../../../../../pages/tips/2024/12/241213_create_website/index.html">【Quarto &amp; RStudio】ウェブサイトを作る！</a></p>
-</div>
-</div>
-</div>
-<p>順を追ってみていきましょう。</p>
-</section>
-<section id="googleアナリティクス" class="level2">
-<h2 class="anchored" data-anchor-id="googleアナリティクス">Googleアナリティクス</h2>
-<p>そもそもですが、Googleアナリティクスでは、ウェブサイトやアプリの訪問者の動向を分析することができます。例えば、昨日は何人がページを訪れて、どのページを見ていったか、といったことが把握できるようになります。</p>
-<section id="アナリティクスページ" class="level3">
-<h3 class="anchored" data-anchor-id="アナリティクスページ">アナリティクスページ</h3>
-<p>まずは、Googleアナリティクスのページでの設定を行います。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/02/250205_website_tools/image/analytics_top.png" class="img-fluid figure-img" style="width:80.0%"></p>
-<figcaption>Googleアナリティクスの画面</figcaption>
-</figure>
-</div>
-<ol type="1">
-<li><a href="https://analytics.google.com/" class="uri">https://analytics.google.com/</a>へ移動し、使用するGoogleアカウントでログインする</li>
-<li>「測定を開始」をクリック</li>
-<li>任意のアカウント名を入力、データ共有設定で必要な項目にチェックを入れ、次へ
-<ul>
-<li>アカウント名は何でも大丈夫です。</li>
-<li>チェックはそのままでも大丈夫です。</li>
-</ul></li>
-<li>任意のプロパティ名を入力し、次へ
-<ul>
-<li>これはウェブページ名にした方がわかりやすいと思います。</li>
-<li>例：「hogehoge.github.io」</li>
-</ul></li>
-<li>ビジネスの説明を入力し、次へ
-<ul>
-<li>ここは適当で大丈夫だと思います。</li>
-</ul></li>
-<li>ビジネス目標を選択し、「作成」を選択
-<ul>
-<li>「ウェブ/アプリのトラフィックの分析」や「ユーザーエンゲージメントとユーザーの維持率の把握」あたりが該当すると思います。</li>
-</ul></li>
-<li>「ウェブ」を選択</li>
-<li>URLとストリーム名を入力し、「作成して続行」をクリック
-<ul>
-<li>URLはGitHubページであれば「(ユーザー名).github.io」です。不安であればホームページからコピーしてきてください。</li>
-<li>ストリーム名はプロパティ名と同じでいいと思います。</li>
-</ul></li>
-</ol>
-<p>「Googleタグの設定」という画面が出てくると思いますが、ここは×で閉じて大丈夫です。すると、「ウェブ ストリームの詳細」の画面が出てくるので、そこの<strong>測定 ID</strong>（Gで始まる）をコピーして下さい。</p>
-<p>画面を閉じてしまっても、表示されている画面で該当するページ部分をクリックすれば再度開くことができます。</p>
-</section>
-<section id="quartoの設定" class="level3">
-<h3 class="anchored" data-anchor-id="quartoの設定">Quartoの設定</h3>
-<p>エディターに戻り、<code>_quarto.yml</code>を開きます。</p>
-<p>以下のように、<code>google-analytics</code>にコピーしたIDを追記してください。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">project</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb1-2"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">type</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> website</span></span>
-<span id="cb1-3"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span></span>
-<span id="cb1-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">website</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb1-5"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ホームページ"</span></span>
-<span id="cb1-6"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">google-analytics</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"G-xxxxxxxxxx"</span></span>
-<span id="cb1-7"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">navbar</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb1-8"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">right</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb1-9"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> about.qmd</span></span></code></pre></div></div>
-<p>これで保存して再度パブリッシュ<sup>1</sup>し、しばらくすると追跡結果がみられるようになります。すぐは見れませんが、しばらくした後再度<a href="https://analytics.google.com/">Googleアナリティクス</a>を訪れてみてください。</p>
-</section>
-</section>
-<section id="snsアカウントを追加" class="level2">
-<h2 class="anchored" data-anchor-id="snsアカウントを追加">SNSアカウントを追加</h2>
-<p>ウェブサイトからXやFacebookなど他のページへ飛んでほしいこともあるかと思います。こうしたSNSアカウントやGitHubなどのアイコンの表示方法をご紹介します。</p>
-<section id="ナビゲーションバー" class="level3">
-<h3 class="anchored" data-anchor-id="ナビゲーションバー">ナビゲーションバー</h3>
-<p>まずは画面上部のナビゲーションバーに表示する方法です（本ページも右上にGitHubアイコンがあります）。</p>
-<p><code>_quarto.yml</code>を開きます。以下のように<code>tools</code>を追記して下さい。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">project</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb2-2"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">type</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> website</span></span>
-<span id="cb2-3"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span></span>
-<span id="cb2-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">website</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb2-5"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ホームページ"</span></span>
-<span id="cb2-6"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">google-analytics</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"G-xxxxxxxxxx"</span></span>
-<span id="cb2-7"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">navbar</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb2-8"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">right</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb2-9"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> about.qmd</span></span>
-<span id="cb2-10"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tools</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb2-11"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> twitter-x</span></span>
-<span id="cb2-12"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">href</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> https://twitter.com/hogehoge</span></span>
-<span id="cb2-13"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">text</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> Twitter</span></span>
-<span id="cb2-14"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> github</span></span>
-<span id="cb2-15"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">href</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> https://github.com/hogehoge</span></span>
-<span id="cb2-16"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">text</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> GitHub</span></span></code></pre></div></div>
-<p><code>icon</code>、<code>href</code>、<code>text</code>の3つがあります。Xは<code>twitter-x</code>となっていることに注意してください。Twitterアイコンがよければシンプルに<code>twitter</code>で表示できます。</p>
-<p>これで保存しページをレンダリングすると、アイコンが表示されていると思います。</p>
-</section>
-<section id="ページ内で表示" class="level3">
-<h3 class="anchored" data-anchor-id="ページ内で表示">ページ内で表示</h3>
-<p>僕の<a href="../../../../../pages/about.html">Aboutページ</a>にあるように、プロフィールとセットで表示したい場合は、次のように設定します。</p>
-<p>表示したいページの<code>.qmd</code>ファイルで、YAMLヘッダーを以下のように変更します。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span>
-<span id="cb3-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> Hogehoge</span></span>
-<span id="cb3-3"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">about</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb3-4"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">template</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> trestles</span></span>
-<span id="cb3-5"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">links</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span></span>
-<span id="cb3-6"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> twitter-x</span></span>
-<span id="cb3-7"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">text</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> X (Twitter)</span></span>
-<span id="cb3-8"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">url</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> https://x.com/5uke_y</span></span>
-<span id="cb3-9"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">text</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">" Bluesky"</span></span>
-<span id="cb3-10"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">url</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> https://bsky.app/profile/5uke.bsky.social</span></span>
-<span id="cb3-11"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> github</span></span>
-<span id="cb3-12"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">text</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> GitHub</span></span>
-<span id="cb3-13"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">url</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> https://github.com/hogehoge</span></span>
-<span id="cb3-14"><span class="pp" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">---</span></span></code></pre></div></div>
-<p><code>about</code>の<code>template</code>は<code>trestles</code>以外にもいろいろあります。<a href="https://quarto.org/docs/websites/website-blog.html#about-page">こちら</a>を参照して下さい。</p>
-<p>肝心なのは<code>links</code>です。書き方はナビゲーションバーと同じです。<code>about</code>下に書くことで、以下のように表示できます。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/02/250205_website_tools/image/about.png" class="img-fluid figure-img" style="width:80.0%"></p>
-<figcaption>名前の下に3つのアカウントが表示されています</figcaption>
-</figure>
-</div>
-<p>ちなみにBlueskyの部分の書き方が少々ややこしいですが、これはまだBlueskyのアイコンが提供されていないため、Iconifyのアイコンを使って代用しています。アイコンの挿入については<a href="../../../../../pages/tips/2024/12/241201_icon/index.html">こちら</a>を参照してください。</p>
-<p>以上がSNSアイコンの説明になります。概ねこの2か所に表示することが多いかと思いますので、ご参考になれば幸いです。</p>
-</section>
-</section>
-<section id="フッターの設定" class="level2">
-<h2 class="anchored" data-anchor-id="フッターの設定">フッターの設定</h2>
-<p>大体のウェブページにはフッターが付いていますよね。「©2025 Hogehoge」みたいなものです。</p>
-<p>これもナビゲーションバーと同様に左、真ん中、右でそれぞれ設定できます。</p>
-<p>再び<code>_quarto.yml</code>を開いて、以下のように設定します。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">project</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb4-2"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">type</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> website</span></span>
-<span id="cb4-3"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span></span>
-<span id="cb4-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">website</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb4-5"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">title</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> </span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ホームページ"</span></span>
-<span id="cb4-6"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">navbar</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb4-7"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">right</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb4-8"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">      </span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">-</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> about.qmd</span></span>
-<span id="cb4-9"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">page-footer</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span></span>
-<span id="cb4-10"><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">background</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">:</span><span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;"> light</span></span>
-<span id="cb4-11"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">    center</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">: </span><span class="ch" style="color: #20794D;
-background-color: null;
-font-style: inherit;">|</span></span>
-<span id="cb4-12">      &amp;#169; 2025 Hogehoge</span></code></pre></div></div>
-<p><code>background</code>はフッター部分の背景に少し色が付きます。もちろん<code>dark</code>もあります。</p>
-<p><code>center</code>部分は<code>left</code>と<code>right</code>もあります。また、<code>|</code>で改行することで次の行に書くことができます。<code>center: "&amp;#169; 2025 Hogehoge"</code>みたいに1行で書くこともできるのですが、ダブルクォーテーションを忘れないで下さい。</p>
-<p><code>&amp;#169;</code>はHTMLエンティティといって、これを出力すると「©」となります。別に直接「©」を入れても大丈夫です。</p>
-<p>ちなみにフッター内で改行したい場合は、HTMLと同じで<code>&lt;br&gt;</code>を入れれば可能です。<code>&amp;#169; 2025 Hogehoge &lt;br&gt; This website is created with Quarto</code>のように書けます。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回はGoogleアナリティクス、SNSアカウント、フッターについての設定をご紹介しました。</p>
-<p>これらは<a href="https://quarto.org/docs/guide/">Quarto公式ガイド</a>を読んだり、人の<code>_quarto.yml</code>を真似するのがおすすめです。</p>
-<p>最後に僕がこれまで参考にした方々のコードと、僭越ながら自分のコードのリンクも並べておきます。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://github.com/simonpcouch/website/blob/main/_quarto.yml">Simon P. Couch</a>氏（Posit）</p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://github.com/gadenbuie/garrickadenbuie-com/blob/main/_quarto.yml">Garrick Aden-Buie</a>氏（Posit）</p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://github.com/kazuyanagimoto/kazuyanagimoto.github.io/blob/main/_quarto.yml">柳本和春</a>さん（CEMFI）</p>
-</div>
-</div>
-</div>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://github.com/yo5uke/yo5uke.github.io/blob/main/_quarto.yml">阿部洋輔</a></p>
-</div>
-</div>
-</div>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p><code>quarto publish gh-pages</code>など。詳しくは「<a href="../../../../../pages/tips/2024/12/241213_create_website/index.html">【Quarto &amp; RStudio】ウェブサイトを作る！</a>」を参照してください。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>Quarto</category>
-  <guid>https://yo5uke.com/pages/tips/2025/02/250205_website_tools/</guid>
-  <pubDate>Tue, 04 Feb 2025 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
