@@ -10,7 +10,1825 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.9.12</generator>
-<lastBuildDate>Mon, 24 Nov 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Sun, 30 Nov 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【Windows】RとPostgreSQL中心の環境構築【GISも】</title>
+  <link>https://yo5uke.com/pages/tips/2025/12/251201_env/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>データベースについて
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>本記事ではデータベースとしてPostgreSQLを使用しますが、DuckDBもおすすめです。DuckDBは組み込み型のデータベースで、RやPythonから簡単に利用でき、大規模データの処理にも適しています。</p>
+<p>使い方については<a href="../../../../../pages/tips/2025/09/250919_duckdb/index.html">こちらの記事</a>を参照してください。</p>
+</div>
+</div>
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>データ分析や統計処理を行う際、RやPythonといったプログラミング言語に加えて、大規模なデータを効率的に管理・処理するためのデータベースが必要になることがあります。特に、<strong>大規模なローデータがあり、そこからさまざまなデータフレームを生成・操作するような場合</strong>、PostgreSQLのような高機能なデータベースが強力な味方になります。</p>
+<p>本記事では、Windows環境でWSL（Windows Subsystem for Linux）を活用し、R、Python、PostgreSQLを中心とした開発環境を構築する方法を解説します。WSLを使うことで、Windowsの使いやすさを保ちながら、Linux環境の恩恵を受けられます。</p>
+<p><strong>この記事の対象読者</strong></p>
+<ul>
+<li>RやPythonでデータ分析を行っている方</li>
+<li>PostgreSQLを使ったデータ管理に興味がある方</li>
+<li>WSLを活用した効率的な開発環境を構築したい方</li>
+</ul>
+<p><strong>環境構築の流れ</strong></p>
+<ol type="1">
+<li>Windows上でのセットアップ（基本編）</li>
+<li>WSL上でのセットアップ（発展編）</li>
+</ol>
+<p>初めての方はまずWindows版から試してみて、より本格的な環境が必要になったらWSL版に移行するのがおすすめです。</p>
+<p>結構長いページになってしまったので、目次から適宜ジャンプして読んでみてください。</p>
+<p>また、本ページではSQLコードに関してはRを経由した実行方法を中心に解説します。</p>
+<div class="callout callout-style-simple callout-note">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Macユーザーの方も、PostgreSQLとR、Pythonの組み合わせは同様に有効ですので、参考にしてみてください。</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>事前準備
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Windows 11</li>
+<li>RとIDE（RStudioやPositron等）はインストール済み</li>
+</ul>
+<p>であることを前提とします。</p>
+</div>
+</div>
+</section>
+<section id="postgresqlとは" class="level2">
+<h2 class="anchored" data-anchor-id="postgresqlとは">PostgreSQLとは</h2>
+<p>PostgreSQLは、オープンソースの高機能なリレーショナルデータベース管理システム（RDBMS）です。「ポストグレス」と読みます<sup>1</sup>。</p>
+<p><strong>PostgreSQLの特徴</strong></p>
+<ul>
+<li><strong>高い拡張性</strong>: GIS（地理情報システム）に対応したPostGISなど、様々な拡張機能を追加できる</li>
+<li><strong>標準SQLへの準拠</strong>: 標準的なSQL構文をサポートし、複雑なクエリも実行可能</li>
+<li><strong>豊富なデータ型</strong>: 配列、JSON、幾何データなど、多様なデータ型に対応</li>
+<li><strong>トランザクション管理</strong>: データの整合性を保ちながら安全に操作できる</li>
+</ul>
+<p><strong>なぜPostgreSQLを使うのか</strong></p>
+<p>RやPythonだけでもデータ分析は可能ですが、以下のような場面でPostgreSQLが役立ちます：</p>
+<ul>
+<li>メモリに収まりきらない大規模データの処理</li>
+<li>複数のプロジェクトで共通のデータソースを利用</li>
+<li>空間データ（緯度経度、ポリゴンなど）の効率的な管理と分析</li>
+<li>複雑な集計やフィルタリングをSQL側で事前処理</li>
+</ul>
+<p>特に、PostGIS拡張を導入すれば、バス停や人口メッシュといった空間データの距離計算やバッファ分析などが高速に実行でき、GIS分析の強力な基盤となります。</p>
+</section>
+<section id="wslとは" class="level2">
+<h2 class="anchored" data-anchor-id="wslとは">WSLとは</h2>
+<p>WSL（Windows Subsystem for Linux）は、Windows上でLinux環境をネイティブに実行できる機能です。仮想マシンよりも軽量で、WindowsとLinuxのファイルシステムを相互に利用できるのが特徴です。</p>
+<section id="wslのメリット" class="level3">
+<h3 class="anchored" data-anchor-id="wslのメリット">WSLのメリット</h3>
+<ul>
+<li><strong>パッケージ管理が簡単</strong>: <code>apt</code>コマンドで必要なソフトウェアを簡単にインストール</li>
+<li><strong>再現性の高い環境</strong>: LinuxベースのDockerやサーバー環境と同じOSで作業できる</li>
+<li><strong>高いパフォーマンス</strong>: 特にI/O処理やデータベース操作が高速</li>
+<li><strong>開発ツールが豊富</strong>: Linux標準のコマンドラインツールをそのまま利用可能</li>
+</ul>
+</section>
+<section id="windows版とwsl版どちらを選ぶべき" class="level3">
+<h3 class="anchored" data-anchor-id="windows版とwsl版どちらを選ぶべき">Windows版とWSL版、どちらを選ぶべき？</h3>
+<p><strong>Windows版が向いている場合</strong></p>
+<ul>
+<li>初めてPostgreSQLやRを使う方</li>
+<li>既存のWindows環境で素早く始めたい</li>
+<li>GUIツールを中心に使いたい</li>
+</ul>
+<p><strong>WSL版が向いている場合</strong></p>
+<ul>
+<li>空間データ分析（PostGISなど）を本格的に行いたい</li>
+<li>Dockerやサーバー環境との互換性を重視したい</li>
+<li>コマンドラインでの作業に慣れている、または学びたい</li>
+<li>より高いパフォーマンスと柔軟性が必要</li>
+</ul>
+<p>本記事では両方の方法を紹介しますので、お好みで選んでください。まずはWindows版で試してみて、必要に応じてWSL版に移行するのもよいと思います。</p>
+</section>
+</section>
+<section id="windows上でのセットアップ基本編" class="level2">
+<h2 class="anchored" data-anchor-id="windows上でのセットアップ基本編">1. Windows上でのセットアップ（基本編）</h2>
+<p>Windows環境で直接PostgreSQL、Rをセットアップする方法を解説します。GUIツールが使いやすく、初めての方にもおすすめです。</p>
+<section id="postgresqlのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="postgresqlのインストール">1.1 PostgreSQLのインストール</h3>
+<section id="インストーラーのダウンロード" class="level4">
+<h4 class="anchored" data-anchor-id="インストーラーのダウンロード">インストーラーのダウンロード</h4>
+<ol type="1">
+<li><a href="https://www.postgresql.org/download/windows/">PostgreSQL公式サイト</a>にアクセス</li>
+<li>ページ冒頭にある「Download the installer」をクリック</li>
+<li>最新の安定版（例: PostgreSQL 18）のWindowsインストーラーをダウンロード</li>
+</ol>
+</section>
+<section id="インストール手順" class="level4">
+<h4 class="anchored" data-anchor-id="インストール手順">インストール手順</h4>
+<ol type="1">
+<li>ダウンロードしたインストーラーを実行</li>
+<li>インストールウィザードに従って進める
+<ul>
+<li><strong>Installation Directory</strong>：デフォルトのまま（例：<code>C:\Program Files\PostgreSQL\18</code>）</li>
+<li><strong>Select Components</strong>：すべてにチェック（PostgreSQL Server、pgAdmin 4、Stack Builder、Command Line Tools）</li>
+<li><strong>Data Directory</strong>: デフォルトのまま</li>
+<li><strong>Password</strong>: スーパーユーザー（postgres）のパスワードを設定<sup>2</sup></li>
+<li><strong>Port</strong>: デフォルトの<code>5432</code>のまま</li>
+<li><strong>Locale</strong>: <code>[DEFAULT]</code>または <code>Japanese, Japan</code></li>
+</ul></li>
+<li>インストール完了後、Stack Builderは「Skip」してOK（あるいはキャンセルして終了）</li>
+</ol>
+</section>
+<section id="動作確認" class="level4">
+<h4 class="anchored" data-anchor-id="動作確認">動作確認</h4>
+<p><img src="https://yo5uke.com/pages/tips/2025/12/251201_env/image/psql.png" class="img-fluid"></p>
+<p>スタートメニューから「SQL Shell (psql)」を起動し、以下を入力：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Server</span> <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">[</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">localhost</span><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">]</span>:  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Enterキーを押す</span></span>
+<span id="cb1-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Database</span> <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">[</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">postgres</span><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">]</span>:  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Enterキーを押す</span></span>
+<span id="cb1-3"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Port</span> <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">[</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">5432</span><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">]</span>:  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Enterキーを押す</span></span>
+<span id="cb1-4"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Username</span> <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">[</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">postgres</span><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">]</span>:  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Enterキーを押す</span></span>
+<span id="cb1-5"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Client</span> Encoding <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">[</span><span class="ss" style="color: #20794D;
+background-color: null;
+font-style: inherit;">SJIS</span><span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">]</span>:  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Enterキーを押す</span></span>
+<span id="cb1-6"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">ユーザー</span> postgres のパスワード:  <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 設定したパスワードを入力</span></span></code></pre></div></div>
+<p>パスワード以外は入力しなくて問題ありません！<code>postgres=#</code>と表示されれば成功です。以下のコマンドでバージョンを確認できます：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb2-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">SELECT</span> version();</span></code></pre></div></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2025/12/251201_env/image/psql_version.png" class="img-fluid figure-img"></p>
+<figcaption>バージョン確認</figcaption>
+</figure>
+</div>
+<p>終了する場合は <code>\q</code> と入力してEnterキーを押します。</p>
+</section>
+<section id="pgadmin-4の起動" class="level4">
+<h4 class="anchored" data-anchor-id="pgadmin-4の起動">pgAdmin 4の起動</h4>
+<p>PostgreSQLをGUIで操作できる「pgAdmin 4」も一緒にインストールされています。スタートメニューから「pgAdmin 4」を起動して、データベースの作成やテーブルの確認ができます。</p>
+<p>左側のサイドバーにある「Servers」から「PostgreSQL 18」を選択、「Databases」→「postgres」→「Schemas」→「public」→「Tables」でテーブル一覧を確認できますが、今回はR上で操作することもあり、必ずしもpgAdminを使う必要はありません。一時的にGUIで確認したい場合に利用するとよいと思います。</p>
+</section>
+</section>
+<section id="rからpostgresqlに接続" class="level3">
+<h3 class="anchored" data-anchor-id="rからpostgresqlに接続">1.2 RからPostgreSQLに接続</h3>
+<p>RからPostgreSQLを操作するには、<code>RPostgres</code>パッケージを使います。また、データベース全般の操作には<code>DBI</code>パッケージも必要です。</p>
+<section id="パッケージのインストール" class="level4">
+<h4 class="anchored" data-anchor-id="パッケージのインストール">パッケージのインストール</h4>
+<p>RStudioのコンソールで以下を実行：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RPostgres"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DBI"</span>))</span></code></pre></div></div>
+</section>
+<section id="接続テスト" class="level4">
+<h4 class="anchored" data-anchor-id="接続テスト">接続テスト</h4>
+<p>以下のコードで接続を確認します：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb4-2"></span>
+<span id="cb4-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データベースに接続</span></span>
+<span id="cb4-4">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb4-5">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb4-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb4-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb4-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb4-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb4-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"あなたのパスワード"</span></span>
+<span id="cb4-11">)</span>
+<span id="cb4-12"></span>
+<span id="cb4-13"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 接続確認</span></span>
+<span id="cb4-14"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbGetQuery</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SELECT version();"</span>)</span>
+<span id="cb4-15"></span>
+<span id="cb4-16"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb4-17"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+<p>エラーが出ずに結果が表示されれば成功です。</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>パスワードの扱いについて
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>プロジェクトが個人用であれば問題ありませんが、チーム開発や公開リポジトリでコードを共有する場合、パスワードを直接コードに書くのは避けた方がよいです。</p>
+<p>Gitを使用している場合、<code>.Renviron</code>ファイルをワーキングディレクトリに作成し、以下のように環境変数を設定する方法がおすすめです：</p>
+<pre><code>PG_PASSWORD=あなたのパスワード</code></pre>
+<p>Rコード内では以下のように取得します：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb6-2">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb6-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb6-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb6-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb6-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb6-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Sys.getenv</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"PG_PASSWORD"</span>)</span>
+<span id="cb6-8">)</span></code></pre></div></div>
+<p><code>.Renviron</code>ファイルはGitで管理しないよう、<code>.gitignore</code>に追加しておいてください。公開しては意味がありませんので…。</p>
+<p>もしくは<code>rstudioapi::askForPassword()</code>関数を使って、実行時にパスワードを入力させる方法もあります。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb7-2">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb7-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb7-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb7-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb7-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb7-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> rstudioapi<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">askForPassword</span>()</span>
+<span id="cb7-8">)</span></code></pre></div></div>
+<p>この場合は、コードを共有してもパスワードは含まれません。</p>
+</div>
+</div>
+</section>
+</section>
+<section id="データベースとテーブルの作成" class="level3">
+<h3 class="anchored" data-anchor-id="データベースとテーブルの作成">1.3 データベースとテーブルの作成</h3>
+<p>実際にデータベースとテーブルを作成してみます。</p>
+<p>Rでは<code>dbExecute()</code>関数を使ってSQLコマンドを実行できます。SQLコマンドに詳しくない場合は、Rの場合のコードを書いてAIに変換してもらうのがおすすめです（笑）</p>
+<section id="新しいデータベースの作成" class="level4">
+<h4 class="anchored" data-anchor-id="新しいデータベースの作成">新しいデータベースの作成</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb8-2"></span>
+<span id="cb8-3">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb8-4">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb8-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb8-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb8-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb8-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb8-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"your_password"</span></span>
+<span id="cb8-10">)</span>
+<span id="cb8-11"></span>
+<span id="cb8-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 新しいデータベースを作成</span></span>
+<span id="cb8-13"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CREATE DATABASE mydb;"</span>)</span>
+<span id="cb8-14"></span>
+<span id="cb8-15"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb8-16"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+</section>
+<section id="作成したデータベースに接続してテーブルを作成" class="level4">
+<h4 class="anchored" data-anchor-id="作成したデータベースに接続してテーブルを作成">作成したデータベースに接続してテーブルを作成</h4>
+<p>先ほどは<code>dbname</code>に<code>postgres</code>を指定しましたが、今回は新しく作成した<code>mydb</code>に接続します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb9-2">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb9-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mydb"</span>,</span>
+<span id="cb9-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb9-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb9-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb9-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"あなたのパスワード"</span></span>
+<span id="cb9-8">)</span>
+<span id="cb9-9"></span>
+<span id="cb9-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># テーブルを作成</span></span>
+<span id="cb9-11"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb9-12"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  CREATE TABLE users (</span></span>
+<span id="cb9-13"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    id SERIAL PRIMARY KEY,</span></span>
+<span id="cb9-14"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    name VARCHAR(100),</span></span>
+<span id="cb9-15"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    age INTEGER,</span></span>
+<span id="cb9-16"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span></span>
+<span id="cb9-17"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  );</span></span>
+<span id="cb9-18"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb9-19"></span>
+<span id="cb9-20"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データを挿入</span></span>
+<span id="cb9-21"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb9-22"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  INSERT INTO users (name, age) VALUES</span></span>
+<span id="cb9-23"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  ('Alice', 25),</span></span>
+<span id="cb9-24"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  ('Bob', 30),</span></span>
+<span id="cb9-25"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  ('Charlie', 35);</span></span>
+<span id="cb9-26"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb9-27"></span>
+<span id="cb9-28"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データを確認</span></span>
+<span id="cb9-29"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbGetQuery</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SELECT * FROM users;"</span>)</span>
+<span id="cb9-30"></span>
+<span id="cb9-31"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb9-32"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+<p>内容は次の通りです。</p>
+<ol type="1">
+<li><code>users</code>という名前のテーブルを作成</li>
+<li><code>id</code>, <code>name</code>, <code>age</code>, <code>created_at</code>の4つのカラムを定義
+<ul>
+<li>SERIAL PRIMARY KEY: 自動的に連番が振られる主キー</li>
+<li>VARCHAR(100): 文字列（最大100文字）</li>
+<li>INTEGER: 整数</li>
+<li>TIMESTAMP DEFAULT CURRENT_TIMESTAMP: レコード作成日時（デフォルトで現在時刻が入る）</li>
+</ul></li>
+<li>3件のサンプルデータを挿入
+<ul>
+<li>Alice（25歳）、Bob（30歳）、Charlie（35歳）</li>
+</ul></li>
+<li>挿入したデータを取得して表示</li>
+</ol>
+</section>
+<section id="まとめ" class="level4">
+<h4 class="anchored" data-anchor-id="まとめ">まとめ</h4>
+<p>ここまでで、Windows上でPostgreSQL、R、Pythonの基本的な環境が整いました。</p>
+<p><strong>セットアップした内容</strong></p>
+<ul>
+<li>PostgreSQLのインストールと動作確認</li>
+<li>Rのインストールと接続テスト</li>
+<li>データベースとテーブルの作成</li>
+</ul>
+<p>次のセクションでは、より本格的な開発環境を構築するため、WSL上でのセットアップ方法を解説します。</p>
+</section>
+</section>
+</section>
+<section id="wsl上でのセットアップ発展編" class="level2">
+<h2 class="anchored" data-anchor-id="wsl上でのセットアップ発展編">2. WSL上でのセットアップ（発展編）</h2>
+<p>次にWSL（Windows Subsystem for Linux）を使って、より本格的な開発環境を構築します。Linux環境の恩恵を受けながら、Windowsとシームレスに連携できます。</p>
+<section id="wslのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="wslのインストール">2.1 WSLのインストール</h3>
+<section id="wslの有効化" class="level4">
+<h4 class="anchored" data-anchor-id="wslの有効化">WSLの有効化</h4>
+<p>PowerShellを<strong>管理者として</strong>実行し<sup>3</sup>、以下のコマンドを入力：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb10-1">wsl <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">--</span>install</span></code></pre></div></div>
+<p>インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます。ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。</p>
+<p>また、パスワードは<strong>画面上には表示されませんが、ちゃんと入力されています</strong>。慌てて何回も入力しないようにしてください。</p>
+<p>このコマンドで以下が自動的にインストールされます：</p>
+<ul>
+<li>WSL 2</li>
+<li>Ubuntu（デフォルトのLinuxディストリビューション）</li>
+<li>必要な仮想化コンポーネント</li>
+</ul>
+</section>
+<section id="システムの更新" class="level4">
+<h4 class="anchored" data-anchor-id="システムの更新">システムの更新</h4>
+<p>Ubuntu起動後、まずシステムを最新の状態に更新します：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt update</span>
+<span id="cb11-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt upgrade <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span></span></code></pre></div></div>
+<p><code>sudo</code>コマンドは管理者権限でコマンドを実行するためのものです。パスワードの入力を求められたら、先ほど設定したパスワードを入力してください。</p>
+</section>
+</section>
+<section id="postgresql-18のインストールwslubuntu" class="level3">
+<h3 class="anchored" data-anchor-id="postgresql-18のインストールwslubuntu">2.2 PostgreSQL 18のインストール（WSL/Ubuntu）</h3>
+<p>Ubuntu標準のリポジトリではPostgreSQLの古いバージョン（現在は16）がインストールされるため、PostgreSQL公式のAptリポジトリを使用して最新版（PostgreSQL 18）をインストールします。</p>
+<section id="postgresql公式リポジトリの設定" class="level4">
+<h4 class="anchored" data-anchor-id="postgresql公式リポジトリの設定">PostgreSQL公式リポジトリの設定</h4>
+<p>最も簡単な方法は、公式の自動設定スクリプトを使用することです：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PostgreSQL公式リポジトリを自動設定</span></span>
+<span id="cb12-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span> postgresql-common</span>
+<span id="cb12-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh</span></code></pre></div></div>
+<p>このスクリプトが自動的にリポジトリ設定とGPGキーのインストールを行います。</p>
+</section>
+<section id="postgresql-18のインストール" class="level4">
+<h4 class="anchored" data-anchor-id="postgresql-18のインストール">PostgreSQL 18のインストール</h4>
+<p>リポジトリの設定が完了したら、PostgreSQL 18をインストールします：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PostgreSQL 18をインストール</span></span>
+<span id="cb13-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span> postgresql-18 postgresql-client-18</span></code></pre></div></div>
+<p><strong>インストールされる主なパッケージ:</strong> - <code>postgresql-18</code>: PostgreSQLサーバー本体 - <code>postgresql-client-18</code>: クライアントツール（psqlなど）</p>
+</section>
+<section id="postgresqlサービスの起動" class="level4">
+<h4 class="anchored" data-anchor-id="postgresqlサービスの起動">PostgreSQLサービスの起動</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PostgreSQLサービスの起動</span></span>
+<span id="cb14-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> service postgresql start</span></code></pre></div></div>
+</section>
+<section id="動作確認-1" class="level4">
+<h4 class="anchored" data-anchor-id="動作確認-1">動作確認</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PostgreSQLのバージョンとクラスター状態を確認</span></span>
+<span id="cb15-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">pg_lsclusters</span></span></code></pre></div></div>
+<p>出力例：</p>
+<pre><code>Ver Cluster Port Status Owner    Data directory              Log file
+18  main    5432 online postgres /var/lib/postgresql/18/main /var/log/postgresql/postgresql-18-main.log</code></pre>
+<p>PostgreSQLに接続：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PostgreSQLユーザーに切り替えて接続</span></span>
+<span id="cb17-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-u</span> postgres psql</span></code></pre></div></div>
+<p><code>postgres=#</code> プロンプトが表示されたら成功です。</p>
+<p>バージョンを確認するには続けて以下を実行します：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb18-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">SELECT</span> version();</span></code></pre></div></div>
+<p>出力例：</p>
+<pre><code>PostgreSQL 18.1 (Ubuntu 18.1-1.pgdg24.04+2) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0, 64-bit</code></pre>
+<p>終了する場合は <code>\q</code> と入力します。</p>
+</section>
+<section id="パスワードの設定" class="level4">
+<h4 class="anchored" data-anchor-id="パスワードの設定">パスワードの設定</h4>
+<p>PostgreSQLのスーパーユーザー（postgres）にパスワードを設定します：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-u</span> postgres psql</span></code></pre></div></div>
+<p><code>postgres=#</code> プロンプトで以下を実行：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb21-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">ALTER</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">USER</span> postgres <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">WITH</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">PASSWORD</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'設定するパスワード'</span>;</span>
+<span id="cb21-2">\q</span></code></pre></div></div>
+</section>
+</section>
+<section id="rのインストールwslubuntu" class="level3">
+<h3 class="anchored" data-anchor-id="rのインストールwslubuntu">2.3 Rのインストール（WSL/Ubuntu）</h3>
+<section id="r本体のインストール" class="level4">
+<h4 class="anchored" data-anchor-id="r本体のインストール">R本体のインストール</h4>
+<p>最新版のRをインストールするため、CRANのリポジトリを追加します：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt update <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-qq</span></span>
+<span id="cb22-2"></span>
+<span id="cb22-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 必要なパッケージをインストール</span></span>
+<span id="cb22-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--no-install-recommends</span> software-properties-common dirmngr</span>
+<span id="cb22-5"></span>
+<span id="cb22-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># CRANのGPGキーを追加</span></span>
+<span id="cb22-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">wget</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-qO-</span> https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> tee <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-a</span> /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc</span>
+<span id="cb22-8"></span>
+<span id="cb22-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># CRANのリポジトリを追加</span></span>
+<span id="cb22-10"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> add-apt-repository <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"deb https://cloud.r-project.org/bin/linux/ubuntu </span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$(</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">lsb_release</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-cs</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">)</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">-cran40/"</span></span>
+<span id="cb22-11"></span>
+<span id="cb22-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># パッケージリストを更新してRをインストール</span></span>
+<span id="cb22-13"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--no-install-recommends</span> r-base <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span></span></code></pre></div></div>
+</section>
+<section id="動作確認-2" class="level4">
+<h4 class="anchored" data-anchor-id="動作確認-2">動作確認</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">R</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--version</span></span></code></pre></div></div>
+<p>バージョン情報が表示されればインストール成功です。</p>
+</section>
+<section id="必要なシステムライブラリのインストール" class="level4">
+<h4 class="anchored" data-anchor-id="必要なシステムライブラリのインストール">必要なシステムライブラリのインストール</h4>
+<p>RからPostgreSQLに接続するために必要なライブラリをインストール：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span> libpq-dev libssl-dev libcurl4-openssl-dev libxml2-dev</span></code></pre></div></div>
+</section>
+</section>
+<section id="rstudio-serverのインストールwslubuntu" class="level3">
+<h3 class="anchored" data-anchor-id="rstudio-serverのインストールwslubuntu">2.4 RStudio Serverのインストール（WSL/Ubuntu）</h3>
+<section id="rstudio-serverのダウンロードとインストール" class="level4">
+<h4 class="anchored" data-anchor-id="rstudio-serverのダウンロードとインストール">RStudio Serverのダウンロードとインストール</h4>
+<p>RStudio Serverの最新バージョンを<a href="https://posit.co/download/rstudio-server/">RStudio公式サイト</a>から確認し、以下のコマンドでダウンロードとインストールを行います：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt-get install gdebi-core</span>
+<span id="cb25-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">wget</span> https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.09.2-418-amd64.deb</span>
+<span id="cb25-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> gdebi rstudio-server-2025.09.2-418-amd64.deb</span></code></pre></div></div>
+</section>
+<section id="rstudio-serverの起動" class="level4">
+<h4 class="anchored" data-anchor-id="rstudio-serverの起動">RStudio Serverの起動</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> rstudio-server start</span></code></pre></div></div>
+</section>
+<section id="rstudio-serverへのアクセス" class="level4">
+<h4 class="anchored" data-anchor-id="rstudio-serverへのアクセス">RStudio Serverへのアクセス</h4>
+<p>ブラウザで<code>localhost:8787</code>にアクセスし、WSLのユーザー名とパスワードでログインします。</p>
+<p>すると、RStudioのウェブインターフェースが表示され、Rの開発環境が利用可能になります。</p>
+</section>
+</section>
+<section id="rからpostgresqlに接続wsl" class="level3">
+<h3 class="anchored" data-anchor-id="rからpostgresqlに接続wsl">2.5 RからPostgreSQLに接続（WSL）</h3>
+<section id="rの起動とパッケージのインストール" class="level4">
+<h4 class="anchored" data-anchor-id="rの起動とパッケージのインストール">Rの起動とパッケージのインストール</h4>
+<p>RStudio ServerあるいはVSCodeでWSLに接続<sup>4</sup>の上Rコンソールを開き、以下を実行：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DBI"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"RPostgres"</span>))</span></code></pre></div></div>
+</section>
+<section id="接続テスト-1" class="level4">
+<h4 class="anchored" data-anchor-id="接続テスト-1">接続テスト</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb28-2"></span>
+<span id="cb28-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データベースに接続</span></span>
+<span id="cb28-4">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb28-5">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb28-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb28-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb28-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb28-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb28-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"あなたのパスワード"</span></span>
+<span id="cb28-11">)</span>
+<span id="cb28-12"></span>
+<span id="cb28-13"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 接続確認</span></span>
+<span id="cb28-14"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbGetQuery</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SELECT version();"</span>)</span>
+<span id="cb28-15"></span>
+<span id="cb28-16"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb28-17"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+</section>
+</section>
+<section id="データベースとテーブルの作成wsl" class="level3">
+<h3 class="anchored" data-anchor-id="データベースとテーブルの作成wsl">2.6 データベースとテーブルの作成（WSL）</h3>
+<p>Windows版と同じ手順でデータベースとテーブルを作成できます。</p>
+<section id="新しいデータベースの作成-1" class="level4">
+<h4 class="anchored" data-anchor-id="新しいデータベースの作成-1">新しいデータベースの作成</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb29-2"></span>
+<span id="cb29-3">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb29-4">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb29-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb29-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb29-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb29-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb29-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"あなたのパスワード"</span></span>
+<span id="cb29-10">)</span>
+<span id="cb29-11"></span>
+<span id="cb29-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 新しいデータベースを作成</span></span>
+<span id="cb29-13"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"CREATE DATABASE mydb;"</span>)</span>
+<span id="cb29-14"></span>
+<span id="cb29-15"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb29-16"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+</section>
+<section id="テーブルの作成とデータ挿入" class="level4">
+<h4 class="anchored" data-anchor-id="テーブルの作成とデータ挿入">テーブルの作成とデータ挿入</h4>
+<p>Windows版と同様に、usersテーブルを作成してみます：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb30-2">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb30-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mydb"</span>,</span>
+<span id="cb30-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb30-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb30-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb30-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"あなたのパスワード"</span></span>
+<span id="cb30-8">)</span>
+<span id="cb30-9"></span>
+<span id="cb30-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># テーブルを作成</span></span>
+<span id="cb30-11"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb30-12"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  CREATE TABLE users (</span></span>
+<span id="cb30-13"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    id SERIAL PRIMARY KEY,</span></span>
+<span id="cb30-14"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    name VARCHAR(100),</span></span>
+<span id="cb30-15"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    age INTEGER,</span></span>
+<span id="cb30-16"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span></span>
+<span id="cb30-17"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  );</span></span>
+<span id="cb30-18"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb30-19"></span>
+<span id="cb30-20"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データを挿入</span></span>
+<span id="cb30-21"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb30-22"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  INSERT INTO users (name, age) VALUES</span></span>
+<span id="cb30-23"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  ('Alice', 25),</span></span>
+<span id="cb30-24"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  ('Bob', 30),</span></span>
+<span id="cb30-25"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  ('Charlie', 35);</span></span>
+<span id="cb30-26"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span>)</span>
+<span id="cb30-27"></span>
+<span id="cb30-28"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データを確認</span></span>
+<span id="cb30-29"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbGetQuery</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SELECT * FROM users;"</span>)</span>
+<span id="cb30-30"></span>
+<span id="cb30-31"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb30-32"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+</section>
+</section>
+<section id="wsl環境のファイル操作" class="level3">
+<h3 class="anchored" data-anchor-id="wsl環境のファイル操作">2.7 WSL環境のファイル操作</h3>
+<section id="windowsからwslのファイルにアクセス" class="level4">
+<h4 class="anchored" data-anchor-id="windowsからwslのファイルにアクセス">WindowsからWSLのファイルにアクセス</h4>
+<p>エクスプローラーのアドレスバーに以下を入力：</p>
+<pre><code>\\wsl$\Ubuntu\home\あなたのユーザー名</code></pre>
+<p>これでWSL内のファイルをWindows側から操作できます。</p>
+<p>エクスプローラーのサイドバーの最下部の「Linux」からもアクセス可能です。</p>
+</section>
+</section>
+<section id="wsl環境の便利なtips" class="level3">
+<h3 class="anchored" data-anchor-id="wsl環境の便利なtips">2.8 WSL環境の便利なTips</h3>
+<section id="wslの再起動" class="level4">
+<h4 class="anchored" data-anchor-id="wslの再起動">WSLの再起動</h4>
+<p>PostgreSQLが動かなくなった場合などは、WSLを再起動してみてください：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb32-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PowerShellで実行</span></span>
+<span id="cb32-2">wsl <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">--</span>shutdown</span></code></pre></div></div>
+<p>その後、Ubuntuを再起動してPostgreSQLを起動：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb33-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> service postgresql start</span></code></pre></div></div>
+</section>
+<section id="vscodeでpostgresqlに接続" class="level4">
+<h4 class="anchored" data-anchor-id="vscodeでpostgresqlに接続">VSCodeでPostgreSQLに接続</h4>
+<p>Rの操作自体はRStudio Serverで行ってもVSCodeでも行ってもどちらでもよいのですが、VSCodeにはPostgreSQL拡張機能があり、データベースの管理が便利です。WindowsのようにpgAdminを使えない代わりに、VSCodeのPostgreSQL拡張機能を利用してテーブルリストなどを確認できます。</p>
+<p>VSCodeサイドバーの拡張機能から「ms-ossdata.vscode-pgsql」を検索し、インストールしてください。</p>
+<p>インストール終了後、サイドバーにPostgreSQLのアイコンが表示されるのでクリックし、「接続」の右にある「新しい接続を追加する」のアイコンから接続情報を入力します。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2025/12/251201_env/image/vscode_extension.png" class="img-fluid figure-img"></p>
+<figcaption>VSCode PostgreSQL拡張機能から接続</figcaption>
+</figure>
+</div>
+<ul>
+<li>サーバー名：localhost</li>
+<li>ユーザー名：postgres</li>
+<li>パスワード：設定したパスワード</li>
+<li>データベース名：（例）mydb</li>
+</ul>
+<p>記入したらテスト接続をクリックし、成功すれば保存して接続を選択します。</p>
+<p>接続後、サイドバーのPostgreSQLアイコンをクリックすると、データベースやテーブルの一覧が表示されます。「サーバー」→「localhost」→「Dataases」→「mydb」→「Schemas」→「public」→「Tables」でテーブル一覧を確認できます。</p>
+<p>新しくテーブルを追加した場合などは、右クリックして「最新の情報に更新」を選択して更新を反映してください。</p>
+</section>
+<section id="まとめ-1" class="level4">
+<h4 class="anchored" data-anchor-id="まとめ-1">まとめ</h4>
+<p>ここまでで、WSL上でPostgreSQL、Rを使った本格的な開発環境が整いました。</p>
+<p><strong>セットアップした内容</strong></p>
+<ul>
+<li>WSL 2とUbuntuのインストール</li>
+<li>PostgreSQLのインストール</li>
+<li>Rのインストールと接続</li>
+<li>RStudio Serverの設定</li>
+<li>データベースとテーブルの作成</li>
+<li>VSCodeのPostgreSQL拡張機能の利用</li>
+</ul>
+<p>ここまでで基本的な設定は完了です。次に実際にデータを取り込んで分析を始めてみましょう。</p>
+</section>
+</section>
+</section>
+<section id="データを投入する" class="level2">
+<h2 class="anchored" data-anchor-id="データを投入する">データを投入する</h2>
+<p>PostgreSQLにデータを投入する方法はいくつかありますが、Rから直接データフレームをテーブルに書き込む方法が最も簡単です。</p>
+<ol type="1">
+<li>Rでデータを読み込む（例：CSVファイル）</li>
+<li><code>dbWriteTable()</code>関数を使ってデータフレームをPostgreSQLに書き込む</li>
+</ol>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb34-2"></span>
+<span id="cb34-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データベースに接続</span></span>
+<span id="cb34-4">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb34-5">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb34-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mydb"</span>,</span>
+<span id="cb34-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb34-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb34-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb34-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"あなたのパスワード"</span></span>
+<span id="cb34-11">)</span>
+<span id="cb34-12"></span>
+<span id="cb34-13"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb34-14"></span>
+<span id="cb34-15"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># CSVファイルを読み込む</span></span>
+<span id="cb34-16">data <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">read_csv</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"path/to/your/data.csv"</span>)</span>
+<span id="cb34-17"></span>
+<span id="cb34-18"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データフレームをPostgreSQLに書き込む</span></span>
+<span id="cb34-19"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbWriteTable</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"my_table"</span>, data, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">overwrite =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb34-20"></span>
+<span id="cb34-21"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データを確認</span></span>
+<span id="cb34-22"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbGetQuery</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SELECT * FROM my_table LIMIT 5;"</span>)</span>
+<span id="cb34-23"></span>
+<span id="cb34-24"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb34-25"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+<p><code>dbWriteTable()</code>がテーブルを作成する関数で、<code>overwrite = TRUE</code>オプションを指定すると、既存のテーブルがあれば上書きされます。</p>
+<p><code>dbGetQuery()</code>では、<code>my_table</code>から最初の5行を取得して表示しています。</p>
+</section>
+<section id="dbplyrでpostgresqlを操作する" class="level2">
+<h2 class="anchored" data-anchor-id="dbplyrでpostgresqlを操作する">{dbplyr}でPostgreSQLを操作する</h2>
+<p>Rのデータハンドリングではおなじみの<code>dplyr</code>パッケージを使って、PostgreSQL上のデータを操作することもできます。データベースを操作するための<code>dbplyr</code>パッケージが動いて通常の<code>dplyr</code>の文法でSQLクエリを生成してくれます。</p>
+<p><code>dbplyr</code>は<code>dplyr</code>の依存パッケージであるため、<code>dplyr</code>を読み込めば自動的に利用可能です。</p>
+<p>データベース上のテーブルは<code>tbl()</code>関数で参照し、<code>collect()</code>関数でRのデータフレームとして取得します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb35-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(dplyr)</span>
+<span id="cb35-3"></span>
+<span id="cb35-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データベースに接続</span></span>
+<span id="cb35-5">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb35-6">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb35-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mydb"</span>,</span>
+<span id="cb35-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb35-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb35-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb35-11">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"あなたのパスワード"</span></span>
+<span id="cb35-12">)</span></code></pre></div></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># テーブルを参照</span></span>
+<span id="cb36-2">my_table <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tbl</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"my_table"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb36-3">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(column_name <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 条件でフィルタリング</span></span>
+<span id="cb36-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">select</span>(column1, column2) <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 必要なカラムを選択</span></span>
+<span id="cb36-5"></span>
+<span id="cb36-6"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Rのデータフレームとして取得</span></span>
+<span id="cb36-7">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> my_table <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">collect</span>()</span>
+<span id="cb36-8"></span>
+<span id="cb36-9"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 結果を表示</span></span>
+<span id="cb36-10"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(result)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+  column1 column2
+  &lt;chr&gt;     &lt;dbl&gt;
+1 B            20
+2 C            30</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb38-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+</div>
+<p>このコードでは、<code>my_table</code>テーブルから<code>column_name</code>が100より大きい行をフィルタリングし、<code>column1</code>と<code>column2</code>のカラムだけを選択しています。最後に<code>collect()</code>でRのデータフレームとして取得し、表示しています。</p>
+<p>このように通常の<code>dplyr</code>の文法でPostgreSQL上のデータを操作できるため、SQLを直接書かなくても高度なデータ操作が可能です。1からSQLを学ばなくてもよいのは大きいですよね！</p>
+<p>重要な点は、<strong><code>collect()</code>を呼び出すまでは実際のデータはRに取り込まれず、SQLクエリ<sup>5</sup>がデータベース側で実行される</strong>ということです。データベース側で実行されることで大規模データを効率的に処理できます。</p>
+<p>また、注意点として、<strong><code>collect()</code>を呼び出すまでは<code>dplyr</code>に含まれる関数しか使うことができず、他のパッケージの関数は使えない</strong>ことが挙げられます。例えば<code>collect()</code>前に<code>pivot_longer()</code>を使おうとするとエラーになります。これは<code>tidyr</code>パッケージの関数だからです。</p>
+</section>
+<section id="gisのためのpostgis" class="level2">
+<h2 class="anchored" data-anchor-id="gisのためのpostgis">GISのためのPostGIS</h2>
+<p>PostGISは、PostgreSQLの拡張機能で、地理情報システム（GIS）データを扱うための強力なツールです。PostGISを利用することで、空間データの格納、クエリ、解析が可能になります。</p>
+<p>ここからは、WSL/Ubuntu環境でPostGISをインストールする手順を解説します。</p>
+<section id="postgisのインストールwslubuntu" class="level3">
+<h3 class="anchored" data-anchor-id="postgisのインストールwslubuntu">PostGISのインストール（WSL/Ubuntu）</h3>
+<p>PostgreSQLにPostGIS拡張を追加するには、以下のコマンドを実行します：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb39-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> apt install postgresql-18-postgis-3 postgresql-18-postgis-3-scripts <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-y</span></span></code></pre></div></div>
+<section id="データベースでpostgisを有効化" class="level4">
+<h4 class="anchored" data-anchor-id="データベースでpostgisを有効化">データベースでPostGISを有効化</h4>
+<p>PostGISをインストールしたら、使用するデータベースでPostGIS拡張を有効にします：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb40-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PostgreSQLに接続</span></span>
+<span id="cb40-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sudo</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-u</span> postgres psql <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-d</span> mydb</span></code></pre></div></div>
+<p>データベース内で以下のSQLコマンドを実行：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41" style="background: #f1f3f5;"><pre class="sourceCode sql code-with-copy"><code class="sourceCode sql"><span id="cb41-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-- PostGIS拡張を有効化</span></span>
+<span id="cb41-2"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">CREATE</span> EXTENSION postgis;</span>
+<span id="cb41-3"></span>
+<span id="cb41-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-- インストールされた拡張を確認</span></span>
+<span id="cb41-5">\dx</span>
+<span id="cb41-6"></span>
+<span id="cb41-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-- PostGISのバージョンを確認</span></span>
+<span id="cb41-8"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">SELECT</span> PostGIS_version();</span>
+<span id="cb41-9"></span>
+<span id="cb41-10"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-- 終了</span></span>
+<span id="cb41-11">\q</span></code></pre></div></div>
+<p><code>\dx</code>コマンドで<code>postgis</code>が表示されれば、拡張が正常にインストールされています。</p>
+<p>記事を書いている時点での最新バージョンは3.6.1です。</p>
+<pre><code>mydb=# SELECT PostGIS_version();
+            postgis_version            
+---------------------------------------
+ 3.6 USE_GEOS=1 USE_PROJ=1 USE_STATS=1</code></pre>
+</section>
+</section>
+<section id="rからpostgisを利用する" class="level3">
+<h3 class="anchored" data-anchor-id="rからpostgisを利用する">RからPostGISを利用する</h3>
+<p>RからPostGIS機能を使うには、<code>sf</code>パッケージが便利です。</p>
+<section id="必要なパッケージのインストール" class="level4">
+<h4 class="anchored" data-anchor-id="必要なパッケージのインストール">必要なパッケージのインストール</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sf"</span>)</span></code></pre></div></div>
+</section>
+<section id="空間データの書き込みと読み取り" class="level4">
+<h4 class="anchored" data-anchor-id="空間データの書き込みと読み取り">空間データの書き込みと読み取り</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb44-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(sf)</span>
+<span id="cb44-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(dplyr)</span>
+<span id="cb44-4"></span>
+<span id="cb44-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データベースに接続</span></span>
+<span id="cb44-6">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb44-7">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb44-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mydb"</span>,</span>
+<span id="cb44-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb44-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb44-11">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb44-12">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"設定したパスワード"</span></span>
+<span id="cb44-13">)</span>
+<span id="cb44-14"></span>
+<span id="cb44-15"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># サンプルの空間データを作成（東京の主要地点）</span></span>
+<span id="cb44-16">points <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data.frame</span>(</span>
+<span id="cb44-17">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">name =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"東京駅"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"渋谷駅"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"新宿駅"</span>),</span>
+<span id="cb44-18">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">lon =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">139.7671</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">139.7016</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">139.7006</span>),</span>
+<span id="cb44-19">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">lat =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">35.6812</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">35.6580</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">35.6938</span>)</span>
+<span id="cb44-20">)</span>
+<span id="cb44-21"></span>
+<span id="cb44-22"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># sfオブジェクトに変換（EPSG:4326はWGS84座標系）</span></span>
+<span id="cb44-23">points_sf <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">st_as_sf</span>(points, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">coords =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"lon"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"lat"</span>), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">crs =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4326</span>)</span>
+<span id="cb44-24"></span>
+<span id="cb44-25"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># PostGISテーブルとして書き込み</span></span>
+<span id="cb44-26"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">st_write</span>(points_sf, con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stations"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">delete_layer =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb44-27"></span>
+<span id="cb44-28"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データを読み取り</span></span>
+<span id="cb44-29">stations <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">st_read</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"stations"</span>)</span>
+<span id="cb44-30"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(stations)</span>
+<span id="cb44-31"></span>
+<span id="cb44-32"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 切断</span></span>
+<span id="cb44-33"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 3 features and 1 field
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: 139.7006 ymin: 35.658 xmax: 139.7671 ymax: 35.6938
+Geodetic CRS:  WGS 84
+    name                 geometry
+1 東京駅 POINT (139.7671 35.6812)
+2 渋谷駅  POINT (139.7016 35.658)
+3 新宿駅 POINT (139.7006 35.6938)</code></pre>
+</div>
+</div>
+</section>
+<section id="postgisの空間関数を使う" class="level4">
+<h4 class="anchored" data-anchor-id="postgisの空間関数を使う">PostGISの空間関数を使う</h4>
+<p>PostGISには様々な空間分析関数があります。例えば、2点間の距離を計算：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb46-2"></span>
+<span id="cb46-3">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(</span>
+<span id="cb46-4">  RPostgres<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">Postgres</span>(),</span>
+<span id="cb46-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">dbname =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mydb"</span>,</span>
+<span id="cb46-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">host =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"localhost"</span>,</span>
+<span id="cb46-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">port =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5432</span>,</span>
+<span id="cb46-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">user =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"postgres"</span>,</span>
+<span id="cb46-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">password =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"設定したパスワード"</span></span>
+<span id="cb46-10">)</span>
+<span id="cb46-11"></span>
+<span id="cb46-12"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 東京駅と渋谷駅の距離を計算（メートル単位）</span></span>
+<span id="cb46-13"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ST_Distance()の前に地理座標系に変換（::geography）</span></span>
+<span id="cb46-14">query <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb46-15"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  SELECT </span></span>
+<span id="cb46-16"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    a.name AS from_station,</span></span>
+<span id="cb46-17"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    b.name AS to_station,</span></span>
+<span id="cb46-18"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    ST_Distance(</span></span>
+<span id="cb46-19"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      a.geometry::geography,</span></span>
+<span id="cb46-20"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      b.geometry::geography</span></span>
+<span id="cb46-21"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">    ) AS distance_meters</span></span>
+<span id="cb46-22"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  FROM stations a, stations b</span></span>
+<span id="cb46-23"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">  WHERE a.name = '東京駅' AND b.name = '渋谷駅';</span></span>
+<span id="cb46-24"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb46-25"></span>
+<span id="cb46-26">result <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbGetQuery</span>(con, query)</span>
+<span id="cb46-27"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(result)</span>
+<span id="cb46-28"></span>
+<span id="cb46-29"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>  from_station to_station distance_meters
+1       東京駅     渋谷駅        6464.826</code></pre>
+</div>
+</div>
+<p>Query内ではSQL文を書き、<code>ST_Distance()</code>関数を使って2つの地点間の距離を計算しています。<code>::geography</code>キャストを使うことで、地理座標系での正確な距離計算が可能になります。</p>
+</section>
+<section id="postgisの便利な関数" class="level4">
+<h4 class="anchored" data-anchor-id="postgisの便利な関数">PostGISの便利な関数</h4>
+<p>PostGISには多数の空間関数があります。代表的なものを紹介します：</p>
+<ul>
+<li><code>ST_Distance()</code>: 2つのジオメトリ間の距離を計算</li>
+<li><code>ST_Buffer()</code>: 指定した距離のバッファ（緩衝地帯）を作成</li>
+<li><code>ST_Intersects()</code>: 2つのジオメトリが交差するかを判定</li>
+<li><code>ST_Within()</code>: あるジオメトリが別のジオメトリ内に含まれるかを判定</li>
+<li><code>ST_Area()</code>: ポリゴンの面積を計算</li>
+<li><code>ST_Length()</code>: ラインの長さを計算</li>
+</ul>
+<p>これらの関数を組み合わせることで、複雑な空間分析が可能になります。</p>
+</section>
+</section>
+<section id="postgisのまとめ" class="level3">
+<h3 class="anchored" data-anchor-id="postgisのまとめ">PostGISのまとめ</h3>
+<p>PostGISを使うことで、PostgreSQL上で以下のような空間データ分析が可能になります：</p>
+<ul>
+<li>緯度経度データの格納と管理</li>
+<li>点・線・ポリゴンなどの幾何データの操作</li>
+<li>距離計算、バッファ分析、空間結合</li>
+<li>大規模な空間データの効率的な処理</li>
+</ul>
+<p>特に、メモリに収まりきらない大規模な空間データを扱う場合、PostGISは非常に強力なツールとなります。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>本記事では、Windows環境でRとPostgreSQLを中心とした開発環境を構築する方法を、Windows版とWSL版の2つのアプローチでまとめました。</p>
+<p><strong>Windows版の特徴</strong></p>
+<ul>
+<li>GUIツールが使いやすく、初心者にも優しい</li>
+<li>インストールが簡単で、すぐに始められる</li>
+<li>pgAdmin 4でデータベースを視覚的に管理可能</li>
+</ul>
+<p><strong>WSL版の特徴</strong></p>
+<ul>
+<li>Linux環境の恩恵を受けられる</li>
+<li>aptパッケージマネージャーでPostGISなどの拡張機能を簡単にインストール可能</li>
+<li>Dockerやサーバー環境との互換性が高い</li>
+<li>高速なI/O処理とデータベース操作</li>
+</ul>
+<p>どちらの環境でも、RからPostgreSQLを操作する基本的な手順は同じです。まずはWindows版で試してみて、必要に応じてWSL版に移行するのがおすすめです。</p>
+<p>PostgreSQLとPostGISを活用することで、大規模データの管理や空間データの高度な分析が可能になります。ぜひ実際のプロジェクトで活用してみてください。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>会社で教えてくださった上司・先輩がポスグレと呼んでいるので、僕もポスグレ呼びをしています。↩︎</p></li>
+<li id="fn2"><p>シンプルなものでもいけます。↩︎</p></li>
+<li id="fn3"><p>右クリックで「管理者として実行」を選択してください。↩︎</p></li>
+<li id="fn4"><p><span class="visually-hidden">Ctrl-Shift-P</span>で「wsl: connect to wsl」と検索し選択することで接続できます。↩︎</p></li>
+<li id="fn5"><p>クエリとは、データベースに対して行う問い合わせや命令のことです。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>WSL</category>
+  <category>Windows</category>
+  <category>PostgreSQL</category>
+  <category>GIS</category>
+  <guid>https://yo5uke.com/pages/tips/2025/12/251201_env/</guid>
+  <pubDate>Sun, 30 Nov 2025 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.com/pages/tips/2025/12/251201_env/image/thumbnail.png" medium="image" type="image/png" height="77" width="144"/>
+</item>
 <item>
   <title>【R】polarsでデータ処理を高速化する</title>
   <link>https://yo5uke.com/pages/tips/2025/11/251125_r_polars/</link>
@@ -13525,622 +15343,6 @@ font-style: inherit;">"白書"</span>))</span></code></pre></div></div>
   <guid>https://yo5uke.com/pages/tips/2025/03/250319_scraping/</guid>
   <pubDate>Tue, 18 Mar 2025 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/2025/03/250319_scraping/image/html_view.png" medium="image" type="image/png" height="85" width="144"/>
-</item>
-<item>
-  <title>e-Stat APIを使ってデータを取得しよう</title>
-  <link>https://yo5uke.com/pages/tips/2025/03/250309_estat_api/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>今回は説明するという言い方がおこがましい程度の備忘録的な内容です。</p>
-<p>今後データを使う仕事をするにあたり、もう少し統計データに詳しくなりたいと思い、e-Statでよく目にするAPIに目を付けました。正直APIというのが何かわからないレベルからのスタートでしたが、調べながら初歩的な部分をすこーし理解できた気がしないでもありません。</p>
-<p>今回はAPIの初歩の初歩をまとめていきたいと思います。</p>
-</section>
-<section id="e-statでの準備" class="level2">
-<h2 class="anchored" data-anchor-id="e-statでの準備">e-Statでの準備</h2>
-<p>まずはじめにe-Statでユーザー登録をし、アプリケーションIDを取得する必要があります。</p>
-<p>ブラウザで<a href="https://www.e-stat.go.jp/">e-Stat</a>を開き、画面右上の「新規登録」から登録します。難しい点はほとんどないと思うので詳細は省略しますが、登録できたらログインした状態にしておいてください。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250309_estat_api/image/e-stat_home.png" class="img-fluid figure-img"></p>
-<figcaption>右上の「新規登録」から登録します</figcaption>
-</figure>
-</div>
-<p>ログインできたら、上部の青いナビゲーションバーに「マイページ」が出てきますので、そこをクリックしてマイページに進みます。</p>
-<p>するとナビゲーションバーの少し下に水色のバーが出てきて、そこに「API機能（アプリケーションID発行）」とあるので、そこをクリックします。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250309_estat_api/image/e-stat_mypage.png" class="img-fluid figure-img"></p>
-<figcaption>右から2つ目の項目です</figcaption>
-</figure>
-</div>
-<p>するとアプリケーションIDの取得ということで3つの欄が出てきますので、1番上の欄を使用していきます。名称の部分に任意の名前を入れ、URLはそのままにしておきます。右側の「発行」をクリックすれば「appId」の部分にアプリケーションIDが表示され、これを後ほど使うことになります。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250309_estat_api/image/e-stat_get_appid.png" class="img-fluid figure-img"></p>
-<figcaption>名称は何でも大丈夫です</figcaption>
-</figure>
-</div>
-</section>
-<section id="使用するパッケージ" class="level2">
-<h2 class="anchored" data-anchor-id="使用するパッケージ">使用するパッケージ</h2>
-<p>Rに戻ります。</p>
-<p>今回は以下の3つのパッケージを使用します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># インストール</span></span>
-<span id="cb1-2"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># pak::pak(c("httr", "xml2", "tidyverse"))</span></span>
-<span id="cb1-3"></span>
-<span id="cb1-4"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(httr)</span>
-<span id="cb1-5"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(xml2)</span>
-<span id="cb1-6"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span></code></pre></div></div>
-</div>
-<p>{httr}はHTTPリクエストを送信してWeb APIからデータを取得するためのパッケージで、{xml2}はXMLデータを解析して必要な情報を抽出するためのパッケージです。XMLはデータを構造化して表現するためのフォーマットであり、APIなどでデータを受け取る際によく使われるようです。</p>
-<p>{tidyverse}はおなじみのデータハンドリング用です。</p>
-</section>
-<section id="apiでデータを取得" class="level2">
-<h2 class="anchored" data-anchor-id="apiでデータを取得">APIでデータを取得</h2>
-<section id="apiリクエストurlを取得格納" class="level3">
-<h3 class="anchored" data-anchor-id="apiリクエストurlを取得格納">APIリクエストURLを取得、格納</h3>
-<p>まずはe-Statで取得したい統計のページへアクセスします。今回は令和2年国勢調査の人口等基本集計、総人口と男女別人口のデータを取得したいと思います。今回使うページのURLは以下です。</p>
-<p><a href="https://www.e-stat.go.jp/stat-search/database?page=1&amp;layout=datalist&amp;toukei=00200521&amp;tstat=000001136464&amp;cycle=0&amp;tclass1=000001136466&amp;statdisp_id=0003445078&amp;tclass2val=0" class="uri">https://www.e-stat.go.jp/stat-search/database?page=1&amp;layout=datalist&amp;toukei=00200521&amp;tstat=000001136464&amp;cycle=0&amp;tclass1=000001136466&amp;statdisp_id=0003445078&amp;tclass2val=0</a></p>
-<p>ページにAPIと書かれた青いアイコンがあるので、そこをクリックします。するとURLが表示されるので、表示されたURLをコピーしておきます。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250309_estat_api/image/e-stat_api_url.png" class="img-fluid figure-img"></p>
-<figcaption>左側にあるAPIと書かれた部分をクリックして出てきたURLをコピーします</figcaption>
-</figure>
-</div>
-<p>次にRで今コピーしたURLを格納します。ダブルクォーテーションで囲んでください。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=&amp;lang=J&amp;statsDataId=0003445078&amp;metaGetFlg=Y&amp;cntGetFlg=N&amp;explanationGetFlg=Y&amp;annotationGetFlg=Y&amp;sectionHeaderFlg=1&amp;replaceSpChars=0"</span></span></code></pre></div></div>
-<p>ここで注意ですが、<strong>URLの中に<code>appId=</code>という部分があり、ここに先ほど作成したアプリケーションIDを入れる必要があります</strong>。仮にアプリケーションIDを<code>123456789</code>とすると、</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=123456789&amp;lang=J&amp;statsDataId=0003445078&amp;metaGetFlg=Y&amp;cntGetFlg=N&amp;explanationGetFlg=Y&amp;annotationGetFlg=Y&amp;sectionHeaderFlg=1&amp;replaceSpChars=0"</span></span></code></pre></div></div>
-<p>となります。</p>
-<p><code>appId</code>の部分を直接入れ替えることに不安がある方は、以下の方法でも可能です。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">appId <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"123456789"</span>  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># ここにアプリケーションIDを入れます</span></span>
-<span id="cb4-2"></span>
-<span id="cb4-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># コピーしてきたURL</span></span>
-<span id="cb4-4">url_template <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://api.e-stat.go.jp/rest/3.0/app/getStatsData?appId=%s&amp;lang=J&amp;statsDataId=0003445078&amp;metaGetFlg=Y&amp;cntGetFlg=N&amp;explanationGetFlg=Y&amp;annotationGetFlg=Y&amp;sectionHeaderFlg=1&amp;replaceSpChars=0"</span></span>
-<span id="cb4-5"></span>
-<span id="cb4-6">url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sprintf</span>(url_template, appId)</span></code></pre></div></div>
-<p><code>sprintf()</code>は文字列の中に変数を埋め込む関数です。<code>%s</code>の部分が<code>appId</code>で置き換えられるようになっています。</p>
-</section>
-<section id="urlを使ってapiリクエストを実行" class="level3">
-<h3 class="anchored" data-anchor-id="urlを使ってapiリクエストを実行">URLを使ってAPIリクエストを実行</h3>
-<p>次に入力したURLを使ってAPIリクエストを実行します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">response <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">GET</span>(url)</span></code></pre></div></div>
-</div>
-<p>このレスポンスの内容をテキストとして取得し、XMLとして読み込んでいきます。<code>response</code>にはステータスコードが含まれているのですが、これが200だと読み込みが成功しています。成功していれば読み込むように設定します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">status_code</span>(response) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">200</span>) {</span>
-<span id="cb6-2">  xml_data <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_xml</span>(</span>
-<span id="cb6-3">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">content</span>(response, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">as =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"text"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">encoding =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"UTF-8"</span>)</span>
-<span id="cb6-4">  )</span>
-<span id="cb6-5"></span>
-<span id="cb6-6">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(xml_data)</span>
-<span id="cb6-7">} <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">else</span> {</span>
-<span id="cb6-8">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">stop</span>(</span>
-<span id="cb6-9">    <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"データの取得に失敗しました。HTTPステータスコード: "</span>,</span>
-<span id="cb6-10">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">status_code</span>(response)</span>
-<span id="cb6-11">  )</span>
-<span id="cb6-12">}</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>{xml_document}
-&lt;GET_STATS_DATA noNamespaceSchemaLocation="https://api.e-stat.go.jp/rest/3.0/schema/GetStatsData.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
-[1] &lt;RESULT&gt;\n  &lt;STATUS&gt;0&lt;/STATUS&gt;\n  &lt;ERROR_MSG&gt;正常に終了しました。&lt;/ERROR_MSG&gt;\n  &lt;D ...
-[2] &lt;PARAMETER&gt;\n  &lt;LANG&gt;J&lt;/LANG&gt;\n  &lt;STATS_DATA_ID&gt;0003445078&lt;/STATS_DATA_ID ...
-[3] &lt;STATISTICAL_DATA&gt;\n  &lt;RESULT_INF&gt;\n    &lt;TOTAL_NUMBER&gt;12258&lt;/TOTAL_NUMBER ...</code></pre>
-</div>
-</div>
-<p>ステータスコードが200になっていたようなので<code>{xml_document}</code>としていろいろ出てきました。また、<code>xml_data</code>に読み込んだXMLが保存されています。</p>
-</section>
-<section id="xmlの構造確認" class="level3">
-<h3 class="anchored" data-anchor-id="xmlの構造確認">XMLの構造確認</h3>
-<p>次にXMLの構造を確認してみます。しかしこれは非常に長くなるので、結果は表示しません。実際に手元で実行してみてください。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_structure</span>(xml_data)</span></code></pre></div></div>
-</div>
-<p>結果の中には様々な情報が構造化されて格納されていることがわかります。僕たちが抽出したい情報は<code>{text}</code>と表示されてしまっているので、このままでは<code>{text}</code>が何か確認することができませんが、この中には統計名や更新日など、統計に関する様々な情報（タグ）が含まれます<sup>1</sup>。必要に応じてここから情報を取得することができるので、試しにいろいろやってみましょう。</p>
-<ol type="1">
-<li>統計表の名前</li>
-</ol>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1">table_name <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_first</span>(xml_data, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//TABLE_INF/STATISTICS_NAME"</span>))</span>
-<span id="cb9-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(table_name)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "令和２年国勢調査 人口等基本集計　（主な内容：男女・年齢・配偶関係，世帯の構成，住居の状態，母子・父子世帯，国籍など）"</code></pre>
-</div>
-</div>
-<ol start="2" type="1">
-<li>調査日</li>
-</ol>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">survey_date <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_first</span>(xml_data, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//TABLE_INF/SURVEY_DATE"</span>))</span>
-<span id="cb11-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(survey_date)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "202010"</code></pre>
-</div>
-</div>
-<ol start="3" type="1">
-<li>統計表の公開日</li>
-</ol>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1">open_date <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_first</span>(xml_data, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//TABLE_INF/OPEN_DATE"</span>))</span>
-<span id="cb13-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(open_date)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "2021-11-30"</code></pre>
-</div>
-</div>
-<p>いろいろ結果が出てきました。ここで、使用していた関数について説明します。</p>
-<p>まず<code>xml_text()</code>です。これはXML内の ノード<sup>2</sup>のテキストを取得する関数です。内容をテキストとして抽出するものというようなイメージだと思ってください。</p>
-<p>次に<code>xml_find_first()</code>です。これは括弧内で指定したパスと合致する最初のものを抽出してくるという関数です。例えば上の1番では、<code>"//TABLE_INF/STATISTICS_NAME"</code>に一致する部分を探して、そこに書かれている内容を引っ張ってきます。最初ということは複数あるのか？と僕も最初は思ったのですが、どうやら1つしかない要素に対しても一般的に使うようです<sup>3</sup>。</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>XPath（XML上のパス）について
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>XMLの構造を丁寧に見た方の中には、<code>TABLE_INF</code>は実は<code>GET_STATS_DATA</code>の中のさらに<code>STATISTICAL_DATA</code>の中に入っているがそれは指定しなくてよいのか、と思った方もいるかもしれません。そこは最初の2つのスラッシュ（<code>//</code>）で対応していて、これは全体のどこにあっても、例えば<code>TABLE_INF/STATISTICS_NAME</code>となっている部分を見つけ出して中身を抽出するということを意味しています。つまり、上記の書き方で<code>"/GET_STATS_DATA/STATISTICAL_DATA/TABLE_INF/STATISTICS_NAME"</code>をヒットさせることができるわけです。</p>
-</div>
-</div>
-</section>
-<section id="データを取得" class="level3">
-<h3 class="anchored" data-anchor-id="データを取得">データを取得</h3>
-<p>ではいろいろ確認できたところでデータを取得する作業に入ります。</p>
-<p>データは<code>//DATA_INF/VALUE</code>というところに含まれているので、このパスを用います。また構造を確認していただけばわかるように、<code>VALUE</code>というのは大量にありますので<code>xml_find_first()</code>では最初の1つしか取得できず、不適切です。ここでは<code>xml_find_all()</code>ですべての用をを取得していきます。</p>
-<p>加えて、</p>
-<pre><code>&lt;VALUE [tab, cat01, area, time, unit]&gt;</code></pre>
-<p>となっているように、<code>VALUE</code>には5つの属性が付与されており、それぞれ統計表のタブ（表のバージョンや種類）、統計のカテゴリ、自治体コード、時間（ここでは年）、単位を示します。これを踏まえて必要な情報を以下のコードでは取得しています。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># データがあるノードをすべて取得</span></span>
-<span id="cb16-2">value_nodes <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_all</span>(xml_data, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//DATA_INF/VALUE"</span>)</span>
-<span id="cb16-3"></span>
-<span id="cb16-4">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb16-5">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># xml_attr()で特定の属性を取得</span></span>
-<span id="cb16-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">area =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_attr</span>(value_nodes, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"area"</span>),</span>
-<span id="cb16-7">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_attr</span>(value_nodes, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"time"</span>),</span>
-<span id="cb16-8">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_attr</span>(value_nodes, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cat01"</span>),</span>
-<span id="cb16-9">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># valueはテキストとして取得したのち数値に変換</span></span>
-<span id="cb16-10">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">value =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">as.numeric</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>(value_nodes))</span>
-<span id="cb16-11">)</span>
-<span id="cb16-12"></span>
-<span id="cb16-13"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 12,258 × 4
-   area  time       category     value
-   &lt;chr&gt; &lt;chr&gt;      &lt;chr&gt;        &lt;dbl&gt;
- 1 00000 2020000000 0        126146099
- 2 01000 2020000000 0          5224614
- 3 01100 2020000000 0          1973395
- 4 01101 2020000000 0           248680
- 5 01102 2020000000 0           289323
- 6 01103 2020000000 0           265379
- 7 01104 2020000000 0           211835
- 8 01105 2020000000 0           225298
- 9 01106 2020000000 0           135777
-10 01107 2020000000 0           217040
-# ℹ 12,248 more rows</code></pre>
-</div>
-</div>
-<p>このままだと少しわかりにくいですね。<code>time</code>は年なので上4桁だけ取り出したいし、<code>category</code>には３つの数字があるのですが、それぞれが何を意味しているのか分かりません。</p>
-<p>ひとまずカテゴリについて確認しておきましょう。XMLの中に<code>CLASS_INF</code>があり、その中に情報が含まれています。カテゴリ（<code>cat01</code>がそれです）について知りたい場合は<code>"//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS"</code>で確認できます。以下のコードを実行してください。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># xml_data内のノードを取得</span></span>
-<span id="cb18-2">cat01_nodes <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_all</span>(</span>
-<span id="cb18-3">  xml_data,</span>
-<span id="cb18-4">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//CLASS_INF/CLASS_OBJ[@id='cat01']/CLASS"</span></span>
-<span id="cb18-5">)</span>
-<span id="cb18-6"></span>
-<span id="cb18-7"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># cat01のコードと対応する名前を取得</span></span>
-<span id="cb18-8">df_cat01 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb18-9">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cat01_code =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_attr</span>(cat01_nodes, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"code"</span>),</span>
-<span id="cb18-10">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cat01_name =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_attr</span>(cat01_nodes, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"name"</span>)</span>
-<span id="cb18-11">)</span>
-<span id="cb18-12"></span>
-<span id="cb18-13"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 結果を表示</span></span>
-<span id="cb18-14"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df_cat01)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 3 × 2
-  cat01_code cat01_name
-  &lt;chr&gt;      &lt;chr&gt;     
-1 0          総数      
-2 1          男        
-3 2          女        </code></pre>
-</div>
-</div>
-<p>0が総数、1が男、2が女であることがわかりました。なのでここでカテゴリを書き換え、ついでに年も整理し並べ替えておきましょう。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">df_cleaned <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb20-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">arrange</span>(area, time, category) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb20-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb20-4">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># timeは上4桁を取り出す</span></span>
-<span id="cb20-5">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">as.integer</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">substr</span>(time, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>)),</span>
-<span id="cb20-6">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># case_when()で条件分岐</span></span>
-<span id="cb20-7">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">category =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">case_when</span>(</span>
-<span id="cb20-8">      <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 文字列として格納されているので""で囲みます</span></span>
-<span id="cb20-9">      category <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"0"</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"population"</span>,</span>
-<span id="cb20-10">      category <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1"</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_male"</span>,</span>
-<span id="cb20-11">      category <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"2"</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_female"</span></span>
-<span id="cb20-12">    )</span>
-<span id="cb20-13">  )</span>
-<span id="cb20-14"></span>
-<span id="cb20-15"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df_cleaned)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 12,258 × 4
-   area   time category       value
-   &lt;chr&gt; &lt;int&gt; &lt;chr&gt;          &lt;dbl&gt;
- 1 00000  2020 population 126146099
- 2 00000  2020 pop_male    61349581
- 3 00000  2020 pop_female  64796518
- 4 01000  2020 population   5224614
- 5 01000  2020 pop_male     2465088
- 6 01000  2020 pop_female   2759526
- 7 01100  2020 population   1973395
- 8 01100  2020 pop_male      918682
- 9 01100  2020 pop_female   1054713
-10 01101  2020 population    248680
-# ℹ 12,248 more rows</code></pre>
-</div>
-</div>
-<p>もしカテゴリの各種をそれぞれ列にしたければ<code>pivot_wider()</code>でできます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1">df_wide <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df_cleaned <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb22-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">pivot_wider</span>(</span>
-<span id="cb22-3">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">names_from =</span> category,</span>
-<span id="cb22-4">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">values_from =</span> value</span>
-<span id="cb22-5">  )</span>
-<span id="cb22-6"></span>
-<span id="cb22-7"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df_wide)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 4,086 × 5
-   area   time population pop_male pop_female
-   &lt;chr&gt; &lt;int&gt;      &lt;dbl&gt;    &lt;dbl&gt;      &lt;dbl&gt;
- 1 00000  2020  126146099 61349581   64796518
- 2 01000  2020    5224614  2465088    2759526
- 3 01100  2020    1973395   918682    1054713
- 4 01101  2020     248680   112853     135827
- 5 01102  2020     289323   136596     152727
- 6 01103  2020     265379   126023     139356
- 7 01104  2020     211835   100062     111773
- 8 01105  2020     225298   104154     121144
- 9 01106  2020     135777    62347      73430
-10 01107  2020     217040   100027     117013
-# ℹ 4,076 more rows</code></pre>
-</div>
-</div>
-<p>これでひとまずデータフレームとして整理することができました。ここからさらに整理したり、分析を回していきましょう！</p>
-</section>
-</section>
-<section id="データベースから取得する" class="level2">
-<h2 class="anchored" data-anchor-id="データベースから取得する">データベースから取得する</h2>
-<p>今回は国勢調査のような既にまとめられたデータを用いましたが、e-Statのデータベースを使えば必要なデータを選択して取得することができます。</p>
-<p>例えば<a href="https://www.e-stat.go.jp/regional-statistics/ssdsview">こちら</a>から「市区町村データ」を選択し「データ表示」をクリックします。</p>
-<p>出てきた画面から地域を選択し、「確定」をクリックしたのち取得したいデータを選択し、再度「確定」をクリックします。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250309_estat_api/image/e-stat_database_area.png" class="img-fluid figure-img"></p>
-<figcaption>地域を選択します</figcaption>
-</figure>
-</div>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250309_estat_api/image/e-stat_database_category.png" class="img-fluid figure-img"></p>
-<figcaption>取得したい統計項目を選択します</figcaption>
-</figure>
-</div>
-<p>するとデータが画面に表示されますが、ここで右上の「API」をクリックし、表示されたURLをコピーします。ここからは上で書いてきた手順と同様です。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250309_estat_api/image/e-stat_database_api.png" class="img-fluid figure-img"></p>
-<figcaption>URLの使い方はこれまでと同様です</figcaption>
-</figure>
-</div>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>APIは正直初心者には難しいなと感じましたが、大体のコードはそのまま使いまわせますし、XMLの構造を少し辛抱して眺めてみればどこに何が入っているのか少しずつわかってきました。</p>
-<p>CSVでダウンロードすると余計な情報量が多く分析の手間に感じていましたので、春休みを機に少しではありますが知れてよかったと思います。ぜひ活用してみて下さい。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p><a href="https://www.e-stat.go.jp/api/api-info/e-stat-manual3-0#api_3_4">こちら</a>からタグの種類を確認できます。↩︎</p></li>
-<li id="fn2"><p>XMLデータの中の要素（タグ）や属性、テキストなどの構成要素のことを言います。↩︎</p></li>
-<li id="fn3"><p>今回取得してきたような要素は全体を見ても1か所にしか出てきません。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <guid>https://yo5uke.com/pages/tips/2025/03/250309_estat_api/</guid>
-  <pubDate>Sat, 08 Mar 2025 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
