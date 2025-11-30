@@ -1,0 +1,1029 @@
+---
+title: "【Windows】RとPostgreSQL中心の環境構築【GISも】"
+description: |
+  データ分析やGIS分析に便利なRとPostgreSQLをWindows環境で使う方法を解説します。WSLを活用した本格的なセットアップも紹介。
+date: 2025-12-01
+categories:
+  - R
+  - WSL
+  - Windows
+  - PostgreSQL
+  - GIS
+image: image/thumbnail.png
+---
+
+:::{.callout-note}
+## データベースについて
+本記事ではデータベースとしてPostgreSQLを使用しますが、DuckDBもおすすめです。DuckDBは組み込み型のデータベースで、RやPythonから簡単に利用でき、大規模データの処理にも適しています。
+
+使い方については[こちらの記事](/pages/tips/2025/09/250919_duckdb/index.qmd)を参照してください。
+:::
+
+## はじめに
+
+データ分析や統計処理を行う際、RやPythonといったプログラミング言語に加えて、大規模なデータを効率的に管理・処理するためのデータベースが必要になることがあります。特に、**大規模なローデータがあり、そこからさまざまなデータフレームを生成・操作するような場合**、PostgreSQLのような高機能なデータベースが強力な味方になります。
+
+本記事では、Windows環境でWSL（Windows Subsystem for Linux）を活用し、R、Python、PostgreSQLを中心とした開発環境を構築する方法を解説します。WSLを使うことで、Windowsの使いやすさを保ちながら、Linux環境の恩恵を受けられます。
+
+**この記事の対象読者**
+
+- RやPythonでデータ分析を行っている方
+- PostgreSQLを使ったデータ管理に興味がある方
+- WSLを活用した効率的な開発環境を構築したい方
+
+**環境構築の流れ**
+
+1. Windows上でのセットアップ（基本編）
+2. WSL上でのセットアップ（発展編）
+
+初めての方はまずWindows版から試してみて、より本格的な環境が必要になったらWSL版に移行するのがおすすめです。
+
+結構長いページになってしまったので、目次から適宜ジャンプして読んでみてください。
+
+また、本ページではSQLコードに関してはRを経由した実行方法を中心に解説します。
+
+:::{.callout-note appearance="simple"}
+Macユーザーの方も、PostgreSQLとR、Pythonの組み合わせは同様に有効ですので、参考にしてみてください。
+:::
+
+:::{.callout-note}
+## 事前準備
+- Windows 11
+- RとIDE（RStudioやPositron等）はインストール済み
+
+であることを前提とします。
+:::
+
+## PostgreSQLとは
+
+PostgreSQLは、オープンソースの高機能なリレーショナルデータベース管理システム（RDBMS）です。「ポストグレス」と読みます^[会社で教えてくださった上司・先輩がポスグレと呼んでいるので、僕もポスグレ呼びをしています。]。
+
+**PostgreSQLの特徴**
+
+- **高い拡張性**: GIS（地理情報システム）に対応したPostGISなど、様々な拡張機能を追加できる
+- **標準SQLへの準拠**: 標準的なSQL構文をサポートし、複雑なクエリも実行可能
+- **豊富なデータ型**: 配列、JSON、幾何データなど、多様なデータ型に対応
+- **トランザクション管理**: データの整合性を保ちながら安全に操作できる
+
+**なぜPostgreSQLを使うのか**
+
+RやPythonだけでもデータ分析は可能ですが、以下のような場面でPostgreSQLが役立ちます：
+
+- メモリに収まりきらない大規模データの処理
+- 複数のプロジェクトで共通のデータソースを利用
+- 空間データ（緯度経度、ポリゴンなど）の効率的な管理と分析
+- 複雑な集計やフィルタリングをSQL側で事前処理
+
+特に、PostGIS拡張を導入すれば、バス停や人口メッシュといった空間データの距離計算やバッファ分析などが高速に実行でき、GIS分析の強力な基盤となります。
+
+## WSLとは
+
+WSL（Windows Subsystem for Linux）は、Windows上でLinux環境をネイティブに実行できる機能です。仮想マシンよりも軽量で、WindowsとLinuxのファイルシステムを相互に利用できるのが特徴です。
+
+### WSLのメリット
+
+- **パッケージ管理が簡単**: `apt`コマンドで必要なソフトウェアを簡単にインストール
+- **再現性の高い環境**: LinuxベースのDockerやサーバー環境と同じOSで作業できる
+- **高いパフォーマンス**: 特にI/O処理やデータベース操作が高速
+- **開発ツールが豊富**: Linux標準のコマンドラインツールをそのまま利用可能
+
+### Windows版とWSL版、どちらを選ぶべき？
+
+**Windows版が向いている場合**
+
+- 初めてPostgreSQLやRを使う方
+- 既存のWindows環境で素早く始めたい
+- GUIツールを中心に使いたい
+
+**WSL版が向いている場合**
+
+- 空間データ分析（PostGISなど）を本格的に行いたい
+- Dockerやサーバー環境との互換性を重視したい
+- コマンドラインでの作業に慣れている、または学びたい
+- より高いパフォーマンスと柔軟性が必要
+
+本記事では両方の方法を紹介しますので、お好みで選んでください。まずはWindows版で試してみて、必要に応じてWSL版に移行するのもよいと思います。
+
+## 1. Windows上でのセットアップ（基本編）
+
+Windows環境で直接PostgreSQL、Rをセットアップする方法を解説します。GUIツールが使いやすく、初めての方にもおすすめです。
+
+### 1.1 PostgreSQLのインストール
+
+#### インストーラーのダウンロード
+
+1. [PostgreSQL公式サイト](https://www.postgresql.org/download/windows/)にアクセス
+2. ページ冒頭にある「Download the installer」をクリック
+3. 最新の安定版（例: PostgreSQL 18）のWindowsインストーラーをダウンロード
+
+#### インストール手順
+
+1. ダウンロードしたインストーラーを実行
+2. インストールウィザードに従って進める
+   - **Installation Directory**：デフォルトのまま（例：`C:\Program Files\PostgreSQL\18`）
+   - **Select Components**：すべてにチェック（PostgreSQL Server、pgAdmin 4、Stack Builder、Command Line Tools）
+   - **Data Directory**: デフォルトのまま
+   - **Password**: スーパーユーザー（postgres）のパスワードを設定^[シンプルなものでもいけます。]
+   - **Port**: デフォルトの`5432`のまま
+   - **Locale**: `[DEFAULT]`または `Japanese, Japan`
+3. インストール完了後、Stack Builderは「Skip」してOK（あるいはキャンセルして終了）
+
+#### 動作確認
+
+![](image/psql.png)
+
+スタートメニューから「SQL Shell (psql)」を起動し、以下を入力：
+
+```bash
+Server [localhost]:  # Enterキーを押す
+Database [postgres]:  # Enterキーを押す
+Port [5432]:  # Enterキーを押す
+Username [postgres]:  # Enterキーを押す
+Client Encoding [SJIS]:  # Enterキーを押す
+ユーザー postgres のパスワード:  # 設定したパスワードを入力
+```
+
+パスワード以外は入力しなくて問題ありません！`postgres=#`と表示されれば成功です。以下のコマンドでバージョンを確認できます：
+
+```sql
+SELECT version();
+```
+
+![バージョン確認](image/psql_version.png)
+
+終了する場合は `\q` と入力してEnterキーを押します。
+
+#### pgAdmin 4の起動
+
+PostgreSQLをGUIで操作できる「pgAdmin 4」も一緒にインストールされています。スタートメニューから「pgAdmin 4」を起動して、データベースの作成やテーブルの確認ができます。
+
+左側のサイドバーにある「Servers」から「PostgreSQL 18」を選択、「Databases」→「postgres」→「Schemas」→「public」→「Tables」でテーブル一覧を確認できますが、今回はR上で操作することもあり、必ずしもpgAdminを使う必要はありません。一時的にGUIで確認したい場合に利用するとよいと思います。
+
+### 1.2 RからPostgreSQLに接続
+
+RからPostgreSQLを操作するには、`RPostgres`パッケージを使います。また、データベース全般の操作には`DBI`パッケージも必要です。
+
+#### パッケージのインストール
+
+RStudioのコンソールで以下を実行：
+
+```r
+install.packages(c("RPostgres", "DBI"))
+```
+
+#### 接続テスト
+
+以下のコードで接続を確認します：
+
+```r
+library(DBI)
+
+# データベースに接続
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "postgres",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "あなたのパスワード"
+)
+
+# 接続確認
+dbGetQuery(con, "SELECT version();")
+
+# 切断
+dbDisconnect(con)
+```
+
+エラーが出ずに結果が表示されれば成功です。
+
+:::{.callout-important}
+## パスワードの扱いについて
+プロジェクトが個人用であれば問題ありませんが、チーム開発や公開リポジトリでコードを共有する場合、パスワードを直接コードに書くのは避けた方がよいです。
+
+Gitを使用している場合、`.Renviron`ファイルをワーキングディレクトリに作成し、以下のように環境変数を設定する方法がおすすめです：
+
+```
+PG_PASSWORD=あなたのパスワード
+```
+
+Rコード内では以下のように取得します：
+
+```r
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "postgres",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = Sys.getenv("PG_PASSWORD")
+)
+```
+
+`.Renviron`ファイルはGitで管理しないよう、`.gitignore`に追加しておいてください。公開しては意味がありませんので…。
+
+もしくは`rstudioapi::askForPassword()`関数を使って、実行時にパスワードを入力させる方法もあります。
+
+```r
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "postgres",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = rstudioapi::askForPassword()
+)
+```
+
+この場合は、コードを共有してもパスワードは含まれません。
+:::
+
+### 1.3 データベースとテーブルの作成
+
+実際にデータベースとテーブルを作成してみます。
+
+Rでは`dbExecute()`関数を使ってSQLコマンドを実行できます。SQLコマンドに詳しくない場合は、Rの場合のコードを書いてAIに変換してもらうのがおすすめです（笑）
+
+#### 新しいデータベースの作成
+
+```r
+library(DBI)
+
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "postgres",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "your_password"
+)
+
+# 新しいデータベースを作成
+dbExecute(con, "CREATE DATABASE mydb;")
+
+# 切断
+dbDisconnect(con)
+```
+
+#### 作成したデータベースに接続してテーブルを作成
+
+先ほどは`dbname`に`postgres`を指定しましたが、今回は新しく作成した`mydb`に接続します。
+
+```r
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "あなたのパスワード"
+)
+
+# テーブルを作成
+dbExecute(con, "
+  CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    age INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+")
+
+# データを挿入
+dbExecute(con, "
+  INSERT INTO users (name, age) VALUES
+  ('Alice', 25),
+  ('Bob', 30),
+  ('Charlie', 35);
+")
+
+# データを確認
+dbGetQuery(con, "SELECT * FROM users;")
+
+# 切断
+dbDisconnect(con)
+```
+
+内容は次の通りです。
+
+1. `users`という名前のテーブルを作成
+2. `id`, `name`, `age`, `created_at`の4つのカラムを定義
+    - SERIAL PRIMARY KEY: 自動的に連番が振られる主キー
+    - VARCHAR(100): 文字列（最大100文字）
+    - INTEGER: 整数
+    - TIMESTAMP DEFAULT CURRENT_TIMESTAMP: レコード作成日時（デフォルトで現在時刻が入る）
+3. 3件のサンプルデータを挿入
+    - Alice（25歳）、Bob（30歳）、Charlie（35歳）
+4. 挿入したデータを取得して表示
+
+#### まとめ
+
+ここまでで、Windows上でPostgreSQL、R、Pythonの基本的な環境が整いました。
+
+**セットアップした内容**
+
+- PostgreSQLのインストールと動作確認
+- Rのインストールと接続テスト
+- データベースとテーブルの作成
+
+次のセクションでは、より本格的な開発環境を構築するため、WSL上でのセットアップ方法を解説します。
+
+## 2. WSL上でのセットアップ（発展編）
+
+次にWSL（Windows Subsystem for Linux）を使って、より本格的な開発環境を構築します。Linux環境の恩恵を受けながら、Windowsとシームレスに連携できます。
+
+### 2.1 WSLのインストール
+
+#### WSLの有効化
+
+PowerShellを**管理者として**実行し^[右クリックで「管理者として実行」を選択してください。]、以下のコマンドを入力：
+
+```powershell
+wsl --install
+```
+
+インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます。ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。
+
+また、パスワードは**画面上には表示されませんが、ちゃんと入力されています**。慌てて何回も入力しないようにしてください。
+
+このコマンドで以下が自動的にインストールされます：
+
+- WSL 2
+- Ubuntu（デフォルトのLinuxディストリビューション）
+- 必要な仮想化コンポーネント
+
+#### システムの更新
+
+Ubuntu起動後、まずシステムを最新の状態に更新します：
+
+```bash
+sudo apt update
+sudo apt upgrade -y
+```
+
+`sudo`コマンドは管理者権限でコマンドを実行するためのものです。パスワードの入力を求められたら、先ほど設定したパスワードを入力してください。
+
+### 2.2 PostgreSQL 18のインストール（WSL/Ubuntu）
+
+Ubuntu標準のリポジトリではPostgreSQLの古いバージョン（現在は16）がインストールされるため、PostgreSQL公式のAptリポジトリを使用して最新版（PostgreSQL 18）をインストールします。
+
+#### PostgreSQL公式リポジトリの設定
+
+最も簡単な方法は、公式の自動設定スクリプトを使用することです：
+
+```bash
+# PostgreSQL公式リポジトリを自動設定
+sudo apt install -y postgresql-common
+sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh
+```
+
+このスクリプトが自動的にリポジトリ設定とGPGキーのインストールを行います。
+
+#### PostgreSQL 18のインストール
+
+リポジトリの設定が完了したら、PostgreSQL 18をインストールします：
+
+```bash
+# PostgreSQL 18をインストール
+sudo apt install -y postgresql-18 postgresql-client-18
+```
+
+**インストールされる主なパッケージ:**
+- `postgresql-18`: PostgreSQLサーバー本体
+- `postgresql-client-18`: クライアントツール（psqlなど）
+
+#### PostgreSQLサービスの起動
+
+```bash
+# PostgreSQLサービスの起動
+sudo service postgresql start
+```
+
+#### 動作確認
+
+```bash
+# PostgreSQLのバージョンとクラスター状態を確認
+pg_lsclusters
+```
+
+出力例：
+```
+Ver Cluster Port Status Owner    Data directory              Log file
+18  main    5432 online postgres /var/lib/postgresql/18/main /var/log/postgresql/postgresql-18-main.log
+```
+
+PostgreSQLに接続：
+```bash
+# PostgreSQLユーザーに切り替えて接続
+sudo -u postgres psql
+```
+
+`postgres=#` プロンプトが表示されたら成功です。
+
+バージョンを確認するには続けて以下を実行します：
+
+```sql
+SELECT version();
+```
+
+出力例：
+
+```
+PostgreSQL 18.1 (Ubuntu 18.1-1.pgdg24.04+2) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0, 64-bit
+```
+
+終了する場合は `\q` と入力します。
+
+#### パスワードの設定
+
+PostgreSQLのスーパーユーザー（postgres）にパスワードを設定します：
+
+```bash
+sudo -u postgres psql
+```
+
+`postgres=#` プロンプトで以下を実行：
+
+```sql
+ALTER USER postgres WITH PASSWORD '設定するパスワード';
+\q
+```
+
+### 2.3 Rのインストール（WSL/Ubuntu）
+
+#### R本体のインストール
+
+最新版のRをインストールするため、CRANのリポジトリを追加します：
+
+```bash
+sudo apt update -qq
+
+# 必要なパッケージをインストール
+sudo apt install --no-install-recommends software-properties-common dirmngr
+
+# CRANのGPGキーを追加
+wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/cran_ubuntu_key.asc
+
+# CRANのリポジトリを追加
+sudo add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
+
+# パッケージリストを更新してRをインストール
+sudo apt install --no-install-recommends r-base -y
+```
+
+#### 動作確認
+
+```bash
+R --version
+```
+
+バージョン情報が表示されればインストール成功です。
+
+#### 必要なシステムライブラリのインストール
+
+RからPostgreSQLに接続するために必要なライブラリをインストール：
+
+```bash
+sudo apt install -y libpq-dev libssl-dev libcurl4-openssl-dev libxml2-dev
+```
+
+### 2.4 RStudio Serverのインストール（WSL/Ubuntu）
+
+#### RStudio Serverのダウンロードとインストール
+
+RStudio Serverの最新バージョンを[RStudio公式サイト](https://posit.co/download/rstudio-server/)から確認し、以下のコマンドでダウンロードとインストールを行います：
+
+```bash
+sudo apt-get install gdebi-core
+wget https://download2.rstudio.org/server/jammy/amd64/rstudio-server-2025.09.2-418-amd64.deb
+sudo gdebi rstudio-server-2025.09.2-418-amd64.deb
+```
+
+#### RStudio Serverの起動
+
+```bash
+sudo rstudio-server start
+```
+
+#### RStudio Serverへのアクセス
+
+ブラウザで`localhost:8787`にアクセスし、WSLのユーザー名とパスワードでログインします。
+
+すると、RStudioのウェブインターフェースが表示され、Rの開発環境が利用可能になります。
+
+### 2.5 RからPostgreSQLに接続（WSL）
+
+#### Rの起動とパッケージのインストール
+
+RStudio ServerあるいはVSCodeでWSLに接続^[{{< kbd Ctrl-Shift-P >}}で「wsl: connect to wsl」と検索し選択することで接続できます。]の上Rコンソールを開き、以下を実行：
+
+```r
+install.packages(c("DBI", "RPostgres"))
+```
+
+#### 接続テスト
+
+```r
+library(DBI)
+
+# データベースに接続
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "postgres",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "あなたのパスワード"
+)
+
+# 接続確認
+dbGetQuery(con, "SELECT version();")
+
+# 切断
+dbDisconnect(con)
+```
+
+### 2.6 データベースとテーブルの作成（WSL）
+
+Windows版と同じ手順でデータベースとテーブルを作成できます。
+
+#### 新しいデータベースの作成
+
+```r
+library(DBI)
+
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "postgres",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "あなたのパスワード"
+)
+
+# 新しいデータベースを作成
+dbExecute(con, "CREATE DATABASE mydb;")
+
+# 切断
+dbDisconnect(con)
+```
+
+#### テーブルの作成とデータ挿入
+
+Windows版と同様に、usersテーブルを作成してみます：
+
+```r
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "あなたのパスワード"
+)
+
+# テーブルを作成
+dbExecute(con, "
+  CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    age INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+")
+
+# データを挿入
+dbExecute(con, "
+  INSERT INTO users (name, age) VALUES
+  ('Alice', 25),
+  ('Bob', 30),
+  ('Charlie', 35);
+")
+
+# データを確認
+dbGetQuery(con, "SELECT * FROM users;")
+
+# 切断
+dbDisconnect(con)
+```
+
+### 2.7 WSL環境のファイル操作
+
+#### WindowsからWSLのファイルにアクセス
+
+エクスプローラーのアドレスバーに以下を入力：
+
+```
+\\wsl$\Ubuntu\home\あなたのユーザー名
+```
+
+これでWSL内のファイルをWindows側から操作できます。
+
+エクスプローラーのサイドバーの最下部の「Linux」からもアクセス可能です。
+
+### 2.8 WSL環境の便利なTips
+
+#### WSLの再起動
+
+PostgreSQLが動かなくなった場合などは、WSLを再起動してみてください：
+
+```powershell
+# PowerShellで実行
+wsl --shutdown
+```
+
+その後、Ubuntuを再起動してPostgreSQLを起動：
+
+```bash
+sudo service postgresql start
+```
+
+#### VSCodeでPostgreSQLに接続
+
+Rの操作自体はRStudio Serverで行ってもVSCodeでも行ってもどちらでもよいのですが、VSCodeにはPostgreSQL拡張機能があり、データベースの管理が便利です。WindowsのようにpgAdminを使えない代わりに、VSCodeのPostgreSQL拡張機能を利用してテーブルリストなどを確認できます。
+
+VSCodeサイドバーの拡張機能から「ms-ossdata.vscode-pgsql」を検索し、インストールしてください。
+
+インストール終了後、サイドバーにPostgreSQLのアイコンが表示されるのでクリックし、「接続」の右にある「新しい接続を追加する」のアイコンから接続情報を入力します。
+
+![VSCode PostgreSQL拡張機能から接続](image/vscode_extension.png)
+
+- サーバー名：localhost
+- ユーザー名：postgres
+- パスワード：設定したパスワード
+- データベース名：（例）mydb
+
+記入したらテスト接続をクリックし、成功すれば保存して接続を選択します。
+
+接続後、サイドバーのPostgreSQLアイコンをクリックすると、データベースやテーブルの一覧が表示されます。「サーバー」→「localhost」→「Dataases」→「mydb」→「Schemas」→「public」→「Tables」でテーブル一覧を確認できます。
+
+新しくテーブルを追加した場合などは、右クリックして「最新の情報に更新」を選択して更新を反映してください。
+
+#### まとめ
+
+ここまでで、WSL上でPostgreSQL、Rを使った本格的な開発環境が整いました。
+
+**セットアップした内容**
+
+- WSL 2とUbuntuのインストール
+- PostgreSQLのインストール
+- Rのインストールと接続
+- RStudio Serverの設定
+- データベースとテーブルの作成
+- VSCodeのPostgreSQL拡張機能の利用
+
+ここまでで基本的な設定は完了です。次に実際にデータを取り込んで分析を始めてみましょう。
+
+## データを投入する
+
+PostgreSQLにデータを投入する方法はいくつかありますが、Rから直接データフレームをテーブルに書き込む方法が最も簡単です。
+
+1. Rでデータを読み込む（例：CSVファイル）
+2. `dbWriteTable()`関数を使ってデータフレームをPostgreSQLに書き込む
+
+```r
+library(DBI)
+
+# データベースに接続
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "あなたのパスワード"
+)
+
+library(tidyverse)
+
+# CSVファイルを読み込む
+data <- read_csv("path/to/your/data.csv")
+
+# データフレームをPostgreSQLに書き込む
+dbWriteTable(con, "my_table", data, overwrite = TRUE)
+
+# データを確認
+dbGetQuery(con, "SELECT * FROM my_table LIMIT 5;")
+
+# 切断
+dbDisconnect(con)
+```
+
+`dbWriteTable()`がテーブルを作成する関数で、`overwrite = TRUE`オプションを指定すると、既存のテーブルがあれば上書きされます。
+
+`dbGetQuery()`では、`my_table`から最初の5行を取得して表示しています。
+
+## {dbplyr}でPostgreSQLを操作する
+
+Rのデータハンドリングではおなじみの`dplyr`パッケージを使って、PostgreSQL上のデータを操作することもできます。データベースを操作するための`dbplyr`パッケージが動いて通常の`dplyr`の文法でSQLクエリを生成してくれます。
+
+`dbplyr`は`dplyr`の依存パッケージであるため、`dplyr`を読み込めば自動的に利用可能です。
+
+データベース上のテーブルは`tbl()`関数で参照し、`collect()`関数でRのデータフレームとして取得します。
+
+```r
+library(DBI)
+library(dplyr)
+
+# データベースに接続
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "あなたのパスワード"
+)
+```
+
+```{r}
+#| echo: false
+
+library(DBI)
+library(dplyr)
+
+# データベースに接続
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = Sys.getenv("PG_password")
+)
+
+dbWriteTable(con, "my_table", tibble(
+  column_name = c(50, 150, 200),
+  column1 = c("A", "B", "C"),
+  column2 = c(10, 20, 30)
+), overwrite = TRUE)
+```
+
+```{r}
+# テーブルを参照
+my_table <- tbl(con, "my_table") |>
+  filter(column_name > 100) |> # 条件でフィルタリング
+  select(column1, column2) # 必要なカラムを選択
+
+# Rのデータフレームとして取得
+result <- my_table |> collect()
+
+# 結果を表示
+print(result)
+
+# 切断
+dbDisconnect(con)
+```
+
+このコードでは、`my_table`テーブルから`column_name`が100より大きい行をフィルタリングし、`column1`と`column2`のカラムだけを選択しています。最後に`collect()`でRのデータフレームとして取得し、表示しています。
+
+このように通常の`dplyr`の文法でPostgreSQL上のデータを操作できるため、SQLを直接書かなくても高度なデータ操作が可能です。1からSQLを学ばなくてもよいのは大きいですよね！
+
+重要な点は、**`collect()`を呼び出すまでは実際のデータはRに取り込まれず、SQLクエリ^[クエリとは、データベースに対して行う問い合わせや命令のことです。]がデータベース側で実行される**ということです。データベース側で実行されることで大規模データを効率的に処理できます。
+
+また、注意点として、**`collect()`を呼び出すまでは`dplyr`に含まれる関数しか使うことができず、他のパッケージの関数は使えない**ことが挙げられます。例えば`collect()`前に`pivot_longer()`を使おうとするとエラーになります。これは`tidyr`パッケージの関数だからです。
+
+## GISのためのPostGIS
+
+PostGISは、PostgreSQLの拡張機能で、地理情報システム（GIS）データを扱うための強力なツールです。PostGISを利用することで、空間データの格納、クエリ、解析が可能になります。
+
+ここからは、WSL/Ubuntu環境でPostGISをインストールする手順を解説します。
+
+### PostGISのインストール（WSL/Ubuntu）
+
+PostgreSQLにPostGIS拡張を追加するには、以下のコマンドを実行します：
+
+```bash
+sudo apt install postgresql-18-postgis-3 postgresql-18-postgis-3-scripts -y
+```
+
+#### データベースでPostGISを有効化
+
+PostGISをインストールしたら、使用するデータベースでPostGIS拡張を有効にします：
+
+```bash
+# PostgreSQLに接続
+sudo -u postgres psql -d mydb
+```
+
+データベース内で以下のSQLコマンドを実行：
+
+```sql
+-- PostGIS拡張を有効化
+CREATE EXTENSION postgis;
+
+-- インストールされた拡張を確認
+\dx
+
+-- PostGISのバージョンを確認
+SELECT PostGIS_version();
+
+-- 終了
+\q
+```
+
+`\dx`コマンドで`postgis`が表示されれば、拡張が正常にインストールされています。
+
+記事を書いている時点での最新バージョンは3.6.1です。
+
+```
+mydb=# SELECT PostGIS_version();
+            postgis_version            
+---------------------------------------
+ 3.6 USE_GEOS=1 USE_PROJ=1 USE_STATS=1
+```
+
+### RからPostGISを利用する
+
+RからPostGIS機能を使うには、`sf`パッケージが便利です。
+
+#### 必要なパッケージのインストール
+
+```r
+install.packages("sf")
+```
+
+#### 空間データの書き込みと読み取り
+
+```r
+library(DBI)
+library(sf)
+library(dplyr)
+
+# データベースに接続
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "設定したパスワード"
+)
+
+# サンプルの空間データを作成（東京の主要地点）
+points <- data.frame(
+  name = c("東京駅", "渋谷駅", "新宿駅"),
+  lon = c(139.7671, 139.7016, 139.7006),
+  lat = c(35.6812, 35.6580, 35.6938)
+)
+
+# sfオブジェクトに変換（EPSG:4326はWGS84座標系）
+points_sf <- st_as_sf(points, coords = c("lon", "lat"), crs = 4326)
+
+# PostGISテーブルとして書き込み
+st_write(points_sf, con, "stations", delete_layer = TRUE)
+
+# データを読み取り
+stations <- st_read(con, "stations")
+print(stations)
+
+# 切断
+dbDisconnect(con)
+```
+
+```{r}
+#| echo: false
+
+library(DBI)
+library(sf)
+library(dplyr)
+
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = Sys.getenv("PG_password")
+)
+
+points <- data.frame(
+  name = c("東京駅", "渋谷駅", "新宿駅"),
+  lon = c(139.7671, 139.7016, 139.7006),
+  lat = c(35.6812, 35.6580, 35.6938)
+)
+
+points_sf <- st_as_sf(points, coords = c("lon", "lat"), crs = 4326)
+
+st_write(points_sf, con, "stations", delete_layer = TRUE)
+
+stations <- st_read(con, "stations")
+print(stations)
+
+dbDisconnect(con)
+```
+
+#### PostGISの空間関数を使う
+
+PostGISには様々な空間分析関数があります。例えば、2点間の距離を計算：
+
+```r
+library(DBI)
+
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = "設定したパスワード"
+)
+
+# 東京駅と渋谷駅の距離を計算（メートル単位）
+# ST_Distance()の前に地理座標系に変換（::geography）
+query <- "
+  SELECT 
+    a.name AS from_station,
+    b.name AS to_station,
+    ST_Distance(
+      a.geometry::geography,
+      b.geometry::geography
+    ) AS distance_meters
+  FROM stations a, stations b
+  WHERE a.name = '東京駅' AND b.name = '渋谷駅';
+"
+
+result <- dbGetQuery(con, query)
+print(result)
+
+dbDisconnect(con)
+```
+
+```{r}
+#| echo: false
+
+library(DBI)
+
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname = "mydb",
+  host = "localhost",
+  port = 5432,
+  user = "postgres",
+  password = Sys.getenv("PG_password")
+)
+
+query <- "
+  SELECT
+    a.name AS from_station,
+    b.name AS to_station,
+    ST_Distance(
+      a.geometry::geography,
+      b.geometry::geography
+    ) AS distance_meters
+  FROM stations a, stations b
+  WHERE a.name = '東京駅' AND b.name = '渋谷駅';
+"
+
+result <- dbGetQuery(con, query)
+print(result)
+
+dbDisconnect(con)
+```
+
+Query内ではSQL文を書き、`ST_Distance()`関数を使って2つの地点間の距離を計算しています。`::geography`キャストを使うことで、地理座標系での正確な距離計算が可能になります。
+
+#### PostGISの便利な関数
+
+PostGISには多数の空間関数があります。代表的なものを紹介します：
+
+- `ST_Distance()`: 2つのジオメトリ間の距離を計算
+- `ST_Buffer()`: 指定した距離のバッファ（緩衝地帯）を作成
+- `ST_Intersects()`: 2つのジオメトリが交差するかを判定
+- `ST_Within()`: あるジオメトリが別のジオメトリ内に含まれるかを判定
+- `ST_Area()`: ポリゴンの面積を計算
+- `ST_Length()`: ラインの長さを計算
+
+これらの関数を組み合わせることで、複雑な空間分析が可能になります。
+
+### PostGISのまとめ
+
+PostGISを使うことで、PostgreSQL上で以下のような空間データ分析が可能になります：
+
+- 緯度経度データの格納と管理
+- 点・線・ポリゴンなどの幾何データの操作
+- 距離計算、バッファ分析、空間結合
+- 大規模な空間データの効率的な処理
+
+特に、メモリに収まりきらない大規模な空間データを扱う場合、PostGISは非常に強力なツールとなります。
+
+## おわりに
+
+本記事では、Windows環境でRとPostgreSQLを中心とした開発環境を構築する方法を、Windows版とWSL版の2つのアプローチでまとめました。
+
+**Windows版の特徴**
+
+- GUIツールが使いやすく、初心者にも優しい
+- インストールが簡単で、すぐに始められる
+- pgAdmin 4でデータベースを視覚的に管理可能
+
+**WSL版の特徴**
+
+- Linux環境の恩恵を受けられる
+- aptパッケージマネージャーでPostGISなどの拡張機能を簡単にインストール可能
+- Dockerやサーバー環境との互換性が高い
+- 高速なI/O処理とデータベース操作
+
+どちらの環境でも、RからPostgreSQLを操作する基本的な手順は同じです。まずはWindows版で試してみて、必要に応じてWSL版に移行するのがおすすめです。
+
+PostgreSQLとPostGISを活用することで、大規模データの管理や空間データの高度な分析が可能になります。ぜひ実際のプロジェクトで活用してみてください。
