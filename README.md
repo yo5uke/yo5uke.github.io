@@ -1,4 +1,4 @@
-# 個人ウェブサイト
+# Yosuke Abe's Page
 
 [R](https://www.r-project.org/)に関するTipsや開発したShinyアプリケーションなどについて発信しています。  
 このリポジトリは、当サイトのソースコードを管理しています。
@@ -6,7 +6,7 @@
 ## 🔍 サイトの内容
 
 - [RのTips](https://yo5uke.com/tips/)
-- [開発したパッケージやアプリケーションの紹介](https://yo5uke.com/software/)
+- [整備したデータや開発したパッケージ、アプリケーションの紹介](https://yo5uke.com/software/)
 - [GISデータの可視化やハンドリング](https://yo5uke.com/gis_in_r/)
 - [ブログ](https://yo5uke.com/blog/)
 
@@ -25,6 +25,6 @@
 
 ## ✍️ 作成者
 
-- 阿部 洋輔（Yosuke Abe）
+- Yosuke Abe
 - X: [@5uke_y](https://x.com/5uke_y)
 - Bluesky: [@5uke.bsky.social](https://bsky.app/profile/5uke.bsky.social)
