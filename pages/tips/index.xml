@@ -66,7 +66,7 @@
 <section id="はじめに" class="level2">
 <h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
 <p>データ分析や統計処理を行う際、RやPythonといったプログラミング言語に加えて、大規模なデータを効率的に管理・処理するためのデータベースが必要になることがあります。特に、<strong>大規模なローデータがあり、そこからさまざまなデータフレームを生成・操作するような場合</strong>、PostgreSQLのような高機能なデータベースが強力な味方になります。</p>
-<p>本記事では、Windows環境でWSL（Windows Subsystem for Linux）を活用し、R、Python、PostgreSQLを中心とした開発環境を構築する方法を解説します。WSLを使うことで、Windowsの使いやすさを保ちながら、Linux環境の恩恵を受けられます。</p>
+<p>本記事では、Windows環境でWSL（Windows Subsystem for Linux）を活用し、R、PostgreSQLを中心とした開発環境を構築する方法を解説します。WSLを使うことで、Windowsの使いやすさを保ちながら、Linux環境の恩恵を受けられます。</p>
 <p><strong>この記事の対象読者</strong></p>
 <ul>
 <li>RやPythonでデータ分析を行っている方</li>
@@ -87,7 +87,7 @@
 <i class="callout-icon"></i>
 </div>
 <div class="callout-body-container">
-<p>Macユーザーの方も、PostgreSQLとR、Pythonの組み合わせは同様に有効ですので、参考にしてみてください。</p>
+<p>Macユーザーの方も、PostgreSQLとRの組み合わせは同様に有効ですので、参考にしてみてください。</p>
 </div>
 </div>
 </div>
@@ -1823,7 +1823,7 @@ font-style: inherit;">dbDisconnect</span>(con)</span></code></pre></div></div>
   <category>R</category>
   <category>WSL</category>
   <category>Windows</category>
-  <category>PostgreSQL</category>
+  <category>SQL</category>
   <category>GIS</category>
   <guid>https://yo5uke.com/pages/tips/2025/12/251201_env/</guid>
   <pubDate>Sun, 30 Nov 2025 15:00:00 GMT</pubDate>
@@ -7479,7 +7479,7 @@ font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
   <media:content url="https://yo5uke.com/pages/tips/thumbnail/thumbnail.jpg" medium="image" type="image/jpeg"/>
 </item>
 <item>
-  <title>DuckDBをRで使う</title>
+  <title>DuckDBをRで使う【duckplyr】</title>
   <link>https://yo5uke.com/pages/tips/2025/09/250919_duckdb/</link>
   <description><![CDATA[ 
 
@@ -7774,11 +7774,212 @@ font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
 <p><code>shutdown = TRUE</code>を指定すると、メモリ内データベースの場合はデータが消去され、ファイルベースのデータベースの場合は接続が閉じられます。</p>
 </section>
 </section>
+<section id="duckplyrを使う" class="level2">
+<h2 class="anchored" data-anchor-id="duckplyrを使う">{duckplyr}を使う</h2>
+<p><code>duckplyr</code>パッケージを使うと、DuckDBと<code>dplyr</code>の連携がさらに便利になります。<code>duckplyr</code>は、DuckDB専用の<code>dplyr</code>拡張パッケージであり、DuckDBの機能をより活用できます。</p>
+<section id="duckplyrとは" class="level3">
+<h3 class="anchored" data-anchor-id="duckplyrとは">{duckplyr}とは</h3>
+<p>{duckplyr}は、<strong>dplyrのドロップイン置き換え</strong>として機能するパッケージです。既存のdplyrコードをそのまま使いながら、裏側でDuckDBの高速な分析エンジンを活用できます。</p>
+</section>
+<section id="先述のアプローチとの違い" class="level3">
+<h3 class="anchored" data-anchor-id="先述のアプローチとの違い">先述のアプローチとの違い</h3>
+<p>これまで紹介してきた<code>duckdb</code>パッケージを使った方法と<code>duckplyr</code>を使った方法の違いを整理します。</p>
+<p><strong>duckdb × dbplyr（データベース操作）</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(dplyr)</span>
+<span id="cb15-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb15-3"></span>
+<span id="cb15-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データベースに接続</span></span>
+<span id="cb15-5">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(duckdb<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">duckdb</span>())</span>
+<span id="cb15-6"></span>
+<span id="cb15-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># データベース上のテーブルを参照</span></span>
+<span id="cb15-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tbl</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"my_table"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb15-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(value <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb15-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">total =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sum</span>(value))</span></code></pre></div></div>
+<ul>
+<li>データベースに接続する</li>
+<li>dplyrの構文を<strong>SQLに翻訳</strong>して実行</li>
+<li>データは基本的にDB上に存在</li>
+<li><code>collect()</code>で初めてRのメモリに読み込まれる</li>
+</ul>
+<p><strong>duckplyr（メモリ内データの高速化）</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(duckplyr)</span>
+<span id="cb16-2"></span>
+<span id="cb16-3">df <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data.frame</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000000</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rnorm</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1000000</span>))</span>
+<span id="cb16-4"></span>
+<span id="cb16-5">df <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb16-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb16-7">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">mean_x =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(x))</span></code></pre></div></div>
+<ul>
+<li><strong>データベース接続不要</strong></li>
+<li>Rのメモリ上のデータをDuckDBエンジンで高速処理</li>
+<li>SQLへ翻訳はされない（データはR上に存在）</li>
+<li>既存のdplyrコードがそのまま高速化される</li>
+</ul>
+</section>
+<section id="duckplyrの特徴" class="level3">
+<h3 class="anchored" data-anchor-id="duckplyrの特徴">{duckplyr}の特徴</h3>
+<ol type="1">
+<li><strong>ドロップイン置き換え</strong>
+<ul>
+<li><code>library(duckplyr)</code>するだけで、多くのdplyr動詞が高速化</li>
+<li>既存のコードを書き換える必要がほとんどない</li>
+</ul></li>
+<li><strong>自動フォールバック</strong>
+<ul>
+<li>duckplyrで対応できない操作は、自動的に通常のdplyrにフォールバック</li>
+<li>エラーで止まることなく処理が継続</li>
+</ul></li>
+<li><strong>大規模データに最適</strong>
+<ul>
+<li>DuckDBの並列処理エンジンを活用</li>
+<li>メモリ効率の良い処理が可能</li>
+</ul></li>
+<li><strong>互換性</strong>
+<ul>
+<li>dplyrの多くの関数に対応</li>
+<li>tidyverseエコシステムとシームレスに連携</li>
+</ul></li>
+</ol>
+<section id="簡単な使用例" class="level4">
+<h4 class="anchored" data-anchor-id="簡単な使用例">簡単な使用例</h4>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb17-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(duckplyr)</span>
+<span id="cb17-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#&gt; Loading required package: dplyr</span></span>
+<span id="cb17-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#&gt; ✔ Overwriting dplyr methods with duckplyr methods.</span></span>
+<span id="cb17-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#&gt; ℹ Turn off with `duckplyr::methods_restore()`.</span></span>
+<span id="cb17-6"></span>
+<span id="cb17-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 通常のdplyr構文がそのまま使えます</span></span>
+<span id="cb17-8">mtcars <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb17-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">group_by</span>(cyl) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb17-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summarise</span>(</span>
+<span id="cb17-11">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">mean_mpg =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(mpg),</span>
+<span id="cb17-12">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">mean_hp =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(hp),</span>
+<span id="cb17-13">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">.groups =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"drop"</span></span>
+<span id="cb17-14">  )</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 3 × 3
+    cyl mean_mpg mean_hp
+  &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;
+1     4     26.7    82.6
+2     6     19.7   122. 
+3     8     15.1   209. </code></pre>
+</div>
+</div>
+<p>注意点として、<strong>読み込み順序が重要</strong>です。<code>library(tidyverse)</code>の後に<code>library(duckplyr)</code>を読み込むことで、dplyrのメソッドがduckplyrで上書きされます。逆の順序で読み込むと、通常のdplyrが優先されてしまいます。</p>
+</section>
+</section>
+</section>
 <section id="まとめ" class="level2">
 <h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
 <p>今回は、RでDuckDBを使用する方法についてまとめました。</p>
 <p>DuckDBは軽量で高速な組み込み型データベースであり、大規模なデータセットを効率的に処理できます。SQLを直接使う方法と、<code>dplyr</code>を使う方法の両方が利用可能であり、遅延評価によりパフォーマンスが向上します。</p>
-<p>最近は仕事ででかいデータを扱うことが増えてきたので、今後もDuckDBを活用していきたいと思います（というか活用し始めています）。ぜひ試しあれ。</p>
+<p>また、<code>duckplyr</code>パッケージを使うことで、既存の<code>dplyr</code>コードをほぼそのまま高速化できるため、データ処理の効率化が図れます。</p>
+<p>最近は仕事ででかいデータを扱うことが増えてきたので、今後もDuckDBを活用していきたいと思います（というか活用し始めています）。ぜひお試しあれ。</p>
 </section>
 <section id="参考" class="level2">
 <h2 class="anchored" data-anchor-id="参考">参考</h2>
@@ -8268,6 +8469,18 @@ font-style: inherit;">]</span></span></code></pre></div></div>
 <p>設定方法はポストの画像にある通りですが、設定（<span class="visually-hidden">Ctrl-,</span>）から「workbench.editor.pinnedTabsOnSeparateRow」と検索し、ヒットした項目にチェックを入れます。</p>
 <p>設定画面はポストにある通りですが、この設定により、ピン留めしたタブが上段に固定されるようになります。スクリプトとデータビューアを別の段に置けるようになったりして、結構便利だと思います。使いやすいように配置してみてください。</p>
 </section>
+<section id="ミニマップ" class="level2">
+<h2 class="anchored" data-anchor-id="ミニマップ">ミニマップ</h2>
+<p>Positron（VSCode）にはミニマップという機能があり、コードの全体像を小さなウィンドウで表示してくれます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2025/09/250901_positron_setting/image/minimap.png" class="img-fluid figure-img"></p>
+<figcaption>スクロールバーの左に表示されるものです</figcaption>
+</figure>
+</div>
+<p>ファイル内を上下に行ったり来たりする際にスクロールバーだと細くてつかみにくいのですが、ミニマップだと全体を把握しつつ、目的の場所に素早く移動できます。</p>
+<p>ただ、VSCodeではデフォルトでミニマップが有効になっているのですが、Positronでは無効になっているため、必要に応じて有効化する必要があります。方法は簡単で、スクロールバーを右クリックして「ミニマップ」を選択するだけです。</p>
+</section>
 <section id="rのフォーマッタ" class="level2">
 <h2 class="anchored" data-anchor-id="rのフォーマッタ">Rのフォーマッタ</h2>
 <p>Rのコードフォーマッタとして「Air」という拡張機能があり、Positronにはデフォルトでインストールされています。コードを整形してくれるツールですが、こちらについては単独の記事にしましたので、そちらをご覧ください。</p>
@@ -8312,6 +8525,7 @@ font-style: inherit;">]</span></span></code></pre></div></div>
   <category>Quarto</category>
   <guid>https://yo5uke.com/pages/tips/2025/09/250901_positron_setting/</guid>
   <pubDate>Sun, 31 Aug 2025 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.com/pages/tips/2025/09/250901_positron_setting/image/interface.png" medium="image" type="image/png" height="90" width="144"/>
 </item>
 <item>
   <title>XMLファイルから情報を抽出する</title>
