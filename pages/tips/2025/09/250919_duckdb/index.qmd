@@ -1,8 +1,7 @@
 ---
-title: DuckDBをRで使う
-description: 'R上でデータベース操作を行うために、DuckDBを利用する方法についてまとめます。
-
-  '
+title: DuckDBをRで使う【[duckplyr]{.fira-code}】
+description: |
+  R上でデータベース操作を行うために、DuckDBを利用する方法についてまとめます。
 date: 2025-09-19
 categories:
 - R
@@ -218,13 +217,103 @@ dbDisconnect(con, shutdown = TRUE)
 
 `shutdown = TRUE`を指定すると、メモリ内データベースの場合はデータが消去され、ファイルベースのデータベースの場合は接続が閉じられます。
 
+## {duckplyr}を使う
+
+`duckplyr`パッケージを使うと、DuckDBと`dplyr`の連携がさらに便利になります。`duckplyr`は、DuckDB専用の`dplyr`拡張パッケージであり、DuckDBの機能をより活用できます。
+
+### {duckplyr}とは
+
+{duckplyr}は、**dplyrのドロップイン置き換え**として機能するパッケージです。既存のdplyrコードをそのまま使いながら、裏側でDuckDBの高速な分析エンジンを活用できます。
+
+### 先述のアプローチとの違い
+
+これまで紹介してきた`duckdb`パッケージを使った方法と`duckplyr`を使った方法の違いを整理します。
+
+**duckdb × dbplyr（データベース操作）**
+
+```r
+library(dplyr)
+library(DBI)
+
+# データベースに接続
+con <- dbConnect(duckdb::duckdb())
+
+# データベース上のテーブルを参照
+tbl(con, "my_table") |>
+  filter(value > 100) |>
+  summarise(total = sum(value))
+```
+
+- データベースに接続する
+- dplyrの構文を**SQLに翻訳**して実行
+- データは基本的にDB上に存在
+- `collect()`で初めてRのメモリに読み込まれる
+
+**duckplyr（メモリ内データの高速化）**
+
+```r
+library(duckplyr)
+
+df <- data.frame(x = 1:1000000, y = rnorm(1000000))
+
+df |>
+  filter(y > 0) |>
+  summarise(mean_x = mean(x))
+```
+
+- **データベース接続不要**
+- Rのメモリ上のデータをDuckDBエンジンで高速処理
+- SQLへ翻訳はされない（データはR上に存在）
+- 既存のdplyrコードがそのまま高速化される
+
+### {duckplyr}の特徴
+
+1. **ドロップイン置き換え**
+   - `library(duckplyr)`するだけで、多くのdplyr動詞が高速化
+   - 既存のコードを書き換える必要がほとんどない
+
+2. **自動フォールバック**
+   - duckplyrで対応できない操作は、自動的に通常のdplyrにフォールバック
+   - エラーで止まることなく処理が継続
+
+3. **大規模データに最適**
+   - DuckDBの並列処理エンジンを活用
+   - メモリ効率の良い処理が可能
+
+4. **互換性**
+   - dplyrの多くの関数に対応
+   - tidyverseエコシステムとシームレスに連携
+
+#### 簡単な使用例
+
+```{r}
+library(tidyverse)
+library(duckplyr)
+#> Loading required package: dplyr
+#> ✔ Overwriting dplyr methods with duckplyr methods.
+#> ℹ Turn off with `duckplyr::methods_restore()`.
+
+# 通常のdplyr構文がそのまま使えます
+mtcars |>
+  group_by(cyl) |>
+  summarise(
+    mean_mpg = mean(mpg),
+    mean_hp = mean(hp),
+    .groups = "drop"
+  )
+```
+
+注意点として、**読み込み順序が重要**です。`library(tidyverse)`の後に`library(duckplyr)`を読み込むことで、dplyrのメソッドがduckplyrで上書きされます。逆の順序で読み込むと、通常のdplyrが優先されてしまいます。
+
 ## まとめ
 
 今回は、RでDuckDBを使用する方法についてまとめました。
 
 DuckDBは軽量で高速な組み込み型データベースであり、大規模なデータセットを効率的に処理できます。SQLを直接使う方法と、`dplyr`を使う方法の両方が利用可能であり、遅延評価によりパフォーマンスが向上します。
 
-最近は仕事ででかいデータを扱うことが増えてきたので、今後もDuckDBを活用していきたいと思います（というか活用し始めています）。ぜひ試しあれ。
+また、`duckplyr`パッケージを使うことで、既存の`dplyr`コードをほぼそのまま高速化できるため、データ処理の効率化が図れます。
+
+最近は仕事ででかいデータを扱うことが増えてきたので、今後もDuckDBを活用していきたいと思います（というか活用し始めています）。ぜひお試しあれ。
 
 ## 参考
 
