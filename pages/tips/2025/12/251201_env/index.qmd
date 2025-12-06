@@ -3,6 +3,7 @@ title: "【Windows】RとPostgreSQL中心の環境構築【GISも】"
 description: |
   データ分析やGIS分析に便利なRとPostgreSQLをWindows環境で使う方法を解説します。WSLを活用した本格的なセットアップも紹介。
 date: 2025-12-01
+date-modified: 2025-12-06
 categories:
   - R
   - WSL
@@ -23,7 +24,7 @@ image: image/thumbnail.png
 
 データ分析や統計処理を行う際、RやPythonといったプログラミング言語に加えて、大規模なデータを効率的に管理・処理するためのデータベースが必要になることがあります。特に、**大規模なローデータがあり、そこからさまざまなデータフレームを生成・操作するような場合**、PostgreSQLのような高機能なデータベースが強力な味方になります。
 
-本記事では、Windows環境でWSL（Windows Subsystem for Linux）を活用し、R、Python、PostgreSQLを中心とした開発環境を構築する方法を解説します。WSLを使うことで、Windowsの使いやすさを保ちながら、Linux環境の恩恵を受けられます。
+本記事では、Windows環境でWSL（Windows Subsystem for Linux）を活用し、R、PostgreSQLを中心とした開発環境を構築する方法を解説します。WSLを使うことで、Windowsの使いやすさを保ちながら、Linux環境の恩恵を受けられます。
 
 **この記事の対象読者**
 
@@ -43,7 +44,7 @@ image: image/thumbnail.png
 また、本ページではSQLコードに関してはRを経由した実行方法を中心に解説します。
 
 :::{.callout-note appearance="simple"}
-Macユーザーの方も、PostgreSQLとR、Pythonの組み合わせは同様に有効ですので、参考にしてみてください。
+Macユーザーの方も、PostgreSQLとRの組み合わせは同様に有効ですので、参考にしてみてください。
 :::
 
 :::{.callout-note}
@@ -752,11 +753,16 @@ con <- dbConnect(
   password = Sys.getenv("PG_password")
 )
 
-dbWriteTable(con, "my_table", tibble(
-  column_name = c(50, 150, 200),
-  column1 = c("A", "B", "C"),
-  column2 = c(10, 20, 30)
-), overwrite = TRUE)
+dbWriteTable(
+  con,
+  "my_table",
+  tibble(
+    column_name = c(50, 150, 200),
+    column1 = c("A", "B", "C"),
+    column2 = c(10, 20, 30)
+  ),
+  overwrite = TRUE
+)
 ```
 
 ```{r}
