@@ -1,0 +1,90 @@
+---
+title: "通勤ODフロー データセット"
+description: |
+  2020年国勢調査のデータを用い、日本全国の市区町村間の通勤ODフローを示すデータセット。
+date: 2025-12-10
+format: 
+  html:
+    toc: false
+    title-block-banner: true
+comments: 
+  giscus: 
+    repo: yo5uke/yo5uke.github.io
+---
+
+## 概要
+
+このデータセットは、**2020年国勢調査の通勤・通学データ**をもとに、日本全国の市区町村間の**通勤OD（Origin-Destination）フロー**を示すデータセットです。
+
+各市区町村から他の市区町村への通勤・通学者数を集計し、出発地（Origin）から目的地（Destination）へのフローを示しています。これにより、地域間の通勤パターンや人口移動の傾向を把握することができます。
+
+現状データは2020年のみですが、将来的に他の年次のデータも追加できればと考えています。
+
+## データ
+
+以下のリンクからGoogle Driveに飛んで、データをダウンロードできます。
+
+Google Drive：[commuting_flow](https://drive.google.com/drive/folders/1VU-0hllt9WRFVjE9kzTGYCgfvf724QGx?usp=sharing)
+
+## 加工・処理の内容
+
+[「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」（総務省統計局）](https://www.e-stat.go.jp/stat-search/files?page=1&layout=datalist&toukei=00200521&tstat=000001136464&cycle=0&tclass1=000001136469&tclass2val=0)を用い、市区町村間の通勤・通学者数を集計しました。
+
+データは[政府統計の総合窓口(e-Stat)](https://www.e-stat.go.jp/)からダウンロードしたExcelファイルをRで処理して作成しています。
+
+## データの仕様
+
+| 項目 | 内容 |
+|------|------|
+| データ形式 | CSV |
+| ファイル内容 | 通勤ODフロー（市区町村間の通勤・通学者数） |
+| データ期間 | 2020年 |
+| 単位 | 人数 |
+| 地域単位 | 市区町村（政令指定都市は市単位に集計） |
+| ファイルサイズ | 約216.5MB |
+
+## データの構造
+
+データは以下のカラムで構成されています。
+
+| カラム名 | 説明 |
+|----------|------|
+| origin_pref_id | 出発地の市区町村コード |
+| origin_pref_name | 出発地の市区町村名 |
+| origin_muni_id | 出発地の市区町村コード |
+| origin_muni_name | 出発地の市区町村名 |
+| destination_pref_id | 目的地の市区町村コード |
+| destination_pref_name | 目的地の市区町村名 |
+| destination_muni_id | 目的地の市区町村コード |
+| destination_muni_name | 目的地の市区町村名 |
+| commuters_total | 出発地から目的地への通勤・通学者数 |
+| commuters_age_15_plus | 15歳以上の通勤・通学者数 |
+| commuters_workers_15_plus | 15歳以上の就業者数 |
+| commuters_students_15_plus | 15歳以上の通学者数 |
+| commuters_students | 15歳未満通学者を含む通学者数 |
+
+
+
+```{r}
+#| echo: false
+#| tbl-cap: "データの概要"
+#| label: tbl-commuting-flow-sample
+data <- readr::read_csv(here::here("data", "commuting_flow", "all_prefs_od_2020.csv"))
+tinytable::tt(head(data))
+```
+
+
+
+## ライセンス
+
+このデータセットは、[Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/deed.ja)の下で提供されています。
+
+データの利用にあたっては、適切なクレジットを表示してください。
+
+## GitHubリポジトリ
+
+このデータセットの生成に使用したコードは、以下のGitHubリポジトリで公開しています。
+
+GitHubリポジトリ：[yo5uke/commuting_flow](https://github.com/yo5uke/commuting_flow)
+
+こちらのREADMEもご参照ください。
