@@ -1292,7 +1292,7 @@
     "href": "pages/software/index.html#data",
     "title": "Software",
     "section": "Data",
-    "text": "Data\n\n\n\n  \n  \n    \n      \n      \n        \n          日本の夜間光データ (VIIRS)\n        \n      \n\n      \n      2012～2024年のVIIRS夜間光データから日本領域を抽出・処理したデータセット。\n\n\n      \n      \n        \n          Link:\n          \n            \n              \n                \n              \n                   詳細を見る\n                \n            \n          \n        \n      \n    \n  \n  \n\n\n一致なし\n\n\n\nShiny\n\nShinyアプリケーションの一覧です。人口ヒートマップをアップデートしました（2025/7/21）。\n\n\n\n\n  \n    \n      \n        地方財政状況マップ\n         \n        \n          \n        \n        \n        2014 ~ 2023\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        課税状況ヒートマップ\n         \n        \n          \n        \n        \n        \n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        人口ヒートマップ\n         \n        \n          \n        \n        \n        1980～2020\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        白地図 Japan\n         \n        \n          \n        \n        \n        全国版\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n\n\n一致なし"
+    "text": "Data\n\n\n\n  \n  \n    \n      \n      \n        \n          日本の夜間光データ (VIIRS)\n        \n      \n\n      \n      2012～2024年のVIIRS夜間光データから日本領域を抽出・処理したデータセット。\n\n\n      \n      \n        \n          \n            \n              \n                \n              \n                   詳細を見る\n                \n            \n          \n          \n          \n            更新日: 2025/10/14\n          \n          \n        \n      \n    \n  \n  \n  \n    \n      \n      \n        \n          通勤ODフロー データセット（2020年）\n        \n      \n\n      \n      国勢調査データを基に作成した、全国の市区町村間の通勤・通学origin-Destinationフローを示すデータセット。\n\n\n      \n      \n        \n          \n            \n              \n                \n              \n                   詳細を見る\n                \n            \n          \n          \n          \n            更新日: 2025/12/10\n          \n          \n        \n      \n    \n  \n  \n\n\n一致なし\n\n\n\nShiny\n\nShinyアプリケーションの一覧です。人口ヒートマップをアップデートしました（2025/7/21）。\n\n\n\n\n  \n    \n      \n        地方財政状況マップ\n         \n        \n          \n        \n        \n        2014 ~ 2023\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        課税状況ヒートマップ\n         \n        \n          \n        \n        \n        \n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        人口ヒートマップ\n         \n        \n          \n        \n        \n        1980～2020\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n  \n    \n      \n        白地図 Japan\n         \n        \n          \n        \n        \n        全国版\n\n      \n    \n    \n      \n    \n    \n    \n    \n  \n\n\n\n一致なし"
   },
   {
     "objectID": "pages/software/index.html#r",
@@ -3582,5 +3582,61 @@
     "title": "DuckDBをRで使う【duckplyr】",
     "section": "{duckplyr}を使う",
     "text": "{duckplyr}を使う\nduckplyrパッケージを使うと、DuckDBとdplyrの連携がさらに便利になります。duckplyrは、DuckDB専用のdplyr拡張パッケージであり、DuckDBの機能をより活用できます。\n\n{duckplyr}とは\n{duckplyr}は、dplyrのドロップイン置き換えとして機能するパッケージです。既存のdplyrコードをそのまま使いながら、裏側でDuckDBの高速な分析エンジンを活用できます。\n\n\n先述のアプローチとの違い\nこれまで紹介してきたduckdbパッケージを使った方法とduckplyrを使った方法の違いを整理します。\nduckdb × dbplyr（データベース操作）\nlibrary(dplyr)\nlibrary(DBI)\n\n# データベースに接続\ncon &lt;- dbConnect(duckdb::duckdb())\n\n# データベース上のテーブルを参照\ntbl(con, \"my_table\") |&gt;\n  filter(value &gt; 100) |&gt;\n  summarise(total = sum(value))\n\nデータベースに接続する\ndplyrの構文をSQLに翻訳して実行\nデータは基本的にDB上に存在\ncollect()で初めてRのメモリに読み込まれる\n\nduckplyr（メモリ内データの高速化）\nlibrary(duckplyr)\n\ndf &lt;- data.frame(x = 1:1000000, y = rnorm(1000000))\n\ndf |&gt;\n  filter(y &gt; 0) |&gt;\n  summarise(mean_x = mean(x))\n\nデータベース接続不要\nRのメモリ上のデータをDuckDBエンジンで高速処理\nSQLへ翻訳はされない（データはR上に存在）\n既存のdplyrコードがそのまま高速化される\n\n\n\n{duckplyr}の特徴\n\nドロップイン置き換え\n\nlibrary(duckplyr)するだけで、多くのdplyr動詞が高速化\n既存のコードを書き換える必要がほとんどない\n\n自動フォールバック\n\nduckplyrで対応できない操作は、自動的に通常のdplyrにフォールバック\nエラーで止まることなく処理が継続\n\n大規模データに最適\n\nDuckDBの並列処理エンジンを活用\nメモリ効率の良い処理が可能\n\n互換性\n\ndplyrの多くの関数に対応\ntidyverseエコシステムとシームレスに連携\n\n\n\n簡単な使用例\n\nlibrary(tidyverse)\nlibrary(duckplyr)\n#&gt; Loading required package: dplyr\n#&gt; ✔ Overwriting dplyr methods with duckplyr methods.\n#&gt; ℹ Turn off with `duckplyr::methods_restore()`.\n\n# 通常のdplyr構文がそのまま使えます\nmtcars |&gt;\n  group_by(cyl) |&gt;\n  summarise(\n    mean_mpg = mean(mpg),\n    mean_hp = mean(hp),\n    .groups = \"drop\"\n  )\n\n# A tibble: 3 × 3\n    cyl mean_mpg mean_hp\n  &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt;\n1     4     26.7    82.6\n2     6     19.7   122. \n3     8     15.1   209. \n\n\n注意点として、読み込み順序が重要です。library(tidyverse)の後にlibrary(duckplyr)を読み込むことで、dplyrのメソッドがduckplyrで上書きされます。逆の順序で読み込むと、通常のdplyrが優先されてしまいます。"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html",
+    "href": "pages/software/commuting_flow/index.html",
+    "title": "通勤ODフロー データセット",
+    "section": "",
+    "text": "このデータセットは、2020年国勢調査の通勤・通学データをもとに、日本全国の市区町村間の通勤OD（Origin-Destination）フローを示すデータセットです。\n各市区町村から他の市区町村への通勤・通学者数を集計し、出発地（Origin）から目的地（Destination）へのフローを示しています。これにより、地域間の通勤パターンや人口移動の傾向を把握することができます。\n現状データは2020年のみですが、将来的に他の年次のデータも追加できればと考えています。"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html#概要",
+    "href": "pages/software/commuting_flow/index.html#概要",
+    "title": "通勤ODフロー データセット",
+    "section": "",
+    "text": "このデータセットは、2020年国勢調査の通勤・通学データをもとに、日本全国の市区町村間の通勤OD（Origin-Destination）フローを示すデータセットです。\n各市区町村から他の市区町村への通勤・通学者数を集計し、出発地（Origin）から目的地（Destination）へのフローを示しています。これにより、地域間の通勤パターンや人口移動の傾向を把握することができます。\n現状データは2020年のみですが、将来的に他の年次のデータも追加できればと考えています。"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html#データ",
+    "href": "pages/software/commuting_flow/index.html#データ",
+    "title": "通勤ODフロー データセット",
+    "section": "データ",
+    "text": "データ\n以下のリンクからGoogle Driveに飛んで、データをダウンロードできます。\nGoogle Drive：commuting_flow"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html#加工処理の内容",
+    "href": "pages/software/commuting_flow/index.html#加工処理の内容",
+    "title": "通勤ODフロー データセット",
+    "section": "加工・処理の内容",
+    "text": "加工・処理の内容\n「令和2年国勢調査 従業地・通学地による人口・就業状態等集計」（総務省統計局）を用い、市区町村間の通勤・通学者数を集計しました。\nデータは政府統計の総合窓口(e-Stat)からダウンロードしたExcelファイルをRで処理して作成しています。"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html#データの仕様",
+    "href": "pages/software/commuting_flow/index.html#データの仕様",
+    "title": "通勤ODフロー データセット",
+    "section": "データの仕様",
+    "text": "データの仕様\n\n\n\n項目\n内容\n\n\n\n\nデータ形式\nCSV\n\n\nファイル内容\n通勤ODフロー（市区町村間の通勤・通学者数）\n\n\nデータ期間\n2020年\n\n\n単位\n人数\n\n\n地域単位\n市区町村（政令指定都市は市単位に集計）\n\n\nファイルサイズ\n約216.5MB"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html#ライセンス",
+    "href": "pages/software/commuting_flow/index.html#ライセンス",
+    "title": "通勤ODフロー データセット",
+    "section": "ライセンス",
+    "text": "ライセンス\nこのデータセットは、Creative Commons Attribution 4.0 International (CC BY 4.0)の下で提供されています。\nデータの利用にあたっては、適切なクレジットを表示してください。"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html#githubリポジトリ",
+    "href": "pages/software/commuting_flow/index.html#githubリポジトリ",
+    "title": "通勤ODフロー データセット",
+    "section": "GitHubリポジトリ",
+    "text": "GitHubリポジトリ\nこのデータセットの生成に使用したコードは、以下のGitHubリポジトリで公開しています。\nGitHubリポジトリ：yo5uke/commuting_flow\nこちらのREADMEもご参照ください。"
+  },
+  {
+    "objectID": "pages/software/commuting_flow/index.html#データの構造",
+    "href": "pages/software/commuting_flow/index.html#データの構造",
+    "title": "通勤ODフロー データセット",
+    "section": "データの構造",
+    "text": "データの構造\nデータは以下のカラムで構成されています。\n\n\n\nカラム名\n説明\n\n\n\n\norigin_pref_id\n出発地の市区町村コード\n\n\norigin_pref_name\n出発地の市区町村名\n\n\norigin_muni_id\n出発地の市区町村コード\n\n\norigin_muni_name\n出発地の市区町村名\n\n\ndestination_pref_id\n目的地の市区町村コード\n\n\ndestination_pref_name\n目的地の市区町村名\n\n\ndestination_muni_id\n目的地の市区町村コード\n\n\ndestination_muni_name\n目的地の市区町村名\n\n\ncommuters_total\n出発地から目的地への通勤・通学者数\n\n\ncommuters_age_15_plus\n15歳以上の通勤・通学者数\n\n\ncommuters_workers_15_plus\n15歳以上の就業者数\n\n\ncommuters_students_15_plus\n15歳以上の通学者数\n\n\ncommuters_students\n15歳未満通学者を含む通学者数\n\n\n\n\n\n\n\n表 1: データの概要\n\n\n\n\n\n    \n\n    \n\n    \n    \n    \n      \n        \n        \n              \n                origin_pref_id\n                origin_pref_name\n                origin_muni_id\n                origin_muni_name\n                destination_pref_id\n                destination_pref_name\n                destination_muni_id\n                destination_muni_name\n                commuters_total\n                commuters_age_15_plus\n                commuters_workers_15_plus\n                commuters_students_15_plus\n                commuters_students\n              \n        \n        \n        \n                \n                  01\n                  北海道\n                  01100\n                  札幌市\n                  01\n                  北海道\n                  01100\n                  札幌市\n                  926681\n                  824622\n                  757418\n                  67204\n                  169261\n                \n                \n                  01\n                  北海道\n                  01100\n                  札幌市\n                  01\n                  北海道\n                  01202\n                  函館市\n                  400\n                  398\n                  350\n                  48\n                  50\n                \n                \n                  01\n                  北海道\n                  01100\n                  札幌市\n                  01\n                  北海道\n                  01203\n                  小樽市\n                  9528\n                  9526\n                  8704\n                  822\n                  824\n                \n                \n                  01\n                  北海道\n                  01100\n                  札幌市\n                  01\n                  北海道\n                  01204\n                  旭川市\n                  832\n                  830\n                  747\n                  83\n                  85\n                \n                \n                  01\n                  北海道\n                  01100\n                  札幌市\n                  01\n                  北海道\n                  01205\n                  室蘭市\n                  463\n                  463\n                  334\n                  129\n                  129\n                \n                \n                  01\n                  北海道\n                  01100\n                  札幌市\n                  01\n                  北海道\n                  01206\n                  釧路市\n                  285\n                  285\n                  260\n                  25\n                  25"
   }
 ]
