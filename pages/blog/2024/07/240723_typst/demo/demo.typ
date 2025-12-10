@@ -320,10 +320,10 @@
 )
 #let brand-logo-images = (
   icon: (
-    path: "assets\\icons\\favicon.ico"
+    path: "assets/icons/favicon.ico"
   ),
   icon-r: (
-    path: "assets\\icons\\abe-r.png"
+    path: "assets/icons/abe-r.png"
   )
 )
 #set text(weight: 400, )
