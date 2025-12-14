@@ -9,7 +9,7 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.9.12</generator>
+<generator>quarto-1.9.13</generator>
 <lastBuildDate>Sun, 30 Nov 2025 15:00:00 GMT</lastBuildDate>
 <item>
   <title>【Windows】RとPostgreSQL中心の環境構築【GISも】</title>
@@ -7277,6 +7277,20 @@ font-style: inherit;">EXPOSE</span> 8787</span></code></pre></div></div>
 
 
 
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>uvを使った仮想環境の設定方法について
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Pythonの仮想環境としてvenvを紹介していますが、よりモダンかつ強力なuvを使った環境構築・パッケージ管理の方法を追記しました。<br>
+<strong>爆速</strong>で環境構築ができるので、是非ご参考になさってください。</p>
+</div>
+</div>
 <section id="はじめに" class="level2">
 <h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
 <p>みなさん、仮想環境、使っていらっしゃいますでしょうか。</p>
@@ -7449,11 +7463,123 @@ background-color: null;
 font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
 </section>
 </section>
+<section id="uvを使ったvenv環境の構築方法" class="level2">
+<h2 class="anchored" data-anchor-id="uvを使ったvenv環境の構築方法">uvを使ったvenv環境の構築方法</h2>
+<p>前述のvenvは標準的な方法ですが、よりモダンで強力な<code>uv</code>というツールを使った方法もあります。</p>
+<p>uvはAstral社が開発したPythonの環境管理ツールで、裏でRust言語を使っているため非常に高速に動作します。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/image/uv_speed.svg" class="img-fluid figure-img"></p>
+<figcaption><a href="https://docs.astral.sh/uv/">uv</a></figcaption>
+</figure>
+</div>
+<section id="uvのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="uvのインストール">uvのインストール</h3>
+<p>まずはuvをインストールします。以下のコマンドをターミナルで実行してください。</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">Mac/Linux</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">Windows</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">curl</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-LsSf</span> https://astral.sh/uv/install.sh <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sh</span></span></code></pre></div></div>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb10-1">powershell <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>ExecutionPolicy ByPass <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span>c <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"irm https://astral.sh/uv/install.ps1 | iex"</span></span></code></pre></div></div>
+</div>
+</div>
+</div>
+</section>
+<section id="uvで仮想環境を作成する" class="level3">
+<h3 class="anchored" data-anchor-id="uvで仮想環境を作成する">uvで仮想環境を作成する</h3>
+<p>uv経由で仮想環境を作成するには、以下のコマンドを実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> venv</span></code></pre></div></div>
+<p>これだけでワーキングディレクトリに<code>.venv</code>フォルダが作成され、venv環境が構築されます。</p>
+</section>
+<section id="プロジェクトの作成" class="level3">
+<h3 class="anchored" data-anchor-id="プロジェクトの作成">プロジェクトの作成</h3>
+<p>uvではプロジェクトの作成も簡単に行えます。以下のコマンドを実行します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> init my_project</span></code></pre></div></div>
+<p>これで<code>my_project</code>というフォルダが作成され、<code>pyproject.toml</code>などのプロジェクト管理に必要なファイルが自動生成されます。</p>
+<p>今回はプロジェクト管理については深く追求しないので、「プロジェクト管理もできるんだな」程度で覚えていただければ嬉しいです。ひとまず仮想環境を作れればよいという方はスキップしてください！</p>
+<p>詳細は<a href="https://docs.astral.sh/uv/#installation">公式ドキュメント</a>ををご参照ください。</p>
+</section>
+<section id="uvでパッケージを管理する" class="level3">
+<h3 class="anchored" data-anchor-id="uvでパッケージを管理する">uvでパッケージを管理する</h3>
+<p>uvではパッケージのインストールや管理も簡単に行えます。</p>
+<p>例えば、polarsパッケージをインストールするには以下のようにします。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> pip install polars</span></code></pre></div></div>
+<p>また、プロジェクトを作成している場合は<code>uv add</code>コマンドを使うと、自動的に<code>pyproject.toml</code>に依存関係が記録されます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> add polars</span></code></pre></div></div>
+<p>複数のパッケージをまとめてインストールすることもできます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> pip install polars duckdb pandas</span></code></pre></div></div>
+<p>パッケージをアンインストールするには以下のようにします。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> pip uninstall polars</span></code></pre></div></div>
+</section>
+<section id="requirements.txtからのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="requirements.txtからのインストール">requirements.txtからのインストール</h3>
+<p>従来の<code>requirements.txt</code>がある場合も、uvで簡単にインストールできます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> pip install <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
+<p>uvは通常のpipコマンドと互換性があるため、既存のワークフローにもスムーズに導入できます！</p>
+</section>
+<section id="uvを使うメリット" class="level3">
+<h3 class="anchored" data-anchor-id="uvを使うメリット">uvを使うメリット</h3>
+<p>uvを使うことで以下のようなメリットがあります:</p>
+<ul>
+<li><strong>高速なインストール</strong>: Rustで実装されているため、pipと比べて大幅に高速</li>
+<li><strong>依存関係の自動解決</strong>: パッケージ間の依存関係を効率的に解決</li>
+<li><strong>プロジェクト管理</strong>: <code>pyproject.toml</code>を使ったモダンなプロジェクト管理が可能</li>
+</ul>
+<p>インストールも簡単なので、ぜひ試してみてください！</p>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>参考
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><a href="https://docs.astral.sh/uv/">uv</a> - 公式ドキュメント</p>
+</div>
+</div>
+</section>
+</section>
 <section id="まとめ-2" class="level2">
 <h2 class="anchored" data-anchor-id="まとめ-2">まとめ</h2>
 <p>今回は仮想環境のrenvとvenvについて簡単にご紹介しました。簡単にとはいうものの、エンジニアでもなければこれで十分ではないかと思っています。</p>
 <p>仮想環境を活用しながら、再現可能な研究を進めていきましょう！</p>
-<p>（余談：サムネイルの設定をミスったのですが、でかでかと<code>.venv</code>が表示されたので、これで良しとします！）</p>
+<p>（余談：最近Geminiがすごいということで1か月だけ有料プランを試してみました。コードに関してはClaudeの方が優れていると感じましたが、サムネイルをいい感じに作ってくれて満足です笑）</p>
 
 
 <!-- -->
@@ -7476,7 +7602,7 @@ font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
   <category>Positron</category>
   <guid>https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/</guid>
   <pubDate>Thu, 25 Sep 2025 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.com/pages/tips/thumbnail/thumbnail.jpg" medium="image" type="image/jpeg"/>
+  <media:content url="https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/image/thumbnail.png" medium="image" type="image/png" height="79" width="144"/>
 </item>
 <item>
   <title>DuckDBをRで使う【duckplyr】</title>
