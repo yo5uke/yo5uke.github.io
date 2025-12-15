@@ -1,9 +1,9 @@
 ---
-title: DuckDBをRで使う【[duckplyr]{.fira-code}】
+title: DuckDBをRで使う【[duckplyr]{.fira-code}も】
 description: |
   R上でデータベース操作を行うために、DuckDBを利用する方法についてまとめます。
 date: 2025-09-19
-date-modified: 2025-12-06
+date-modified: 2025-12-15
 categories:
 - R
 - SQL
@@ -223,9 +223,9 @@ dbDisconnect(con, shutdown = TRUE)
 
 `duckplyr`パッケージを使うと、DuckDBと`dplyr`の連携がさらに便利になります。`duckplyr`は、DuckDB専用の`dplyr`拡張パッケージであり、DuckDBの機能をより活用できます。
 
-### {duckplyr}とは
+### duckplyrとは
 
-{duckplyr}は、**dplyrのドロップイン置き換え**として機能するパッケージです。既存のdplyrコードをそのまま使いながら、裏側でDuckDBの高速な分析エンジンを活用できます。
+`duckplyr`は、**dplyrのドロップイン置き換え**として機能するパッケージです。既存のdplyrコードをそのまま使いながら、裏側でDuckDBの高速な分析エンジンを活用できます。
 
 ### 先述のアプローチとの違い
 
@@ -268,20 +268,17 @@ df |>
 - SQLへ翻訳はされない（データはR上に存在）
 - 既存のdplyrコードがそのまま高速化される
 
-### {duckplyr}の特徴
+### duckplyrの特徴
 
 1. **ドロップイン置き換え**
    - `library(duckplyr)`するだけで、多くのdplyr動詞が高速化
    - 既存のコードを書き換える必要がほとんどない
-
 2. **自動フォールバック**
    - duckplyrで対応できない操作は、自動的に通常のdplyrにフォールバック
-   - エラーで止まることなく処理が継続
-
+   - エラーで止まることなく処理が継続されます
 3. **大規模データに最適**
    - DuckDBの並列処理エンジンを活用
    - メモリ効率の良い処理が可能
-
 4. **互換性**
    - dplyrの多くの関数に対応
    - tidyverseエコシステムとシームレスに連携
@@ -306,6 +303,8 @@ mtcars |>
 ```
 
 注意点として、**読み込み順序が重要**です。`library(tidyverse)`の後に`library(duckplyr)`を読み込むことで、dplyrのメソッドがduckplyrで上書きされます。逆の順序で読み込むと、通常のdplyrが優先されてしまいます。
+
+小さいデータだとあまり速さを実感できないかもしれませんが、大きいデータを扱うときに効果を発揮します。
 
 ## まとめ
 
