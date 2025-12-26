@@ -1,0 +1,124 @@
+---
+title: "今年使ったツールを振り返る"
+description: |
+  2025年に使ったツールを振り返ります。duckdb, polarsなど。
+date: 2025-12-26
+categories:
+  - R
+  - Python
+  - Positron
+  - SQL
+---
+
+## はじめに
+
+こんにちは。クリスマスも過ぎいよいよ年末感が出てきましたので、今回は2025年に使ったツールを振り返ってみたいと思います。
+
+## Positron
+
+まずはIDEのPositronです。Positronが正式にリリースされ、RとPythonの両方をサポートする強力なIDEとして注目を集めました。
+
+RStudioからの移行も割としやすく、VSCodeベースでありながらRStudioのような使い勝手を提供してくれます。
+
+個人的には拡張機能を通じてコードを書きやすくなったのが大きいと思います。GitHub Copilotも利用できますし、チャットをいちいちブラウザやアプリで開かなくてもIDE内で完結できるのは便利です。
+
+Positronについては以下の記事で詳しく紹介しています。
+
+::: {.callout-tip appearance="minimal"}
+[Positronのおすすめ設定！【R | Python】](/pages/tips/2025/09/250901_positron_setting/index.qmd)
+:::
+
+## DuckDB
+
+続いて組み込み型データベースのDuckDBです。今年Rを使う仕事ではもれなく使っていたかもしれません。
+
+DuckDBはRやPythonでパッケージをインストールするだけで使うことができ、Rの場合は`dplyr`のような感覚でSQLクエリを実行できるのが魅力です。
+
+Rのメモリに読み込まずにデータを読み込めるため、大規模データの処理にも向いています。
+
+```{r}
+library(DBI)
+library(dplyr)
+
+# DuckDBに接続
+con <- dbConnect(duckdb::duckdb())
+
+# Rのメモリに読み込まずにCSVをクエリ可能
+tbl(con, "read_csv('data/iris.csv')") |>
+  filter(Species == "setosa") |>
+  collect()
+```
+
+`collect()`を実行するまではRのメモリにデータが読み込まれず、DuckDB上で実行されるため効率的です。`collect()`をして初めてRのメモリにデータが読み込まれます。
+
+DuckDBについては以下の記事で詳しく紹介していますので、よければご覧ください。
+
+::: {.callout-tip appearance="minimal"}
+[DuckDBをRで使う【[duckplyr]{.fira-code}も】](/pages/tips/2025/09/250919_duckdb/index.qmd)
+:::
+
+## Polars
+
+polarsの発見は今年の大きな収穫でした。Pythonでデータ処理を行うためのライブラリでpandasと似ていますが、**爆速**です。
+
+速いので下処理はPythonでやってしまおうかなと思っているほどですが、幸いにもRからも`polars`および`tidypolars`パッケージを通じて利用可能です。
+
+特にtidypolarsはdplyrの多くの関数をサポートしており、これまでの使い方をしているだけで処理速度が向上します。対応していない関数は自動でdplyrにフォールバックするため、使い勝手も良好です。
+
+```r
+library(tidyverse)
+library(tidypolars) # 後に読み込み
+```
+
+polarsもtidypolarsもCRANには公開されていないのでインストールには一工夫必要ですが、以下の記事で詳しく紹介しています。
+
+::: {.callout-tip appearance="minimal"}
+[【R】[polars]{.fira-code}でデータ処理を高速化する](/pages/tips/2025/11/251125_r_polars/index.qmd)
+:::
+
+余談ですが、自分はpolarsを「ポーラーズ」と読むものと思っていたのですが、先日Japan.Rに参加した際に登壇者の方が「ポーラス」と読んでらっしゃり、びっくりしました。ググったところだと、イギリス英語が「ポーラス」、アメリカ英語が「ポーラーズ」に近いかなと思います。開発チームはオランダにあるようなので、イギリス英語なのかもしれません。
+
+## PostgreSQL
+
+続いて、PostgreSQLです。学生時代はSQLに触る機会はなく、社会人になってから初めてSQLを使ったのですが、世界が広がりましたね。
+
+まず使っているデータの規模が学生時代とは違うので学生が使うべきかと聞かれると別に…という感じですが、個票データを使ったりする場合にはPostgreSQLのようなRDBMS（Relational Database Management System）が便利かなと思うようになりました。
+
+DuckDBとの使い分けはどうなんだよという話ですが、例えばDuckDBは組み込み型データベースなのでサーバーを立てる必要がなく、ローカルで完結するのが強みです。一方でPostgreSQLはサーバー型なので複数人でデータを共有したり、アクセス制御を行ったりするのに向いているのではないでしょうか。
+
+また、PostgreSQLにはpgAdminのようなGUIツール^[GUIとはGraphical User Interfaceの略で、視覚的に操作できるインターフェースのことです。CSVファイルを生で見ても見にくいですが、Excelで開くと見やすくなるのと同じようなイメージです。]もあり、データのイメージを掴みやすいのも良い点です。
+
+さらに、個人的にはPostGISという地理空間データを扱う拡張機能が便利で、地理空間データをSQLで処理できるのが魅力です。Rだと重い処理もSQLで実行できるので効率的です。
+
+PostgreSQLについては以下の記事で詳しく紹介しています。
+
+::: {.callout-tip appearance="minimal"}
+[【Windows】RとPostgreSQL中心の環境構築【GISも】](/pages/tips/2025/12/251201_env/index.qmd)
+:::
+
+## uv
+
+最近はPythonの仮想環境構築のため、Rust製のuvという仮想環境管理ツールを使い始めました。
+
+uvは非常に高速かつシンプルな設計で、プロジェクトごとに仮想環境を簡単に作成・管理できます。
+
+```bash
+uv init my_project
+cd my_project
+
+uv add pandas numpy
+```
+
+uvについては以下の記事で詳しく紹介しています。
+
+::: {.callout-tip appearance="minimal"}
+[【renv】仮想環境を設定する【venv】](/pages/tips/2025/09/250926_virtual_environment/index.qmd#uvを使ったvenv環境の構築方法)
+:::
+
+## おわりに
+
+これまでもちょこちょこ記事にしてきたので目新しいことは特にないのですが、2025年に使ったツールを振り返ってみました。
+
+新しいものはどんどん取り入れていきたいスタイルなので、来年も色々試していきたいと思います。もしおすすめのツール等あればぜひご教示いただきたいです。
+
+引き続きよろしくお願いいたします！
