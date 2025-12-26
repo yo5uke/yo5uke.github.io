@@ -1,9 +1,9 @@
 ---
-title: 【R】仮想環境を設定する【Python】
+title: 【renv】仮想環境を設定する【venv】
 description: |
-  [renv]{.fira-code}と[venv]{.fira-code}を使います！
+  Rは[renv]{.fira-code}、Pythonは[venv]{.fira-code}を使います。注目のuvも紹介！
 date: 2025-09-26
-date-modified: 2025-12-14
+date-modified: 2025-12-26
 categories:
 - R
 - Python
@@ -231,44 +231,36 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 ```
 :::
 
-### uvで仮想環境を作成する
+### まずは：pip互換モード
 
-uv経由で仮想環境を作成するには、以下のコマンドを実行します。
+pipとvenvに慣れている方は、まずは従来と同じ感覚でuvを使ってみましょう！
+
+#### 仮想環境の作成
 
 ```sh
 uv venv
 ```
 
-これだけでワーキングディレクトリに`.venv`フォルダが作成され、venv環境が構築されます。
+これだけでワーキングディレクトリに`.venv`フォルダが作成されます。従来の`python -m venv .venv`と同じですが、圧倒的に高速です！
 
-### プロジェクトの作成
+#### 仮想環境の有効化
 
-uvではプロジェクトの作成も簡単に行えます。以下のコマンドを実行します。
-
+:::{.panel-tabset}
+## Mac/Linux
 ```sh
-uv init my_project
+source .venv/bin/activate
 ```
 
-これで`my_project`というフォルダが作成され、`pyproject.toml`などのプロジェクト管理に必要なファイルが自動生成されます。
+## Windows
+```powershell
+.venv\Scripts\activate
+```
+:::
 
-今回はプロジェクト管理については深く追求しないので、「プロジェクト管理もできるんだな」程度で覚えていただければ嬉しいです。ひとまず仮想環境を作れればよいという方はスキップしてください！
-
-詳細は[公式ドキュメント](https://docs.astral.sh/uv/#installation)ををご参照ください。
-
-### uvでパッケージを管理する
-
-uvではパッケージのインストールや管理も簡単に行えます。
-
-例えば、polarsパッケージをインストールするには以下のようにします。
+#### パッケージのインストール
 
 ```sh
 uv pip install polars
-```
-
-また、プロジェクトを作成している場合は`uv add`コマンドを使うと、自動的に`pyproject.toml`に依存関係が記録されます。
-
-```sh
-uv add polars
 ```
 
 複数のパッケージをまとめてインストールすることもできます。
@@ -277,13 +269,7 @@ uv add polars
 uv pip install polars duckdb pandas
 ```
 
-パッケージをアンインストールするには以下のようにします。
-
-```sh
-uv pip uninstall polars
-```
-
-### requirements.txtからのインストール
+#### requirements.txtからのインストール
 
 従来の`requirements.txt`がある場合も、uvで簡単にインストールできます。
 
@@ -291,17 +277,199 @@ uv pip uninstall polars
 uv pip install -r requirements.txt
 ```
 
-uvは通常のpipコマンドと互換性があるため、既存のワークフローにもスムーズに導入できます！
+#### パッケージのアンインストール
+
+```sh
+uv pip uninstall polars
+```
+
+uvは通常のpipコマンドと互換性があるため、既存のワークフローにもスムーズに導入できると思います。
+
+### より便利に：プロジェクト管理モード
+
+ここからがuvの真骨頂とも言える使い方です。
+
+従来の方法では、プロジェクトごとに「venv作成 → activate → パッケージインストール」という手順を踏む必要がありました。uvのプロジェクト管理機能を使えば、**この一連の流れを自動化し、環境の再現性も確保**できます。
+
+#### プロジェクトの作成
+
+```sh
+uv init my-analysis
+cd my-analysis
+```
+
+これで`my-analysis`というフォルダが作成され、以下のファイルが自動生成されます：
+
+- `pyproject.toml`：プロジェクトの設定と依存パッケージを管理
+- `.python-version`：使用するPythonバージョンを記録
+- `README.md`：プロジェクトの説明
+- `main.py`：サンプルスクリプト
+
+#### パッケージの追加
+
+```sh
+uv add polars pandas matplotlib
+```
+
+このコマンドを実行すると：
+
+1. 自動的に`.venv`フォルダが作成される（初回のみ）
+2. パッケージがインストールされる
+3. `pyproject.toml`に依存関係が記録される
+4. `uv.lock`にバージョンが厳密に記録される
+
+**activateコマンドは不要です！（でかい）**
+
+開発用のパッケージ（JupyterやPytestなど）を追加する場合は`--dev`オプションを使います。
+
+```sh
+uv add --dev ipykernel pytest
+```
+
+#### スクリプトの実行
+
+```sh
+uv run python analysis.py
+```
+
+`uv run`を使えば、仮想環境を意識せずにスクリプトを実行できます。裏で自動的に`.venv`環境を使ってくれるので、activateし忘れる心配もありません！
+
+:::{.callout-note collapse="true"}
+## VSCodeでのメリット
+Positronユーザーにはあまり関係ないのですが、VSCodeユーザーにとっては**神機能**だと思います。
+
+pipの場合毎度アクティベートをするのが面倒なので、VSCodeの設定で「"python.terminal.activateEnvironment": true」にして自動アクティベートを有効にし、`source .venv/bin/activate`を自動で実行しているのですが、困ったことにRのターミナルを開いたときにも走ってしまい、当然Rの関数でも何でもないのでエラーが出ます。別にただエラーが起きるだけなので無視しておけばよいのですが、気持ち悪さがありました。
+
+しかしuvを使えばvenvを気にする必要がありませんから、「"python.terminal.activateEnvironment": false」にしておけば自動アクティベートされず、当然Rのターミナルでもエラーが出なくなり、気分爽快です。
+
+そもそもVSCodeでRを使っている人自体少ないと思うのですが、もし使っている方がいらっしゃればぜひお試しください。
+:::
+
+#### Jupyter Notebookとの連携
+
+Jupyter Notebookで分析する場合は、以下のようにします。
+
+```sh
+# jupyterを追加
+uv add jupyter
+
+# Jupyter Labを起動
+uv run --with jupyter jupyter lab
+```
+
+これでブラウザが立ち上がりJupyter Labが使えます。
+
+Jupyter Notebook内でパッケージを新たにインストールする場合には注意が必要ですが、PowerShell/ターミナルで`uv add`をすれば問題ありませんので、基本的にインストールする場合はそちらを使いましょう。
+
+Jupyter LabではなくPositron/VSCode上で`.ipynb`ファイルを編集する場合は、ファイル内右上の「カーネルの選択」よりプロジェクトの仮想環境を選択してください。
+
+![「Uv: プロジェクト名」と書いてあるものを選びます](image/kernel.png)
+
+#### 環境の共有と再現
+
+プロジェクト管理モードの最大の利点は**再現性**です。
+
+プロジェクトを作成した場合：
+
+```sh
+# プロジェクト作成
+uv init my-analysis
+cd my-analysis
+
+# パッケージ追加
+uv add geopandas polars statsmodels matplotlib
+
+# Gitにコミット（.venvはコミットしないように注意）
+git add pyproject.toml uv.lock .python-version
+git commit -m "Initialize project"
+git push
+```
+
+Gitの操作はVSCodeやPositronのGit機能を使っても全く問題ありません。
+
+共同研究者のPCなど、別のPCで同じ環境を再現する場合：
+
+```sh
+# プロジェクトをクローン
+git clone your-repository
+cd my-analysis
+
+# 環境を完全再現
+uv sync
+
+# すぐに実行可能
+uv run python analysis.py
+```
+
+`uv sync`コマンドは`uv.lock`ファイルを読み込んで、全く同じバージョンのパッケージをインストールします。これにより再現性が担保され、チーム全員が同じ環境で作業できます。
+
+#### パッケージの削除
+
+```sh
+uv remove polars
+```
+
+`pyproject.toml`と`uv.lock`から自動的に削除され、`.venv`からもアンインストールされます。
+
+### 2つの方法の比較
+
+| 項目 | pip互換モード | プロジェクト管理モード（推奨） |
+|------|-------------|--------------------------|
+| 仮想環境作成 | `uv venv` | 自動作成 |
+| 環境の有効化 | `source .venv/bin/activate` | 不要（`uv run`が自動処理） |
+| パッケージ追加 | `uv pip install <pkg>` | `uv add <pkg>` |
+| 依存関係の記録 | 手動（`requirements.txt`） | 自動（`pyproject.toml`+`uv.lock`） |
+| 環境の再現 | `uv pip install -r requirements.txt` | `uv sync` |
+| 適している場面 | 既存のpipワークフローを維持したい | 新規プロジェクト、チーム開発、再現性重視 |
+
+**研究や分析用途では、プロジェクト管理モードがおすすめです！**爆速＆楽なので、ぜひ試してみてください。
 
 ### uvを使うメリット
 
-uvを使うことで以下のようなメリットがあります:
+uvを使うことで以下のようなメリットがあります：
 
-- **高速なインストール**: Rustで実装されているため、pipと比べて大幅に高速
-- **依存関係の自動解決**: パッケージ間の依存関係を効率的に解決
-- **プロジェクト管理**: `pyproject.toml`を使ったモダンなプロジェクト管理が可能
+#### 1. 圧倒的な再現性
 
-インストールも簡単なので、ぜひ試してみてください！
+`uv.lock`ファイルにより、プロジェクトの依存関係が厳密に記録されます。これにより：
+
+- チーム全員が完全に同じ環境を構築可能
+- 数ヶ月後・数年後でも同じ環境を再現可能
+- 査読者や同僚が結果を検証しやすい
+
+研究の透明性と信頼性を高める上で、非常に重要な機能かと思います。
+
+#### 2. 高速なインストール
+
+Rustで実装されているため、pipと比べて**10〜100倍高速**にパッケージをインストールできます。
+
+大規模なデータ分析プロジェクトでは、セットアップ時間を大幅に短縮できます。
+
+#### 3. 環境管理が楽
+
+`uv run`を使えば、activateコマンドを意識する必要がありません。プロジェクト間の切り替えもスムーズです。
+
+#### 4. Pythonバージョンも管理可能
+
+```sh
+# Python 3.12をインストール
+uv python install 3.12
+
+# プロジェクトで使用するバージョンを固定
+uv python pin 3.12
+```
+
+pyenvなどの別ツールが不要で、uvだけで完結します。
+
+### どちらの方法を選ぶべき？
+
+- **既存プロジェクトで、すでにpip + venvのワークフローが確立している** → pip互換モードで試してみる
+- **新しい分析プロジェクトを始める** → プロジェクト管理モードを使う
+- **チームで開発する、または環境を共有する** → プロジェクト管理モード
+- **論文の再現性を確保したい** → プロジェクト管理モード
+
+まずはpip互換モードで速度の違いを体感し、慣れてきたらプロジェクト管理モードに移行するのがおすすめです！
+
+詳細は[公式ドキュメント](https://docs.astral.sh/uv/)をご参照ください。
 
 :::{.callout-tip}
 ## 参考
