@@ -10,7 +10,240 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.9.16</generator>
-<lastBuildDate>Sun, 30 Nov 2025 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Thu, 25 Dec 2025 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>今年使ったツールを振り返る</title>
+  <link>https://yo5uke.com/pages/tips/2025/12/251226_lookback/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>こんにちは。クリスマスも過ぎいよいよ年末感が出てきましたので、今回は2025年に使ったツールを振り返ってみたいと思います。</p>
+</section>
+<section id="positron" class="level2">
+<h2 class="anchored" data-anchor-id="positron">Positron</h2>
+<p>まずはIDEのPositronです。Positronが正式にリリースされ、RとPythonの両方をサポートする強力なIDEとして注目を集めました。</p>
+<p>RStudioからの移行も割としやすく、VSCodeベースでありながらRStudioのような使い勝手を提供してくれます。</p>
+<p>個人的には拡張機能を通じてコードを書きやすくなったのが大きいと思います。GitHub Copilotも利用できますし、チャットをいちいちブラウザやアプリで開かなくてもIDE内で完結できるのは便利です。</p>
+<p>Positronについては以下の記事で詳しく紹介しています。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../../../pages/tips/2025/09/250901_positron_setting/index.html">Positronのおすすめ設定！【R | Python】</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="duckdb" class="level2">
+<h2 class="anchored" data-anchor-id="duckdb">DuckDB</h2>
+<p>続いて組み込み型データベースのDuckDBです。今年Rを使う仕事ではもれなく使っていたかもしれません。</p>
+<p>DuckDBはRやPythonでパッケージをインストールするだけで使うことができ、Rの場合は<code>dplyr</code>のような感覚でSQLクエリを実行できるのが魅力です。</p>
+<p>Rのメモリに読み込まずにデータを読み込めるため、大規模データの処理にも向いています。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(DBI)</span>
+<span id="cb1-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(dplyr)</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># DuckDBに接続</span></span>
+<span id="cb1-5">con <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbConnect</span>(duckdb<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">duckdb</span>())</span>
+<span id="cb1-6"></span>
+<span id="cb1-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Rのメモリに読み込まずにCSVをクエリ可能</span></span>
+<span id="cb1-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tbl</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"read_csv('data/iris.csv')"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb1-9">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">filter</span>(Species <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"setosa"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb1-10">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">collect</span>()</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 50 × 5
+   Sepal.Length Sepal.Width Petal.Length Petal.Width Species
+          &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt; &lt;chr&gt;  
+ 1          5.1         3.5          1.4         0.2 setosa 
+ 2          4.9         3            1.4         0.2 setosa 
+ 3          4.7         3.2          1.3         0.2 setosa 
+ 4          4.6         3.1          1.5         0.2 setosa 
+ 5          5           3.6          1.4         0.2 setosa 
+ 6          5.4         3.9          1.7         0.4 setosa 
+ 7          4.6         3.4          1.4         0.3 setosa 
+ 8          5           3.4          1.5         0.2 setosa 
+ 9          4.4         2.9          1.4         0.2 setosa 
+10          4.9         3.1          1.5         0.1 setosa 
+# ℹ 40 more rows</code></pre>
+</div>
+</div>
+<p><code>collect()</code>を実行するまではRのメモリにデータが読み込まれず、DuckDB上で実行されるため効率的です。<code>collect()</code>をして初めてRのメモリにデータが読み込まれます。</p>
+<p>DuckDBについては以下の記事で詳しく紹介していますので、よければご覧ください。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../../../pages/tips/2025/09/250919_duckdb/index.html">DuckDBをRで使う【<span class="fira-code">duckplyr</span>も】</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="polars" class="level2">
+<h2 class="anchored" data-anchor-id="polars">Polars</h2>
+<p>polarsの発見は今年の大きな収穫でした。Pythonでデータ処理を行うためのライブラリでpandasと似ていますが、<strong>爆速</strong>です。</p>
+<p>速いので下処理はPythonでやってしまおうかなと思っているほどですが、幸いにもRからも<code>polars</code>および<code>tidypolars</code>パッケージを通じて利用可能です。</p>
+<p>特にtidypolarsはdplyrの多くの関数をサポートしており、これまでの使い方をしているだけで処理速度が向上します。対応していない関数は自動でdplyrにフォールバックするため、使い勝手も良好です。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb3-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidypolars) <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 後に読み込み</span></span></code></pre></div></div>
+<p>polarsもtidypolarsもCRANには公開されていないのでインストールには一工夫必要ですが、以下の記事で詳しく紹介しています。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../../../pages/tips/2025/11/251125_r_polars/index.html">【R】<span class="fira-code">polars</span>でデータ処理を高速化する</a></p>
+</div>
+</div>
+</div>
+<p>余談ですが、自分はpolarsを「ポーラーズ」と読むものと思っていたのですが、先日Japan.Rに参加した際に登壇者の方が「ポーラス」と読んでらっしゃり、びっくりしました。ググったところだと、イギリス英語が「ポーラス」、アメリカ英語が「ポーラーズ」に近いかなと思います。開発チームはオランダにあるようなので、イギリス英語なのかもしれません。</p>
+</section>
+<section id="postgresql" class="level2">
+<h2 class="anchored" data-anchor-id="postgresql">PostgreSQL</h2>
+<p>続いて、PostgreSQLです。学生時代はSQLに触る機会はなく、社会人になってから初めてSQLを使ったのですが、世界が広がりましたね。</p>
+<p>まず使っているデータの規模が学生時代とは違うので学生が使うべきかと聞かれると別に…という感じですが、個票データを使ったりする場合にはPostgreSQLのようなRDBMS（Relational Database Management System）が便利かなと思うようになりました。</p>
+<p>DuckDBとの使い分けはどうなんだよという話ですが、例えばDuckDBは組み込み型データベースなのでサーバーを立てる必要がなく、ローカルで完結するのが強みです。一方でPostgreSQLはサーバー型なので複数人でデータを共有したり、アクセス制御を行ったりするのに向いているのではないでしょうか。</p>
+<p>また、PostgreSQLにはpgAdminのようなGUIツール<sup>1</sup>もあり、データのイメージを掴みやすいのも良い点です。</p>
+<p>さらに、個人的にはPostGISという地理空間データを扱う拡張機能が便利で、地理空間データをSQLで処理できるのが魅力です。Rだと重い処理もSQLで実行できるので効率的です。</p>
+<p>PostgreSQLについては以下の記事で詳しく紹介しています。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../../../pages/tips/2025/12/251201_env/index.html">【Windows】RとPostgreSQL中心の環境構築【GISも】</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="uv" class="level2">
+<h2 class="anchored" data-anchor-id="uv">uv</h2>
+<p>最近はPythonの仮想環境構築のため、Rust製のuvという仮想環境管理ツールを使い始めました。</p>
+<p>uvは非常に高速かつシンプルな設計で、プロジェクトごとに仮想環境を簡単に作成・管理できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> init my_project</span>
+<span id="cb4-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">cd</span> my_project</span>
+<span id="cb4-3"></span>
+<span id="cb4-4"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> add pandas numpy</span></code></pre></div></div>
+<p>uvについては以下の記事で詳しく紹介しています。</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><a href="../../../../../pages/tips/2025/09/250926_virtual_environment/index.html#uvを使ったvenv環境の構築方法">【renv】仮想環境を設定する【venv】</a></p>
+</div>
+</div>
+</div>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>これまでもちょこちょこ記事にしてきたので目新しいことは特にないのですが、2025年に使ったツールを振り返ってみました。</p>
+<p>新しいものはどんどん取り入れていきたいスタイルなので、来年も色々試していきたいと思います。もしおすすめのツール等あればぜひご教示いただきたいです。</p>
+<p>引き続きよろしくお願いいたします！</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>GUIとはGraphical User Interfaceの略で、視覚的に操作できるインターフェースのことです。CSVファイルを生で見ても見にくいですが、Excelで開くと見やすくなるのと同じようなイメージです。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>Python</category>
+  <category>Positron</category>
+  <category>SQL</category>
+  <guid>https://yo5uke.com/pages/tips/2025/12/251226_lookback/</guid>
+  <pubDate>Thu, 25 Dec 2025 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【Windows】RとPostgreSQL中心の環境構築【GISも】</title>
   <link>https://yo5uke.com/pages/tips/2025/12/251201_env/</link>
@@ -7237,7 +7470,7 @@ font-style: inherit;">EXPOSE</span> 8787</span></code></pre></div></div>
   <pubDate>Fri, 10 Oct 2025 15:00:00 GMT</pubDate>
 </item>
 <item>
-  <title>【R】仮想環境を設定する【Python】</title>
+  <title>【renv】仮想環境を設定する【venv】</title>
   <link>https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/</link>
   <description><![CDATA[ 
 
@@ -7500,63 +7733,329 @@ font-style: inherit;">"irm https://astral.sh/uv/install.ps1 | iex"</span></span>
 </div>
 </div>
 </section>
-<section id="uvで仮想環境を作成する" class="level3">
-<h3 class="anchored" data-anchor-id="uvで仮想環境を作成する">uvで仮想環境を作成する</h3>
-<p>uv経由で仮想環境を作成するには、以下のコマンドを実行します。</p>
+<section id="まずはpip互換モード" class="level3">
+<h3 class="anchored" data-anchor-id="まずはpip互換モード">まずは：pip互換モード</h3>
+<p>pipとvenvに慣れている方は、まずは従来と同じ感覚でuvを使ってみましょう！</p>
+<section id="仮想環境の作成" class="level4">
+<h4 class="anchored" data-anchor-id="仮想環境の作成">仮想環境の作成</h4>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><span class="ex" style="color: null;
 background-color: null;
 font-style: inherit;">uv</span> venv</span></code></pre></div></div>
-<p>これだけでワーキングディレクトリに<code>.venv</code>フォルダが作成され、venv環境が構築されます。</p>
+<p>これだけでワーキングディレクトリに<code>.venv</code>フォルダが作成されます。従来の<code>python -m venv .venv</code>と同じですが、圧倒的に高速です！</p>
 </section>
-<section id="プロジェクトの作成" class="level3">
-<h3 class="anchored" data-anchor-id="プロジェクトの作成">プロジェクトの作成</h3>
-<p>uvではプロジェクトの作成も簡単に行えます。以下のコマンドを実行します。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><span class="ex" style="color: null;
+<section id="仮想環境の有効化" class="level4">
+<h4 class="anchored" data-anchor-id="仮想環境の有効化">仮想環境の有効化</h4>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" aria-controls="tabset-2-1" aria-selected="true" href="">Mac/Linux</a></li><li class="nav-item"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" aria-controls="tabset-2-2" aria-selected="false" href="">Windows</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" aria-labelledby="tabset-2-1-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><span class="bu" style="color: null;
 background-color: null;
-font-style: inherit;">uv</span> init my_project</span></code></pre></div></div>
-<p>これで<code>my_project</code>というフォルダが作成され、<code>pyproject.toml</code>などのプロジェクト管理に必要なファイルが自動生成されます。</p>
-<p>今回はプロジェクト管理については深く追求しないので、「プロジェクト管理もできるんだな」程度で覚えていただければ嬉しいです。ひとまず仮想環境を作れればよいという方はスキップしてください！</p>
-<p>詳細は<a href="https://docs.astral.sh/uv/#installation">公式ドキュメント</a>ををご参照ください。</p>
+font-style: inherit;">source</span> .venv/bin/activate</span></code></pre></div></div>
+</div>
+<div id="tabset-2-2" class="tab-pane" aria-labelledby="tabset-2-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode powershell code-with-copy"><code class="sourceCode powershell"><span id="cb13-1"><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">.</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">venv</span>\Scripts\activate</span></code></pre></div></div>
+</div>
+</div>
+</div>
 </section>
-<section id="uvでパッケージを管理する" class="level3">
-<h3 class="anchored" data-anchor-id="uvでパッケージを管理する">uvでパッケージを管理する</h3>
-<p>uvではパッケージのインストールや管理も簡単に行えます。</p>
-<p>例えば、polarsパッケージをインストールするには以下のようにします。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb13-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">uv</span> pip install polars</span></code></pre></div></div>
-<p>また、プロジェクトを作成している場合は<code>uv add</code>コマンドを使うと、自動的に<code>pyproject.toml</code>に依存関係が記録されます。</p>
+<section id="パッケージのインストール" class="level4">
+<h4 class="anchored" data-anchor-id="パッケージのインストール">パッケージのインストール</h4>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb14-1"><span class="ex" style="color: null;
 background-color: null;
-font-style: inherit;">uv</span> add polars</span></code></pre></div></div>
+font-style: inherit;">uv</span> pip install polars</span></code></pre></div></div>
 <p>複数のパッケージをまとめてインストールすることもできます。</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb15-1"><span class="ex" style="color: null;
 background-color: null;
 font-style: inherit;">uv</span> pip install polars duckdb pandas</span></code></pre></div></div>
-<p>パッケージをアンインストールするには以下のようにします。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><span class="ex" style="color: null;
-background-color: null;
-font-style: inherit;">uv</span> pip uninstall polars</span></code></pre></div></div>
 </section>
-<section id="requirements.txtからのインストール" class="level3">
-<h3 class="anchored" data-anchor-id="requirements.txtからのインストール">requirements.txtからのインストール</h3>
+<section id="requirements.txtからのインストール" class="level4">
+<h4 class="anchored" data-anchor-id="requirements.txtからのインストール">requirements.txtからのインストール</h4>
 <p>従来の<code>requirements.txt</code>がある場合も、uvで簡単にインストールできます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><span class="ex" style="color: null;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb16-1"><span class="ex" style="color: null;
 background-color: null;
 font-style: inherit;">uv</span> pip install <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">-r</span> requirements.txt</span></code></pre></div></div>
-<p>uvは通常のpipコマンドと互換性があるため、既存のワークフローにもスムーズに導入できます！</p>
+</section>
+<section id="パッケージのアンインストール" class="level4">
+<h4 class="anchored" data-anchor-id="パッケージのアンインストール">パッケージのアンインストール</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb17-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> pip uninstall polars</span></code></pre></div></div>
+<p>uvは通常のpipコマンドと互換性があるため、既存のワークフローにもスムーズに導入できると思います。</p>
+</section>
+</section>
+<section id="より便利にプロジェクト管理モード" class="level3">
+<h3 class="anchored" data-anchor-id="より便利にプロジェクト管理モード">より便利に：プロジェクト管理モード</h3>
+<p>ここからがuvの真骨頂とも言える使い方です。</p>
+<p>従来の方法では、プロジェクトごとに「venv作成 → activate → パッケージインストール」という手順を踏む必要がありました。uvのプロジェクト管理機能を使えば、<strong>この一連の流れを自動化し、環境の再現性も確保</strong>できます。</p>
+<section id="プロジェクトの作成" class="level4">
+<h4 class="anchored" data-anchor-id="プロジェクトの作成">プロジェクトの作成</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb18-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> init my-analysis</span>
+<span id="cb18-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">cd</span> my-analysis</span></code></pre></div></div>
+<p>これで<code>my-analysis</code>というフォルダが作成され、以下のファイルが自動生成されます：</p>
+<ul>
+<li><code>pyproject.toml</code>：プロジェクトの設定と依存パッケージを管理</li>
+<li><code>.python-version</code>：使用するPythonバージョンを記録</li>
+<li><code>README.md</code>：プロジェクトの説明</li>
+<li><code>main.py</code>：サンプルスクリプト</li>
+</ul>
+</section>
+<section id="パッケージの追加" class="level4">
+<h4 class="anchored" data-anchor-id="パッケージの追加">パッケージの追加</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb19-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> add polars pandas matplotlib</span></code></pre></div></div>
+<p>このコマンドを実行すると：</p>
+<ol type="1">
+<li>自動的に<code>.venv</code>フォルダが作成される（初回のみ）</li>
+<li>パッケージがインストールされる</li>
+<li><code>pyproject.toml</code>に依存関係が記録される</li>
+<li><code>uv.lock</code>にバージョンが厳密に記録される</li>
+</ol>
+<p><strong>activateコマンドは不要です！（でかい）</strong></p>
+<p>開発用のパッケージ（JupyterやPytestなど）を追加する場合は<code>--dev</code>オプションを使います。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb20-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> add <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--dev</span> ipykernel pytest</span></code></pre></div></div>
+</section>
+<section id="スクリプトの実行" class="level4">
+<h4 class="anchored" data-anchor-id="スクリプトの実行">スクリプトの実行</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb21-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> run python analysis.py</span></code></pre></div></div>
+<p><code>uv run</code>を使えば、仮想環境を意識せずにスクリプトを実行できます。裏で自動的に<code>.venv</code>環境を使ってくれるので、activateし忘れる心配もありません！</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>VSCodeでのメリット
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Positronユーザーにはあまり関係ないのですが、VSCodeユーザーにとっては<strong>神機能</strong>だと思います。</p>
+<p>pipの場合毎度アクティベートをするのが面倒なので、VSCodeの設定で「“python.terminal.activateEnvironment”: true」にして自動アクティベートを有効にし、<code>source .venv/bin/activate</code>を自動で実行しているのですが、困ったことにRのターミナルを開いたときにも走ってしまい、当然Rの関数でも何でもないのでエラーが出ます。別にただエラーが起きるだけなので無視しておけばよいのですが、気持ち悪さがありました。</p>
+<p>しかしuvを使えばvenvを気にする必要がありませんから、「“python.terminal.activateEnvironment”: false」にしておけば自動アクティベートされず、当然Rのターミナルでもエラーが出なくなり、気分爽快です。</p>
+<p>そもそもVSCodeでRを使っている人自体少ないと思うのですが、もし使っている方がいらっしゃればぜひお試しください。</p>
+</div>
+</div>
+</div>
+</section>
+<section id="jupyter-notebookとの連携" class="level4">
+<h4 class="anchored" data-anchor-id="jupyter-notebookとの連携">Jupyter Notebookとの連携</h4>
+<p>Jupyter Notebookで分析する場合は、以下のようにします。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb22-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># jupyterを追加</span></span>
+<span id="cb22-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> add jupyter</span>
+<span id="cb22-3"></span>
+<span id="cb22-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Jupyter Labを起動</span></span>
+<span id="cb22-5"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> run <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--with</span> jupyter jupyter lab</span></code></pre></div></div>
+<p>これでブラウザが立ち上がりJupyter Labが使えます。</p>
+<p>Jupyter Notebook内でパッケージを新たにインストールする場合には注意が必要ですが、PowerShell/ターミナルで<code>uv add</code>をすれば問題ありませんので、基本的にインストールする場合はそちらを使いましょう。</p>
+<p>Jupyter LabではなくPositron/VSCode上で<code>.ipynb</code>ファイルを編集する場合は、ファイル内右上の「カーネルの選択」よりプロジェクトの仮想環境を選択してください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/image/kernel.png" class="img-fluid figure-img"></p>
+<figcaption>「Uv: プロジェクト名」と書いてあるものを選びます</figcaption>
+</figure>
+</div>
+</section>
+<section id="環境の共有と再現" class="level4">
+<h4 class="anchored" data-anchor-id="環境の共有と再現">環境の共有と再現</h4>
+<p>プロジェクト管理モードの最大の利点は<strong>再現性</strong>です。</p>
+<p>プロジェクトを作成した場合：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb23-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># プロジェクト作成</span></span>
+<span id="cb23-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> init my-analysis</span>
+<span id="cb23-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">cd</span> my-analysis</span>
+<span id="cb23-4"></span>
+<span id="cb23-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># パッケージ追加</span></span>
+<span id="cb23-6"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> add geopandas polars statsmodels matplotlib</span>
+<span id="cb23-7"></span>
+<span id="cb23-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Gitにコミット（.venvはコミットしないように注意）</span></span>
+<span id="cb23-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">git</span> add pyproject.toml uv.lock .python-version</span>
+<span id="cb23-10"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">git</span> commit <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-m</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Initialize project"</span></span>
+<span id="cb23-11"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">git</span> push</span></code></pre></div></div>
+<p>Gitの操作はVSCodeやPositronのGit機能を使っても全く問題ありません。</p>
+<p>共同研究者のPCなど、別のPCで同じ環境を再現する場合：</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb24-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># プロジェクトをクローン</span></span>
+<span id="cb24-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">git</span> clone your-repository</span>
+<span id="cb24-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">cd</span> my-analysis</span>
+<span id="cb24-4"></span>
+<span id="cb24-5"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 環境を完全再現</span></span>
+<span id="cb24-6"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> sync</span>
+<span id="cb24-7"></span>
+<span id="cb24-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># すぐに実行可能</span></span>
+<span id="cb24-9"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> run python analysis.py</span></code></pre></div></div>
+<p><code>uv sync</code>コマンドは<code>uv.lock</code>ファイルを読み込んで、全く同じバージョンのパッケージをインストールします。これにより再現性が担保され、チーム全員が同じ環境で作業できます。</p>
+</section>
+<section id="パッケージの削除" class="level4">
+<h4 class="anchored" data-anchor-id="パッケージの削除">パッケージの削除</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb25-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> remove polars</span></code></pre></div></div>
+<p><code>pyproject.toml</code>と<code>uv.lock</code>から自動的に削除され、<code>.venv</code>からもアンインストールされます。</p>
+</section>
+</section>
+<section id="つの方法の比較" class="level3">
+<h3 class="anchored" data-anchor-id="つの方法の比較">2つの方法の比較</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 13%">
+<col style="width: 28%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>項目</th>
+<th>pip互換モード</th>
+<th>プロジェクト管理モード（推奨）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>仮想環境作成</td>
+<td><code>uv venv</code></td>
+<td>自動作成</td>
+</tr>
+<tr class="even">
+<td>環境の有効化</td>
+<td><code>source .venv/bin/activate</code></td>
+<td>不要（<code>uv run</code>が自動処理）</td>
+</tr>
+<tr class="odd">
+<td>パッケージ追加</td>
+<td><code>uv pip install &lt;pkg&gt;</code></td>
+<td><code>uv add &lt;pkg&gt;</code></td>
+</tr>
+<tr class="even">
+<td>依存関係の記録</td>
+<td>手動（<code>requirements.txt</code>）</td>
+<td>自動（<code>pyproject.toml</code>+<code>uv.lock</code>）</td>
+</tr>
+<tr class="odd">
+<td>環境の再現</td>
+<td><code>uv pip install -r requirements.txt</code></td>
+<td><code>uv sync</code></td>
+</tr>
+<tr class="even">
+<td>適している場面</td>
+<td>既存のpipワークフローを維持したい</td>
+<td>新規プロジェクト、チーム開発、再現性重視</td>
+</tr>
+</tbody>
+</table>
+<p><strong>研究や分析用途では、プロジェクト管理モードがおすすめです！</strong>爆速＆楽なので、ぜひ試してみてください。</p>
 </section>
 <section id="uvを使うメリット" class="level3">
 <h3 class="anchored" data-anchor-id="uvを使うメリット">uvを使うメリット</h3>
-<p>uvを使うことで以下のようなメリットがあります:</p>
+<p>uvを使うことで以下のようなメリットがあります：</p>
+<section id="圧倒的な再現性" class="level4">
+<h4 class="anchored" data-anchor-id="圧倒的な再現性">1. 圧倒的な再現性</h4>
+<p><code>uv.lock</code>ファイルにより、プロジェクトの依存関係が厳密に記録されます。これにより：</p>
 <ul>
-<li><strong>高速なインストール</strong>: Rustで実装されているため、pipと比べて大幅に高速</li>
-<li><strong>依存関係の自動解決</strong>: パッケージ間の依存関係を効率的に解決</li>
-<li><strong>プロジェクト管理</strong>: <code>pyproject.toml</code>を使ったモダンなプロジェクト管理が可能</li>
+<li>チーム全員が完全に同じ環境を構築可能</li>
+<li>数ヶ月後・数年後でも同じ環境を再現可能</li>
+<li>査読者や同僚が結果を検証しやすい</li>
 </ul>
-<p>インストールも簡単なので、ぜひ試してみてください！</p>
+<p>研究の透明性と信頼性を高める上で、非常に重要な機能かと思います。</p>
+</section>
+<section id="高速なインストール" class="level4">
+<h4 class="anchored" data-anchor-id="高速なインストール">2. 高速なインストール</h4>
+<p>Rustで実装されているため、pipと比べて<strong>10〜100倍高速</strong>にパッケージをインストールできます。</p>
+<p>大規模なデータ分析プロジェクトでは、セットアップ時間を大幅に短縮できます。</p>
+</section>
+<section id="環境管理が楽" class="level4">
+<h4 class="anchored" data-anchor-id="環境管理が楽">3. 環境管理が楽</h4>
+<p><code>uv run</code>を使えば、activateコマンドを意識する必要がありません。プロジェクト間の切り替えもスムーズです。</p>
+</section>
+<section id="pythonバージョンも管理可能" class="level4">
+<h4 class="anchored" data-anchor-id="pythonバージョンも管理可能">4. Pythonバージョンも管理可能</h4>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb26-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Python 3.12をインストール</span></span>
+<span id="cb26-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> python install 3.12</span>
+<span id="cb26-3"></span>
+<span id="cb26-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># プロジェクトで使用するバージョンを固定</span></span>
+<span id="cb26-5"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> python pin 3.12</span></code></pre></div></div>
+<p>pyenvなどの別ツールが不要で、uvだけで完結します。</p>
+</section>
+</section>
+<section id="どちらの方法を選ぶべき" class="level3">
+<h3 class="anchored" data-anchor-id="どちらの方法を選ぶべき">どちらの方法を選ぶべき？</h3>
+<ul>
+<li><strong>既存プロジェクトで、すでにpip + venvのワークフローが確立している</strong> → pip互換モードで試してみる</li>
+<li><strong>新しい分析プロジェクトを始める</strong> → プロジェクト管理モードを使う</li>
+<li><strong>チームで開発する、または環境を共有する</strong> → プロジェクト管理モード</li>
+<li><strong>論文の再現性を確保したい</strong> → プロジェクト管理モード</li>
+</ul>
+<p>まずはpip互換モードで速度の違いを体感し、慣れてきたらプロジェクト管理モードに移行するのがおすすめです！</p>
+<p>詳細は<a href="https://docs.astral.sh/uv/">公式ドキュメント</a>をご参照ください。</p>
 <div class="callout callout-style-default callout-tip callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -14489,1280 +14988,6 @@ font-style: inherit;">theme_void</span>()</span></code></pre></div></div>
   <category>データ処理</category>
   <guid>https://yo5uke.com/pages/tips/2025/04/250413_municipality/</guid>
   <pubDate>Sat, 12 Apr 2025 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>【スクレイピング】rvestを使ってe-Statからファイルを取得する</title>
-  <link>https://yo5uke.com/pages/tips/2025/03/250319_scraping/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>今回はRでスクレイピングを行っていきます。<code>rvest</code>パッケージを使ったスクレイピング自体は他のウェブサイトでも多数紹介されているのですが、今回JavaScriptが使われているページ（特にe-Stat）にも対応した方法をまとめます。これを行うには既に紹介されている方法からもう一工夫する必要があり、それも少々面倒です。</p>
-<p>これまで僕はブラウザ拡張機能の「DownThemAll!」<sup>1</sup>を使って無理くり実行していたのですが、この手の方法は再現が難しいし手間という欠点があるので、できればR上でコードとして残しておきたいと思っていました。そんなところ友人からあるページを紹介してもらい、抱えていた課題<sup>2</sup>が解決できそうでしたので、これを機にまとめていきます。</p>
-<p>紹介してもらったページはこちらです↓</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://uchidamizuki.quarto.pub/blog/posts/2024/02/scraping-dynamic-sites-with-rvest.html">rvestで動的サイトをスクレイピングする（Seleniumを使わずに）</a></p>
-</div>
-</div>
-</div>
-<p>また、Google Chromeを使用するので、インストールしていない方はしておいてください。</p>
-</section>
-<section id="使用するパッケージ" class="level2">
-<h2 class="anchored" data-anchor-id="使用するパッケージ">使用するパッケージ</h2>
-<p>使用するパッケージは以下の通りです。Rプロジェクトを使うなり<code>setwd()</code>を使うなりでワーキングディレクトリを現在のディレクトリに設定しておいてください。プロジェクトについては<a href="../../../../../pages/tips/2024/05/240515_rproj/index.html">こちら</a>。</p>
-<p>ついでに、保存するディレクトリ（<code>data</code>フォルダ内の<code>shpfiles</code>）をあらかじめ指定しておきます。なければ作成する関数もつけておきます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(rvest)</span>
-<span id="cb1-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(here)</span>
-<span id="cb1-3"></span>
-<span id="cb1-4">save_dir <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/shpfiles"</span>)</span>
-<span id="cb1-5"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># ダウンロード用のフォルダがなければ作成する</span></span>
-<span id="cb1-6"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dir.exists</span>(save_dir)) {</span>
-<span id="cb1-7">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dir.create</span>(save_dir)</span>
-<span id="cb1-8">}</span></code></pre></div></div>
-</section>
-<section id="ファイルをダウンロードするページ" class="level2">
-<h2 class="anchored" data-anchor-id="ファイルをダウンロードするページ">ファイルをダウンロードするページ</h2>
-<p>今回ファイルを取得していくのは、e-Statの「地図」→「境界データダウンロード」→「3次メッシュ」→「世界測地系平面直角座標系・Shapefile」のページです。</p>
-<p><a href="https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape" class="uri">https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape</a></p>
-<p>メッシュいうのは国土を例えば1km×1kmの正方形で区切ったものをいい、その中の人口等のデータを扱うことができるようになります。このあたりの詳細は以下の書籍が非常にわかりやすいのでおすすめです。RでGISを扱う方法も学べます。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="https://www.amazon.co.jp/%E4%BA%8B%E4%BE%8B%E3%81%A7%E5%AD%A6%E3%81%B6%E7%B5%8C%E6%B8%88%E3%83%BB%E6%94%BF%E7%AD%96%E5%88%86%E6%9E%90%E3%81%AE%E3%81%9F%E3%82%81%E3%81%AEGIS%E5%85%A5%E9%96%80-QGIS-GeoDa%E5%AF%BE%E5%BF%9C-%E6%B2%B3%E7%AB%AF-%E7%91%9E%E8%B2%B4/dp/4772242309">事例で学ぶ経済・政策分析のためのGIS入門: QGIS,R,GeoDa対応</a></p>
-</div>
-</div>
-</div>
-</section>
-<section id="ページを取得" class="level2">
-<h2 class="anchored" data-anchor-id="ページを取得">ページを取得</h2>
-<p>基本的には<code>read_html()</code>関数で読み込むことができるのですが、JavaScriptを使用しているような動的なページには対応していません。そこで使用するのが<code>read_html_live()</code>関数です。これらの関数の仕組み自体は冒頭で紹介したページがわかりやすいのでそちらを読んでみてください。</p>
-<p>先ほどのURLを読み込んでみましょう。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">html <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_html_live</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://www.e-stat.go.jp/gis/statmap-search?page=1&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=2&amp;format=shape"</span>)</span></code></pre></div></div>
-</section>
-<section id="ファイルのリンクを取得" class="level2">
-<h2 class="anchored" data-anchor-id="ファイルのリンクを取得">ファイルのリンクを取得</h2>
-<p>次にいよいよファイルを取得していきます。僕もHTMLに詳しいわけではないので詳細は書きませんが、<code>a</code>タグというのがリンクを生成するためのもので、その中に<code>href</code>という属性があります。例えば</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode html code-with-copy"><code class="sourceCode html"><span id="cb3-1"><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&lt;</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">a</span><span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;"> class</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"stat-dl_icon stat-statistics-table_icon"</span><span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;"> tabindex</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"40"</span><span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;"> href</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"/gis/statmap-search/data?dlserveyId=S</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&amp;amp;</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">code=3036</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&amp;amp;</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">coordSys=2</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&amp;amp;</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">format=shape</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&amp;amp;</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">downloadType=5"</span><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&gt;</span></span>
-<span id="cb3-2"><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&lt;</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">span</span><span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;"> class</span><span class="op" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"stat-dl_text"</span><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&gt;</span>世界測地系平面直角座標系・Shapefile<span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&lt;/</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">span</span><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&gt;</span></span>
-<span id="cb3-3"><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&lt;/</span><span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">a</span><span class="dt" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">&gt;</span></span></code></pre></div></div>
-<p>というようになっており、<code>a</code>と<code>/a</code>で囲まれている間に<code>href</code>やその他の属性が含まれていることがわかります。</p>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>どうやって探す？
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-1" class="callout-1-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>このHTMLはどうやって探せばよいのでしょうか。実はブラウザ上から簡単に見ることができます。</p>
-<p>ブラウザ上で任意のページを開いたら、<code>Ctrl</code> + <code>Shift</code> + <code>I</code>を同時に入力します。もしくはブラウザ右上の点々から「その他のツール」→「デベロッパー ツール」でも開けます。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250319_scraping/image/developer_tool.png" class="img-fluid quarto-figure quarto-figure-center figure-img" style="width:80.0%"></p>
-</figure>
-</div>
-<p>すると画面右側になにやらぶわぁーっと出てきますね。これの上半分がHTMLコードです。ここから特定のコードを探すのは骨が折れそうですが、逆にページの要素をクリックすることで該当するコードを探すことができます。デベロッパーツール画面上部の左側にカーソルのようなアイコンがあります。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250319_scraping/image/dev_tool_bar.png" class="img-fluid figure-img" style="width:80.0%"></p>
-<figcaption>一番左側です</figcaption>
-</figure>
-</div>
-<p>これをクリックしたうえでページ上の要素にカーソルを重ねてクリックすると、該当箇所のコードが表示されます。カーソルを「世界測地系平面直角座標系・Shapefile」という文字に重ねると先ほどのコードが表示されます。</p>
-</div>
-</div>
-</div>
-<p>ここでは<code>a</code>タグを探す→<code>href</code>を探し取得する、という手順を踏みます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb4-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb4-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"href"</span>)</span></code></pre></div></div>
-<p><code>html_elements("a")</code>で<code>a</code>タグを探し、<code>html_attr("href")</code>で属性（attribute）を探しています。<code>links</code>には<code>a</code>タグの中の<code>href</code>に入っているリンクがずらーっと入っていることになります。</p>
-<p>ここでは表示しませんが、<code>links</code>の中身を確認すると、想像以上にたくさんのリンクが入っていることがわかります。ここからさらにシェープファイルのダウンロードリンクを探さなければなりません。</p>
-<p>上の<code>a</code>タグの例を見てもらうと、<code>/gis/statmap-search/data?dlserveyId=S&amp;code=3036&amp;coordSys=2&amp;format=shape&amp;downloadType=5</code>というのがシェープファイルのダウンロードリンクであることがわかります。他のシェープファイルのリンクと見比べてもらうと、<code>code=3036</code>の部分だけがそれぞれ異なっており、他は同じです。すなわち、まとめてダウンロードしたければこの部分さえうまいことやれば可能になるということです。</p>
-<p>とりあえず、数多のリンクの中からシェープファイルのリンクだけ抽出しておきましょう。<code>links</code>の中のリンクを確認すると、<code>data?dlserveyId=S&amp;</code>という部分がシェープファイルのダウンロードリンクにのみ含まれていることがわかる、これを含むリンクを抽出すればよいことになります。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">shp_links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> links[<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">grepl</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">?dlserveyId=S&amp;"</span>, links)]</span></code></pre></div></div>
-<p><strong>ポイント：</strong></p>
-<ul>
-<li><p><code>grepl()</code>で条件に合致するものを抽出</p>
-<ul>
-<li><p><code>grepl(x, y)</code>で、<code>y</code>の中で<code>x</code>を含むものに<code>TRUE</code>を返す</p></li>
-<li><p><code>links</code>の中で<code>data\\?dlserveyId=S&amp;</code>を含むものに<code>TRUE</code>を返している</p></li>
-<li><p><code>?</code>の前に<code>\\</code>が入っているのは、正規表現の中で<code>?</code>は特別な役割を持っているので、その役割として認識されるのを防ぐため（エスケープしている）</p></li>
-</ul></li>
-<li><p><code>links[ ]</code> で、<code>TRUE</code>を持つものを抽出している</p>
-<ul>
-<li>すなわち<code>grepl()</code>で<code>TRUE</code>を返したもの（=シェープファイルのダウンロードリンクをもつもの）だけが残る</li>
-</ul></li>
-</ul>
-<p>短いコードでもややこしいですね。特に記号のところには気を付けていただければと思います。</p>
-</section>
-<section id="リンクを整形する" class="level2">
-<h2 class="anchored" data-anchor-id="リンクを整形する">リンクを整形する</h2>
-<p>お気づきの方もいらっしゃると思いますが、実は先ほどのリンクは相対的なものです。<code>https://</code>から始まっていません。ベースとして<code>https://www.e-stat.go.jp</code>というURLがあり、そこに続く形で<code>/gis/...</code>が入ってきます。</p>
-<p>以下では取得したリンクにベースリンクをくっつけていきます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">base_url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://www.e-stat.go.jp"</span></span>
-<span id="cb6-2">full_urls <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(base_url, shp_links)</span></code></pre></div></div>
-<p>これでページ内の20個のリンクを抽出することができました。次にこれらのリンクを使ってダウンロードしていきます。</p>
-</section>
-<section id="ファイルをダウンロード" class="level2">
-<h2 class="anchored" data-anchor-id="ファイルをダウンロード">ファイルをダウンロード</h2>
-<p>いよいよダウンロードをしていきます。</p>
-<p>全てのリンクに対しダウンロードするコードを適用します。<code>for</code>の出番です。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (i <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">seq_along</span>(full_urls)) {</span>
-<span id="cb7-2">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># リンクからメッシュコードを取得</span></span>
-<span id="cb7-3">  code <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sub</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".*code=([0-9]+).*"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">1"</span>, shp_links[i])</span>
-<span id="cb7-4">  </span>
-<span id="cb7-5">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># ダウンロードするファイルのパスを指定する</span></span>
-<span id="cb7-6">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 例: shpfiles/shpfile_3036.zip</span></span>
-<span id="cb7-7">  file_path <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.path</span>(save_dir, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"shpfile_"</span>, code, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".zip"</span>))</span>
-<span id="cb7-8"></span>
-<span id="cb7-9">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># ファイルをダウンロード</span></span>
-<span id="cb7-10">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">download.file</span>(full_urls[i], <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">destfile =</span> file_path, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">mode =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"wb"</span>)</span>
-<span id="cb7-11">  </span>
-<span id="cb7-12">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># アクセス間隔を空ける</span></span>
-<span id="cb7-13">  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># サーバー負荷を考慮</span></span>
-<span id="cb7-14">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb7-15">}</span></code></pre></div></div>
-<p><strong>ポイント：</strong></p>
-<ul>
-<li><p><code>seq_along(full_urls)</code>は<code>full_urls</code>の要素の数を取得している</p>
-<ul>
-<li>今回はURLが20個と分かっているが、数が多くて数えにくいような場合にも有用</li>
-</ul></li>
-<li><p><code>sub(".*code=([0-9]+).*", "\1", shp_links[i])</code>でメッシュコードを取得</p>
-<ul>
-<li><p><code>sub(pattern, replacement, x)</code>で<code>x</code>の<code>pettern</code>を<code>replacement</code>に置換する</p></li>
-<li><p><code>.*code=([0-9]+).*</code>はざっくり言うと、前後が何であれ<code>code=(何らかの数字)</code>というものを探してきて、括弧内の数字を取得しているということ</p></li>
-<li><p><code>\\1</code>は今取得した数字を返すということ</p></li>
-<li><p><code>x</code>には<code>shp_links[i]</code>が該当するので、<code>i</code>番目のリンクで上で述べた置換をしているということ</p></li>
-</ul></li>
-<li><p><code>file_path &lt;- file.path(save_dir, paste0("shpfile_", code, ".zip"))</code>で保存する際のファイル名を作成</p>
-<ul>
-<li><p>現在のワーキングディレクトリにある<code>data</code>内の<code>shpfiles</code>というフォルダの中に<code>shpfile_3036.zip</code>というようなZipファイルを作成する</p></li>
-<li><p>ダウンロードはZipファイルで行われるので拡張子は<code>.zip</code>としておく</p></li>
-</ul></li>
-</ul>
-<pre><code>my_project/
-├── data/
-├── shpfiles/  ← ここにダウンロードする
-└── scripts/
-    ├── download_script.R
-    ├── analysis.R
-    └── ...</code></pre>
-<ul>
-<li><p><code>download.file(full_urls[i], destfile = file_path, mode = "wb")</code>でダウンロード</p>
-<ul>
-<li><p><code>download.file(url, destfile, mode)</code>で<code>url</code>を<code>destfile</code>に<code>mode</code>で指定したモードでダウンロードする</p></li>
-<li><p>詳細は省くが、Zipファイルに対しては<code>mode="wb</code>を指定する</p></li>
-</ul></li>
-<li><p><code>Sys.sleep(2)</code>でサーバー負荷を軽減する</p>
-<ul>
-<li>作業ごとに2秒のインターバルを設けるということ</li>
-</ul></li>
-</ul>
-<p>さすがに面倒すぎますね。最初は困ると思いますが、2回目以降大変便利に思えるはずです。</p>
-<p>ひとまずこれでページ上のファイルをダウンロードすることができました！</p>
-</section>
-<section id="全ページまとめてダウンロード" class="level2">
-<h2 class="anchored" data-anchor-id="全ページまとめてダウンロード">全ページまとめてダウンロード</h2>
-<p>ここまでは1ページ内のファイルをダウンロードする方法について順を追って見てきました。</p>
-<p>このセクションではシェープファイルが1～9ページにまたがって並んでいることを踏まえ、さらに<code>for</code>ループを構築し、これまでの作業を9ページにわたって実行できるようにします。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (i <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">9</span>) {</span>
-<span id="cb9-2">  url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://www.e-stat.go.jp/gis/statmap-search?page="</span>, i, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=1&amp;format=shape"</span>)</span>
-<span id="cb9-3">  </span>
-<span id="cb9-4">  html <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_html_live</span>(url)</span>
-<span id="cb9-5">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>)</span>
-<span id="cb9-6">  </span>
-<span id="cb9-7">  links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb9-8">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb9-9">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"href"</span>)</span>
-<span id="cb9-10">  </span>
-<span id="cb9-11">  shp_links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> links[<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">grepl</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">?dlserveyId=S&amp;"</span>, links)]</span>
-<span id="cb9-12">  </span>
-<span id="cb9-13">  full_urls <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(base_url, shp_links)</span>
-<span id="cb9-14">  </span>
-<span id="cb9-15">  <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (j <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">seq_along</span>(full_urls)) {</span>
-<span id="cb9-16">    code <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sub</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".*code=([0-9]+).*"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">1"</span>, shp_links[j])</span>
-<span id="cb9-17">    file_path <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.path</span>(save_dir, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"shpfile_"</span>, code, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".zip"</span>))</span>
-<span id="cb9-18">    </span>
-<span id="cb9-19">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.exists</span>(file_path)) {</span>
-<span id="cb9-20">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tryCatch</span>({</span>
-<span id="cb9-21">        <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">download.file</span>(full_urls[j], <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">destfile =</span> file_path, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">mode =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"wb"</span>)</span>
-<span id="cb9-22">      }, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">error =</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">function</span>(e) {})</span>
-<span id="cb9-23">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb9-24">    }</span>
-<span id="cb9-25">  }</span>
-<span id="cb9-26">}</span></code></pre></div></div>
-<p><strong>ポイント：</strong></p>
-<ol type="1">
-<li>URLの<code>page=</code>の部分に1から9が入るように設定
-<ul>
-<li>URLを分割し、ページ数の部分に<code>i</code>で数字を入れています。</li>
-</ul></li>
-<li>HTMLを読み込んだ後に<code>Sys.sleep(1)</code>で1秒待機
-<ul>
-<li>HTMLを読み込んですぐ次のコマンドに移ると、中身を最後まで読み込まないまま次を実行してしまうので、しっかり読み込めるようにするための設定です。</li>
-</ul></li>
-<li><code>for</code>ループ2段階目
-<ul>
-<li>大外の<code>for</code>で<code>i</code>を使っているので、今度は<code>j</code>にしています。</li>
-<li><code>if</code>でファイルがない場合に実行するようにしている。
-<ul>
-<li>何らかの理由で途中エラーが発生し、再度全体を実行しても、既にダウンロードできているファイルを重複してダウンロードせずに済みます。</li>
-</ul></li>
-<li><code>tryCatch</code>は、途中でエラーが起きたときでもスクリプト全体を止めずに柔軟に処理を続けるための関数で、エラーが起きても一旦スキップして最後まで実行します。</li>
-</ul></li>
-</ol>
-<p>見慣れない関数も登場しましたが、このコードを実行すれば9ページ分まとめてダウンロードすることが可能です。</p>
-</section>
-<section id="コードまとめ" class="level2">
-<h2 class="anchored" data-anchor-id="コードまとめ">コードまとめ</h2>
-<p>最後に今回のコードをまとめます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(rvest)</span>
-<span id="cb10-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(here)</span>
-<span id="cb10-3"></span>
-<span id="cb10-4"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (i <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">9</span>) {</span>
-<span id="cb10-5">  url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://www.e-stat.go.jp/gis/statmap-search?page="</span>, i, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"&amp;type=2&amp;aggregateUnitForBoundary=S&amp;coordsys=1&amp;format=shape"</span>)</span>
-<span id="cb10-6">  </span>
-<span id="cb10-7">  html <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_html_live</span>(url)</span>
-<span id="cb10-8">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>)</span>
-<span id="cb10-9">  </span>
-<span id="cb10-10">  links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb10-11">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb10-12">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"href"</span>)</span>
-<span id="cb10-13">  </span>
-<span id="cb10-14">  shp_links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> links[<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">grepl</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">?dlserveyId=S&amp;"</span>, links)]</span>
-<span id="cb10-15">  </span>
-<span id="cb10-16">  full_urls <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(base_url, shp_links)</span>
-<span id="cb10-17">  </span>
-<span id="cb10-18">  <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (j <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">seq_along</span>(full_urls)) {</span>
-<span id="cb10-19">    code <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sub</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".*code=([0-9]+).*"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">1"</span>, shp_links[j])</span>
-<span id="cb10-20">    file_path <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"shpfiles"</span>, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"shpfile_"</span>, code, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".zip"</span>))</span>
-<span id="cb10-21">    </span>
-<span id="cb10-22">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.exists</span>(file_path)) {</span>
-<span id="cb10-23">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tryCatch</span>({</span>
-<span id="cb10-24">        <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">download.file</span>(full_urls[j], <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">destfile =</span> file_path, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">mode =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"wb"</span>)</span>
-<span id="cb10-25">      }, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">error =</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">function</span>(e) {})</span>
-<span id="cb10-26">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb10-27">    }</span>
-<span id="cb10-28">  }</span>
-<span id="cb10-29">}</span></code></pre></div></div>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回はRでe-Statのシェープファイルを取得してきました。個人的にもずっとやりたいことだったので、不完全とはいえ、念願かなった感じです。</p>
-<p>今後も調査して全ページを一つのループでダウンロードできるようなコードを書いていきたいと思います。</p>
-</section>
-<section id="おまけ" class="level2">
-<h2 class="anchored" data-anchor-id="おまけ">おまけ</h2>
-<p>Zipファイルでダウンロードすることになりますが、今回の流れでエクスプローラーから直接展開したりファイルを削除するのは面倒だと思います。</p>
-<p>解凍し、使用済みのZipファイルを削除するには以下を実行します。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">zip_files <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">list.files</span>(save_dir, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">pattern =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.zip$"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">full.names =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>)</span>
-<span id="cb11-2"></span>
-<span id="cb11-3"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (zip_path <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> zip_files) {</span>
-<span id="cb11-4">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">unzip</span>(zip_path, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">exdir =</span> save_dir)</span>
-<span id="cb11-5">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.remove</span>(zip_path)</span>
-<span id="cb11-6">}</span></code></pre></div></div>
-<p><code>unzip()</code>でZipファイルを解凍して、<code>file.remove()</code>でZipファイルを削除します。</p>
-</section>
-<section id="その他の実用例" class="level2">
-<h2 class="anchored" data-anchor-id="その他の実用例">その他の実用例</h2>
-<p>最近仕事の一環で時間がかかりそうな作業をスクレイピングでサクッと解決したので、地味な例ではありますがご参考までに紹介します。</p>
-<section id="シーン" class="level3">
-<h3 class="anchored" data-anchor-id="シーン">シーン</h3>
-<p>各省庁が出している白書のリストが載っている<a href="https://www.e-gov.go.jp/about-government/white-papers.html">ページ</a>があるのですが、ここから白書名、省庁名、リンクをぱぱーっと取ってきたいという場面です。</p>
-<div class="quarto-figure quarto-figure-center">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250319_scraping/image/e-gov_list.png" class="img-fluid figure-img" style="width:60.0%"></p>
-<figcaption>こんな感じでずらーっと並んでいます</figcaption>
-</figure>
-</div>
-</section>
-<section id="手順" class="level3">
-<h3 class="anchored" data-anchor-id="手順">手順</h3>
-<ol type="1">
-<li><code>read_html()</code>でURLを読み込む（今回は<code>live</code>の方でなくてもできる例です）</li>
-</ol>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(rvest)</span>
-<span id="cb12-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb12-3"></span>
-<span id="cb12-4">url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://www.e-gov.go.jp/about-government/white-papers.html"</span></span>
-<span id="cb12-5">html <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_html</span>(url)</span></code></pre></div></div>
-</div>
-<ol start="2" type="1">
-<li>要素を確認する
-<ul>
-<li><code>Ctrl</code> + <code>Shift</code> + <code>I</code>でデベロッパーツールを開き、白書名やリンクなどがどうなっているか確認します</li>
-</ul></li>
-</ol>
-<div id="hakusho-html" class="quarto-figure quarto-figure-center anchored">
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/03/250319_scraping/image/developer_tool_hakusho.png" class="img-fluid figure-img"></p>
-<figcaption>水循環白書はこのようになっています</figcaption>
-</figure>
-</div>
-<ol start="3" type="1">
-<li>要素を取得する</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1">items <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"main"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ul"</span>)</span>
-<span id="cb13-4"></span>
-<span id="cb13-5">hakusho <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-6">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"span"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-7">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_text</span>()</span>
-<span id="cb13-8"></span>
-<span id="cb13-9">ministry <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-10">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"p"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-11">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_text</span>()</span>
-<span id="cb13-12"></span>
-<span id="cb13-13">links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-14">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb13-15">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"href"</span>)</span></code></pre></div></div>
-<ol start="4" type="1">
-<li>データフレームにまとめる</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> tibble<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb14-2">  白書名 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> hakusho, </span>
-<span id="cb14-3">  省庁名 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> ministry, </span>
-<span id="cb14-4">  リンク <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> links</span>
-<span id="cb14-5">)</span></code></pre></div></div>
-</section>
-<section id="詳細" class="level3">
-<h3 class="anchored" data-anchor-id="詳細">詳細</h3>
-<p>ブラウザ上でHTMLコードを下の方まで見てみるとわかるのですが、白書の情報は<code>&lt;main role="main"&gt;</code>から<code>&lt;/main&gt;</code>の間に含まれていることがわかります。さらに、画像をジーっと見てみると、欲しい要素は</p>
-<ol type="1">
-<li><code>span</code>で囲まれている部分</li>
-<li><code>p</code>で囲まれている部分</li>
-<li><code>a</code>タグの中の<code>href</code></li>
-</ol>
-<p>であることがわかります。試しにこれまで説明したコードを用いて取得してみると、</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1">hakusho <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb15-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"span"</span>)</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>{xml_nodeset (62)}
- [1] &lt;span class="egovui-title"&gt;\n        ポータル&lt;/span&gt;
- [2] &lt;span class="egovui-english-link"&gt;&lt;a href="/en/" class="egovui-textlink- ...
- [3] &lt;span class="egovui-label"&gt;サイト内検索&lt;/span&gt;
- [4] &lt;span class="egovui-label"&gt;行政機関横断検索&lt;/span&gt;
- [5] &lt;span class="egovui-search "&gt;\n          &lt;input type="text" name="q" cla ...
- [6] &lt;span&gt;水循環白書&lt;/span&gt;
- [7] &lt;span&gt;年次報告書&lt;/span&gt;
- [8] &lt;span&gt;経済財政白書&lt;/span&gt;
- [9] &lt;span&gt;原子力白書&lt;/span&gt;
-[10] &lt;span&gt;防災白書&lt;/span&gt;
-[11] &lt;span&gt;高齢社会白書&lt;/span&gt;
-[12] &lt;span&gt;障害者白書&lt;/span&gt;
-[13] &lt;span&gt;交通安全白書&lt;/span&gt;
-[14] &lt;span&gt;男女共同参画白書&lt;/span&gt;
-[15] &lt;span&gt;年次報告&lt;/span&gt;
-[16] &lt;span&gt;警察白書&lt;/span&gt;
-[17] &lt;span&gt;犯罪被害者白書&lt;/span&gt;
-[18] &lt;span&gt;年次報告&lt;/span&gt;
-[19] &lt;span&gt;金融庁の１年&lt;/span&gt;
-[20] &lt;span&gt;消費者白書&lt;/span&gt;
-...</code></pre>
-</div>
-</div>
-<p>欲しいのは「水循環白書」みたいな白書名だけですが、<code>&lt;span&gt;</code>の文字など余計な要素も取れてしまいました。中身のテキストだけ抜きたい場合は<code>html_text()</code>を使います。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1">hakusho <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb17-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"span"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb17-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_text</span>()</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] "\n        ポータル"     "English"                "サイト内検索"          
- [4] "行政機関横断検索"       "\n          \n        " "水循環白書"            
- [7] "年次報告書"             "経済財政白書"           "原子力白書"            
-[10] "防災白書"              </code></pre>
-</div>
-</div>
-<p>表示しているのは一部ですが、それでも、そもそも余計なものが多いことがわかります。これは、欲しいのが<code>&lt;main&gt;</code>で囲まれている部分であるにもかかわらず、ページ全体から<code>span</code>を探して拾ってきているためです。</p>
-<p>さらに画像をよーく見ると、<code>main</code>の中でも<code>p</code>は「各行政機関が～」という文言も含んでしまっていることがわかります。<code>main</code>→<code>p</code>と指定すると、この文言も拾ってきてしまいます。そのため絞り込みとしては<code>main</code>、さらには<code>ul</code>にも絞った方が良いということが考えられます<sup>3</sup>。すなわち<code>main</code>→<code>ul</code>→<code>p</code>という絞り方です。</p>
-<p>まずは対象を<code>main</code>→<code>ul</code>に絞っておきます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1">items <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb19-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"main"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb19-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_element</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ul"</span>)</span></code></pre></div></div>
-</div>
-<p><code>html_elements()</code>もありますが、これは複数形なので要素が多くあり、全部取りたいような場合に使います。今回は<code>main</code>が1つでその中の<code>ul</code>も1つとわかっているので単数形です。</p>
-<p>この上で<code>items</code>を用いて取得します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">hakusho <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb20-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"span"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb20-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_text</span>()</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code> [1] "水循環白書"       "年次報告書"       "経済財政白書"     "原子力白書"      
- [5] "防災白書"         "高齢社会白書"     "障害者白書"       "交通安全白書"    
- [9] "男女共同参画白書" "年次報告"        </code></pre>
-</div>
-</div>
-<p>これも表示しているのは一部ですが、しっかりとれています。同様の手順で要素を確認しつつ取得を進めます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1">ministry <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb22-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"p"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb22-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_text</span>()</span>
-<span id="cb22-4"></span>
-<span id="cb22-5">links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> items <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb22-6">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb22-7">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"href"</span>)</span></code></pre></div></div>
-</div>
-<p>これで全53件分そろいました。最後にデータフレーム化して終了です。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb23-2">  白書名 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> hakusho, </span>
-<span id="cb23-3">  省庁名 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> ministry, </span>
-<span id="cb23-4">  リンク <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> links</span>
-<span id="cb23-5">)</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_sogj3nzrfz10tnblh6j4 = TinyTable.createTableFunctions("tinytable_sogj3nzrfz10tnblh6j4");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 }, { i: '6', j: 3 } ], css_id: 'tinytable_css_481gbjhultmxlb7jl6dc',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_uqbb46t0z6yatx128lvm',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_sogj3nzrfz10tnblh6j4.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_sogj3nzrfz10tnblh6j4 td.tinytable_css_481gbjhultmxlb7jl6dc, #tinytable_sogj3nzrfz10tnblh6j4 th.tinytable_css_481gbjhultmxlb7jl6dc {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_sogj3nzrfz10tnblh6j4 td.tinytable_css_uqbb46t0z6yatx128lvm, #tinytable_sogj3nzrfz10tnblh6j4 th.tinytable_css_uqbb46t0z6yatx128lvm {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_sogj3nzrfz10tnblh6j4" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">白書名</th>
-                <th scope="col" data-row="0" data-col="2">省庁名</th>
-                <th scope="col" data-row="0" data-col="3">リンク</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">水循環白書</td>
-                  <td data-row="1" data-col="2">内閣官房</td>
-                  <td data-row="1" data-col="3">https://www.cas.go.jp/jp/seisaku/mizu_junkan/materials/materials/white_paper.html</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">年次報告書</td>
-                  <td data-row="2" data-col="2">人事院</td>
-                  <td data-row="2" data-col="3">https://www.jinji.go.jp/kouho_houdo/koumuinhakusyo.html</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">経済財政白書</td>
-                  <td data-row="3" data-col="2">内閣府</td>
-                  <td data-row="3" data-col="3">https://www5.cao.go.jp/keizai3/whitepaper.html#keizai</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">原子力白書</td>
-                  <td data-row="4" data-col="2">内閣府</td>
-                  <td data-row="4" data-col="3">http://www.aec.go.jp/jicst/NC/about/hakusho/index.htm</td>
-                </tr>
-                <tr>
-                  <td data-row="5" data-col="1">防災白書</td>
-                  <td data-row="5" data-col="2">内閣府</td>
-                  <td data-row="5" data-col="3">http://www.bousai.go.jp/kaigirep/hakusho/index.html</td>
-                </tr>
-                <tr>
-                  <td data-row="6" data-col="1">高齢社会白書</td>
-                  <td data-row="6" data-col="2">内閣府</td>
-                  <td data-row="6" data-col="3">https://www8.cao.go.jp/kourei/whitepaper/index-w.html</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-<p>いい感じに整理できました。</p>
-<p>ウェブサイトからたくさんの情報を繰り返し同じ動作で集めなければならないとき、役に立ちそうですね！</p>
-<p>おまけもおまけで、もはや本題には関係ありませんが、厳密に白書と明記されているもののみをとりたいならデータフレームにフィルタリングしてしまいましょう。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1">df_hakusho <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb24-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">filter</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">str_detect</span>(hakusho, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"白書"</span>))</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_pz3fq523g3boz7aozmyd = TinyTable.createTableFunctions("tinytable_pz3fq523g3boz7aozmyd");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 }, { i: '6', j: 3 } ], css_id: 'tinytable_css_8hjgfu375r790c48vpuj',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 } ], css_id: 'tinytable_css_adq0psiuqekiahmpzyok',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_pz3fq523g3boz7aozmyd.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_pz3fq523g3boz7aozmyd td.tinytable_css_8hjgfu375r790c48vpuj, #tinytable_pz3fq523g3boz7aozmyd th.tinytable_css_8hjgfu375r790c48vpuj {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_pz3fq523g3boz7aozmyd td.tinytable_css_adq0psiuqekiahmpzyok, #tinytable_pz3fq523g3boz7aozmyd th.tinytable_css_adq0psiuqekiahmpzyok {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_pz3fq523g3boz7aozmyd" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">白書名</th>
-                <th scope="col" data-row="0" data-col="2">省庁名</th>
-                <th scope="col" data-row="0" data-col="3">リンク</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">水循環白書</td>
-                  <td data-row="1" data-col="2">内閣官房</td>
-                  <td data-row="1" data-col="3">https://www.cas.go.jp/jp/seisaku/mizu_junkan/materials/materials/white_paper.html</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">経済財政白書</td>
-                  <td data-row="2" data-col="2">内閣府</td>
-                  <td data-row="2" data-col="3">https://www5.cao.go.jp/keizai3/whitepaper.html#keizai</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">原子力白書</td>
-                  <td data-row="3" data-col="2">内閣府</td>
-                  <td data-row="3" data-col="3">http://www.aec.go.jp/jicst/NC/about/hakusho/index.htm</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">防災白書</td>
-                  <td data-row="4" data-col="2">内閣府</td>
-                  <td data-row="4" data-col="3">http://www.bousai.go.jp/kaigirep/hakusho/index.html</td>
-                </tr>
-                <tr>
-                  <td data-row="5" data-col="1">高齢社会白書</td>
-                  <td data-row="5" data-col="2">内閣府</td>
-                  <td data-row="5" data-col="3">https://www8.cao.go.jp/kourei/whitepaper/index-w.html</td>
-                </tr>
-                <tr>
-                  <td data-row="6" data-col="1">障害者白書</td>
-                  <td data-row="6" data-col="2">内閣府</td>
-                  <td data-row="6" data-col="3">https://www8.cao.go.jp/shougai/whitepaper/index-w.html</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-<p>「年次報告書」などは抜くことができています。<code>str_detect(変数名, パターン)</code>で対応するものを抜き取ることができます。</p>
-
-
-<!-- -->
-
-</section>
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>Chromeではサービスが終了したみたいです。Firefoxではまだあるようです。↩︎</p></li>
-<li id="fn2"><p>先述のJavaScriptが使われているページで実行できないという課題↩︎</p></li>
-<li id="fn3"><p>絞り込み方はこれ以外にもいろいろあると思います。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <guid>https://yo5uke.com/pages/tips/2025/03/250319_scraping/</guid>
-  <pubDate>Tue, 18 Mar 2025 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.com/pages/tips/2025/03/250319_scraping/image/html_view.png" medium="image" type="image/png" height="85" width="144"/>
 </item>
 </channel>
 </rss>
