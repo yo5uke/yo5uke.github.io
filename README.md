@@ -17,6 +17,59 @@
 - [R](https://www.r-project.org/)
 - [Python](https://www.python.org/)
 - [Quarto](https://quarto.org/)
+- [DVC](https://dvc.org/) - データバージョン管理
+
+## 🚀 開発環境のセットアップ
+
+### Python環境のセットアップ
+
+このプロジェクトは[UV](https://github.com/astral-sh/uv)パッケージマネージャーを使用して依存関係を管理しています。
+
+```bash
+# UVのインストール
+pip install uv
+
+# 依存関係のインストール
+uv sync
+
+# または
+uv pip install -e .
+```
+
+### R環境のセットアップ
+
+R環境は[renv](https://rstudio.github.io/renv/)で管理されています。
+
+```r
+# Rで以下を実行
+# renvパッケージのインストール（初回のみ）
+install.packages("renv")
+
+# 依存関係の復元
+renv::restore()
+```
+
+### データの取得
+
+大容量のGISデータはDVCで管理されています。
+
+```bash
+# DVCのインストール（必要に応じて）
+pip install dvc dvc-gdrive
+
+# データの取得
+dvc pull
+```
+
+### サイトのビルド
+
+```bash
+# サイト全体をビルド
+quarto render
+
+# 開発サーバーの起動（プレビュー）
+quarto preview
+```
 
 ## 📜 ライセンス
 
