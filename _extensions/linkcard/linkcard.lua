@@ -61,6 +61,9 @@ local function generateCardHtml(metadata, params)
   -- Handle no-image parameter
   local noImage = params["no-image"] == "true" or params["no-image"] == true
 
+  -- Check if image is actually available
+  local hasImage = image and image ~= "" and not noImage
+
   -- Escape HTML
   local escapedTitle = escapeHtml(title)
   local escapedDescription = escapeHtml(description)
@@ -73,14 +76,20 @@ local function generateCardHtml(metadata, params)
     ariaLabel = ariaLabel .. ": " .. escapedDescription
   end
 
+  -- Build CSS classes
+  local cssClasses = "linkcard linkcard--default"
+  if not hasImage then
+    cssClasses = cssClasses .. " linkcard--no-image"
+  end
+
   -- Start building HTML
   local html = string.format(
-    '<a href="%s" class="linkcard linkcard--default" target="%s"%s aria-label="%s">',
-    escapedUrl, target, rel, escapeHtml(ariaLabel)
+    '<a href="%s" class="%s" target="%s"%s aria-label="%s">',
+    escapedUrl, cssClasses, target, rel, escapeHtml(ariaLabel)
   )
 
   -- Add image if available and not disabled
-  if image and image ~= "" and not noImage then
+  if hasImage then
     html = html .. string.format(
       '<img src="%s" alt="Preview image for %s" class="linkcard__image" loading="lazy" />',
       escapeHtml(image), escapedTitle

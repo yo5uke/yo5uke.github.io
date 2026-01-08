@@ -17,13 +17,27 @@
 
 ## 基本的な使用方法
 
-### 最もシンプルな形式
+### 最もシンプルな形式（外部URL）
 
 ```markdown
 {{< linkcard url="https://quarto.org" >}}
 ```
 
 これにより、指定されたURLから自動的にメタデータが取得され、リンクカードが表示されます。
+
+### 内部リンク（Quartoプロジェクト内のファイル）
+
+```markdown
+{{< linkcard url="pages/tips/2025/12/251201_env/index.qmd" >}}
+```
+
+または、ルートからの絶対パス：
+
+```markdown
+{{< linkcard url="/pages/tips/2025/09/250919_duckdb/index.qmd" >}}
+```
+
+内部リンクの場合、ファイルのYAML frontmatterから`title`、`description`、`image`が自動的に抽出されます。
 
 ## パラメータ
 
@@ -87,12 +101,41 @@
 
 ## メタデータ取得の優先順位
 
+### 外部URL
+
 拡張機能は以下の順序でメタデータを探します:
 
 1. **Open Graphタグ** (`og:title`, `og:description`, `og:image`)
 2. **Twitter Cardタグ** (`twitter:title`, `twitter:description`, `twitter:image`)
 3. **標準HTMLタグ** (`<title>`, `<meta name="description">`)
 4. **フォールバック** (URLのドメイン名)
+
+### 内部リンク
+
+Quartoプロジェクト内のQMDファイルの場合、YAML frontmatterから以下のフィールドを抽出します:
+
+- `title`: カードのタイトル
+- `description`: カードの説明
+- `image`: カードの画像（相対パスは自動的に絶対URLに変換されます）
+
+#### 内部リンクの例
+
+QMDファイル（`pages/tips/example.qmd`）:
+```yaml
+---
+title: "素晴らしいTips"
+description: |
+  これはとても役立つTipsです。
+image: image/thumbnail.png
+---
+```
+
+使用方法:
+```markdown
+{{< linkcard url="pages/tips/example.qmd" >}}
+```
+
+画像のパスは自動的に`https://yo5uke.com/pages/tips/image/thumbnail.png`に解決されます。
 
 ## キャッシング
 

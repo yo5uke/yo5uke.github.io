@@ -91,10 +91,119 @@ local function decodeHtmlEntities(text)
   return text
 end
 
---- Fetch and parse metadata from URL
+--- Fetch metadata from internal Quarto document
+--- @param path string Relative path from project root
+--- @return table Metadata table
+local function fetchInternalMetadata(path)
+  local metadata = {
+    url = path,
+    title = nil,
+    description = nil,
+    image = nil
+  }
+
+  -- パスの正規化（先頭の/を削除）
+  local normalizedPath = path:gsub("^/", "")
+
+  -- プロジェクトディレクトリを取得（環境変数や代替手段も試す）
+  local projectDir = quarto.project.directory or 
+                     os.getenv("QUARTO_PROJECT_DIR") or 
+                     pandoc.system.get_working_directory()
+
+  -- QMDファイルの絶対パスを構築
+  local filePath = projectDir .. "/" .. normalizedPath
+
+  quarto.log.output("linkcard: Attempting to read internal file: " .. filePath)
+
+  -- ファイルが存在するか確認
+  local file = io.open(filePath, "r")
+  if not file then
+    quarto.log.warning("linkcard: Internal file not found: " .. filePath)
+    metadata.title = "File not found"
+    metadata.description = "The file " .. path .. " does not exist"
+    return metadata
+  end
+
+  -- ファイル内容を読み込む
+  local content = file:read("*all")
+  file:close()
+
+  -- YAML frontmatterを抽出（--- で囲まれた部分）
+  local yamlContent = content:match("^%-%-%-\n(.-)\n%-%-%-")
+
+  if not yamlContent then
+    quarto.log.warning("linkcard: No YAML frontmatter found in " .. path)
+    metadata.title = path
+    return metadata
+  end
+
+  -- YAMLからtitle, description, imageを抽出
+  -- titleは引用符で囲まれている場合と囲まれていない場合がある
+  local title = yamlContent:match("title:%s*\"([^\"]+)\"") or
+                yamlContent:match("title:%s*'([^']+)'") or
+                yamlContent:match("title:%s*([^\n]+)")
+  if title then
+    metadata.title = title:gsub("^%s+", ""):gsub("%s+$", "")  -- trim
+  end
+
+  -- descriptionは複数行の可能性があるため特別な処理
+  -- description: |形式の場合
+  local descLine = yamlContent:match("description:%s*|%s*\n%s*([^\n]+)")
+  if not descLine then
+    -- 通常の形式
+    descLine = yamlContent:match("description:%s*\"([^\"]+)\"") or
+               yamlContent:match("description:%s*'([^']+)'") or
+               yamlContent:match("description:%s*([^\n]+)")
+  end
+  if descLine then
+    metadata.description = descLine:gsub("^%s+", ""):gsub("%s+$", "")  -- trim
+  end
+
+  -- 画像パスを抽出（相対パス）
+  local imagePath = yamlContent:match("image:%s*([^\n]+)")
+  if imagePath then
+    imagePath = imagePath:gsub("^%s+", ""):gsub("%s+$", "")  -- trim
+  end
+
+  -- サイトURLを取得（_quarto.ymlから）
+  local siteUrl = "https://yo5uke.com"  -- デフォルト値
+  if quarto.doc.config_file and quarto.doc.config_file.website and quarto.doc.config_file.website["site-url"] then
+    siteUrl = quarto.doc.config_file.website["site-url"]
+  end
+
+  -- 相対パスを絶対URLに変換
+  local dirPath = normalizedPath:match("(.*/)")
+  if dirPath then
+    -- 画像URLの構築
+    if imagePath and imagePath ~= "" then
+      metadata.image = siteUrl .. "/" .. dirPath .. imagePath
+    end
+
+    -- QMD拡張子をHTMLに変換してURLを構築
+    local htmlPath = normalizedPath:gsub("%.qmd$", ".html"):gsub("/index%.html$", "/")
+    metadata.url = siteUrl .. "/" .. htmlPath
+  else
+    -- ディレクトリパスがない場合（ルート直下のファイル）
+    local htmlPath = normalizedPath:gsub("%.qmd$", ".html")
+    metadata.url = siteUrl .. "/" .. htmlPath
+    if imagePath and imagePath ~= "" then
+      metadata.image = siteUrl .. "/" .. imagePath
+    end
+  end
+
+  quarto.log.output("linkcard: Fetched internal metadata for " .. path)
+  quarto.log.output("  Title: " .. (metadata.title or "N/A"))
+  quarto.log.output("  Description: " .. (metadata.description and metadata.description:sub(1, 50) or "N/A"))
+  quarto.log.output("  Image: " .. (metadata.image or "N/A"))
+  quarto.log.output("  Final URL: " .. (metadata.url or "N/A"))
+
+  return metadata
+end
+
+--- Fetch metadata from external URL
 --- @param url string
---- @return table Metadata table with title, description, image, url fields
-function M.fetchMetadata(url)
+--- @return table Metadata table
+local function fetchExternalMetadata(url)
   local metadata = {
     url = url,
     title = nil,
@@ -164,6 +273,20 @@ function M.fetchMetadata(url)
   quarto.log.output("  Image: " .. (metadata.image or "N/A"))
 
   return metadata
+end
+
+--- Main function to fetch metadata from URL (internal or external)
+--- @param url string URL or relative path
+--- @return table Metadata table
+function M.fetchMetadata(url)
+  -- 外部URLかどうかを判定
+  if url:match("^https?://") then
+    -- 既存の外部URL処理
+    return fetchExternalMetadata(url)
+  else
+    -- 新しい内部リンク処理
+    return fetchInternalMetadata(url)
+  end
 end
 
 return M
