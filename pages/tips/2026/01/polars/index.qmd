@@ -1,0 +1,244 @@
+---
+title: "RユーザーのためのPolars入門"
+description: "RユーザーがPolarsを使い始めるための基本的な手順とコード例を紹介します。"
+date: 2026-01-24
+categories:
+  - Python
+  - データ処理
+engine: jupyter
+---
+
+## はじめに
+
+Polarsは、高速で効率的なデータフレーム操作を可能にするPythonのライブラリです。
+
+これまでRでPolarsを使う方法や、Python環境の構築に関する記事で何回か言及してきたものの、いまだにPythonにおけるPolarsについてはまとめてきませんでした。
+
+この記事では、Rユーザー、特にTidyverseに慣れた方々がPolarsを使い始めるための基本的な手順とコード例を紹介します。
+
+これまでの記事に関しては以下をご覧ください。
+
+{{< linkcard url="/pages/tips/2025/11/251125_r_polars/index.qmd" title="【R】polarsでデータ処理を高速化する" >}}
+
+{{< linkcard url="/pages/tips/2026/01/marimo/index.qmd" >}}
+
+## Polarsのインストール
+
+PolarsはPythonのパッケージとして提供されており、以下のコマンドでインストールできます。
+
+```bash
+pip install polars
+```
+
+uvを使っている場合は以下でも可能です。
+
+```bash
+uv add polars
+```
+
+## 基本的な使い方
+
+ここからは、Tidyverseでよく使われる関数を挙げながら、Polarsでの対応する操作を紹介します。
+
+### データの読み込み（read_csv）
+
+まずはデータの読み込みから始めます。以下の例では、CSVファイルを読み込んでいます。
+
+```{python}
+import polars as pl
+
+from pandas import pivot
+df = pl.read_csv("data/iris.csv")
+```
+
+これが一番基本的な読み込み方法です。Rの`read_csv()`関数に相当します。
+
+Polarsでデータを読み込む場合、**shift-jisのファイルを読み込むことはできません**。その場合はPandasを使って読み込み、PolarsのDataFrameに変換する必要があります。
+
+```python
+import pandas as pd
+import polars as pl
+
+pdf = pd.read_csv("data_shift_jis.csv", encoding="shift-jis")
+df = pl.from_pandas(pdf)
+```
+
+### データの確認（head, tail）
+
+データの先頭や末尾を確認するには、`head()`と`tail()`メソッドを使用します。
+
+```{python}
+# 先頭5行を表示
+print(df.head())
+# 末尾5行を表示
+print(df.tail())
+```
+
+### 列の選択（select）
+
+Polarsで特定の列を選択するには、`select()`メソッドを使用します。
+
+```{python}
+# "sepal_length"と"sepal_width"の列を選択
+selected_df = df.select(["Sepal.Length", "Sepal.Width"])
+print(selected_df)
+```
+
+Rでは列名を単にベクトルで指定しますが、Polarsではリストで指定します。Rユーザーにとっては地味に面倒ですが…。
+
+### フィルタリング（filter）
+
+データを条件でフィルタリングするには、`filter()`メソッドを使用します。
+
+```{python}
+# "Sepal.Length"が5.0より大きい行をフィルタリング
+filtered_df = df.filter(pl.col("Sepal.Length") > 5.0)
+print(filtered_df)
+```
+
+Rの`filter()`では`filter(Sepal.Length > 5.0)`のように書きますが、Polarsでは`pl.col("Sepal.Length")`のように列を指定します。正直こちらもRの方が書きやすいなとか思ってしまいますが、慣れの問題でしょうか。
+
+### 新しい列の追加（mutate）
+
+新しい列を追加するには、`with_columns()`メソッドを使用します。Rの`mutate()`に相当します。
+
+```{python}
+# "Sepal.Ratio"という新しい列を追加
+mutated_df = df.with_columns(
+    (pl.col("Sepal.Length") / pl.col("Sepal.Width")).alias("Sepal.Ratio")
+).select(["Sepal.Length", "Sepal.Width", "Sepal.Ratio"])
+print(mutated_df)
+```
+
+Rと異なる点として、Rでは先に列名を指定し、その後に計算式を書くのに対し、Polarsでは計算式を先に書き、その後に`alias()`で列名を指定します。
+
+また、作った列を見やすくするために、ちゃっかり`select()`をつなげて必要な列だけを抽出しています。Rのパイプでつなげて処理できるのと同様に、Polarsでもメソッドチェーンでつなげて処理できます。
+
+### グループ化と集計(group_by, summarise)
+
+データをグループ化して集計するには、`group_by()`と`agg()`メソッドを使用します。Rで言うところの`group_by()`と`summarise()`に相当します。
+
+```{python}
+# "Species"でグループ化し、"Sepal.Length"の平均を計算
+grouped_df = df.group_by("Species").agg(
+    pl.col("Sepal.Length").mean().alias("Avg_Sepal_Length")
+)
+print(grouped_df)
+```
+
+ここでも`with_columns()`と同様に、集計結果の列名を`alias()`で指定しています。
+
+### データの並び替え（arrange）{#sec-sort}
+
+データを特定の列で並び替えるには、`sort()`メソッドを使用します。Rの`arrange()`に相当します。
+
+```{python}
+# "Sepal.Length"で昇順に並び替え
+sorted_df = df.sort("Sepal.Length")
+print(sorted_df)
+```
+
+降順に並び替える場合は、`descending=True`を指定します。
+
+```{python}
+# "Sepal.Length"で降順に並び替え
+sorted_df_desc = df.sort("Sepal.Length", descending=True)
+print(sorted_df_desc)
+```
+
+### データの結合（join）
+
+データフレームを結合するには、`join()`メソッドを使用します。Rの`left_join()`や`inner_join()`に相当します。Rとは違って関数自体は同じですが、結合の種類を`how`引数で指定します。
+
+まずは左結合（`left_join()`）の例を示します。
+
+```{python}
+# 例として2つのデータフレームを作成
+df1 = pl.DataFrame({
+    "key": [1, 2, 3],
+    "value1": ["A", "B", "C"]
+})
+df2 = pl.DataFrame({
+    "key": [2, 3, 4],
+    "value2": ["D", "E", "F"]
+})
+
+# df1とdf2を"key"列で左結合
+joined_df = df1.join(df2, on="key", how="left")
+print(joined_df)
+```
+
+次に、内部結合（`inner_join()`）の例を示します。
+
+```{python}
+# df1とdf2を"key"列で内部結合
+joined_df_inner = df1.join(df2, on="key", how="inner")
+print(joined_df_inner)
+```
+
+次に、完全結合(`full_join()`)の例を示します。
+
+```{python}
+# df1とdf2を"key"列で完全結合
+joined_df_full = df1.join(df2, on="key", how="full")
+print(joined_df_full)
+```
+
+最後に、準結合（`semi_join()`）の例を示します^[準結合とは、左のデータフレームの行が右のデータフレームに存在するかどうかでフィルタリングする結合方法です。]。
+
+```{python}
+# df1とdf2を"key"列で準結合
+joined_df_semi = df1.join(df2, on="key", how="semi")
+print(joined_df_semi)
+```
+
+### テーブルの転置（pivot）
+
+データフレームを転置するには、`pivot()`メソッドを使用します。Rの`pivot_wider()`や`pivot_longer()`に相当します。
+
+```{python}
+# 例としてデータフレームを作成
+df = pl.DataFrame({
+    "id": [1, 1, 2, 2],
+    "variable": ["A", "B", "A", "B"],
+    "value": [10, 20, 30, 40]
+})
+print(df)
+```
+
+まずは、`pivot_wider()`の例を示します。
+
+```{python}
+# pivot_widerの例
+pivoted_df = df.pivot(
+    values="value",
+    index="id",
+    columns="variable"
+)
+print(pivoted_df)
+```
+
+次に、ワイド形式にしたデータを`pivot_longer()`のように処理する例を示します。
+
+```{python}
+# pivot_longerの例
+melted_df = pivoted_df.unpivot(
+    index=["id"],
+    on=["A", "B"],
+    variable_name="variable",
+    value_name="value"
+)
+print(melted_df)
+```
+
+元のデータの形に戻りました。並べ替えたいときは[先述](#sec-sort)の`sort()`メソッドを使ってください。
+
+## おわりに
+
+以上がよく使うRのTidyverse関数とPolarsでの対応する操作の基本的な例です。
+
+この記事では、RユーザーがPolarsを使い始めるための基本的な手順とコード例を紹介しました。Polarsは高速で効率的なデータ処理を可能にする強力なツールであり、Python環境でのデータ分析において有用です。
+
+これまではずっと Rだけを使ってきましたが、いろいろ調べていくうちにPythonはそのユーザー数の多さから開発も活発であり、新しく便利なツールやライブラリが次々と登場しているなと感じることが多くなってきました。これからもRとPythonの両方を使い分けていきたいと思っています。
+
+今後も必要に応じて追記していきますので、是非参考にしてみてください。
