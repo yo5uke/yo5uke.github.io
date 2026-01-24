@@ -9,8 +9,762 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.9.16</generator>
-<lastBuildDate>Thu, 08 Jan 2026 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.9.17</generator>
+<lastBuildDate>Fri, 23 Jan 2026 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>RユーザーのためのPolars入門</title>
+  <link>https://yo5uke.com/pages/tips/2026/01/polars/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>Polarsは、高速で効率的なデータフレーム操作を可能にするPythonのライブラリです。</p>
+<p>これまでRでPolarsを使う方法や、Python環境の構築に関する記事で何回か言及してきたものの、いまだにPythonにおけるPolarsについてはまとめてきませんでした。</p>
+<p>この記事では、Rユーザー、特にTidyverseに慣れた方々がPolarsを使い始めるための基本的な手順とコード例を紹介します。</p>
+<p>これまでの記事に関しては以下をご覧ください。</p>
+<a href="https://yo5uke.com/pages/tips/2025/11/251125_r_polars/" class="linkcard linkcard--default linkcard--no-image" target="" aria-label="Link to 【R】polarsでデータ処理を高速化する: Rustベースの高速データ処理ライブラリ{polars}をRで使う方法と、tidyverseライクに使える{tidypolars}について解説します。"><div class="linkcard__content"><div class="linkcard__title">【R】polarsでデータ処理を高速化する</div><div class="linkcard__description">Rustベースの高速データ処理ライブラリ{polars}をRで使う方法と、tidyverseライクに使える{tidypolars}について解説します。</div><div class="linkcard__url">yo5uke.com</div></div></a>
+<a href="https://yo5uke.com/pages/tips/2026/01/marimo/" class="linkcard linkcard--default" target="" aria-label="Link to uv, marimo, DuckDB, Polarsで始めるPython×データ分析: Jupyter Notebookを用いずに、次世代ツールのmarimoを使ってデータ分析環境を整えていきます。"><img src="https://yo5uke.com/pages/tips/2026/01/marimo//pages/tips/2026/01/marimo/image/marimo_run_sql.png" alt="Preview image for uv, marimo, DuckDB, Polarsで始めるPython×データ分析" class="linkcard__image" loading="lazy"><div class="linkcard__content"><div class="linkcard__title">uv, marimo, DuckDB, Polarsで始めるPython×データ分析</div><div class="linkcard__description">Jupyter Notebookを用いずに、次世代ツールのmarimoを使ってデータ分析環境を整えていきます。</div><div class="linkcard__url">yo5uke.com</div></div></a>
+</section>
+<section id="polarsのインストール" class="level2">
+<h2 class="anchored" data-anchor-id="polarsのインストール">Polarsのインストール</h2>
+<p>PolarsはPythonのパッケージとして提供されており、以下のコマンドでインストールできます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">pip</span> install polars</span></code></pre></div></div>
+<p>uvを使っている場合は以下でも可能です。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">uv</span> add polars</span></code></pre></div></div>
+</section>
+<section id="基本的な使い方" class="level2">
+<h2 class="anchored" data-anchor-id="基本的な使い方">基本的な使い方</h2>
+<p>ここからは、Tidyverseでよく使われる関数を挙げながら、Polarsでの対応する操作を紹介します。</p>
+<section id="データの読み込みread_csv" class="level3">
+<h3 class="anchored" data-anchor-id="データの読み込みread_csv">データの読み込み（read_csv）</h3>
+<p>まずはデータの読み込みから始めます。以下の例では、CSVファイルを読み込んでいます。</p>
+<div id="29148f81" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> polars <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pl</span>
+<span id="cb3-2"></span>
+<span id="cb3-3"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">from</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pivot</span>
+<span id="cb3-4">df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pl.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data/iris.csv"</span>)</span></code></pre></div></div>
+</div>
+<p>これが一番基本的な読み込み方法です。Rの<code>read_csv()</code>関数に相当します。</p>
+<p>Polarsでデータを読み込む場合、<strong>shift-jisのファイルを読み込むことはできません</strong>。その場合はPandasを使って読み込み、PolarsのDataFrameに変換する必要があります。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> pandas <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pd</span>
+<span id="cb4-2"><span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">import</span> polars <span class="im" style="color: #00769E;
+background-color: null;
+font-style: inherit;">as</span> pl</span>
+<span id="cb4-3"></span>
+<span id="cb4-4">pdf <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pd.read_csv(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"data_shift_jis.csv"</span>, encoding<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"shift-jis"</span>)</span>
+<span id="cb4-5">df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pl.from_pandas(pdf)</span></code></pre></div></div>
+</section>
+<section id="データの確認head-tail" class="level3">
+<h3 class="anchored" data-anchor-id="データの確認head-tail">データの確認（head, tail）</h3>
+<p>データの先頭や末尾を確認するには、<code>head()</code>と<code>tail()</code>メソッドを使用します。</p>
+<div id="5cd9cb44" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 先頭5行を表示</span></span>
+<span id="cb5-2"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(df.head())</span>
+<span id="cb5-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 末尾5行を表示</span></span>
+<span id="cb5-4"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(df.tail())</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (5, 5)
+┌──────────────┬─────────────┬──────────────┬─────────────┬─────────┐
+│ Sepal.Length ┆ Sepal.Width ┆ Petal.Length ┆ Petal.Width ┆ Species │
+│ ---          ┆ ---         ┆ ---          ┆ ---         ┆ ---     │
+│ f64          ┆ f64         ┆ f64          ┆ f64         ┆ str     │
+╞══════════════╪═════════════╪══════════════╪═════════════╪═════════╡
+│ 5.1          ┆ 3.5         ┆ 1.4          ┆ 0.2         ┆ setosa  │
+│ 4.9          ┆ 3.0         ┆ 1.4          ┆ 0.2         ┆ setosa  │
+│ 4.7          ┆ 3.2         ┆ 1.3          ┆ 0.2         ┆ setosa  │
+│ 4.6          ┆ 3.1         ┆ 1.5          ┆ 0.2         ┆ setosa  │
+│ 5.0          ┆ 3.6         ┆ 1.4          ┆ 0.2         ┆ setosa  │
+└──────────────┴─────────────┴──────────────┴─────────────┴─────────┘
+shape: (5, 5)
+┌──────────────┬─────────────┬──────────────┬─────────────┬───────────┐
+│ Sepal.Length ┆ Sepal.Width ┆ Petal.Length ┆ Petal.Width ┆ Species   │
+│ ---          ┆ ---         ┆ ---          ┆ ---         ┆ ---       │
+│ f64          ┆ f64         ┆ f64          ┆ f64         ┆ str       │
+╞══════════════╪═════════════╪══════════════╪═════════════╪═══════════╡
+│ 6.7          ┆ 3.0         ┆ 5.2          ┆ 2.3         ┆ virginica │
+│ 6.3          ┆ 2.5         ┆ 5.0          ┆ 1.9         ┆ virginica │
+│ 6.5          ┆ 3.0         ┆ 5.2          ┆ 2.0         ┆ virginica │
+│ 6.2          ┆ 3.4         ┆ 5.4          ┆ 2.3         ┆ virginica │
+│ 5.9          ┆ 3.0         ┆ 5.1          ┆ 1.8         ┆ virginica │
+└──────────────┴─────────────┴──────────────┴─────────────┴───────────┘</code></pre>
+</div>
+</div>
+</section>
+<section id="列の選択select" class="level3">
+<h3 class="anchored" data-anchor-id="列の選択select">列の選択（select）</h3>
+<p>Polarsで特定の列を選択するには、<code>select()</code>メソッドを使用します。</p>
+<div id="d7795a7f" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># "sepal_length"と"sepal_width"の列を選択</span></span>
+<span id="cb7-2">selected_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.select([<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Length"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Width"</span>])</span>
+<span id="cb7-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(selected_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (150, 2)
+┌──────────────┬─────────────┐
+│ Sepal.Length ┆ Sepal.Width │
+│ ---          ┆ ---         │
+│ f64          ┆ f64         │
+╞══════════════╪═════════════╡
+│ 5.1          ┆ 3.5         │
+│ 4.9          ┆ 3.0         │
+│ 4.7          ┆ 3.2         │
+│ 4.6          ┆ 3.1         │
+│ 5.0          ┆ 3.6         │
+│ …            ┆ …           │
+│ 6.7          ┆ 3.0         │
+│ 6.3          ┆ 2.5         │
+│ 6.5          ┆ 3.0         │
+│ 6.2          ┆ 3.4         │
+│ 5.9          ┆ 3.0         │
+└──────────────┴─────────────┘</code></pre>
+</div>
+</div>
+<p>Rでは列名を単にベクトルで指定しますが、Polarsではリストで指定します。Rユーザーにとっては地味に面倒ですが…。</p>
+</section>
+<section id="フィルタリングfilter" class="level3">
+<h3 class="anchored" data-anchor-id="フィルタリングfilter">フィルタリング（filter）</h3>
+<p>データを条件でフィルタリングするには、<code>filter()</code>メソッドを使用します。</p>
+<div id="808fc5f9" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># "Sepal.Length"が5.0より大きい行をフィルタリング</span></span>
+<span id="cb9-2">filtered_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.<span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">filter</span>(pl.col(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Length"</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5.0</span>)</span>
+<span id="cb9-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(filtered_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (118, 5)
+┌──────────────┬─────────────┬──────────────┬─────────────┬───────────┐
+│ Sepal.Length ┆ Sepal.Width ┆ Petal.Length ┆ Petal.Width ┆ Species   │
+│ ---          ┆ ---         ┆ ---          ┆ ---         ┆ ---       │
+│ f64          ┆ f64         ┆ f64          ┆ f64         ┆ str       │
+╞══════════════╪═════════════╪══════════════╪═════════════╪═══════════╡
+│ 5.1          ┆ 3.5         ┆ 1.4          ┆ 0.2         ┆ setosa    │
+│ 5.4          ┆ 3.9         ┆ 1.7          ┆ 0.4         ┆ setosa    │
+│ 5.4          ┆ 3.7         ┆ 1.5          ┆ 0.2         ┆ setosa    │
+│ 5.8          ┆ 4.0         ┆ 1.2          ┆ 0.2         ┆ setosa    │
+│ 5.7          ┆ 4.4         ┆ 1.5          ┆ 0.4         ┆ setosa    │
+│ …            ┆ …           ┆ …            ┆ …           ┆ …         │
+│ 6.7          ┆ 3.0         ┆ 5.2          ┆ 2.3         ┆ virginica │
+│ 6.3          ┆ 2.5         ┆ 5.0          ┆ 1.9         ┆ virginica │
+│ 6.5          ┆ 3.0         ┆ 5.2          ┆ 2.0         ┆ virginica │
+│ 6.2          ┆ 3.4         ┆ 5.4          ┆ 2.3         ┆ virginica │
+│ 5.9          ┆ 3.0         ┆ 5.1          ┆ 1.8         ┆ virginica │
+└──────────────┴─────────────┴──────────────┴─────────────┴───────────┘</code></pre>
+</div>
+</div>
+<p>Rの<code>filter()</code>では<code>filter(Sepal.Length &gt; 5.0)</code>のように書きますが、Polarsでは<code>pl.col("Sepal.Length")</code>のように列を指定します。正直こちらもRの方が書きやすいなとか思ってしまいますが、慣れの問題でしょうか。</p>
+</section>
+<section id="新しい列の追加mutate" class="level3">
+<h3 class="anchored" data-anchor-id="新しい列の追加mutate">新しい列の追加（mutate）</h3>
+<p>新しい列を追加するには、<code>with_columns()</code>メソッドを使用します。Rの<code>mutate()</code>に相当します。</p>
+<div id="deeb008a" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># "Sepal.Ratio"という新しい列を追加</span></span>
+<span id="cb11-2">mutated_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.with_columns(</span>
+<span id="cb11-3">    (pl.col(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Length"</span>) <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">/</span> pl.col(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Width"</span>)).alias(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Ratio"</span>)</span>
+<span id="cb11-4">).select([<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Length"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Width"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Ratio"</span>])</span>
+<span id="cb11-5"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(mutated_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (150, 3)
+┌──────────────┬─────────────┬─────────────┐
+│ Sepal.Length ┆ Sepal.Width ┆ Sepal.Ratio │
+│ ---          ┆ ---         ┆ ---         │
+│ f64          ┆ f64         ┆ f64         │
+╞══════════════╪═════════════╪═════════════╡
+│ 5.1          ┆ 3.5         ┆ 1.457143    │
+│ 4.9          ┆ 3.0         ┆ 1.633333    │
+│ 4.7          ┆ 3.2         ┆ 1.46875     │
+│ 4.6          ┆ 3.1         ┆ 1.483871    │
+│ 5.0          ┆ 3.6         ┆ 1.388889    │
+│ …            ┆ …           ┆ …           │
+│ 6.7          ┆ 3.0         ┆ 2.233333    │
+│ 6.3          ┆ 2.5         ┆ 2.52        │
+│ 6.5          ┆ 3.0         ┆ 2.166667    │
+│ 6.2          ┆ 3.4         ┆ 1.823529    │
+│ 5.9          ┆ 3.0         ┆ 1.966667    │
+└──────────────┴─────────────┴─────────────┘</code></pre>
+</div>
+</div>
+<p>Rと異なる点として、Rでは先に列名を指定し、その後に計算式を書くのに対し、Polarsでは計算式を先に書き、その後に<code>alias()</code>で列名を指定します。</p>
+<p>また、作った列を見やすくするために、ちゃっかり<code>select()</code>をつなげて必要な列だけを抽出しています。Rのパイプでつなげて処理できるのと同様に、Polarsでもメソッドチェーンでつなげて処理できます。</p>
+</section>
+<section id="グループ化と集計group_by-summarise" class="level3">
+<h3 class="anchored" data-anchor-id="グループ化と集計group_by-summarise">グループ化と集計(group_by, summarise)</h3>
+<p>データをグループ化して集計するには、<code>group_by()</code>と<code>agg()</code>メソッドを使用します。Rで言うところの<code>group_by()</code>と<code>summarise()</code>に相当します。</p>
+<div id="ec797ab2" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># "Species"でグループ化し、"Sepal.Length"の平均を計算</span></span>
+<span id="cb13-2">grouped_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.group_by(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Species"</span>).agg(</span>
+<span id="cb13-3">    pl.col(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Length"</span>).mean().alias(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Avg_Sepal_Length"</span>)</span>
+<span id="cb13-4">)</span>
+<span id="cb13-5"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(grouped_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (3, 2)
+┌────────────┬──────────────────┐
+│ Species    ┆ Avg_Sepal_Length │
+│ ---        ┆ ---              │
+│ str        ┆ f64              │
+╞════════════╪══════════════════╡
+│ setosa     ┆ 5.006            │
+│ versicolor ┆ 5.936            │
+│ virginica  ┆ 6.588            │
+└────────────┴──────────────────┘</code></pre>
+</div>
+</div>
+<p>ここでも<code>with_columns()</code>と同様に、集計結果の列名を<code>alias()</code>で指定しています。</p>
+</section>
+<section id="sec-sort" class="level3">
+<h3 class="anchored" data-anchor-id="sec-sort">データの並び替え（arrange）</h3>
+<p>データを特定の列で並び替えるには、<code>sort()</code>メソッドを使用します。Rの<code>arrange()</code>に相当します。</p>
+<div id="8c0f2bd4" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># "Sepal.Length"で昇順に並び替え</span></span>
+<span id="cb15-2">sorted_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.sort(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Length"</span>)</span>
+<span id="cb15-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(sorted_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (150, 5)
+┌──────────────┬─────────────┬──────────────┬─────────────┬───────────┐
+│ Sepal.Length ┆ Sepal.Width ┆ Petal.Length ┆ Petal.Width ┆ Species   │
+│ ---          ┆ ---         ┆ ---          ┆ ---         ┆ ---       │
+│ f64          ┆ f64         ┆ f64          ┆ f64         ┆ str       │
+╞══════════════╪═════════════╪══════════════╪═════════════╪═══════════╡
+│ 4.3          ┆ 3.0         ┆ 1.1          ┆ 0.1         ┆ setosa    │
+│ 4.4          ┆ 2.9         ┆ 1.4          ┆ 0.2         ┆ setosa    │
+│ 4.4          ┆ 3.0         ┆ 1.3          ┆ 0.2         ┆ setosa    │
+│ 4.4          ┆ 3.2         ┆ 1.3          ┆ 0.2         ┆ setosa    │
+│ 4.5          ┆ 2.3         ┆ 1.3          ┆ 0.3         ┆ setosa    │
+│ …            ┆ …           ┆ …            ┆ …           ┆ …         │
+│ 7.7          ┆ 3.8         ┆ 6.7          ┆ 2.2         ┆ virginica │
+│ 7.7          ┆ 2.6         ┆ 6.9          ┆ 2.3         ┆ virginica │
+│ 7.7          ┆ 2.8         ┆ 6.7          ┆ 2.0         ┆ virginica │
+│ 7.7          ┆ 3.0         ┆ 6.1          ┆ 2.3         ┆ virginica │
+│ 7.9          ┆ 3.8         ┆ 6.4          ┆ 2.0         ┆ virginica │
+└──────────────┴─────────────┴──────────────┴─────────────┴───────────┘</code></pre>
+</div>
+</div>
+<p>降順に並び替える場合は、<code>descending=True</code>を指定します。</p>
+<div id="d9a82826" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># "Sepal.Length"で降順に並び替え</span></span>
+<span id="cb17-2">sorted_df_desc <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.sort(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Sepal.Length"</span>, descending<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">True</span>)</span>
+<span id="cb17-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(sorted_df_desc)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (150, 5)
+┌──────────────┬─────────────┬──────────────┬─────────────┬───────────┐
+│ Sepal.Length ┆ Sepal.Width ┆ Petal.Length ┆ Petal.Width ┆ Species   │
+│ ---          ┆ ---         ┆ ---          ┆ ---         ┆ ---       │
+│ f64          ┆ f64         ┆ f64          ┆ f64         ┆ str       │
+╞══════════════╪═════════════╪══════════════╪═════════════╪═══════════╡
+│ 7.9          ┆ 3.8         ┆ 6.4          ┆ 2.0         ┆ virginica │
+│ 7.7          ┆ 3.8         ┆ 6.7          ┆ 2.2         ┆ virginica │
+│ 7.7          ┆ 2.6         ┆ 6.9          ┆ 2.3         ┆ virginica │
+│ 7.7          ┆ 2.8         ┆ 6.7          ┆ 2.0         ┆ virginica │
+│ 7.7          ┆ 3.0         ┆ 6.1          ┆ 2.3         ┆ virginica │
+│ …            ┆ …           ┆ …            ┆ …           ┆ …         │
+│ 4.5          ┆ 2.3         ┆ 1.3          ┆ 0.3         ┆ setosa    │
+│ 4.4          ┆ 2.9         ┆ 1.4          ┆ 0.2         ┆ setosa    │
+│ 4.4          ┆ 3.0         ┆ 1.3          ┆ 0.2         ┆ setosa    │
+│ 4.4          ┆ 3.2         ┆ 1.3          ┆ 0.2         ┆ setosa    │
+│ 4.3          ┆ 3.0         ┆ 1.1          ┆ 0.1         ┆ setosa    │
+└──────────────┴─────────────┴──────────────┴─────────────┴───────────┘</code></pre>
+</div>
+</div>
+</section>
+<section id="データの結合join" class="level3">
+<h3 class="anchored" data-anchor-id="データの結合join">データの結合（join）</h3>
+<p>データフレームを結合するには、<code>join()</code>メソッドを使用します。Rの<code>left_join()</code>や<code>inner_join()</code>に相当します。Rとは違って関数自体は同じですが、結合の種類を<code>how</code>引数で指定します。</p>
+<p>まずは左結合（<code>left_join()</code>）の例を示します。</p>
+<div id="271531ef" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 例として2つのデータフレームを作成</span></span>
+<span id="cb19-2">df1 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pl.DataFrame({</span>
+<span id="cb19-3">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"key"</span>: [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>],</span>
+<span id="cb19-4">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"value1"</span>: [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"C"</span>]</span>
+<span id="cb19-5">})</span>
+<span id="cb19-6">df2 <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pl.DataFrame({</span>
+<span id="cb19-7">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"key"</span>: [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>],</span>
+<span id="cb19-8">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"value2"</span>: [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"D"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"E"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"F"</span>]</span>
+<span id="cb19-9">})</span>
+<span id="cb19-10"></span>
+<span id="cb19-11"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># df1とdf2を"key"列で左結合</span></span>
+<span id="cb19-12">joined_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df1.join(df2, on<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"key"</span>, how<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"left"</span>)</span>
+<span id="cb19-13"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(joined_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (3, 3)
+┌─────┬────────┬────────┐
+│ key ┆ value1 ┆ value2 │
+│ --- ┆ ---    ┆ ---    │
+│ i64 ┆ str    ┆ str    │
+╞═════╪════════╪════════╡
+│ 1   ┆ A      ┆ null   │
+│ 2   ┆ B      ┆ D      │
+│ 3   ┆ C      ┆ E      │
+└─────┴────────┴────────┘</code></pre>
+</div>
+</div>
+<p>次に、内部結合（<code>inner_join()</code>）の例を示します。</p>
+<div id="8a04ee76" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># df1とdf2を"key"列で内部結合</span></span>
+<span id="cb21-2">joined_df_inner <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df1.join(df2, on<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"key"</span>, how<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"inner"</span>)</span>
+<span id="cb21-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(joined_df_inner)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (2, 3)
+┌─────┬────────┬────────┐
+│ key ┆ value1 ┆ value2 │
+│ --- ┆ ---    ┆ ---    │
+│ i64 ┆ str    ┆ str    │
+╞═════╪════════╪════════╡
+│ 2   ┆ B      ┆ D      │
+│ 3   ┆ C      ┆ E      │
+└─────┴────────┴────────┘</code></pre>
+</div>
+</div>
+<p>次に、完全結合(<code>full_join()</code>)の例を示します。</p>
+<div id="c1ef7006" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># df1とdf2を"key"列で完全結合</span></span>
+<span id="cb23-2">joined_df_full <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df1.join(df2, on<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"key"</span>, how<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"full"</span>)</span>
+<span id="cb23-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(joined_df_full)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (4, 4)
+┌──────┬────────┬───────────┬────────┐
+│ key  ┆ value1 ┆ key_right ┆ value2 │
+│ ---  ┆ ---    ┆ ---       ┆ ---    │
+│ i64  ┆ str    ┆ i64       ┆ str    │
+╞══════╪════════╪═══════════╪════════╡
+│ 2    ┆ B      ┆ 2         ┆ D      │
+│ 3    ┆ C      ┆ 3         ┆ E      │
+│ null ┆ null   ┆ 4         ┆ F      │
+│ 1    ┆ A      ┆ null      ┆ null   │
+└──────┴────────┴───────────┴────────┘</code></pre>
+</div>
+</div>
+<p>最後に、準結合（<code>semi_join()</code>）の例を示します<sup>1</sup>。</p>
+<div id="f7efbe6e" class="cell" data-execution_count="12">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># df1とdf2を"key"列で準結合</span></span>
+<span id="cb25-2">joined_df_semi <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df1.join(df2, on<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"key"</span>, how<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"semi"</span>)</span>
+<span id="cb25-3"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(joined_df_semi)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (2, 2)
+┌─────┬────────┐
+│ key ┆ value1 │
+│ --- ┆ ---    │
+│ i64 ┆ str    │
+╞═════╪════════╡
+│ 2   ┆ B      │
+│ 3   ┆ C      │
+└─────┴────────┘</code></pre>
+</div>
+</div>
+</section>
+<section id="テーブルの転置pivot" class="level3">
+<h3 class="anchored" data-anchor-id="テーブルの転置pivot">テーブルの転置（pivot）</h3>
+<p>データフレームを転置するには、<code>pivot()</code>メソッドを使用します。Rの<code>pivot_wider()</code>や<code>pivot_longer()</code>に相当します。</p>
+<div id="55797283" class="cell" data-execution_count="13">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 例としてデータフレームを作成</span></span>
+<span id="cb27-2">df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pl.DataFrame({</span>
+<span id="cb27-3">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"id"</span>: [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span>],</span>
+<span id="cb27-4">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"variable"</span>: [<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span>],</span>
+<span id="cb27-5">    <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"value"</span>: [<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">40</span>]</span>
+<span id="cb27-6">})</span>
+<span id="cb27-7"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (4, 3)
+┌─────┬──────────┬───────┐
+│ id  ┆ variable ┆ value │
+│ --- ┆ ---      ┆ ---   │
+│ i64 ┆ str      ┆ i64   │
+╞═════╪══════════╪═══════╡
+│ 1   ┆ A        ┆ 10    │
+│ 1   ┆ B        ┆ 20    │
+│ 2   ┆ A        ┆ 30    │
+│ 2   ┆ B        ┆ 40    │
+└─────┴──────────┴───────┘</code></pre>
+</div>
+</div>
+<p>まずは、<code>pivot_wider()</code>の例を示します。</p>
+<div id="bb6f83d0" class="cell" data-execution_count="14">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pivot_widerの例</span></span>
+<span id="cb29-2">pivoted_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> df.pivot(</span>
+<span id="cb29-3">    values<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"value"</span>,</span>
+<span id="cb29-4">    index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"id"</span>,</span>
+<span id="cb29-5">    columns<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"variable"</span></span>
+<span id="cb29-6">)</span>
+<span id="cb29-7"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(pivoted_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (2, 3)
+┌─────┬─────┬─────┐
+│ id  ┆ A   ┆ B   │
+│ --- ┆ --- ┆ --- │
+│ i64 ┆ i64 ┆ i64 │
+╞═════╪═════╪═════╡
+│ 1   ┆ 10  ┆ 20  │
+│ 2   ┆ 30  ┆ 40  │
+└─────┴─────┴─────┘</code></pre>
+</div>
+</div>
+<p>次に、ワイド形式にしたデータを<code>pivot_longer()</code>のように処理する例を示します。</p>
+<div id="342d9e12" class="cell" data-execution_count="15">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pivot_longerの例</span></span>
+<span id="cb31-2">melted_df <span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span> pivoted_df.unpivot(</span>
+<span id="cb31-3">    index<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"id"</span>],</span>
+<span id="cb31-4">    on<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span>[<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"B"</span>],</span>
+<span id="cb31-5">    variable_name<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"variable"</span>,</span>
+<span id="cb31-6">    value_name<span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"value"</span></span>
+<span id="cb31-7">)</span>
+<span id="cb31-8"><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">print</span>(melted_df)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>shape: (4, 3)
+┌─────┬──────────┬───────┐
+│ id  ┆ variable ┆ value │
+│ --- ┆ ---      ┆ ---   │
+│ i64 ┆ str      ┆ i64   │
+╞═════╪══════════╪═══════╡
+│ 1   ┆ A        ┆ 10    │
+│ 2   ┆ A        ┆ 30    │
+│ 1   ┆ B        ┆ 20    │
+│ 2   ┆ B        ┆ 40    │
+└─────┴──────────┴───────┘</code></pre>
+</div>
+</div>
+<p>元のデータの形に戻りました。並べ替えたいときは先述の<code>sort()</code>メソッドを使ってください。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>以上がよく使うRのTidyverse関数とPolarsでの対応する操作の基本的な例です。</p>
+<p>この記事では、RユーザーがPolarsを使い始めるための基本的な手順とコード例を紹介しました。Polarsは高速で効率的なデータ処理を可能にする強力なツールであり、Python環境でのデータ分析において有用です。</p>
+<p>これまではずっと Rだけを使ってきましたが、いろいろ調べていくうちにPythonはそのユーザー数の多さから開発も活発であり、新しく便利なツールやライブラリが次々と登場しているなと感じることが多くなってきました。これからもRとPythonの両方を使い分けていきたいと思っています。</p>
+<p>今後も必要に応じて追記していきますので、是非参考にしてみてください。</p>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>準結合とは、左のデータフレームの行が右のデータフレームに存在するかどうかでフィルタリングする結合方法です。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>Python</category>
+  <category>データ処理</category>
+  <guid>https://yo5uke.com/pages/tips/2026/01/polars/</guid>
+  <pubDate>Fri, 23 Jan 2026 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>uv, marimo, DuckDB, Polarsで始めるPython×データ分析</title>
   <link>https://yo5uke.com/pages/tips/2026/01/marimo/</link>
@@ -13742,2082 +14496,6 @@ font-style: inherit;">\</span></span>
   <guid>https://yo5uke.com/pages/tips/2025/06/250601_dvc/</guid>
   <pubDate>Sat, 31 May 2025 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/2025/06/250601_dvc/image/dvc_share_mail.png" medium="image" type="image/png" height="119" width="144"/>
-</item>
-<item>
-  <title>【パッケージ開発】fixesでイベントスタディを効率化</title>
-  <link>https://yo5uke.com/pages/tips/2025/05/250525_fixes/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>本ページでは、two-way fixed effects (TWFE)モデルのDifference-in-Differences (DiD)におけるイベントスタディを行うパッケージ、<code>fixes</code>について説明します。</p>
-<p>僕が今年（2025年）の年始から地道に作成してきたパッケージで、初のパッケージ作成で試行錯誤、紆余曲折を経ながらアップデートを重ねてきました。</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>ご意見待ってます
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>実戦経験が足りないパッケージなので、挙動がおかしかったり、こういう機能にも対応してほしいということがあれば、ページ下のコメントからどしどしお寄せください。こぢんまりしたページなので、いただいたものは余裕で全部対応できると思います。</p>
-</div>
-</div>
-<p>これまでは処置個体において処置タイミングが同一のベーシックなイベントスタディにのみ対応していましたが、アップデートを経て<strong>各個体で処置タイミングが異なる、いわゆるStaggered DiDにおけるイベントスタディにも対応しました</strong>。</p>
-<p>果たしてあらゆるケースに対応できているか、個人で開発しているパッケージとしては不安ではありますが、いくつかのデータセットでテストした分には問題なかったので、そのテストコードと併せて解説していきます。</p>
-</section>
-<section id="使用するパッケージ" class="level2">
-<h2 class="anchored" data-anchor-id="使用するパッケージ">使用するパッケージ</h2>
-<p>使用するのは<code>fixes</code>です。インストールは以下のコマンドでできます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">install.packages</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"fixes"</span>)</span>
-<span id="cb1-2"></span>
-<span id="cb1-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># or</span></span>
-<span id="cb1-4"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># pak::pak("fixes")</span></span></code></pre></div></div>
-<p>です。開発版はGitHubからインストールできます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># install.packages("pak")</span></span>
-<span id="cb2-2">pak<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">pak</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"yo5uke/fixes"</span>)</span></code></pre></div></div>
-</section>
-<section id="準備" class="level2">
-<h2 class="anchored" data-anchor-id="準備">準備</h2>
-<p>パッケージを読み込んで、デモに使うデータを準備します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(fixes)</span>
-<span id="cb3-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span></code></pre></div></div>
-</div>
-<p>データは<code>fixest</code>パッケージで用意されている<code>base_did</code>および<code>base_stagg</code>と、Mixtapeの<a href="https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of">Staggered DiDの章</a>で使用されている<code>castle</code>を使います。</p>
-<p><code>df_castle</code>に関しては、Mixtape内で行われている処理をし、変数を使用するものに絞っておきます<sup>1</sup>。</p>
-<p>また、少し後で述べる通り、never-treatedユニットの扱いに注意しながら、<code>year_treated</code>と<code>time_to_treatment</code>を作成しておきます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(fixest)</span>
-<span id="cb4-2"></span>
-<span id="cb4-3">castle <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> haven<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_dta</span>(</span>
-<span id="cb4-4">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://github.com/scunning1975/mixtape/raw/master/castle.dta"</span></span>
-<span id="cb4-5">)</span>
-<span id="cb4-6"></span>
-<span id="cb4-7"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 以下Mixtape参考</span></span>
-<span id="cb4-8"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># fmt: skip</span></span>
-<span id="cb4-9">dropped_vars <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(</span>
-<span id="cb4-10">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20004"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20014"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20024"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20034"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20044"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20054"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20064"</span>,</span>
-<span id="cb4-11">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20074"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20084"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20094"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20101"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20102"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20103"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20104"</span>,</span>
-<span id="cb4-12">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"trend_9"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"trend_46"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"trend_49"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"trend_50"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"trend_51"</span></span>
-<span id="cb4-13">)</span>
-<span id="cb4-14"></span>
-<span id="cb4-15">region <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> castle <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb4-16">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">starts_with</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"r20"</span>)) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb4-17">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">names</span>() <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb4-18">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">setdiff</span>(dropped_vars)</span>
-<span id="cb4-19"></span>
-<span id="cb4-20">df_castle <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> castle <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb4-21">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(state, sid, year, treatment_date, l_homicide, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">all_of</span>(region), popwt) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb4-22">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb4-23">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">is_treated =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">if_else</span>(<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">is.na</span>(treatment_date), <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>),</span>
-<span id="cb4-24">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">year_treated =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">if_else</span>(is_treated <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, treatment_date, <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10000</span>L),</span>
-<span id="cb4-25">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time_to_treatment =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">if_else</span>(is_treated <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>, year <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> treatment_date, <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000</span>L)</span>
-<span id="cb4-26">  )</span></code></pre></div></div>
-</div>
-<p>各データフレームは以下のような感じになっています。先頭の15行を見てみましょう。</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">base_did</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">base_stagg</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" aria-controls="tabset-1-3" aria-selected="false" href="">df_castle</a></li></ul>
-<div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_6b8o7mgfkhdofl2tp0n4 = TinyTable.createTableFunctions("tinytable_6b8o7mgfkhdofl2tp0n4");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 }, { i: '15', j: 6 } ], css_id: 'tinytable_css_x1mcxow6pr2yumx6ttjw',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 } ], css_id: 'tinytable_css_8ygthjgu4gubcpowejfr',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_6b8o7mgfkhdofl2tp0n4.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_6b8o7mgfkhdofl2tp0n4 td.tinytable_css_x1mcxow6pr2yumx6ttjw, #tinytable_6b8o7mgfkhdofl2tp0n4 th.tinytable_css_x1mcxow6pr2yumx6ttjw {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_6b8o7mgfkhdofl2tp0n4 td.tinytable_css_8ygthjgu4gubcpowejfr, #tinytable_6b8o7mgfkhdofl2tp0n4 th.tinytable_css_8ygthjgu4gubcpowejfr {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_6b8o7mgfkhdofl2tp0n4" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">y</th>
-                <th scope="col" data-row="0" data-col="2">x1</th>
-                <th scope="col" data-row="0" data-col="3">id</th>
-                <th scope="col" data-row="0" data-col="4">period</th>
-                <th scope="col" data-row="0" data-col="5">post</th>
-                <th scope="col" data-row="0" data-col="6">treat</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">2.87530627</td>
-                  <td data-row="1" data-col="2">0.53653768</td>
-                  <td data-row="1" data-col="3">1</td>
-                  <td data-row="1" data-col="4">1</td>
-                  <td data-row="1" data-col="5">0</td>
-                  <td data-row="1" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">1.86065272</td>
-                  <td data-row="2" data-col="2">-3.04318942</td>
-                  <td data-row="2" data-col="3">1</td>
-                  <td data-row="2" data-col="4">2</td>
-                  <td data-row="2" data-col="5">0</td>
-                  <td data-row="2" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">0.09416524</td>
-                  <td data-row="3" data-col="2">5.57684387</td>
-                  <td data-row="3" data-col="3">1</td>
-                  <td data-row="3" data-col="4">3</td>
-                  <td data-row="3" data-col="5">0</td>
-                  <td data-row="3" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">3.78147485</td>
-                  <td data-row="4" data-col="2">-2.83005866</td>
-                  <td data-row="4" data-col="3">1</td>
-                  <td data-row="4" data-col="4">4</td>
-                  <td data-row="4" data-col="5">0</td>
-                  <td data-row="4" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="5" data-col="1">-2.55819959</td>
-                  <td data-row="5" data-col="2">-5.04435440</td>
-                  <td data-row="5" data-col="3">1</td>
-                  <td data-row="5" data-col="4">5</td>
-                  <td data-row="5" data-col="5">0</td>
-                  <td data-row="5" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="6" data-col="1">1.72873240</td>
-                  <td data-row="6" data-col="2">-0.63638485</td>
-                  <td data-row="6" data-col="3">1</td>
-                  <td data-row="6" data-col="4">6</td>
-                  <td data-row="6" data-col="5">1</td>
-                  <td data-row="6" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="7" data-col="1">6.28423629</td>
-                  <td data-row="7" data-col="2">-2.12988365</td>
-                  <td data-row="7" data-col="3">1</td>
-                  <td data-row="7" data-col="4">7</td>
-                  <td data-row="7" data-col="5">1</td>
-                  <td data-row="7" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="8" data-col="1">4.76688778</td>
-                  <td data-row="8" data-col="2">3.49185577</td>
-                  <td data-row="8" data-col="3">1</td>
-                  <td data-row="8" data-col="4">8</td>
-                  <td data-row="8" data-col="5">1</td>
-                  <td data-row="8" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="9" data-col="1">5.34753392</td>
-                  <td data-row="9" data-col="2">0.83798615</td>
-                  <td data-row="9" data-col="3">1</td>
-                  <td data-row="9" data-col="4">9</td>
-                  <td data-row="9" data-col="5">1</td>
-                  <td data-row="9" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="10" data-col="1">4.95146934</td>
-                  <td data-row="10" data-col="2">0.63388904</td>
-                  <td data-row="10" data-col="3">1</td>
-                  <td data-row="10" data-col="4">10</td>
-                  <td data-row="10" data-col="5">1</td>
-                  <td data-row="10" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="11" data-col="1">-4.25798295</td>
-                  <td data-row="11" data-col="2">-5.26462514</td>
-                  <td data-row="11" data-col="3">2</td>
-                  <td data-row="11" data-col="4">1</td>
-                  <td data-row="11" data-col="5">0</td>
-                  <td data-row="11" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="12" data-col="1">0.60611067</td>
-                  <td data-row="12" data-col="2">-3.70483485</td>
-                  <td data-row="12" data-col="3">2</td>
-                  <td data-row="12" data-col="4">2</td>
-                  <td data-row="12" data-col="5">0</td>
-                  <td data-row="12" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="13" data-col="1">5.61637038</td>
-                  <td data-row="13" data-col="2">-0.21742509</td>
-                  <td data-row="13" data-col="3">2</td>
-                  <td data-row="13" data-col="4">3</td>
-                  <td data-row="13" data-col="5">0</td>
-                  <td data-row="13" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="14" data-col="1">-6.16941931</td>
-                  <td data-row="14" data-col="2">-2.02699419</td>
-                  <td data-row="14" data-col="3">2</td>
-                  <td data-row="14" data-col="4">4</td>
-                  <td data-row="14" data-col="5">0</td>
-                  <td data-row="14" data-col="6">1</td>
-                </tr>
-                <tr>
-                  <td data-row="15" data-col="1">0.71186875</td>
-                  <td data-row="15" data-col="2">0.01140001</td>
-                  <td data-row="15" data-col="3">2</td>
-                  <td data-row="15" data-col="4">5</td>
-                  <td data-row="15" data-col="5">0</td>
-                  <td data-row="15" data-col="6">1</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</div>
-<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_thsmq0nsrfu887kp5wf7 = TinyTable.createTableFunctions("tinytable_thsmq0nsrfu887kp5wf7");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 }, { i: '15', j: 6 }, { i: '15', j: 7 }, { i: '15', j: 8 } ], css_id: 'tinytable_css_vcar7syisvxkpidb7cfk',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 }, { i: '0', j: 7 }, { i: '0', j: 8 } ], css_id: 'tinytable_css_eyvie8l2miydq65x864m',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_thsmq0nsrfu887kp5wf7.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_thsmq0nsrfu887kp5wf7 td.tinytable_css_vcar7syisvxkpidb7cfk, #tinytable_thsmq0nsrfu887kp5wf7 th.tinytable_css_vcar7syisvxkpidb7cfk {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_thsmq0nsrfu887kp5wf7 td.tinytable_css_eyvie8l2miydq65x864m, #tinytable_thsmq0nsrfu887kp5wf7 th.tinytable_css_eyvie8l2miydq65x864m {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_thsmq0nsrfu887kp5wf7" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">id</th>
-                <th scope="col" data-row="0" data-col="2">year</th>
-                <th scope="col" data-row="0" data-col="3">year_treated</th>
-                <th scope="col" data-row="0" data-col="4">time_to_treatment</th>
-                <th scope="col" data-row="0" data-col="5">treated</th>
-                <th scope="col" data-row="0" data-col="6">treatment_effect_true</th>
-                <th scope="col" data-row="0" data-col="7">x1</th>
-                <th scope="col" data-row="0" data-col="8">y</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">90</td>
-                  <td data-row="1" data-col="2">1</td>
-                  <td data-row="1" data-col="3">2</td>
-                  <td data-row="1" data-col="4">-1</td>
-                  <td data-row="1" data-col="5">1</td>
-                  <td data-row="1" data-col="6">0</td>
-                  <td data-row="1" data-col="7">-1.09470213</td>
-                  <td data-row="1" data-col="8">0.01722971</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">89</td>
-                  <td data-row="2" data-col="2">1</td>
-                  <td data-row="2" data-col="3">3</td>
-                  <td data-row="2" data-col="4">-2</td>
-                  <td data-row="2" data-col="5">1</td>
-                  <td data-row="2" data-col="6">0</td>
-                  <td data-row="2" data-col="7">-3.71006765</td>
-                  <td data-row="2" data-col="8">-4.58084528</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">88</td>
-                  <td data-row="3" data-col="2">1</td>
-                  <td data-row="3" data-col="3">4</td>
-                  <td data-row="3" data-col="4">-3</td>
-                  <td data-row="3" data-col="5">1</td>
-                  <td data-row="3" data-col="6">0</td>
-                  <td data-row="3" data-col="7">2.52744015</td>
-                  <td data-row="3" data-col="8">2.73817174</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">87</td>
-                  <td data-row="4" data-col="2">1</td>
-                  <td data-row="4" data-col="3">5</td>
-                  <td data-row="4" data-col="4">-4</td>
-                  <td data-row="4" data-col="5">1</td>
-                  <td data-row="4" data-col="6">0</td>
-                  <td data-row="4" data-col="7">-0.72042631</td>
-                  <td data-row="4" data-col="8">-0.65103066</td>
-                </tr>
-                <tr>
-                  <td data-row="5" data-col="1">86</td>
-                  <td data-row="5" data-col="2">1</td>
-                  <td data-row="5" data-col="3">6</td>
-                  <td data-row="5" data-col="4">-5</td>
-                  <td data-row="5" data-col="5">1</td>
-                  <td data-row="5" data-col="6">0</td>
-                  <td data-row="5" data-col="7">-3.67116779</td>
-                  <td data-row="5" data-col="8">-5.33381664</td>
-                </tr>
-                <tr>
-                  <td data-row="6" data-col="1">85</td>
-                  <td data-row="6" data-col="2">1</td>
-                  <td data-row="6" data-col="3">7</td>
-                  <td data-row="6" data-col="4">-6</td>
-                  <td data-row="6" data-col="5">1</td>
-                  <td data-row="6" data-col="6">0</td>
-                  <td data-row="6" data-col="7">-0.31521367</td>
-                  <td data-row="6" data-col="8">0.49562631</td>
-                </tr>
-                <tr>
-                  <td data-row="7" data-col="1">84</td>
-                  <td data-row="7" data-col="2">1</td>
-                  <td data-row="7" data-col="3">8</td>
-                  <td data-row="7" data-col="4">-7</td>
-                  <td data-row="7" data-col="5">1</td>
-                  <td data-row="7" data-col="6">0</td>
-                  <td data-row="7" data-col="7">0.32856334</td>
-                  <td data-row="7" data-col="8">-1.58378245</td>
-                </tr>
-                <tr>
-                  <td data-row="8" data-col="1">83</td>
-                  <td data-row="8" data-col="2">1</td>
-                  <td data-row="8" data-col="3">9</td>
-                  <td data-row="8" data-col="4">-8</td>
-                  <td data-row="8" data-col="5">1</td>
-                  <td data-row="8" data-col="6">0</td>
-                  <td data-row="8" data-col="7">-0.08850915</td>
-                  <td data-row="8" data-col="8">-1.33526257</td>
-                </tr>
-                <tr>
-                  <td data-row="9" data-col="1">82</td>
-                  <td data-row="9" data-col="2">1</td>
-                  <td data-row="9" data-col="3">10</td>
-                  <td data-row="9" data-col="4">-9</td>
-                  <td data-row="9" data-col="5">1</td>
-                  <td data-row="9" data-col="6">0</td>
-                  <td data-row="9" data-col="7">-2.34951611</td>
-                  <td data-row="9" data-col="8">-1.35136167</td>
-                </tr>
-                <tr>
-                  <td data-row="10" data-col="1">81</td>
-                  <td data-row="10" data-col="2">1</td>
-                  <td data-row="10" data-col="3">10000</td>
-                  <td data-row="10" data-col="4">-1000</td>
-                  <td data-row="10" data-col="5">0</td>
-                  <td data-row="10" data-col="6">0</td>
-                  <td data-row="10" data-col="7">2.31318716</td>
-                  <td data-row="10" data-col="8">1.77231442</td>
-                </tr>
-                <tr>
-                  <td data-row="11" data-col="1">80</td>
-                  <td data-row="11" data-col="2">1</td>
-                  <td data-row="11" data-col="3">10000</td>
-                  <td data-row="11" data-col="4">-1000</td>
-                  <td data-row="11" data-col="5">0</td>
-                  <td data-row="11" data-col="6">0</td>
-                  <td data-row="11" data-col="7">-0.56561061</td>
-                  <td data-row="11" data-col="8">-0.78198640</td>
-                </tr>
-                <tr>
-                  <td data-row="12" data-col="1">79</td>
-                  <td data-row="12" data-col="2">1</td>
-                  <td data-row="12" data-col="3">10000</td>
-                  <td data-row="12" data-col="4">-1000</td>
-                  <td data-row="12" data-col="5">0</td>
-                  <td data-row="12" data-col="6">0</td>
-                  <td data-row="12" data-col="7">-3.15996610</td>
-                  <td data-row="12" data-col="8">-4.78190340</td>
-                </tr>
-                <tr>
-                  <td data-row="13" data-col="1">78</td>
-                  <td data-row="13" data-col="2">1</td>
-                  <td data-row="13" data-col="3">10000</td>
-                  <td data-row="13" data-col="4">-1000</td>
-                  <td data-row="13" data-col="5">0</td>
-                  <td data-row="13" data-col="6">0</td>
-                  <td data-row="13" data-col="7">-7.24864781</td>
-                  <td data-row="13" data-col="8">-8.69961178</td>
-                </tr>
-                <tr>
-                  <td data-row="14" data-col="1">77</td>
-                  <td data-row="14" data-col="2">1</td>
-                  <td data-row="14" data-col="3">10000</td>
-                  <td data-row="14" data-col="4">-1000</td>
-                  <td data-row="14" data-col="5">0</td>
-                  <td data-row="14" data-col="6">0</td>
-                  <td data-row="14" data-col="7">1.32056216</td>
-                  <td data-row="14" data-col="8">1.67147189</td>
-                </tr>
-                <tr>
-                  <td data-row="15" data-col="1">76</td>
-                  <td data-row="15" data-col="2">1</td>
-                  <td data-row="15" data-col="3">10000</td>
-                  <td data-row="15" data-col="4">-1000</td>
-                  <td data-row="15" data-col="5">0</td>
-                  <td data-row="15" data-col="6">0</td>
-                  <td data-row="15" data-col="7">-1.68121120</td>
-                  <td data-row="15" data-col="8">-1.85575812</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</div>
-<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
-<div class="cell">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_yzvpcsqdglskit438bem = TinyTable.createTableFunctions("tinytable_yzvpcsqdglskit438bem");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '15', j: 1 }, { i: '15', j: 2 }, { i: '15', j: 3 }, { i: '15', j: 4 }, { i: '15', j: 5 }, { i: '15', j: 6 }, { i: '15', j: 7 }, { i: '15', j: 8 }, { i: '15', j: 9 }, { i: '15', j: 10 }, { i: '15', j: 11 }, { i: '15', j: 12 }, { i: '15', j: 13 }, { i: '15', j: 14 }, { i: '15', j: 15 }, { i: '15', j: 16 }, { i: '15', j: 17 }, { i: '15', j: 18 }, { i: '15', j: 19 }, { i: '15', j: 20 }, { i: '15', j: 21 }, { i: '15', j: 22 }, { i: '15', j: 23 }, { i: '15', j: 24 }, { i: '15', j: 25 }, { i: '15', j: 26 }, { i: '15', j: 27 }, { i: '15', j: 28 }, { i: '15', j: 29 }, { i: '15', j: 30 }, { i: '15', j: 31 }, { i: '15', j: 32 }, { i: '15', j: 33 }, { i: '15', j: 34 }, { i: '15', j: 35 }, { i: '15', j: 36 }, { i: '15', j: 37 }, { i: '15', j: 38 }, { i: '15', j: 39 } ], css_id: 'tinytable_css_yjijs3mbdhy12hnvh1is',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 }, { i: '0', j: 7 }, { i: '0', j: 8 }, { i: '0', j: 9 }, { i: '0', j: 10 }, { i: '0', j: 11 }, { i: '0', j: 12 }, { i: '0', j: 13 }, { i: '0', j: 14 }, { i: '0', j: 15 }, { i: '0', j: 16 }, { i: '0', j: 17 }, { i: '0', j: 18 }, { i: '0', j: 19 }, { i: '0', j: 20 }, { i: '0', j: 21 }, { i: '0', j: 22 }, { i: '0', j: 23 }, { i: '0', j: 24 }, { i: '0', j: 25 }, { i: '0', j: 26 }, { i: '0', j: 27 }, { i: '0', j: 28 }, { i: '0', j: 29 }, { i: '0', j: 30 }, { i: '0', j: 31 }, { i: '0', j: 32 }, { i: '0', j: 33 }, { i: '0', j: 34 }, { i: '0', j: 35 }, { i: '0', j: 36 }, { i: '0', j: 37 }, { i: '0', j: 38 }, { i: '0', j: 39 } ], css_id: 'tinytable_css_dudi1rr0zfxw4kr76mvf',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_yzvpcsqdglskit438bem.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_yzvpcsqdglskit438bem td.tinytable_css_yjijs3mbdhy12hnvh1is, #tinytable_yzvpcsqdglskit438bem th.tinytable_css_yjijs3mbdhy12hnvh1is {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_yzvpcsqdglskit438bem td.tinytable_css_dudi1rr0zfxw4kr76mvf, #tinytable_yzvpcsqdglskit438bem th.tinytable_css_dudi1rr0zfxw4kr76mvf {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_yzvpcsqdglskit438bem" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">state</th>
-                <th scope="col" data-row="0" data-col="2">sid</th>
-                <th scope="col" data-row="0" data-col="3">year</th>
-                <th scope="col" data-row="0" data-col="4">treatment_date</th>
-                <th scope="col" data-row="0" data-col="5">l_homicide</th>
-                <th scope="col" data-row="0" data-col="6">r20001</th>
-                <th scope="col" data-row="0" data-col="7">r20002</th>
-                <th scope="col" data-row="0" data-col="8">r20003</th>
-                <th scope="col" data-row="0" data-col="9">r20011</th>
-                <th scope="col" data-row="0" data-col="10">r20012</th>
-                <th scope="col" data-row="0" data-col="11">r20013</th>
-                <th scope="col" data-row="0" data-col="12">r20021</th>
-                <th scope="col" data-row="0" data-col="13">r20022</th>
-                <th scope="col" data-row="0" data-col="14">r20023</th>
-                <th scope="col" data-row="0" data-col="15">r20031</th>
-                <th scope="col" data-row="0" data-col="16">r20032</th>
-                <th scope="col" data-row="0" data-col="17">r20033</th>
-                <th scope="col" data-row="0" data-col="18">r20041</th>
-                <th scope="col" data-row="0" data-col="19">r20042</th>
-                <th scope="col" data-row="0" data-col="20">r20043</th>
-                <th scope="col" data-row="0" data-col="21">r20051</th>
-                <th scope="col" data-row="0" data-col="22">r20052</th>
-                <th scope="col" data-row="0" data-col="23">r20053</th>
-                <th scope="col" data-row="0" data-col="24">r20061</th>
-                <th scope="col" data-row="0" data-col="25">r20062</th>
-                <th scope="col" data-row="0" data-col="26">r20063</th>
-                <th scope="col" data-row="0" data-col="27">r20071</th>
-                <th scope="col" data-row="0" data-col="28">r20072</th>
-                <th scope="col" data-row="0" data-col="29">r20073</th>
-                <th scope="col" data-row="0" data-col="30">r20081</th>
-                <th scope="col" data-row="0" data-col="31">r20082</th>
-                <th scope="col" data-row="0" data-col="32">r20083</th>
-                <th scope="col" data-row="0" data-col="33">r20091</th>
-                <th scope="col" data-row="0" data-col="34">r20092</th>
-                <th scope="col" data-row="0" data-col="35">r20093</th>
-                <th scope="col" data-row="0" data-col="36">popwt</th>
-                <th scope="col" data-row="0" data-col="37">is_treated</th>
-                <th scope="col" data-row="0" data-col="38">year_treated</th>
-                <th scope="col" data-row="0" data-col="39">time_to_treatment</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">Alabama</td>
-                  <td data-row="1" data-col="2">1</td>
-                  <td data-row="1" data-col="3">2000</td>
-                  <td data-row="1" data-col="4">2006</td>
-                  <td data-row="1" data-col="5">2.027356</td>
-                  <td data-row="1" data-col="6">0</td>
-                  <td data-row="1" data-col="7">0</td>
-                  <td data-row="1" data-col="8">1</td>
-                  <td data-row="1" data-col="9">0</td>
-                  <td data-row="1" data-col="10">0</td>
-                  <td data-row="1" data-col="11">0</td>
-                  <td data-row="1" data-col="12">0</td>
-                  <td data-row="1" data-col="13">0</td>
-                  <td data-row="1" data-col="14">0</td>
-                  <td data-row="1" data-col="15">0</td>
-                  <td data-row="1" data-col="16">0</td>
-                  <td data-row="1" data-col="17">0</td>
-                  <td data-row="1" data-col="18">0</td>
-                  <td data-row="1" data-col="19">0</td>
-                  <td data-row="1" data-col="20">0</td>
-                  <td data-row="1" data-col="21">0</td>
-                  <td data-row="1" data-col="22">0</td>
-                  <td data-row="1" data-col="23">0</td>
-                  <td data-row="1" data-col="24">0</td>
-                  <td data-row="1" data-col="25">0</td>
-                  <td data-row="1" data-col="26">0</td>
-                  <td data-row="1" data-col="27">0</td>
-                  <td data-row="1" data-col="28">0</td>
-                  <td data-row="1" data-col="29">0</td>
-                  <td data-row="1" data-col="30">0</td>
-                  <td data-row="1" data-col="31">0</td>
-                  <td data-row="1" data-col="32">0</td>
-                  <td data-row="1" data-col="33">0</td>
-                  <td data-row="1" data-col="34">0</td>
-                  <td data-row="1" data-col="35">0</td>
-                  <td data-row="1" data-col="36">4499293.0</td>
-                  <td data-row="1" data-col="37">1</td>
-                  <td data-row="1" data-col="38">2006</td>
-                  <td data-row="1" data-col="39">-6</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">Alabama</td>
-                  <td data-row="2" data-col="2">1</td>
-                  <td data-row="2" data-col="3">2001</td>
-                  <td data-row="2" data-col="4">2006</td>
-                  <td data-row="2" data-col="5">2.164867</td>
-                  <td data-row="2" data-col="6">0</td>
-                  <td data-row="2" data-col="7">0</td>
-                  <td data-row="2" data-col="8">0</td>
-                  <td data-row="2" data-col="9">0</td>
-                  <td data-row="2" data-col="10">0</td>
-                  <td data-row="2" data-col="11">1</td>
-                  <td data-row="2" data-col="12">0</td>
-                  <td data-row="2" data-col="13">0</td>
-                  <td data-row="2" data-col="14">0</td>
-                  <td data-row="2" data-col="15">0</td>
-                  <td data-row="2" data-col="16">0</td>
-                  <td data-row="2" data-col="17">0</td>
-                  <td data-row="2" data-col="18">0</td>
-                  <td data-row="2" data-col="19">0</td>
-                  <td data-row="2" data-col="20">0</td>
-                  <td data-row="2" data-col="21">0</td>
-                  <td data-row="2" data-col="22">0</td>
-                  <td data-row="2" data-col="23">0</td>
-                  <td data-row="2" data-col="24">0</td>
-                  <td data-row="2" data-col="25">0</td>
-                  <td data-row="2" data-col="26">0</td>
-                  <td data-row="2" data-col="27">0</td>
-                  <td data-row="2" data-col="28">0</td>
-                  <td data-row="2" data-col="29">0</td>
-                  <td data-row="2" data-col="30">0</td>
-                  <td data-row="2" data-col="31">0</td>
-                  <td data-row="2" data-col="32">0</td>
-                  <td data-row="2" data-col="33">0</td>
-                  <td data-row="2" data-col="34">0</td>
-                  <td data-row="2" data-col="35">0</td>
-                  <td data-row="2" data-col="36">4499293.0</td>
-                  <td data-row="2" data-col="37">1</td>
-                  <td data-row="2" data-col="38">2006</td>
-                  <td data-row="2" data-col="39">-5</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">Alabama</td>
-                  <td data-row="3" data-col="2">1</td>
-                  <td data-row="3" data-col="3">2002</td>
-                  <td data-row="3" data-col="4">2006</td>
-                  <td data-row="3" data-col="5">1.936334</td>
-                  <td data-row="3" data-col="6">0</td>
-                  <td data-row="3" data-col="7">0</td>
-                  <td data-row="3" data-col="8">0</td>
-                  <td data-row="3" data-col="9">0</td>
-                  <td data-row="3" data-col="10">0</td>
-                  <td data-row="3" data-col="11">0</td>
-                  <td data-row="3" data-col="12">0</td>
-                  <td data-row="3" data-col="13">0</td>
-                  <td data-row="3" data-col="14">1</td>
-                  <td data-row="3" data-col="15">0</td>
-                  <td data-row="3" data-col="16">0</td>
-                  <td data-row="3" data-col="17">0</td>
-                  <td data-row="3" data-col="18">0</td>
-                  <td data-row="3" data-col="19">0</td>
-                  <td data-row="3" data-col="20">0</td>
-                  <td data-row="3" data-col="21">0</td>
-                  <td data-row="3" data-col="22">0</td>
-                  <td data-row="3" data-col="23">0</td>
-                  <td data-row="3" data-col="24">0</td>
-                  <td data-row="3" data-col="25">0</td>
-                  <td data-row="3" data-col="26">0</td>
-                  <td data-row="3" data-col="27">0</td>
-                  <td data-row="3" data-col="28">0</td>
-                  <td data-row="3" data-col="29">0</td>
-                  <td data-row="3" data-col="30">0</td>
-                  <td data-row="3" data-col="31">0</td>
-                  <td data-row="3" data-col="32">0</td>
-                  <td data-row="3" data-col="33">0</td>
-                  <td data-row="3" data-col="34">0</td>
-                  <td data-row="3" data-col="35">0</td>
-                  <td data-row="3" data-col="36">4499293.0</td>
-                  <td data-row="3" data-col="37">1</td>
-                  <td data-row="3" data-col="38">2006</td>
-                  <td data-row="3" data-col="39">-4</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">Alabama</td>
-                  <td data-row="4" data-col="2">1</td>
-                  <td data-row="4" data-col="3">2003</td>
-                  <td data-row="4" data-col="4">2006</td>
-                  <td data-row="4" data-col="5">1.919567</td>
-                  <td data-row="4" data-col="6">0</td>
-                  <td data-row="4" data-col="7">0</td>
-                  <td data-row="4" data-col="8">0</td>
-                  <td data-row="4" data-col="9">0</td>
-                  <td data-row="4" data-col="10">0</td>
-                  <td data-row="4" data-col="11">0</td>
-                  <td data-row="4" data-col="12">0</td>
-                  <td data-row="4" data-col="13">0</td>
-                  <td data-row="4" data-col="14">0</td>
-                  <td data-row="4" data-col="15">0</td>
-                  <td data-row="4" data-col="16">0</td>
-                  <td data-row="4" data-col="17">1</td>
-                  <td data-row="4" data-col="18">0</td>
-                  <td data-row="4" data-col="19">0</td>
-                  <td data-row="4" data-col="20">0</td>
-                  <td data-row="4" data-col="21">0</td>
-                  <td data-row="4" data-col="22">0</td>
-                  <td data-row="4" data-col="23">0</td>
-                  <td data-row="4" data-col="24">0</td>
-                  <td data-row="4" data-col="25">0</td>
-                  <td data-row="4" data-col="26">0</td>
-                  <td data-row="4" data-col="27">0</td>
-                  <td data-row="4" data-col="28">0</td>
-                  <td data-row="4" data-col="29">0</td>
-                  <td data-row="4" data-col="30">0</td>
-                  <td data-row="4" data-col="31">0</td>
-                  <td data-row="4" data-col="32">0</td>
-                  <td data-row="4" data-col="33">0</td>
-                  <td data-row="4" data-col="34">0</td>
-                  <td data-row="4" data-col="35">0</td>
-                  <td data-row="4" data-col="36">4499293.0</td>
-                  <td data-row="4" data-col="37">1</td>
-                  <td data-row="4" data-col="38">2006</td>
-                  <td data-row="4" data-col="39">-3</td>
-                </tr>
-                <tr>
-                  <td data-row="5" data-col="1">Alabama</td>
-                  <td data-row="5" data-col="2">1</td>
-                  <td data-row="5" data-col="3">2004</td>
-                  <td data-row="5" data-col="4">2006</td>
-                  <td data-row="5" data-col="5">1.749841</td>
-                  <td data-row="5" data-col="6">0</td>
-                  <td data-row="5" data-col="7">0</td>
-                  <td data-row="5" data-col="8">0</td>
-                  <td data-row="5" data-col="9">0</td>
-                  <td data-row="5" data-col="10">0</td>
-                  <td data-row="5" data-col="11">0</td>
-                  <td data-row="5" data-col="12">0</td>
-                  <td data-row="5" data-col="13">0</td>
-                  <td data-row="5" data-col="14">0</td>
-                  <td data-row="5" data-col="15">0</td>
-                  <td data-row="5" data-col="16">0</td>
-                  <td data-row="5" data-col="17">0</td>
-                  <td data-row="5" data-col="18">0</td>
-                  <td data-row="5" data-col="19">0</td>
-                  <td data-row="5" data-col="20">1</td>
-                  <td data-row="5" data-col="21">0</td>
-                  <td data-row="5" data-col="22">0</td>
-                  <td data-row="5" data-col="23">0</td>
-                  <td data-row="5" data-col="24">0</td>
-                  <td data-row="5" data-col="25">0</td>
-                  <td data-row="5" data-col="26">0</td>
-                  <td data-row="5" data-col="27">0</td>
-                  <td data-row="5" data-col="28">0</td>
-                  <td data-row="5" data-col="29">0</td>
-                  <td data-row="5" data-col="30">0</td>
-                  <td data-row="5" data-col="31">0</td>
-                  <td data-row="5" data-col="32">0</td>
-                  <td data-row="5" data-col="33">0</td>
-                  <td data-row="5" data-col="34">0</td>
-                  <td data-row="5" data-col="35">0</td>
-                  <td data-row="5" data-col="36">4499293.0</td>
-                  <td data-row="5" data-col="37">1</td>
-                  <td data-row="5" data-col="38">2006</td>
-                  <td data-row="5" data-col="39">-2</td>
-                </tr>
-                <tr>
-                  <td data-row="6" data-col="1">Alabama</td>
-                  <td data-row="6" data-col="2">1</td>
-                  <td data-row="6" data-col="3">2005</td>
-                  <td data-row="6" data-col="4">2006</td>
-                  <td data-row="6" data-col="5">2.130440</td>
-                  <td data-row="6" data-col="6">0</td>
-                  <td data-row="6" data-col="7">0</td>
-                  <td data-row="6" data-col="8">0</td>
-                  <td data-row="6" data-col="9">0</td>
-                  <td data-row="6" data-col="10">0</td>
-                  <td data-row="6" data-col="11">0</td>
-                  <td data-row="6" data-col="12">0</td>
-                  <td data-row="6" data-col="13">0</td>
-                  <td data-row="6" data-col="14">0</td>
-                  <td data-row="6" data-col="15">0</td>
-                  <td data-row="6" data-col="16">0</td>
-                  <td data-row="6" data-col="17">0</td>
-                  <td data-row="6" data-col="18">0</td>
-                  <td data-row="6" data-col="19">0</td>
-                  <td data-row="6" data-col="20">0</td>
-                  <td data-row="6" data-col="21">0</td>
-                  <td data-row="6" data-col="22">0</td>
-                  <td data-row="6" data-col="23">1</td>
-                  <td data-row="6" data-col="24">0</td>
-                  <td data-row="6" data-col="25">0</td>
-                  <td data-row="6" data-col="26">0</td>
-                  <td data-row="6" data-col="27">0</td>
-                  <td data-row="6" data-col="28">0</td>
-                  <td data-row="6" data-col="29">0</td>
-                  <td data-row="6" data-col="30">0</td>
-                  <td data-row="6" data-col="31">0</td>
-                  <td data-row="6" data-col="32">0</td>
-                  <td data-row="6" data-col="33">0</td>
-                  <td data-row="6" data-col="34">0</td>
-                  <td data-row="6" data-col="35">0</td>
-                  <td data-row="6" data-col="36">4499293.0</td>
-                  <td data-row="6" data-col="37">1</td>
-                  <td data-row="6" data-col="38">2006</td>
-                  <td data-row="6" data-col="39">-1</td>
-                </tr>
-                <tr>
-                  <td data-row="7" data-col="1">Alabama</td>
-                  <td data-row="7" data-col="2">1</td>
-                  <td data-row="7" data-col="3">2006</td>
-                  <td data-row="7" data-col="4">2006</td>
-                  <td data-row="7" data-col="5">2.079652</td>
-                  <td data-row="7" data-col="6">0</td>
-                  <td data-row="7" data-col="7">0</td>
-                  <td data-row="7" data-col="8">0</td>
-                  <td data-row="7" data-col="9">0</td>
-                  <td data-row="7" data-col="10">0</td>
-                  <td data-row="7" data-col="11">0</td>
-                  <td data-row="7" data-col="12">0</td>
-                  <td data-row="7" data-col="13">0</td>
-                  <td data-row="7" data-col="14">0</td>
-                  <td data-row="7" data-col="15">0</td>
-                  <td data-row="7" data-col="16">0</td>
-                  <td data-row="7" data-col="17">0</td>
-                  <td data-row="7" data-col="18">0</td>
-                  <td data-row="7" data-col="19">0</td>
-                  <td data-row="7" data-col="20">0</td>
-                  <td data-row="7" data-col="21">0</td>
-                  <td data-row="7" data-col="22">0</td>
-                  <td data-row="7" data-col="23">0</td>
-                  <td data-row="7" data-col="24">0</td>
-                  <td data-row="7" data-col="25">0</td>
-                  <td data-row="7" data-col="26">1</td>
-                  <td data-row="7" data-col="27">0</td>
-                  <td data-row="7" data-col="28">0</td>
-                  <td data-row="7" data-col="29">0</td>
-                  <td data-row="7" data-col="30">0</td>
-                  <td data-row="7" data-col="31">0</td>
-                  <td data-row="7" data-col="32">0</td>
-                  <td data-row="7" data-col="33">0</td>
-                  <td data-row="7" data-col="34">0</td>
-                  <td data-row="7" data-col="35">0</td>
-                  <td data-row="7" data-col="36">4499293.0</td>
-                  <td data-row="7" data-col="37">1</td>
-                  <td data-row="7" data-col="38">2006</td>
-                  <td data-row="7" data-col="39">0</td>
-                </tr>
-                <tr>
-                  <td data-row="8" data-col="1">Alabama</td>
-                  <td data-row="8" data-col="2">1</td>
-                  <td data-row="8" data-col="3">2007</td>
-                  <td data-row="8" data-col="4">2006</td>
-                  <td data-row="8" data-col="5">2.145690</td>
-                  <td data-row="8" data-col="6">0</td>
-                  <td data-row="8" data-col="7">0</td>
-                  <td data-row="8" data-col="8">0</td>
-                  <td data-row="8" data-col="9">0</td>
-                  <td data-row="8" data-col="10">0</td>
-                  <td data-row="8" data-col="11">0</td>
-                  <td data-row="8" data-col="12">0</td>
-                  <td data-row="8" data-col="13">0</td>
-                  <td data-row="8" data-col="14">0</td>
-                  <td data-row="8" data-col="15">0</td>
-                  <td data-row="8" data-col="16">0</td>
-                  <td data-row="8" data-col="17">0</td>
-                  <td data-row="8" data-col="18">0</td>
-                  <td data-row="8" data-col="19">0</td>
-                  <td data-row="8" data-col="20">0</td>
-                  <td data-row="8" data-col="21">0</td>
-                  <td data-row="8" data-col="22">0</td>
-                  <td data-row="8" data-col="23">0</td>
-                  <td data-row="8" data-col="24">0</td>
-                  <td data-row="8" data-col="25">0</td>
-                  <td data-row="8" data-col="26">0</td>
-                  <td data-row="8" data-col="27">0</td>
-                  <td data-row="8" data-col="28">0</td>
-                  <td data-row="8" data-col="29">1</td>
-                  <td data-row="8" data-col="30">0</td>
-                  <td data-row="8" data-col="31">0</td>
-                  <td data-row="8" data-col="32">0</td>
-                  <td data-row="8" data-col="33">0</td>
-                  <td data-row="8" data-col="34">0</td>
-                  <td data-row="8" data-col="35">0</td>
-                  <td data-row="8" data-col="36">4499293.0</td>
-                  <td data-row="8" data-col="37">1</td>
-                  <td data-row="8" data-col="38">2006</td>
-                  <td data-row="8" data-col="39">1</td>
-                </tr>
-                <tr>
-                  <td data-row="9" data-col="1">Alabama</td>
-                  <td data-row="9" data-col="2">1</td>
-                  <td data-row="9" data-col="3">2008</td>
-                  <td data-row="9" data-col="4">2006</td>
-                  <td data-row="9" data-col="5">2.043598</td>
-                  <td data-row="9" data-col="6">0</td>
-                  <td data-row="9" data-col="7">0</td>
-                  <td data-row="9" data-col="8">0</td>
-                  <td data-row="9" data-col="9">0</td>
-                  <td data-row="9" data-col="10">0</td>
-                  <td data-row="9" data-col="11">0</td>
-                  <td data-row="9" data-col="12">0</td>
-                  <td data-row="9" data-col="13">0</td>
-                  <td data-row="9" data-col="14">0</td>
-                  <td data-row="9" data-col="15">0</td>
-                  <td data-row="9" data-col="16">0</td>
-                  <td data-row="9" data-col="17">0</td>
-                  <td data-row="9" data-col="18">0</td>
-                  <td data-row="9" data-col="19">0</td>
-                  <td data-row="9" data-col="20">0</td>
-                  <td data-row="9" data-col="21">0</td>
-                  <td data-row="9" data-col="22">0</td>
-                  <td data-row="9" data-col="23">0</td>
-                  <td data-row="9" data-col="24">0</td>
-                  <td data-row="9" data-col="25">0</td>
-                  <td data-row="9" data-col="26">0</td>
-                  <td data-row="9" data-col="27">0</td>
-                  <td data-row="9" data-col="28">0</td>
-                  <td data-row="9" data-col="29">0</td>
-                  <td data-row="9" data-col="30">0</td>
-                  <td data-row="9" data-col="31">0</td>
-                  <td data-row="9" data-col="32">1</td>
-                  <td data-row="9" data-col="33">0</td>
-                  <td data-row="9" data-col="34">0</td>
-                  <td data-row="9" data-col="35">0</td>
-                  <td data-row="9" data-col="36">4499293.0</td>
-                  <td data-row="9" data-col="37">1</td>
-                  <td data-row="9" data-col="38">2006</td>
-                  <td data-row="9" data-col="39">2</td>
-                </tr>
-                <tr>
-                  <td data-row="10" data-col="1">Alabama</td>
-                  <td data-row="10" data-col="2">1</td>
-                  <td data-row="10" data-col="3">2009</td>
-                  <td data-row="10" data-col="4">2006</td>
-                  <td data-row="10" data-col="5">1.938684</td>
-                  <td data-row="10" data-col="6">0</td>
-                  <td data-row="10" data-col="7">0</td>
-                  <td data-row="10" data-col="8">0</td>
-                  <td data-row="10" data-col="9">0</td>
-                  <td data-row="10" data-col="10">0</td>
-                  <td data-row="10" data-col="11">0</td>
-                  <td data-row="10" data-col="12">0</td>
-                  <td data-row="10" data-col="13">0</td>
-                  <td data-row="10" data-col="14">0</td>
-                  <td data-row="10" data-col="15">0</td>
-                  <td data-row="10" data-col="16">0</td>
-                  <td data-row="10" data-col="17">0</td>
-                  <td data-row="10" data-col="18">0</td>
-                  <td data-row="10" data-col="19">0</td>
-                  <td data-row="10" data-col="20">0</td>
-                  <td data-row="10" data-col="21">0</td>
-                  <td data-row="10" data-col="22">0</td>
-                  <td data-row="10" data-col="23">0</td>
-                  <td data-row="10" data-col="24">0</td>
-                  <td data-row="10" data-col="25">0</td>
-                  <td data-row="10" data-col="26">0</td>
-                  <td data-row="10" data-col="27">0</td>
-                  <td data-row="10" data-col="28">0</td>
-                  <td data-row="10" data-col="29">0</td>
-                  <td data-row="10" data-col="30">0</td>
-                  <td data-row="10" data-col="31">0</td>
-                  <td data-row="10" data-col="32">0</td>
-                  <td data-row="10" data-col="33">0</td>
-                  <td data-row="10" data-col="34">0</td>
-                  <td data-row="10" data-col="35">1</td>
-                  <td data-row="10" data-col="36">4499293.0</td>
-                  <td data-row="10" data-col="37">1</td>
-                  <td data-row="10" data-col="38">2006</td>
-                  <td data-row="10" data-col="39">3</td>
-                </tr>
-                <tr>
-                  <td data-row="11" data-col="1">Alabama</td>
-                  <td data-row="11" data-col="2">1</td>
-                  <td data-row="11" data-col="3">2010</td>
-                  <td data-row="11" data-col="4">2006</td>
-                  <td data-row="11" data-col="5">1.747940</td>
-                  <td data-row="11" data-col="6">0</td>
-                  <td data-row="11" data-col="7">0</td>
-                  <td data-row="11" data-col="8">0</td>
-                  <td data-row="11" data-col="9">0</td>
-                  <td data-row="11" data-col="10">0</td>
-                  <td data-row="11" data-col="11">0</td>
-                  <td data-row="11" data-col="12">0</td>
-                  <td data-row="11" data-col="13">0</td>
-                  <td data-row="11" data-col="14">0</td>
-                  <td data-row="11" data-col="15">0</td>
-                  <td data-row="11" data-col="16">0</td>
-                  <td data-row="11" data-col="17">0</td>
-                  <td data-row="11" data-col="18">0</td>
-                  <td data-row="11" data-col="19">0</td>
-                  <td data-row="11" data-col="20">0</td>
-                  <td data-row="11" data-col="21">0</td>
-                  <td data-row="11" data-col="22">0</td>
-                  <td data-row="11" data-col="23">0</td>
-                  <td data-row="11" data-col="24">0</td>
-                  <td data-row="11" data-col="25">0</td>
-                  <td data-row="11" data-col="26">0</td>
-                  <td data-row="11" data-col="27">0</td>
-                  <td data-row="11" data-col="28">0</td>
-                  <td data-row="11" data-col="29">0</td>
-                  <td data-row="11" data-col="30">0</td>
-                  <td data-row="11" data-col="31">0</td>
-                  <td data-row="11" data-col="32">0</td>
-                  <td data-row="11" data-col="33">0</td>
-                  <td data-row="11" data-col="34">0</td>
-                  <td data-row="11" data-col="35">0</td>
-                  <td data-row="11" data-col="36">4499293.0</td>
-                  <td data-row="11" data-col="37">1</td>
-                  <td data-row="11" data-col="38">2006</td>
-                  <td data-row="11" data-col="39">4</td>
-                </tr>
-                <tr>
-                  <td data-row="12" data-col="1">Alaska</td>
-                  <td data-row="12" data-col="2">2</td>
-                  <td data-row="12" data-col="3">2000</td>
-                  <td data-row="12" data-col="4">2005</td>
-                  <td data-row="12" data-col="5">1.491518</td>
-                  <td data-row="12" data-col="6">0</td>
-                  <td data-row="12" data-col="7">0</td>
-                  <td data-row="12" data-col="8">0</td>
-                  <td data-row="12" data-col="9">0</td>
-                  <td data-row="12" data-col="10">0</td>
-                  <td data-row="12" data-col="11">0</td>
-                  <td data-row="12" data-col="12">0</td>
-                  <td data-row="12" data-col="13">0</td>
-                  <td data-row="12" data-col="14">0</td>
-                  <td data-row="12" data-col="15">0</td>
-                  <td data-row="12" data-col="16">0</td>
-                  <td data-row="12" data-col="17">0</td>
-                  <td data-row="12" data-col="18">0</td>
-                  <td data-row="12" data-col="19">0</td>
-                  <td data-row="12" data-col="20">0</td>
-                  <td data-row="12" data-col="21">0</td>
-                  <td data-row="12" data-col="22">0</td>
-                  <td data-row="12" data-col="23">0</td>
-                  <td data-row="12" data-col="24">0</td>
-                  <td data-row="12" data-col="25">0</td>
-                  <td data-row="12" data-col="26">0</td>
-                  <td data-row="12" data-col="27">0</td>
-                  <td data-row="12" data-col="28">0</td>
-                  <td data-row="12" data-col="29">0</td>
-                  <td data-row="12" data-col="30">0</td>
-                  <td data-row="12" data-col="31">0</td>
-                  <td data-row="12" data-col="32">0</td>
-                  <td data-row="12" data-col="33">0</td>
-                  <td data-row="12" data-col="34">0</td>
-                  <td data-row="12" data-col="35">0</td>
-                  <td data-row="12" data-col="36">651473.2</td>
-                  <td data-row="12" data-col="37">1</td>
-                  <td data-row="12" data-col="38">2005</td>
-                  <td data-row="12" data-col="39">-5</td>
-                </tr>
-                <tr>
-                  <td data-row="13" data-col="1">Alaska</td>
-                  <td data-row="13" data-col="2">2</td>
-                  <td data-row="13" data-col="3">2001</td>
-                  <td data-row="13" data-col="4">2005</td>
-                  <td data-row="13" data-col="5">1.846246</td>
-                  <td data-row="13" data-col="6">0</td>
-                  <td data-row="13" data-col="7">0</td>
-                  <td data-row="13" data-col="8">0</td>
-                  <td data-row="13" data-col="9">0</td>
-                  <td data-row="13" data-col="10">0</td>
-                  <td data-row="13" data-col="11">0</td>
-                  <td data-row="13" data-col="12">0</td>
-                  <td data-row="13" data-col="13">0</td>
-                  <td data-row="13" data-col="14">0</td>
-                  <td data-row="13" data-col="15">0</td>
-                  <td data-row="13" data-col="16">0</td>
-                  <td data-row="13" data-col="17">0</td>
-                  <td data-row="13" data-col="18">0</td>
-                  <td data-row="13" data-col="19">0</td>
-                  <td data-row="13" data-col="20">0</td>
-                  <td data-row="13" data-col="21">0</td>
-                  <td data-row="13" data-col="22">0</td>
-                  <td data-row="13" data-col="23">0</td>
-                  <td data-row="13" data-col="24">0</td>
-                  <td data-row="13" data-col="25">0</td>
-                  <td data-row="13" data-col="26">0</td>
-                  <td data-row="13" data-col="27">0</td>
-                  <td data-row="13" data-col="28">0</td>
-                  <td data-row="13" data-col="29">0</td>
-                  <td data-row="13" data-col="30">0</td>
-                  <td data-row="13" data-col="31">0</td>
-                  <td data-row="13" data-col="32">0</td>
-                  <td data-row="13" data-col="33">0</td>
-                  <td data-row="13" data-col="34">0</td>
-                  <td data-row="13" data-col="35">0</td>
-                  <td data-row="13" data-col="36">651473.2</td>
-                  <td data-row="13" data-col="37">1</td>
-                  <td data-row="13" data-col="38">2005</td>
-                  <td data-row="13" data-col="39">-4</td>
-                </tr>
-                <tr>
-                  <td data-row="14" data-col="1">Alaska</td>
-                  <td data-row="14" data-col="2">2</td>
-                  <td data-row="14" data-col="3">2002</td>
-                  <td data-row="14" data-col="4">2005</td>
-                  <td data-row="14" data-col="5">1.665124</td>
-                  <td data-row="14" data-col="6">0</td>
-                  <td data-row="14" data-col="7">0</td>
-                  <td data-row="14" data-col="8">0</td>
-                  <td data-row="14" data-col="9">0</td>
-                  <td data-row="14" data-col="10">0</td>
-                  <td data-row="14" data-col="11">0</td>
-                  <td data-row="14" data-col="12">0</td>
-                  <td data-row="14" data-col="13">0</td>
-                  <td data-row="14" data-col="14">0</td>
-                  <td data-row="14" data-col="15">0</td>
-                  <td data-row="14" data-col="16">0</td>
-                  <td data-row="14" data-col="17">0</td>
-                  <td data-row="14" data-col="18">0</td>
-                  <td data-row="14" data-col="19">0</td>
-                  <td data-row="14" data-col="20">0</td>
-                  <td data-row="14" data-col="21">0</td>
-                  <td data-row="14" data-col="22">0</td>
-                  <td data-row="14" data-col="23">0</td>
-                  <td data-row="14" data-col="24">0</td>
-                  <td data-row="14" data-col="25">0</td>
-                  <td data-row="14" data-col="26">0</td>
-                  <td data-row="14" data-col="27">0</td>
-                  <td data-row="14" data-col="28">0</td>
-                  <td data-row="14" data-col="29">0</td>
-                  <td data-row="14" data-col="30">0</td>
-                  <td data-row="14" data-col="31">0</td>
-                  <td data-row="14" data-col="32">0</td>
-                  <td data-row="14" data-col="33">0</td>
-                  <td data-row="14" data-col="34">0</td>
-                  <td data-row="14" data-col="35">0</td>
-                  <td data-row="14" data-col="36">651473.2</td>
-                  <td data-row="14" data-col="37">1</td>
-                  <td data-row="14" data-col="38">2005</td>
-                  <td data-row="14" data-col="39">-3</td>
-                </tr>
-                <tr>
-                  <td data-row="15" data-col="1">Alaska</td>
-                  <td data-row="15" data-col="2">2</td>
-                  <td data-row="15" data-col="3">2003</td>
-                  <td data-row="15" data-col="4">2005</td>
-                  <td data-row="15" data-col="5">1.823279</td>
-                  <td data-row="15" data-col="6">0</td>
-                  <td data-row="15" data-col="7">0</td>
-                  <td data-row="15" data-col="8">0</td>
-                  <td data-row="15" data-col="9">0</td>
-                  <td data-row="15" data-col="10">0</td>
-                  <td data-row="15" data-col="11">0</td>
-                  <td data-row="15" data-col="12">0</td>
-                  <td data-row="15" data-col="13">0</td>
-                  <td data-row="15" data-col="14">0</td>
-                  <td data-row="15" data-col="15">0</td>
-                  <td data-row="15" data-col="16">0</td>
-                  <td data-row="15" data-col="17">0</td>
-                  <td data-row="15" data-col="18">0</td>
-                  <td data-row="15" data-col="19">0</td>
-                  <td data-row="15" data-col="20">0</td>
-                  <td data-row="15" data-col="21">0</td>
-                  <td data-row="15" data-col="22">0</td>
-                  <td data-row="15" data-col="23">0</td>
-                  <td data-row="15" data-col="24">0</td>
-                  <td data-row="15" data-col="25">0</td>
-                  <td data-row="15" data-col="26">0</td>
-                  <td data-row="15" data-col="27">0</td>
-                  <td data-row="15" data-col="28">0</td>
-                  <td data-row="15" data-col="29">0</td>
-                  <td data-row="15" data-col="30">0</td>
-                  <td data-row="15" data-col="31">0</td>
-                  <td data-row="15" data-col="32">0</td>
-                  <td data-row="15" data-col="33">0</td>
-                  <td data-row="15" data-col="34">0</td>
-                  <td data-row="15" data-col="35">0</td>
-                  <td data-row="15" data-col="36">651473.2</td>
-                  <td data-row="15" data-col="37">1</td>
-                  <td data-row="15" data-col="38">2005</td>
-                  <td data-row="15" data-col="39">-2</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</div>
-</div>
-</div>
-<p><code>base_stagg</code>に関して、<code>year_treated</code>が10000、<code>time_to_treatment</code>が-1000となっているユニットがありますが、これは<strong>処置を受けないユニット（never-treated）</strong>を示しています。</p>
-<p>fixesが内部的に使用している<code>fixest::sunab()</code>関数は、<code>year_treated</code>にデータの<code>year</code>の範囲外にある大きな値（ここでは10000）を設定することで、これらを自動的にnever-treatedとして認識し、<strong>参照グループ（対照群）</strong>として扱います。<code>time_to_treatment</code>にも同様に極端に小さい負の値（-1000）を設定しています。</p>
-<p>これは、Staggered DIDにおいてnever-treatedのユニットの値を<code>NA</code>にしてしまうと、推定から完全に除外されてしまい、処置群と比較する対照群が失われてしまうためです。Never-treatedは処置効果を識別するための重要な比較対象なので、データに含める必要があります。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># never-treatedの確認</span></span>
-<span id="cb5-2">base_stagg <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb5-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">filter</span>(year_treated <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">10000</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb5-4">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">select</span>(id, year, year_treated, time_to_treatment, treated) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb5-5">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">head</span>()</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>  id year year_treated time_to_treatment treated
-1 81    1        10000             -1000       0
-2 80    1        10000             -1000       0
-3 79    1        10000             -1000       0
-4 78    1        10000             -1000       0
-5 77    1        10000             -1000       0
-6 76    1        10000             -1000       0</code></pre>
-</div>
-</div>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Never-treatedユニットの扱いについて
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Staggered DIDのデータセットをご自分で用意される場合も、never-treatedのユニットには同様の処理が必要です：</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 例：処置年がNAのユニットをnever-treatedとして設定</span></span>
-<span id="cb7-2">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb7-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb7-4">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">year_treated =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">if_else</span>(</span>
-<span id="cb7-5">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">is.na</span>(year_treated),</span>
-<span id="cb7-6">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">max</span>(year, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000</span>,  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># または10000など</span></span>
-<span id="cb7-7">      year_treated</span>
-<span id="cb7-8">    ),</span>
-<span id="cb7-9">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time_to_treatment =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">if_else</span>(</span>
-<span id="cb7-10">      year_treated <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">max</span>(year),  <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># never-treatedの条件</span></span>
-<span id="cb7-11">      <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000</span>,</span>
-<span id="cb7-12">      year <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span> year_treated</span>
-<span id="cb7-13">    )</span>
-<span id="cb7-14">  )</span></code></pre></div></div>
-<p><strong>ポイント</strong>：<code>year_treated</code>はデータの時間範囲外の大きな値（例：10000）、<code>time_to_treatment</code>は極端に小さい負の値（例：-1000）を設定します。これにより、fixesの内部処理（fixest）が適切にnever-treatedを認識します。</p>
-</div>
-</div>
-</section>
-<section id="run_es" class="level2">
-<h2 class="anchored" data-anchor-id="run_es"><code>run_es()</code></h2>
-<p>基本的な使い方と一緒にパッケージについて説明していきます。関数はイベントスタディを実行する<code>run_es()</code>関数とイベントスタディをggplotベースでプロットする<code>plot_es()</code>です。</p>
-<p>ひとまず、<code>run_es()</code>の基本的な引数を説明します。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">run_es</span>(</span>
-<span id="cb8-2">  data,</span>
-<span id="cb8-3">  outcome,</span>
-<span id="cb8-4">  treatment,</span>
-<span id="cb8-5">  time,</span>
-<span id="cb8-6">  timing,</span>
-<span id="cb8-7">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">fe =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>,</span>
-<span id="cb8-8">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">lead_range =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>,</span>
-<span id="cb8-9">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">lag_range =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>,</span>
-<span id="cb8-10">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">covariates =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>,</span>
-<span id="cb8-11">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cluster =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>,</span>
-<span id="cb8-12">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">weights =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>,</span>
-<span id="cb8-13">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">baseline =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>L,</span>
-<span id="cb8-14">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">interval =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>,</span>
-<span id="cb8-15">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time_transform =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">FALSE</span>,</span>
-<span id="cb8-16">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">unit =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">NULL</span>,</span>
-<span id="cb8-17">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">staggered =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">FALSE</span>,</span>
-<span id="cb8-18">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"classic"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"sunab"</span>),</span>
-<span id="cb8-19">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">conf.level =</span> <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.95</span>,</span>
-<span id="cb8-20">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">vcov =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"HC1"</span>,</span>
-<span id="cb8-21">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">vcov_args =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">list</span>()</span>
-<span id="cb8-22">)</span></code></pre></div></div>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 75%">
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">引数</th>
-<th style="text-align: left;">説明</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;"><code>data</code></td>
-<td style="text-align: left;">パネルデータを含むデータフレーム</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>outcome</code></td>
-<td style="text-align: left;">結果変数（変数名または式、例：<code>log(y)</code>のように記述）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>treatment</code></td>
-<td style="text-align: left;">処置変数（0/1または論理値）。<code>method = "classic"</code>の場合のみ使用</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>time</code></td>
-<td style="text-align: left;">時間変数（数値型またはDate型）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>timing</code></td>
-<td style="text-align: left;">classicの場合：処置タイミング（全ユニット共通の数値/Dateまたは<code>staggered = TRUE</code>時は変数名）。sunabの場合：処置採用時点を示す変数</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>fe</code></td>
-<td style="text-align: left;">固定効果の指定（片側式、例：<code>~ id + year</code>）。固定効果なしの場合は<code>NULL</code></td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>lead_range</code>, <code>lag_range</code></td>
-<td style="text-align: left;">処置前後の期間範囲を指定する整数。<code>NULL</code>の場合は自動決定</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>covariates</code></td>
-<td style="text-align: left;">追加の共変量（片側式、例：<code>~ x1 + log(x2)</code>）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>cluster</code></td>
-<td style="text-align: left;">クラスター指定（片側式<code>~ id + year</code>、列名の文字列、または<code>nrow(data)</code>の長さのベクトル）</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>weights</code></td>
-<td style="text-align: left;">観測ウェイト（変数名/片側式または<code>nrow(data)</code>の長さの数値ベクトル）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>baseline</code></td>
-<td style="text-align: left;">ベースライン期間（デフォルト：-1）。“classic”と”sunab”の両方で、参照期間として結果から除外される</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>interval</code></td>
-<td style="text-align: left;">時間変数の間隔（デフォルト：1。Date型の場合は内部で無視される）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>time_transform</code></td>
-<td style="text-align: left;"><code>TRUE</code>の場合、ユニット内で連続した整数時間を作成</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>unit</code></td>
-<td style="text-align: left;">ユニット識別変数（<code>time_transform = TRUE</code>の場合は必須。指定時はメタデータにも使用）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>staggered</code></td>
-<td style="text-align: left;"><code>TRUE</code>の場合、timing変数を使用（classicの場合）またはsunabで利用</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>method</code></td>
-<td style="text-align: left;"><code>"classic"</code>または<code>"sunab"</code>を指定（デフォルト：<code>"classic"</code>）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>conf.level</code></td>
-<td style="text-align: left;">信頼水準（デフォルト：0.95）。数値ベクトルで複数指定可能</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;"><code>vcov</code></td>
-<td style="text-align: left;">分散共分散行列の種類。<code>fixest::vcov()</code>または<code>broom::tidy(vcov = ...)</code>に渡される（デフォルト：<code>"HC1"</code>）</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;"><code>vcov_args</code></td>
-<td style="text-align: left;"><code>fixest::vcov()</code>に渡す追加引数のリスト</td>
-</tr>
-</tbody>
-</table>
-<p>文字で見てもわかりにくいと思うので、読み込んだデータを使って関数を回してみましょう。</p>
-<section id="sec-basic-es" class="level3">
-<h3 class="anchored" data-anchor-id="sec-basic-es">通常のDiDにおけるイベントスタディ</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1">es <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">run_es</span>(</span>
-<span id="cb9-2">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">data =</span> base_did,</span>
-<span id="cb9-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">outcome =</span> y,</span>
-<span id="cb9-4">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">treatment =</span> treat,</span>
-<span id="cb9-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time =</span> period,</span>
-<span id="cb9-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">timing =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">6</span>,</span>
-<span id="cb9-7">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">fe =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> id <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> period</span>
-<span id="cb9-8">)</span></code></pre></div></div>
-</div>
-<p>基本的なケースであればこれくらいの指定で済みます。プロットは後のセクションでまとめて載せます。</p>
-</section>
-<section id="staggered-did-1" class="level3">
-<h3 class="anchored" data-anchor-id="staggered-did-1">Staggered DiD 1</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1">es_stagg1 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">run_es</span>(</span>
-<span id="cb10-2">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">data =</span> base_stagg,</span>
-<span id="cb10-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">outcome =</span> y,</span>
-<span id="cb10-4">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">treatment =</span> treated,</span>
-<span id="cb10-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time =</span> year,</span>
-<span id="cb10-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">timing =</span> year_treated,</span>
-<span id="cb10-7">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">fe =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> id <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> year,</span>
-<span id="cb10-8">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">staggered =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>,</span>
-<span id="cb10-9">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"sunab"</span></span>
-<span id="cb10-10">)</span></code></pre></div></div>
-</div>
-<p>先ほどと違う点は、<code>staggered</code>がTRUE、<code>method</code>が”sunab”、<code>timing</code>が具体的な数値ではなく、処置年を示す変数を指定しているところです。</p>
-<p>“sunab”は<a href="https://www.sciencedirect.com/science/article/abs/pii/S030440762030378X">Sun and Abraham (2021)</a>で提唱されている方法を指し、Staggered DiDにおけるイベントスタディで有用です。裏では<code>fixest::sunab()</code>関数を使っています。</p>
-</section>
-<section id="staggered-did-2" class="level3">
-<h3 class="anchored" data-anchor-id="staggered-did-2">Staggered DiD 2</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 共変量の変数を式の形にしておく</span></span>
-<span id="cb11-2">covariates <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">as.formula</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"~"</span>, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste</span>(region, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">collapse =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"+"</span>)))</span>
-<span id="cb11-3"></span>
-<span id="cb11-4">es_stagg2 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">run_es</span>(</span>
-<span id="cb11-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">data =</span> df_castle,</span>
-<span id="cb11-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">outcome =</span> l_homicide,</span>
-<span id="cb11-7">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">treatment =</span> is_treated,</span>
-<span id="cb11-8">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">time =</span> year,</span>
-<span id="cb11-9">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">timing =</span> year_treated,</span>
-<span id="cb11-10">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">fe =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> state <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span> year,</span>
-<span id="cb11-11">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">covariates =</span> covariates,</span>
-<span id="cb11-12">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">cluster =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> sid,</span>
-<span id="cb11-13">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">weights =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">~</span> popwt,</span>
-<span id="cb11-14">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">baseline =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>,</span>
-<span id="cb11-15">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">staggered =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>,</span>
-<span id="cb11-16">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">vcov =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"cluster"</span></span>
-<span id="cb11-17">)</span></code></pre></div></div>
-</div>
-<p>今回の例は共変量が多いので事前に<code>as.formula()</code>を使って処理してしまっていますが、関数内で<code>covariates = ~ cov1 + cov2</code>のような指定の仕方で問題ありません。</p>
-<p>また、ここでは<code>vcov</code>も”cluster”に指定して、<code>sid</code>でクラスタリングした標準誤差を計算しています。<code>vcov</code>については、<code>?fixest::feols()</code>で詳細を確認できます。</p>
-</section>
-</section>
-<section id="plot_es" class="level2">
-<h2 class="anchored" data-anchor-id="plot_es"><code>plot_es()</code></h2>
-<p>こだわりがなければ、<code>plot_es(es)</code>の程度の書き方でプロットを出力することができます。引数の説明は後に回して、一旦先ほどのイベントスタディの結果をプロットしてみましょう。</p>
-<section id="通常のdidにおけるイベントスタディ" class="level3">
-<h3 class="anchored" data-anchor-id="通常のdidにおけるイベントスタディ">通常のDiDにおけるイベントスタディ</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(es)</span></code></pre></div></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/05/250525_fixes/index_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>後の2つもそうですが、ベースラインがデフォルトのままなので、処置前年（-1）が抜けて値が0をとっています。</p>
-</section>
-<section id="staggered-did-1-1" class="level3">
-<h3 class="anchored" data-anchor-id="staggered-did-1-1">Staggered DiD 1</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(es_stagg1)</span></code></pre></div></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/05/250525_fixes/index_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</section>
-<section id="staggered-did-2-1" class="level3">
-<h3 class="anchored" data-anchor-id="staggered-did-2-1">Staggered DiD 2</h3>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(es_stagg2)</span></code></pre></div></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/05/250525_fixes/index_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Staggeredの方もいい感じにプロットできています。この図はMixtape内でlead変数とlag変数を手作業で作って実装しプロットされていますが、<a href="https://mixtape.scunning.com/09-difference_in_differences#fig-event-cheng2">その図</a>と見比べても同じ推移が示されていることがわかります。</p>
-</section>
-<section id="使い方" class="level3">
-<h3 class="anchored" data-anchor-id="使い方">使い方</h3>
-<p>基本的には上の使い方で十分ですが、ggplotベースで作ったこともあり、柔軟な対応も可能です。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(</span>
-<span id="cb15-2">  data,</span>
-<span id="cb15-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"ribbon"</span>,</span>
-<span id="cb15-4">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">vline_val =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>,</span>
-<span id="cb15-5">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">vline_color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#000"</span>,</span>
-<span id="cb15-6">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">hline_val =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>,</span>
-<span id="cb15-7">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">hline_color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#000"</span>,</span>
-<span id="cb15-8">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">linewidth =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>,</span>
-<span id="cb15-9">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">pointsize =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>,</span>
-<span id="cb15-10">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">alpha =</span> <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.2</span>,</span>
-<span id="cb15-11">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">barwidth =</span> <span class="fl" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0.2</span>,</span>
-<span id="cb15-12">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#B25D91FF"</span>,</span>
-<span id="cb15-13">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">fill =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#B25D91FF"</span></span>
-<span id="cb15-14">)</span></code></pre></div></div>
-<ul>
-<li><code>data</code>：<code>run_es()</code>で作成した結果のデータフレーム</li>
-<li><code>type</code>：<code>ribbon</code>と<code>errorbar</code>が指定可能</li>
-<li><code>vline_val</code>：縦の破線の位置（デフォルトは0）</li>
-<li><code>vline_color</code>：縦の破線の色（デフォルトは<code>#000</code>（黒））</li>
-<li><code>hline_val</code>：横の破線の位置（デフォルトは0）</li>
-<li><code>hline_color</code>：縦の破線の色（デフォルトは<code>#000</code>（黒））</li>
-<li><code>linewidth</code>：折れ線の太さ（デフォルトは1）</li>
-<li><code>pointsize</code>：点の大きさ（デフォルトは2）</li>
-<li><code>alpha</code>：リボンの透明度（デフォルトは0.2）</li>
-<li><code>color</code>：線と点の色（デフォルトは<code>#B25D91FF</code>（ピンク））</li>
-<li><code>fill</code>リボンの色（デフォルトは<code>#B25D91FF</code>（ピンク））</li>
-</ul>
-<hr>
-<p><code>plot_es()</code>関数内でもある程度自由度をもって設定できます。<br>
-例えばプロットをエラーバーのタイプにしてみましょう。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(es_stagg2, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"errorbar"</span>)</span></code></pre></div></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/05/250525_fixes/index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>さらに色も変えてみます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(es_stagg2, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"errorbar"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#000"</span>)</span></code></pre></div></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/05/250525_fixes/index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>リボンタイプとエラーバータイプがあり、さらにそこからある程度の自由度もある点が他のパッケージに対する優位性にもなっています。</p>
-<p>ちなみに、ggplotベースということで、<strong>ggplotの関数をつなげることも可能です</strong>！</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es</span>(es_stagg2, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"errorbar"</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"#000"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span></span>
-<span id="cb18-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">geom_hline</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">yintercept =</span> .<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">08</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"red"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">+</span></span>
-<span id="cb18-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">annotate</span>(</span>
-<span id="cb18-4">    <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"text"</span>,</span>
-<span id="cb18-5">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">x =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">3</span>,</span>
-<span id="cb18-6">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">y =</span> <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">-</span>.<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>,</span>
-<span id="cb18-7">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">label =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"DD Coefficient = 0.08</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\n</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">(s.e. = 0.03)"</span></span>
-<span id="cb18-8">  )</span></code></pre></div></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2025/05/250525_fixes/index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Mixtape風に係数を示す水平線と注釈を追加してみました。このようにどんどん要素を追加していくことができます。</p>
-</section>
-</section>
-<section id="plot_es_interactive" class="level2">
-<h2 class="anchored" data-anchor-id="plot_es_interactive"><code>plot_es_interactive()</code></h2>
-<p><code>plot_es()</code>で作成したプロットをインタラクティブにする関数も用意しています。<code>plot_es_interactive()</code>です。</p>
-<p>この関数で表示したプロットは、マウスオーバーで各点の推定値と信頼区間が表示されたり、ズームイン・ズームアウトができたりします。</p>
-<p>論文に載せるための関数ではないものの、結果の確認やコミュニケーションの際に便利かと思います。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot_es_interactive</span>(es_stagg2)</span></code></pre></div></div>
-<div class="cell-output-display">
-<div class="plotly html-widget html-fill-item" id="htmlwidget-0fac345b4f5399ef3b3b" style="width:100%;height:464px;"></div>
-<script type="application/json" data-for="htmlwidget-0fac345b4f5399ef3b3b">{"x":{"visdat":{"9a7de3750e8":["function () ","plotlyVisDat"],"9a7d2bb605fa":["function () ","data"],"9a7d6045dd83":["function () ","data"]},"cur_data":"9a7d6045dd83","attrs":{"9a7d2bb605fa":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"ymin":{},"ymax":{},"type":"scatter","mode":"lines","hoveron":"points","fill":"toself","fillcolor":"#B25D91FF","opacity":0.20000000000000001,"line":{"width":0},"name":"95% CI","hoverinfo":"skip","showlegend":false,"inherit":true},"9a7d6045dd83":{"alpha_stroke":1,"sizes":[10,100],"spans":[1,20],"x":{},"y":{},"type":"scatter","mode":"lines+markers","line":{"color":"#B25D91FF","width":2},"marker":{"size":8,"color":"#B25D91FF","line":{"color":"#fff","width":1}},"text":{},"hoverinfo":"text","name":"Estimate","showlegend":false,"inherit":true},"9a7d6045dd83.1":{"x":0,"y":-0.50989931672728306,"xend":0,"yend":0.31039673759402214,"type":"scatter","mode":"lines","line":{"color":"#000","dash":"dash","width":1},"hoverinfo":"skip","showlegend":false,"inherit":false},"9a7d6045dd83.2":{"x":-9.5,"y":0,"xend":5.5,"yend":0,"type":"scatter","mode":"lines","line":{"color":"#000","dash":"dash","width":1},"hoverinfo":"skip","showlegend":false,"inherit":false}},"layout":{"margin":{"b":40,"l":60,"t":25,"r":10},"xaxis":{"domain":[0,1],"automargin":true,"title":"Relative Time to Treatment","zeroline":false,"gridcolor":"#eee"},"yaxis":{"domain":[0,1],"automargin":true,"title":"Estimate and 95% CI","zeroline":false,"gridcolor":"#eee"},"plot_bgcolor":"#fff","paper_bgcolor":"#fff","hovermode":"closest","font":{"family":"Arial, sans-serif","size":12},"showlegend":false},"source":"A","config":{"modeBarButtonsToAdd":["hoverclosest","hovercompare"],"showSendToCloud":false,"displayModeBar":true,"modeBarButtonsToRemove":["pan2d","select2d","lasso2d","autoScale2d","hoverClosestCartesian","hoverCompareCartesian"],"displaylogo":false},"data":[{"fillcolor":"#B25D91FF","x":[-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,5,5,4,3,2,1,0,-1,-2,-3,-4,-5,-6,-7,-8,-9],"type":"scatter","mode":"lines","hoveron":"points","fill":"toself","opacity":0.20000000000000001,"line":{"color":"rgba(31,119,180,1)","width":0},"name":"95% CI","hoverinfo":["skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip","skip"],"showlegend":false,"y":[-0.34889119862968465,-0.4635448333884391,-0.30635153005793792,-0.1075653381547883,-0.087207508348462942,-0.095293663933610079,-0.056318095764794573,-0.041900590706245439,-0.090185715407510539,0,0.022492298071371736,-0.006383439959123216,0.0012144854730531673,-0.036785863838321206,0.062650551310018412,0.062650551310018412,0.28217885235820195,0.19410074693115553,0.20882889735161098,0.17120528888061248,0.13293074761703191,0,0.039145684663557154,0.080065717028417402,0.080672620425189773,0.087182537629335144,0.097121962832330211,0.12614116209770954,0.031961736744468727,-0.14358021949674507,-0.17247983014924606],"marker":{"color":"rgba(31,119,180,1)","line":{"color":"rgba(31,119,180,1)"}},"error_y":{"color":"rgba(31,119,180,1)"},"error_x":{"color":"rgba(31,119,180,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5],"y":[-0.26068551438946536,-0.30356252644259207,-0.13719489665673459,0.0092879119714606162,0.0049572272419336292,-0.0040555631521374674,0.012177262330197598,0.019082563161085982,-0.025520015371976689,0,0.077711522844201825,0.082410924460744633,0.10502169141233207,0.07865744154641717,0.17241470183411017],"type":"scatter","mode":"lines+markers","line":{"color":"#B25D91FF","width":2},"marker":{"color":"#B25D91FF","size":8,"line":{"color":"#fff","width":1}},"text":["<b>Relative Time:<\/b> -9<br><b>Estimate:<\/b> -0.2607<br><b>Std. Error:<\/b> 0.0450<br><b>95% CI:<\/b> [-0.3489, -0.1725]<br><b>P-value:<\/b> 0.0000","<b>Relative Time:<\/b> -8<br><b>Estimate:<\/b> -0.3036<br><b>Std. Error:<\/b> 0.0816<br><b>95% CI:<\/b> [-0.4635, -0.1436]<br><b>P-value:<\/b> 0.0002","<b>Relative Time:<\/b> -7<br><b>Estimate:<\/b> -0.1372<br><b>Std. Error:<\/b> 0.0863<br><b>95% CI:<\/b> [-0.3064, 0.0320]<br><b>P-value:<\/b> 0.1126","<b>Relative Time:<\/b> -6<br><b>Estimate:<\/b> 0.0093<br><b>Std. Error:<\/b> 0.0596<br><b>95% CI:<\/b> [-0.1076, 0.1261]<br><b>P-value:<\/b> 0.8763","<b>Relative Time:<\/b> -5<br><b>Estimate:<\/b> 0.0050<br><b>Std. Error:<\/b> 0.0470<br><b>95% CI:<\/b> [-0.0872, 0.0971]<br><b>P-value:<\/b> 0.9161","<b>Relative Time:<\/b> -4<br><b>Estimate:<\/b> -0.0041<br><b>Std. Error:<\/b> 0.0466<br><b>95% CI:<\/b> [-0.0953, 0.0872]<br><b>P-value:<\/b> 0.9306","<b>Relative Time:<\/b> -3<br><b>Estimate:<\/b> 0.0122<br><b>Std. Error:<\/b> 0.0349<br><b>95% CI:<\/b> [-0.0563, 0.0807]<br><b>P-value:<\/b> 0.7277","<b>Relative Time:<\/b> -2<br><b>Estimate:<\/b> 0.0191<br><b>Std. Error:<\/b> 0.0311<br><b>95% CI:<\/b> [-0.0419, 0.0801]<br><b>P-value:<\/b> 0.5400","<b>Relative Time:<\/b> -1<br><b>Estimate:<\/b> -0.0255<br><b>Std. Error:<\/b> 0.0330<br><b>95% CI:<\/b> [-0.0902, 0.0391]<br><b>P-value:<\/b> 0.4396","<b>Relative Time:<\/b> 0<br><b>Estimate:<\/b> 0.0000<br><b>Std. Error:<\/b> 0.0000<br><b>95% CI:<\/b> [0.0000, 0.0000]<br><b>P-value:<\/b> NA","<b>Relative Time:<\/b> 1<br><b>Estimate:<\/b> 0.0777<br><b>Std. Error:<\/b> 0.0282<br><b>95% CI:<\/b> [0.0225, 0.1329]<br><b>P-value:<\/b> 0.0060","<b>Relative Time:<\/b> 2<br><b>Estimate:<\/b> 0.0824<br><b>Std. Error:<\/b> 0.0453<br><b>95% CI:<\/b> [-0.0064, 0.1712]<br><b>P-value:<\/b> 0.0696","<b>Relative Time:<\/b> 3<br><b>Estimate:<\/b> 0.1050<br><b>Std. Error:<\/b> 0.0530<br><b>95% CI:<\/b> [0.0012, 0.2088]<br><b>P-value:<\/b> 0.0480","<b>Relative Time:<\/b> 4<br><b>Estimate:<\/b> 0.0787<br><b>Std. Error:<\/b> 0.0589<br><b>95% CI:<\/b> [-0.0368, 0.1941]<br><b>P-value:<\/b> 0.1824","<b>Relative Time:<\/b> 5<br><b>Estimate:<\/b> 0.1724<br><b>Std. Error:<\/b> 0.0560<br><b>95% CI:<\/b> [0.0627, 0.2822]<br><b>P-value:<\/b> 0.0022"],"hoverinfo":["text","text","text","text","text","text","text","text","text","text","text","text","text","text","text"],"name":"Estimate","showlegend":false,"error_y":{"color":"rgba(255,127,14,1)"},"error_x":{"color":"rgba(255,127,14,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[0,0],"y":[-0.50989931672728306,0.31039673759402214],"type":"scatter","mode":"lines","line":{"color":"#000","dash":"dash","width":1},"hoverinfo":["skip","skip"],"showlegend":false,"marker":{"color":"rgba(44,160,44,1)","line":{"color":"rgba(44,160,44,1)"}},"error_y":{"color":"rgba(44,160,44,1)"},"error_x":{"color":"rgba(44,160,44,1)"},"xaxis":"x","yaxis":"y","frame":null},{"x":[-9.5,5.5],"y":[0,0],"type":"scatter","mode":"lines","line":{"color":"#000","dash":"dash","width":1},"hoverinfo":["skip","skip"],"showlegend":false,"marker":{"color":"rgba(214,39,40,1)","line":{"color":"rgba(214,39,40,1)"}},"error_y":{"color":"rgba(214,39,40,1)"},"error_x":{"color":"rgba(214,39,40,1)"},"xaxis":"x","yaxis":"y","frame":null}],"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.20000000000000001,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
-</div>
-</div>
-<p>マウスオーバーすると値が表示されます。</p>
-<p>こちらも<code>plot_es()</code>と同様に、引数で色や線の太さなどを指定できますので、いろいろ試してみてください。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>まだまだ開発途上ですが、staggeredまで対応できたので、これからしばらくはブラッシュアップを念頭にアップデートしていこうと思います。</p>
-<p>冒頭にも書きましたが、もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの<a href="https://github.com/yo5uke/fixes/issues">Issues</a>までお願いします。</p>
-</section>
-<section id="データ出典" class="level2">
-<h2 class="anchored" data-anchor-id="データ出典">🔗 データ出典</h2>
-<p>データ出典：<a href="https://mixtape.scunning.com/">Causal Inference: The Mixtape</a>（Scott Cunnningham, 2021）<br>
-データはGitHub上で公開されており、以下のリポジトリから入手可能です：</p>
-<p><a href="https://github.com/scunning1975/mixtape" class="uri">https://github.com/scunning1975/mixtape</a></p>
-<p>また、データはMITライセンスのもとで提供されています。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>参考：<a href="https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of">Mixtape</a>↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <guid>https://yo5uke.com/pages/tips/2025/05/250525_fixes/</guid>
-  <pubDate>Sat, 24 May 2025 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
