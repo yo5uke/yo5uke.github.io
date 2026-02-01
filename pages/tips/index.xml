@@ -14254,18 +14254,63 @@ font-style: inherit;">"data/pop_by_mesh"</span>)</span></code></pre></div></div>
 
 <section id="はじめに" class="level2">
 <h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p><a href="../../../../../pages/tips/2024/12/241219_container/index.html">環境構築の記事</a>でDVCを使用したデータ管理についてもまとめていますが、Google Cloud Projectを使用するため若干ややこしいことに加え、定期的にトークンが切れて認証し直さないといけないという大きいデメリットがありました。</p>
-<p>今回は初回の設定のみで設定がすむ方法について解説します。</p>
-<p><a href="../../../../../pages/tips/2024/12/241219_container/index.html">記事</a>と同様の流れでの作業を想定しているので、その点ご留意ください。</p>
+<p>DVCはデータのバージョン管理ツールで、GitHubの容量制限（100MiB）を超えるデータをGoogle Driveなどの外部ストレージで管理できます。</p>
+<p>DVCでGoogle Driveをリモートストレージとして使う場合、認証方法には主にOAuthとサービスアカウントの2つがあります。</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th></th>
+<th>OAuth</th>
+<th>サービスアカウント</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>設定の手軽さ</td>
+<td>やや複雑</td>
+<td>シンプル</td>
+</tr>
+<tr class="even">
+<td>トークン管理</td>
+<td>定期的に再認証が必要</td>
+<td>不要（キーファイルで認証）</td>
+</tr>
+<tr class="odd">
+<td>共有のしやすさ</td>
+<td>各自が認証を行う</td>
+<td>キーファイルを共有するだけ</td>
+</tr>
+</tbody>
+</table>
+<p>本記事ではサービスアカウントを使った方法を解説します。</p>
+<p>開発コンテナでの利用を想定していますが、それ以外の環境でも同様の手順で設定できます。開発コンテナの環境構築については<a href="../../../../../pages/tips/2024/12/241219_container/index.html">こちらの記事</a>を参考にしてください。</p>
 </section>
-<section id="google-cloud-console" class="level2">
-<h2 class="anchored" data-anchor-id="google-cloud-console">Google Cloud Console</h2>
+<section id="前提条件" class="level2">
+<h2 class="anchored" data-anchor-id="前提条件">前提条件</h2>
+<p>以下がインストールされていることを前提とします。</p>
+<ul>
+<li>Python（pipが使える状態）</li>
+<li>Git</li>
+</ul>
+<p>DVCとGoogle Drive用のパッケージをインストールしてください。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">pip</span> install dvc dvc-gdrive</span></code></pre></div></div>
+</div>
+</section>
+<section id="サービスアカウントの作成" class="level2">
+<h2 class="anchored" data-anchor-id="サービスアカウントの作成">サービスアカウントの作成</h2>
+<p>Google Cloudのサービスアカウントは、人ではなくアプリケーションがGoogle APIにアクセスするための仕組みです。DVCがGoogle Driveにアクセスするために使用します。</p>
 <ol type="1">
 <li><a href="https://console.cloud.google.com/">Google Cloud Console</a>へアクセス</li>
 <li>画面上部のボックスからプロジェクトを作成
 <ul>
-<li>左上にGoogle Cloudと書いてある部分の右です</li>
-<li>出てくるウィンドウの右上から作れます</li>
+<li>左上にGoogle Cloudと書いてある部分の右です。</li>
+<li>出てくるウィンドウの右上から作れます。</li>
 </ul></li>
 </ol>
 <div class="quarto-figure quarto-figure-center">
@@ -14276,13 +14321,13 @@ font-style: inherit;">"data/pop_by_mesh"</span>)</span></code></pre></div></div>
 <ol start="3" type="1">
 <li>画面左のメニューから「IAMと管理」を選択
 <ul>
-<li>左にメニューがない場合は左上の3本線から開けます</li>
+<li>左にメニューがない場合は左上の3本線から開けます。</li>
 </ul></li>
 <li>サイドバーの真ん中上あたりから「サービスアカウント」を選択</li>
 <li>画面上部の「サービスアカウントを作成」へ進む</li>
 <li>任意の名前と説明を入力し、完了を押下
 <ul>
-<li>権限のところはスキップで構いません</li>
+<li>権限のところはスキップで構いません。</li>
 </ul></li>
 </ol>
 <div class="quarto-figure quarto-figure-center">
@@ -14291,27 +14336,27 @@ font-style: inherit;">"data/pop_by_mesh"</span>)</span></code></pre></div></div>
 </figure>
 </div>
 <ol start="7" type="1">
-<li>メールの列に書いてある、長いメールアドレスをコピーしておく
+<li>メールの列に書いてある長いメールアドレスをコピーしておく
 <ul>
-<li>後ほどGoogle Driveのフォルダにこのアドレスを共有します</li>
+<li>後ほどGoogle Driveのフォルダにこのアドレスを共有します。</li>
 </ul></li>
 <li>作成したサービスアカウントの一番右にある「操作」から「鍵を管理」を選択
 <ul>
-<li>長ったらしいメールアドレスの右側にある点々の部分です</li>
+<li>長いメールアドレスの右側にある点々の部分です。</li>
 </ul></li>
-<li>「キーを追加」→「新しい鍵を作成」→「JSON」を選択、作成へ進む</li>
-<li>ファイルとして保存されるので、作業ディレクトリへ保存する
+<li>「キーを追加」→「新しい鍵を作成」→「JSON」を選択し、作成へ進む</li>
+<li>ファイルとして保存されるので、作業ディレクトリの<code>.secrets</code>フォルダに保存する
 <ul>
-<li><code>.secrets</code>フォルダを作り、その中へ保存してください</li>
-<li>ファイル名は変えて問題ありません。<code>key.json</code>とかで大丈夫です</li>
+<li><code>.secrets</code>フォルダがなければ作成してください。</li>
+<li>ファイル名は<code>key.json</code>などわかりやすいもので構いません。</li>
 </ul></li>
 </ol>
 </section>
-<section id="google-drive" class="level2">
-<h2 class="anchored" data-anchor-id="google-drive">Google Drive</h2>
+<section id="google-driveの設定" class="level2">
+<h2 class="anchored" data-anchor-id="google-driveの設定">Google Driveの設定</h2>
 <ol type="1">
-<li>Google Driveの任意の場所にプロジェクトでデータをしまうフォルダを作成する</li>
-<li>フォルダの共有の設定から、先ほどコピーしたメールアドレスを貼り付け共有する</li>
+<li>Google Driveの任意の場所にデータ保管用のフォルダを作成</li>
+<li>フォルダの共有設定から、先ほどコピーしたサービスアカウントのメールアドレスを貼り付け、「編集者」権限で共有</li>
 </ol>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -14320,18 +14365,23 @@ font-style: inherit;">"data/pop_by_mesh"</span>)</span></code></pre></div></div>
 </figure>
 </div>
 <ol start="3" type="1">
-<li>Googleドライブで作成したフォルダのIDをコピー
+<li>フォルダのIDをコピー
 <ul>
-<li>IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（~/folders/）より右側の部分です</li>
+<li>IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（~/folders/）より右側の部分です。</li>
 </ul></li>
 </ol>
 </section>
-<section id="vscode" class="level2">
-<h2 class="anchored" data-anchor-id="vscode">VSCode</h2>
-<ol type="1">
-<li>VSCodeのターミナルで次のコマンドを入力して実行 - 最後の部分（四角括弧ごと）をコピーしたIDに変更してください</li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
+<section id="dvcの初期化とリモート設定" class="level2">
+<h2 class="anchored" data-anchor-id="dvcの初期化とリモート設定">DVCの初期化とリモート設定</h2>
+<p>ターミナルで以下のコマンドを順番に実行します。</p>
+<section id="リモートの追加" class="level3">
+<h3 class="anchored" data-anchor-id="リモートの追加">リモートの追加</h3>
+<p>フォルダIDの部分を、先ほどコピーしたIDに置き換えてください。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
 background-color: null;
 font-style: inherit;">dvc</span> init <span class="kw" style="color: #003B4F;
 background-color: null;
@@ -14341,61 +14391,148 @@ background-color: null;
 font-style: inherit;">dvc</span> remote add <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">-d</span> myremote gdrive://[Google DriveのフォルダID]</span></code></pre></div></div>
-<ol start="2" type="1">
-<li>サービスアカウントを有効にする
-<ul>
-<li>以下のコマンドを実行してください</li>
-</ul></li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
+</div>
+</section>
+<section id="サービスアカウントの有効化" class="level3">
+<h3 class="anchored" data-anchor-id="サービスアカウントの有効化">サービスアカウントの有効化</h3>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><span class="ex" style="color: null;
 background-color: null;
 font-style: inherit;">dvc</span> remote modify myremote gdrive_use_service_account true</span></code></pre></div></div>
-<ol start="3" type="1">
-<li>次のコマンドを実行する
-<ul>
-<li>フォルダ名やファイル名を自分で変えた場合、修正してから実行してください</li>
-</ul></li>
-</ol>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><span class="ex" style="color: null;
+</div>
+</section>
+<section id="キーファイルのパスを設定" class="level3">
+<h3 class="anchored" data-anchor-id="キーファイルのパスを設定">キーファイルのパスを設定</h3>
+<p><code>--local</code>を付けることで、この設定は<code>.dvc/config.local</code>に保存され、Gitには追跡されません。フォルダ名やファイル名を変更した場合は、適宜修正してください。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="ex" style="color: null;
 background-color: null;
 font-style: inherit;">dvc</span> remote modify myremote <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">--local</span> <span class="dt" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">\</span></span>
-<span id="cb3-2">    gdrive_service_account_json_file_path .secrets/key.json</span></code></pre></div></div>
+<span id="cb4-2">    gdrive_service_account_json_file_path .secrets/key.json</span></code></pre></div></div>
+</div>
 </section>
-<section id="設定ファイルをgitignore重要" class="level2">
-<h2 class="anchored" data-anchor-id="設定ファイルをgitignore重要">設定ファイルをgitignore（重要！）</h2>
-<p>いま<code>.secrets</code>を作りましたが、この中身はいわば個人情報であり他人に漏らしていいものではないので、<code>.gitignore</code>ファイルにしっかり記載し、Gitのトラッキングを解除しておく必要があります。</p>
-<p>以下のように<code>.gitignore</code>に追記してください。</p>
+</section>
+<section id="セキュリティ設定" class="level2">
+<h2 class="anchored" data-anchor-id="セキュリティ設定">セキュリティ設定</h2>
+<p><code>.secrets</code>フォルダにはサービスアカウントのキーファイルが含まれています。これは機密情報なので、必ず<code>.gitignore</code>に追記してGitの追跡対象から外してください。</p>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
 <pre><strong>.gitignore</strong></pre>
 </div>
 <pre data-filename=".gitignore"><code>/.secrets/</code></pre>
 </div>
-<p>これで<code>.secrets</code>フォルダの中身がGitに追跡されません。</p>
+<p>これで<code>.secrets</code>フォルダの中身がGitにコミットされることはありません。</p>
 </section>
-<section id="データフォルダを作ったら適宜add-push" class="level2">
-<h2 class="anchored" data-anchor-id="データフォルダを作ったら適宜add-push">データフォルダを作ったら適宜<code>add</code>, <code>push</code></h2>
-<p>以上で設定は終了です。</p>
-<p><a href="../../../../../pages/tips/2024/12/241219_container/index.html">環境構築の記事</a>でも説明しているように、あとは<code>data</code>などデータを入れるフォルダを作りデータを追加したら、<code>dvc add data/</code>を実行し、最後は<code>dvc push</code>でプッシュすることでデータファイルをGoogle Drive上で管理することができます。</p>
+<section id="データの追加とプッシュ" class="level2">
+<h2 class="anchored" data-anchor-id="データの追加とプッシュ">データの追加とプッシュ</h2>
+<p>以上で設定は完了です。あとはデータを管理していきましょう。</p>
+<ol type="1">
+<li>ワーキングディレクトリに<code>data</code>フォルダを作成し、データを追加</li>
+<li>DVCにデータを登録</li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">dvc</span> add data/</span></code></pre></div></div>
+</div>
+<ol start="3" type="1">
+<li>Google Driveにプッシュ</li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">dvc</span> push</span></code></pre></div></div>
+</div>
+<ol start="4" type="1">
+<li>データをダウンロードしたい場合</li>
+</ol>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">dvc</span> pull</span></code></pre></div></div>
+</div>
 </section>
-<section id="共有する場合" class="level2">
-<h2 class="anchored" data-anchor-id="共有する場合">共有する場合</h2>
-<p>共同研究などで他の人と作業を進める場合はこのデータフォルダも共有したいということになると思います。その場合は、<a href="../../../../../pages/tips/2024/12/241219_container/index.html">記事</a>における共有に加え、<code>.secrets</code>は別に送る必要があります（Gitで追跡していないのでクローンしても<code>.secrets</code>は現れないからです）。</p>
-<p>別に共有したうえでワーキングディレクトリに<code>.secrets</code>を置いてもらえば<code>dvc pull</code>でデータを引っ張ってくることができるようになります。</p>
-<p>その際、<code>.dvc/config.local</code>ファイルを以下のように編集してもらってください。</p>
-<pre><code>[remote "myremote"]
-    gdrive_use_service_account = true
+<section id="共同作業者の設定" class="level2">
+<h2 class="anchored" data-anchor-id="共同作業者の設定">共同作業者の設定</h2>
+<p>共同研究で他のメンバーとデータを共有する場合、以下の手順が必要です。</p>
+<section id="キーファイルの共有" class="level3">
+<h3 class="anchored" data-anchor-id="キーファイルの共有">キーファイルの共有</h3>
+<p><code>.secrets</code>フォルダはGitで追跡されないため、クローンしただけでは含まれません。キーファイルはメールやチャットなど別の手段で共有し、ワーキングディレクトリに<code>.secrets/key.json</code>として配置してもらってください。</p>
+</section>
+<section id="dvcの設定" class="level3">
+<h3 class="anchored" data-anchor-id="dvcの設定">DVCの設定</h3>
+<p>共同作業者は以下のコマンドを順番に実行して、リモートの設定を行います。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb9-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">dvc</span> remote modify myremote gdrive_use_service_account true</span></code></pre></div></div>
+</div>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">dvc</span> remote modify myremote <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--local</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb10-2">    gdrive_service_account_json_file_path .secrets/key.json</span></code></pre></div></div>
+</div>
+<p>これにより、<code>.dvc/config.local</code>に以下のような内容が書き込まれます。</p>
+<pre><code>['remote "myremote"']
     gdrive_service_account_json_file_path = ../.secrets/key.json</code></pre>
-<p><code>../</code>は1つ上の階層のフォルダの～という意味なので、これであっています。<code>.dvc/config.local</code>もgitignoreされているので、クローン下だけでは共有されません。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>パスが<code>../.secrets/key.json</code>となるのは、<code>.dvc/config.local</code>から見た相対パスだからです。<code>.dvc/config.local</code>もGitで追跡されないため、各自が設定する必要があります。</p>
+</div>
+</div>
+<p>設定が完了したら、<code>dvc pull</code>でデータをダウンロードできます。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>Terminal</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" data-filename="Terminal" style="background: #f1f3f5;"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">dvc</span> pull</span></code></pre></div></div>
+</div>
 </section>
-<section id="感想" class="level2">
-<h2 class="anchored" data-anchor-id="感想">感想</h2>
-<p>今のところ結構いい感じです。例えばこのウェブサイトを作るうえではあまり新しくデータを追加することがないので、追加するたびにトークンが切れて認証のし直しということが頻発していました。今回の方法では再認証がない（はず）なので、ストレスが軽減されたかなという印象です。</p>
-<p>何かあればぜひコメントまでお願いします。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>サービスアカウントを使ったDVCの設定方法を紹介しました。OAuthと比べてトークンの再認証が不要になるため、運用面でのストレスが軽減されます。</p>
+<p>何かあればコメントでお知らせください。</p>
 
 
 <!-- -->
