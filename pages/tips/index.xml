@@ -9706,7 +9706,7 @@ font-style: inherit;">uv</span> python pin 3.12</span></code></pre></div></div>
   <media:content url="https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/image/thumbnail.png" medium="image" type="image/png" height="79" width="144"/>
 </item>
 <item>
-  <title>【Python追加】DuckDBをRで使う【duckplyrも】</title>
+  <title>DuckDBをR・Pythonで使う【duckplyrも】</title>
   <link>https://yo5uke.com/pages/tips/2025/09/250919_duckdb/</link>
   <description><![CDATA[ 
 
@@ -9745,33 +9745,22 @@ font-style: inherit;">uv</span> python pin 3.12</span></code></pre></div></div>
 
 <section id="はじめに" class="level2">
 <h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>Rで大量のデータを扱う際、メモリ制限やパフォーマンスの問題に直面することがあります。そんなとき、軽量で高速な組み込み型のデータベースであるDuckDBを利用することで、効率的にデータ操作が可能になります。本記事では、RでDuckDBを使用する方法について解説します。</p>
-<div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>2026/01/17 追記
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>PythonでDuckDBを使う方法についても追記しました。RとPythonの両方でDuckDBを活用する方法を紹介しています。</p>
-</div>
-</div>
+<p>大量のデータを扱う際、メモリ制限やパフォーマンスの問題に直面することがあります。そんなとき便利なのが、<strong>軽量で高速な組み込み型データベース DuckDB</strong> です。本記事では、RとPythonの両方でDuckDBを使う方法を体系的に解説します。</p>
 </section>
 <section id="duckdbとは" class="level2">
 <h2 class="anchored" data-anchor-id="duckdbとは">DuckDBとは</h2>
-<p>DuckDBは、組み込み型のSQLデータベースであり、特に分析ワークロードに最適化されています。SQLiteのように軽量でありながら、大規模なデータセットを効率的に処理できる点が特徴です。DuckDBは、列指向ストレージを採用しており、分析クエリのパフォーマンスが向上します。</p>
-<p>ちなみに組み込み型データベースとは、アプリケーションに組み込まれて動作するデータベースのことを指します。PostgreSQLなどのサーバー型のデータベースとは異なり、外部のデータベースサーバーを必要とせず、アプリケーション内で直接データベース操作が可能です。すなわち<strong>R/Python上で完結する</strong>ということです。</p>
-<p>列指向については、ブログでparquetを扱った際に少し触れています。以下もご覧ください。簡潔に言うと、列指向データベースは、データを行ではなく列ごとに格納するため、特定の列に対するクエリが高速に処理されるという特徴があります。</p>
+<p>DuckDBは、<strong>組み込み型のSQLデータベース</strong>であり、特に分析ワークロードに最適化されています。SQLiteのように軽量でありながら、大規模なデータセットを効率的に処理できる点が特徴です。</p>
+<p><strong>組み込み型データベース</strong>とは、アプリケーションに組み込まれて動作するデータベースのことです。PostgreSQLなどのサーバー型とは異なり、外部のデータベースサーバーを必要とせず、<strong>R/Python上で完結</strong>します。</p>
+<p>また、DuckDBは<strong>列指向ストレージ</strong>を採用しています。データを行ではなく列ごとに格納するため、特定の列に対するクエリが高速に処理されます。列指向については、以下の記事でも触れています。</p>
 <a href="https://yo5uke.com/pages/blog/2025/07/250728_parquet/" class="linkcard linkcard--default linkcard--no-image" target="" aria-label="Link to Parquetファイルについて調べてみる: ファイルサイズを小さくできるということだけは知っているが…"><div class="linkcard__content"><div class="linkcard__title">Parquetファイルについて調べてみる</div><div class="linkcard__description">ファイルサイズを小さくできるということだけは知っているが…</div><div class="linkcard__url">yo5uke.com</div></div></a>
 </section>
-<section id="duckdbのインストール" class="level2">
-<h2 class="anchored" data-anchor-id="duckdbのインストール">DuckDBのインストール</h2>
-<section id="rでのインストール" class="level3">
-<h3 class="anchored" data-anchor-id="rでのインストール">Rでのインストール</h3>
-<p>DuckDBをRで使用するには、<code>duckdb</code>パッケージをインストールします。</p>
+<section id="インストール" class="level2">
+<h2 class="anchored" data-anchor-id="インストール">インストール</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<p><code>duckdb</code>パッケージをインストールします。</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
@@ -9792,10 +9781,9 @@ font-style: inherit;">install.packages</span>(<span class="st" style="color: #20
 background-color: null;
 font-style: inherit;">"duckdb"</span>)</span></code></pre></div></div>
 </div>
-</section>
-<section id="pythonでのインストール" class="level3">
-<h3 class="anchored" data-anchor-id="pythonでのインストール">Pythonでのインストール</h3>
-<p>DuckDBをPythonで使用するには、<code>duckdb</code>パッケージをインストールします。</p>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<p><code>duckdb</code>パッケージをインストールします。</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># pipを使用する場合</span></span>
@@ -9807,20 +9795,23 @@ font-style: inherit;"># uvを使用する場合</span></span>
 <span id="cb3-5">uv add duckdb</span></code></pre></div></div>
 <p>uvについては以下の記事をご参照ください。</p>
 <a href="https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/" class="linkcard linkcard--default" target="" aria-label="Link to 【renv】仮想環境を設定する【venv】: Rは[renv]{.fira-code}、Pythonは[venv]{.fira-code}を使います。注目のuvも紹介！"><img src="https://yo5uke.com/pages/tips/2025/09/250926_virtual_environment/image/thumbnail.png" alt="Preview image for 【renv】仮想環境を設定する【venv】" class="linkcard__image" loading="lazy"><div class="linkcard__content"><div class="linkcard__title">【renv】仮想環境を設定する【venv】</div><div class="linkcard__description">Rは[renv]{.fira-code}、Pythonは[venv]{.fira-code}を使います。注目のuvも紹介！</div><div class="linkcard__url">yo5uke.com</div></div></a>
+</div>
+</div>
+</div>
 </section>
-</section>
-<section id="duckdbの基本的な使い方" class="level2">
-<h2 class="anchored" data-anchor-id="duckdbの基本的な使い方">DuckDBの基本的な使い方</h2>
-<p>DuckDBでは、CSVなどのファイルを直接読み込んでSQLクエリを実行したり、RやPythonのデータフレームをデータベースに登録して操作したりすることができます。以下では、RとPythonでの基本的な使い方を紹介します。</p>
+<section id="基本的な使い方" class="level2">
+<h2 class="anchored" data-anchor-id="基本的な使い方">基本的な使い方</h2>
 <section id="データベースへの接続" class="level3">
 <h3 class="anchored" data-anchor-id="データベースへの接続">データベースへの接続</h3>
-<p>まずは、DuckDBデータベースに接続します。DuckDBには<strong>メモリ内データベース</strong>と<strong>永続データベース</strong>の2種類があります。</p>
-<p>以下のコードでは、メモリ内データベースに接続していますが、永続データベースを使用することも可能です。</p>
-<p>永続データベースではファイルにデータが保存されるため、セッションを終了してもデータが保持されます。新しくセッションを開始した際にも、同じデータベースファイル（<code>.duckdb</code>ファイル）に接続してデータを再利用できます。</p>
-<p>一方、メモリ内データベースはセッションが終了するとデータが失われてしまいます。必要に応じて使い分けてください。</p>
-</section>
-<section id="rでの接続例" class="level3">
-<h3 class="anchored" data-anchor-id="rでの接続例">Rでの接続例</h3>
+<p>DuckDBには<strong>メモリ内データベース</strong>と<strong>永続データベース</strong>の2種類があります。</p>
+<ul>
+<li><strong>メモリ内データベース</strong>: セッション終了時にデータが消去される。一時的な分析に便利。</li>
+<li><strong>永続データベース</strong>: <code>.duckdb</code>ファイルにデータが保存され、セッションを跨いで再利用できる。</li>
+</ul>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" aria-controls="tabset-2-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" aria-controls="tabset-2-2" aria-selected="false" href="">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" aria-labelledby="tabset-2-1-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
 background-color: null;
@@ -9838,7 +9829,6 @@ font-style: inherit;">dbConnect</span>(<span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">duckdb</span>())</span></code></pre></div></div>
 </div>
-<p>永続データベースに接続する場合は、以下のようにします。</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
@@ -9859,11 +9849,9 @@ font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"data/iris.duckdb"</span>))</span></code></pre></div></div>
 </div>
-<p>この方法だと、<code>data</code>フォルダに<code>iris.duckdb</code>という名前でデータベースファイルが作成されます。<code>.duckdb</code>ファイルを置くパスは自由に変更してください。</p>
-</section>
-<section id="pythonでの接続例" class="level3">
-<h3 class="anchored" data-anchor-id="pythonでの接続例">Pythonでの接続例</h3>
-<p>PythonでDuckDBに接続する場合は、以下のようにします。</p>
+<p>永続データベースの場合、指定したパスに<code>.duckdb</code>ファイルが作成されます。</p>
+</div>
+<div id="tabset-2-2" class="tab-pane" aria-labelledby="tabset-2-2-tab">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><span class="im" style="color: #00769E;
 background-color: null;
 font-style: inherit;">import</span> duckdb</span>
@@ -9875,64 +9863,62 @@ font-style: inherit;"># メモリ内データベースに接続</span></span>
 background-color: null;
 font-style: inherit;">=</span> duckdb.<span class="ex" style="color: null;
 background-color: null;
-font-style: inherit;">connect</span>()</span></code></pre></div></div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><span class="co" style="color: #5E5E5E;
+font-style: inherit;">connect</span>()</span>
+<span id="cb7-5"></span>
+<span id="cb7-6"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># 永続データベースに接続する場合</span></span>
-<span id="cb8-2">con <span class="op" style="color: #5E5E5E;
+<span id="cb7-7">con <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> duckdb.<span class="ex" style="color: null;
 background-color: null;
 font-style: inherit;">connect</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">'data/iris.duckdb'</span>)</span></code></pre></div></div>
+</div>
+</div>
+</div>
 </section>
 <section id="データの読み込み" class="level3">
 <h3 class="anchored" data-anchor-id="データの読み込み">データの読み込み</h3>
-<section id="sqlを使う場合" class="level4">
-<h4 class="anchored" data-anchor-id="sqlを使う場合">SQLを使う場合</h4>
-<p>DuckDBは様々なデータ形式をサポートしています。ここでは、CSVファイルを読み込む例を示します。</p>
+<p>DuckDBはCSVやParquetなど、様々なデータ形式を直接読み込めます。ここではCSVファイルの読み込みを例に紹介します。</p>
+<section id="sqlで読み込む" class="level4">
+<h4 class="anchored" data-anchor-id="sqlで読み込む">SQLで読み込む</h4>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">Python</a></li></ul>
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" aria-controls="tabset-3-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" aria-controls="tabset-3-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
-<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<div id="tabset-3-1" class="tab-pane active" aria-labelledby="tabset-3-1-tab">
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># CSVファイルを読み込む</span></span>
-<span id="cb9-2"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"CREATE TABLE iris AS SELECT * FROM read_csv('data/iris.csv')"</span>)</span></code></pre></div></div>
 </div>
 </div>
-<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1">con.sql(<span class="st" style="color: #20794D;
+<div id="tabset-3-2" class="tab-pane" aria-labelledby="tabset-3-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1">con.sql(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"CREATE TABLE iris AS SELECT * FROM read_csv('data/iris.csv')"</span>)</span></code></pre></div></div>
 </div>
 </div>
 </div>
-<p>さて、ここで突然SQL文が出てきましたが、なんとなく単語を見てもらえればわかる通り、<code>read_csv('data/iris.csv')</code>から全ての列を選択（<code>*</code>は全ての列を意味します）して、<code>iris</code>という名前のテーブルを作成（<code>CREATE TABLE iris AS</code>）しています。</p>
-<p>ここでは<strong>先ほど接続した<code>con</code>は使っていない点に注意してください</strong>。この方法を採るメリットは、<strong>R/Pythonに一度もデータを読み込まずに、DuckDBが直接CSVファイルを処理できる</strong>点です。R/Pythonに読み込まれるのはクエリの結果だけなので、メモリ消費を抑えられます。</p>
-<p>また、<code>CREATE TABLE ... AS SELECT ...</code>という形で書けば、SQLの標準的な構文で柔軟に前処理（列の選択やフィルタリングなど）を行いながら、テーブルを作成できます。</p>
+<p>このSQL文は、<code>read_csv('data/iris.csv')</code>から全列（<code>*</code>）を選択し、<code>iris</code>という名前のテーブルを作成しています。</p>
+<p>この方法のメリットは、<strong>R/Pythonに一度もデータを読み込まずに、DuckDBが直接ファイルを処理できる</strong>点です。R/Pythonに読み込まれるのはクエリの結果だけなので、メモリ消費を抑えられます。また、<code>CREATE TABLE ... AS SELECT ...</code>構文で、列の選択やフィルタリングなどの前処理を行いながらテーブルを作成できます。</p>
 </section>
-<section id="rを使う場合" class="level4">
-<h4 class="anchored" data-anchor-id="rを使う場合">Rを使う場合</h4>
-<p>SQLになじみがない方にとっては、使い慣れたRのコードでデータベース操作ができると嬉しいと思います。</p>
-<p>実はRでDuckDBを使う場合には、今提示したコードを皆さんおなじみ<code>dplyr</code>を使って実行できるというメリットがあります！<code>dplyr</code>を使って書いたコードをSQLに変換して実行してくれるのです。</p>
-<p>データベースやSQLはなんだかよくわからないけれども、<code>dplyr</code>が使えるならうれしいですよね<sup>1</sup>。</p>
-<p>その場合のコードを見てみましょう。</p>
+<section id="sec-dplyr-load" class="level4">
+<h4 class="anchored" data-anchor-id="sec-dplyr-load"><span class="fira-code">dplyr</span>で読み込む（R限定）</h4>
+<p>SQLになじみがない方向けに、Rでは<code>dplyr</code>を使ったデータベース操作も可能です。<code>dplyr</code>で書いたコードが裏でSQLに変換・実行されます。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">library</span>(tidyverse) <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># `dplyr`だけでもOKです。</span></span></code></pre></div></div>
+font-style: inherit;">library</span>(tidyverse)</span></code></pre></div></div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1">iris_data <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Rでデータを読み込み、DuckDBに登録</span></span>
+<span id="cb11-2">iris_data <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -9943,47 +9929,55 @@ background-color: null;
 font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"data/iris.csv"</span>))</span>
-<span id="cb12-2"><span class="fu" style="color: #4758AB;
+<span id="cb11-3"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">duckdb_register</span>(con, iris, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"iris_data"</span>)</span></code></pre></div></div>
 </div>
-<p>まずはデータベースに入れたいデータを<code>read_csv()</code>で読み込みます。ここでは<code>data</code>フォルダにある<code>iris.csv</code>を読み込んでいます。</p>
-<p>続いて<code>duckdb_register()</code>を使って、<code>iris_data</code>を<code>iris</code>という名前でデータベースに登録しています。これでデータベース上に<code>iris</code>テーブルが作成されました。</p>
-<p>ちなみにファイルベースのデータベースを使いたい場合は、<code>duckdb_register()</code>の代わりに<code>dbWriteTable()</code>を使います。</p>
+<p><code>duckdb_register()</code>は、RのデータフレームをDuckDB上のテーブルとして登録します。これをすると、<code>dbGetQuery()</code>や<code>tbl()</code>で<code>iris</code>テーブルを参照できるようになります。</p>
+<p>永続データベースに書き込みたい場合は、代わりに<code>dbWriteTable()</code>を使います。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">dbWriteTable</span>(con, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"iris"</span>, iris_data)</span></code></pre></div></div>
 </div>
-<p>これで<code>.duckdb</code>ファイルに<code>iris</code>テーブルが保存されます。</p>
-<p>ちなみに、データベースにはテーブルを複数作成できるので、<code>iris</code>以外のデータもも好きな名前でテーブルを追加できます<sup>2</sup>。</p>
+<p>永続データベースに書き込めば、1つの<code>.duckdb</code>ファイルに複数のテーブルを保存でき、後で再利用できます。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>SQLで直接ファイルを読む方法とは異なり、<code>dplyr</code>経由では一度Rにデータを読み込んでからデータベースに登録するため、大きなデータではメモリ消費が増える点に注意してください。</p>
+</div>
+</div>
+<p>なお、データベースにはテーブルを複数作成できるので、<code>iris</code>以外のデータも好きな名前で追加できます<sup>1</sup>。</p>
 </section>
+</section>
+<section id="遅延評価について" class="level3">
+<h3 class="anchored" data-anchor-id="遅延評価について">遅延評価について</h3>
+<p>データベースを使うメリットのひとつに、<strong>遅延評価（lazy evaluation）</strong>があります。通常のデータ処理では書いた順に即座に実行されますが、DuckDBでは処理を記録しておき、最後にまとめて実行します。</p>
+<pre><code>通常：データ読み込み → 処理を即実行 → 結果を返す
+遅延評価：データ読み込み → 処理を記録 → まとめて実行（SQL発行）→ 結果を返す</code></pre>
+<p>このおかげで不要な計算が省かれ、大規模データでも効率的に処理できます。</p>
 </section>
 <section id="データの操作" class="level3">
 <h3 class="anchored" data-anchor-id="データの操作">データの操作</h3>
-<p>ところで、データベースを使うメリットのひとつに、遅延評価（lazy evaluation） があります。これは、実際に結果を取り出すまでSQLが実行されない仕組みのことです。</p>
-<p>通常のデータ処理は</p>
-<pre><code>データの読み込み → 書いた順に処理を実行 → 結果を返す</code></pre>
-<p>という流れですが、遅延評価では</p>
-<pre><code>データの読み込み → 書いた順に処理を記録 → 最後にまとめて実行（SQL発行） → 結果を返す</code></pre>
-<p>という流れになります。</p>
-<p>このおかげで、大規模なデータセットでも不要な計算が省かれ、効率的に処理できます。</p>
-<section id="sqlを使う場合-1" class="level4">
-<h4 class="anchored" data-anchor-id="sqlを使う場合-1">SQLを使う場合</h4>
-<p>SQLを使ってデータを操作する場合、以下のようにクエリを実行します。</p>
+<section id="sqlで操作する" class="level4">
+<h4 class="anchored" data-anchor-id="sqlで操作する">SQLで操作する</h4>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" aria-controls="tabset-2-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" aria-controls="tabset-2-2" aria-selected="false" href="">Python</a></li></ul>
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" aria-controls="tabset-4-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" aria-controls="tabset-4-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
-<div id="tabset-2-1" class="tab-pane active" aria-labelledby="tabset-2-1-tab">
+<div id="tabset-4-1" class="tab-pane active" aria-labelledby="tabset-4-1-tab">
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># データをクエリする</span></span>
-<span id="cb16-2">result <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">result <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -9992,11 +9986,8 @@ background-color: null;
 font-style: inherit;">"SELECT * FROM iris WHERE Species = 'setosa'"</span>)</span></code></pre></div></div>
 </div>
 </div>
-<div id="tabset-2-2" class="tab-pane" aria-labelledby="tabset-2-2-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># データをクエリする</span></span>
-<span id="cb17-2">result <span class="op" style="color: #5E5E5E;
+<div id="tabset-4-2" class="tab-pane" aria-labelledby="tabset-4-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1">result <span class="op" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">=</span> con.sql(<span class="st" style="color: #20794D;
 background-color: null;
@@ -10004,13 +9995,12 @@ font-style: inherit;">"SELECT * FROM iris WHERE Species = 'setosa'"</span>)</spa
 </div>
 </div>
 </div>
-<p>この例では、<code>iris</code>テーブルから<code>Species</code>が<code>setosa</code>の行を選択しています。</p>
+<p>この例では、<code>iris</code>テーブルから<code>Species</code>が<code>setosa</code>の行を取得しています。</p>
 </section>
-<section id="dplyrを使う場合" class="level4">
-<h4 class="anchored" data-anchor-id="dplyrを使う場合"><code>dplyr</code>を使う場合</h4>
-<p><code>dplyr</code>を使ってデータを操作する場合、以下のように記述します（おなじみの感じですね）。</p>
+<section id="dplyrで操作するr限定" class="level4">
+<h4 class="anchored" data-anchor-id="dplyrで操作するr限定">dplyrで操作する（R限定）</h4>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1">result <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1">result <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -10019,7 +10009,7 @@ background-color: null;
 font-style: inherit;">"iris"</span>) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">|&gt;</span></span>
-<span id="cb18-2">  <span class="fu" style="color: #4758AB;
+<span id="cb16-2">  <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">filter</span>(Species <span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -10028,73 +10018,68 @@ background-color: null;
 font-style: inherit;">"setosa"</span>) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">|&gt;</span></span>
-<span id="cb18-3">  <span class="fu" style="color: #4758AB;
+<span id="cb16-3">  <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">collect</span>()</span></code></pre></div></div>
 </div>
-<p><code>tbl(con, "iris")</code>でデータベース上の<code>iris</code>テーブルを参照し、<code>filter()</code>で条件を指定しています。最後に<code>collect()</code>を使って結果をRのデータフレームとして取得します。</p>
-<p>ここで重要なのは、<strong><code>collect()</code>を呼び出すまではSQLは実行されない</strong>という点です。<code>filter()</code>などの処理を追加するたびに、裏でSQLクエリが少しずつ組み立てられていき、最後に<code>collect()</code>を呼び出した時点でまとめて実行されます。</p>
-<p>つまり、<code>collect()</code>を呼び出すまではデータはRに読み込まれず、操作はあくまで「SQLを組み立てているだけ」です。<code>collect()</code>を実行した瞬間に初めてSQLが発行され、結果がRにデータフレームとして取り込まれます。</p>
-<p>データベースになじみがない方は違和感があるかもしれませんが（かく言う僕もですが）、<code>con</code>自体はデータそのものではなく、DuckDBデータベースへの接続（コネクション）を表すオブジェクトです。</p>
-<p>普段のRではデータフレームを直接操作しますが、ここではまず接続オブジェクト<code>con</code>を通して「このデータベースの中にあるテーブルを参照しますよ」という指示を出します。</p>
-<p>つまり、<code>con</code>はデータの実体ではなく、<strong>「データベースへの窓口」や「リモコン」</strong>のようなものと考えると分かりやすいです（ChatGPT曰く）。</p>
-<p>とりあえず、<code>collect()</code>の前までは通常のデータ処理と同じように<code>dplyr</code>の関数を使って操作できるので、慣れ親しんだ方法でデータを扱うことができます。</p>
+<p><code>tbl(con, "iris")</code>でデータベース上のテーブルを参照し、<code>filter()</code>などおなじみの<code>dplyr</code>関数で操作できます。</p>
+<p>ここで重要なのは、<strong><code>collect()</code>を呼び出すまではSQLが実行されない</strong>という点です。<code>filter()</code>などの処理を重ねるたびに裏でSQLクエリが組み立てられ、<code>collect()</code>で初めて実行されます。つまり、<code>collect()</code>の前まではデータはRに読み込まれず、「SQLを組み立てているだけ」の状態です。</p>
+<p>データベースになじみがない方にとっては少し不思議かもしれませんが、<code>con</code>はデータそのものではなく、<strong>データベースへの接続（窓口）</strong>を表すオブジェクトです。この窓口を通してテーブルを参照し、最終的に<code>collect()</code>で結果を手元に取り込む、という流れになります。</p>
 </section>
 </section>
 <section id="テーブルの削除" class="level3">
 <h3 class="anchored" data-anchor-id="テーブルの削除">テーブルの削除</h3>
-<p>追加したテーブルを削除する場合は、以下のようにします。</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" aria-controls="tabset-3-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" aria-controls="tabset-3-2" aria-selected="false" href="">Python</a></li></ul>
-<div class="tab-content">
-<div id="tabset-3-1" class="tab-pane active" aria-labelledby="tabset-3-1-tab">
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"DROP TABLE iris"</span>)</span></code></pre></div></div>
-</div>
-</div>
-<div id="tabset-3-2" class="tab-pane" aria-labelledby="tabset-3-2-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1">con.sql(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"DROP TABLE iris"</span>)</span></code></pre></div></div>
-</div>
-</div>
-</div>
-<p>これで<code>iris</code>テーブルがデータベースから削除されます。</p>
-<p>もし安全に削除したい場合は、</p>
-<div class="tabset-margin-container"></div><div class="panel-tabset">
-<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" aria-controls="tabset-4-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" aria-controls="tabset-4-2" aria-selected="false" href="">Python</a></li></ul>
-<div class="tab-content">
-<div id="tabset-4-1" class="tab-pane active" aria-labelledby="tabset-4-1-tab">
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"DROP TABLE IF EXISTS iris"</span>)</span></code></pre></div></div>
-</div>
-</div>
-<div id="tabset-4-2" class="tab-pane" aria-labelledby="tabset-4-2-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1">con.sql(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"DROP TABLE IF EXISTS iris"</span>)</span></code></pre></div></div>
-</div>
-</div>
-</div>
-<p>とすることで、テーブルが存在しない場合でもエラーにならずに処理を続行できます。</p>
-</section>
-<section id="データベースからの切断" class="level3">
-<h3 class="anchored" data-anchor-id="データベースからの切断">データベースからの切断</h3>
-<p>データベースの操作が終わったら、接続を切断します。</p>
 <div class="tabset-margin-container"></div><div class="panel-tabset">
 <ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-5-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-1" aria-controls="tabset-5-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-5-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-5-2" aria-controls="tabset-5-2" aria-selected="false" href="">Python</a></li></ul>
 <div class="tab-content">
 <div id="tabset-5-1" class="tab-pane active" aria-labelledby="tabset-5-1-tab">
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># テーブルを削除</span></span>
+<span id="cb17-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DROP TABLE iris"</span>)</span>
+<span id="cb17-3"></span>
+<span id="cb17-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># テーブルが存在しない場合でもエラーにならない書き方</span></span>
+<span id="cb17-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dbExecute</span>(con, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DROP TABLE IF EXISTS iris"</span>)</span></code></pre></div></div>
+</div>
+</div>
+<div id="tabset-5-2" class="tab-pane" aria-labelledby="tabset-5-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># テーブルを削除</span></span>
+<span id="cb18-2">con.sql(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DROP TABLE iris"</span>)</span>
+<span id="cb18-3"></span>
+<span id="cb18-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># テーブルが存在しない場合でもエラーにならない書き方</span></span>
+<span id="cb18-5">con.sql(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"DROP TABLE IF EXISTS iris"</span>)</span></code></pre></div></div>
+</div>
+</div>
+</div>
+</section>
+<section id="データベースからの切断" class="level3">
+<h3 class="anchored" data-anchor-id="データベースからの切断">データベースからの切断</h3>
+<p>操作が終わったら、接続を切断します。</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-6-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-1" aria-controls="tabset-6-1" aria-selected="true" href="">R</a></li><li class="nav-item"><a class="nav-link" id="tabset-6-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-6-2" aria-controls="tabset-6-2" aria-selected="false" href="">Python</a></li></ul>
+<div class="tab-content">
+<div id="tabset-6-1" class="tab-pane active" aria-labelledby="tabset-6-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">dbDisconnect</span>(con, <span class="at" style="color: #657422;
 background-color: null;
@@ -10102,202 +10087,120 @@ font-style: inherit;">shutdown =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
 </div>
+<p><code>shutdown = TRUE</code>を指定すると、メモリ内データベースの場合はデータが消去され、ファイルベースの場合は接続が閉じられます。</p>
 </div>
-<div id="tabset-5-2" class="tab-pane" aria-labelledby="tabset-5-2-tab">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1">con.close()</span></code></pre></div></div>
+<div id="tabset-6-2" class="tab-pane" aria-labelledby="tabset-6-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1">con.close()</span></code></pre></div></div>
 </div>
 </div>
 </div>
-<p>Rで<code>shutdown = TRUE</code>を指定すると、メモリ内データベースの場合はデータが消去され、ファイルベースのデータベースの場合は接続が閉じられます。</p>
 </section>
 </section>
-<section id="duckplyrを使う" class="level2">
-<h2 class="anchored" data-anchor-id="duckplyrを使う">{duckplyr}を使う</h2>
-<p><code>duckplyr</code>パッケージを使うと、DuckDBと<code>dplyr</code>の連携がさらに便利になります。<code>duckplyr</code>は、DuckDB専用の<code>dplyr</code>拡張パッケージであり、DuckDBの機能をより活用できます。</p>
+<section id="duckplyrを使うr限定" class="level2">
+<h2 class="anchored" data-anchor-id="duckplyrを使うr限定">{duckplyr}を使う（R限定）</h2>
+<p>ここまではDuckDBをデータベースとして使う方法を紹介してきましたが、Rには<code>duckplyr</code>というもうひとつのアプローチがあります。</p>
 <section id="duckplyrとは" class="level3">
 <h3 class="anchored" data-anchor-id="duckplyrとは">duckplyrとは</h3>
-<p><code>duckplyr</code>は、<strong>dplyrのドロップイン置き換え</strong>として機能するパッケージです。既存のdplyrコードをそのまま使いながら、裏側でDuckDBの高速な分析エンジンを活用できます。</p>
+<p><code>duckplyr</code>は、<strong>dplyrのドロップイン置き換え</strong>として機能するパッケージです。<code>library(duckplyr)</code>するだけで、既存のdplyrコードがそのまま動きながら、裏側でDuckDBの高速な分析エンジンが使われます。</p>
 </section>
-<section id="先述のアプローチとの違い" class="level3">
-<h3 class="anchored" data-anchor-id="先述のアプローチとの違い">先述のアプローチとの違い</h3>
-<p>これまで紹介してきた<code>duckdb</code>パッケージを使った方法と<code>duckplyr</code>を使った方法の違いを整理します。</p>
-<p><strong>duckdb × dbplyr（データベース操作）</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(dplyr)</span>
-<span id="cb25-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(DBI)</span>
-<span id="cb25-3"></span>
-<span id="cb25-4"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># データベースに接続</span></span>
-<span id="cb25-5">con <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dbConnect</span>(duckdb<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">duckdb</span>())</span>
-<span id="cb25-6"></span>
-<span id="cb25-7"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># データベース上のテーブルを参照</span></span>
-<span id="cb25-8"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tbl</span>(con, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"my_table"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb25-9">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">filter</span>(value <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">100</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb25-10">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">total =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sum</span>(value))</span></code></pre></div></div>
-<ul>
-<li>データベースに接続する</li>
-<li>dplyrの構文を<strong>SQLに翻訳</strong>して実行</li>
-<li>データは基本的にDB上に存在</li>
-<li><code>collect()</code>で初めてRのメモリに読み込まれる</li>
-</ul>
-<p><strong>duckplyr（メモリ内データの高速化）</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(duckplyr)</span>
-<span id="cb26-2"></span>
-<span id="cb26-3">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">data.frame</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">x =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000000</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">y =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rnorm</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1000000</span>))</span>
-<span id="cb26-4"></span>
-<span id="cb26-5">df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb26-6">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">filter</span>(y <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">0</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb26-7">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">summarise</span>(<span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">mean_x =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mean</span>(x))</span></code></pre></div></div>
-<ul>
-<li><strong>データベース接続不要</strong></li>
-<li>Rのメモリ上のデータをDuckDBエンジンで高速処理</li>
-<li>SQLへ翻訳はされない（データはR上に存在）</li>
-<li>既存のdplyrコードがそのまま高速化される</li>
-</ul>
+<section id="duckdbパッケージとの違い" class="level3">
+<h3 class="anchored" data-anchor-id="duckdbパッケージとの違い">duckdbパッケージとの違い</h3>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>duckdb + dbplyr</th>
+<th>duckplyr</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>データベース接続</td>
+<td>必要</td>
+<td><strong>不要</strong></td>
+</tr>
+<tr class="even">
+<td>データの場所</td>
+<td>DB上（<code>collect()</code>でRへ）</td>
+<td>Rのメモリ上</td>
+</tr>
+<tr class="odd">
+<td>仕組み</td>
+<td>dplyr → SQL翻訳 → DuckDB実行</td>
+<td>Rのデータを直接DuckDBエンジンで処理</td>
+</tr>
+<tr class="even">
+<td>用途</td>
+<td>大規模データのDB管理・分析</td>
+<td>メモリ内データの高速化</td>
+</tr>
+</tbody>
+</table>
+<p><strong>duckdb + dbplyr</strong> は、データベースに接続してSQLベースで処理する方法（前のセクションで紹介）、<strong>duckplyr</strong> は、データベースを意識せずに、普段のdplyrコードをそのまま高速化する方法です。</p>
 </section>
 <section id="duckplyrの特徴" class="level3">
 <h3 class="anchored" data-anchor-id="duckplyrの特徴">duckplyrの特徴</h3>
 <ol type="1">
-<li><strong>ドロップイン置き換え</strong>
-<ul>
-<li><code>library(duckplyr)</code>するだけで、多くのdplyr動詞が高速化</li>
-<li>既存のコードを書き換える必要がほとんどない</li>
-</ul></li>
-<li><strong>自動フォールバック</strong>
-<ul>
-<li>duckplyrで対応できない操作は、自動的に通常のdplyrにフォールバック</li>
-<li>エラーで止まることなく処理が継続されます</li>
-</ul></li>
-<li><strong>大規模データに最適</strong>
-<ul>
-<li>DuckDBの並列処理エンジンを活用</li>
-<li>メモリ効率の良い処理が可能</li>
-</ul></li>
-<li><strong>互換性</strong>
-<ul>
-<li>dplyrの多くの関数に対応</li>
-<li>tidyverseエコシステムとシームレスに連携</li>
-</ul></li>
+<li><strong>ドロップイン置き換え</strong>: <code>library(duckplyr)</code>するだけで、多くのdplyr動詞が高速化される</li>
+<li><strong>自動フォールバック</strong>: 対応できない操作は自動的に通常のdplyrにフォールバックするため、エラーで止まらない</li>
+<li><strong>大規模データに最適</strong>: DuckDBの並列処理エンジンとメモリ効率の良い処理を活用</li>
+<li><strong>互換性</strong>: tidyverseエコシステムとシームレスに連携</li>
 </ol>
-<section id="簡単な使用例" class="level4">
-<h4 class="anchored" data-anchor-id="簡単な使用例">簡単な使用例</h4>
+</section>
+<section id="使用例" class="level3">
+<h3 class="anchored" data-anchor-id="使用例">使用例</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb27-2"><span class="fu" style="color: #4758AB;
+<span id="cb21-2"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">library</span>(duckplyr)</span>
-<span id="cb27-3"><span class="co" style="color: #5E5E5E;
+<span id="cb21-3"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#&gt; Loading required package: dplyr</span></span>
-<span id="cb27-4"><span class="co" style="color: #5E5E5E;
+<span id="cb21-4"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#&gt; ✔ Overwriting dplyr methods with duckplyr methods.</span></span>
-<span id="cb27-5"><span class="co" style="color: #5E5E5E;
+<span id="cb21-5"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#&gt; ℹ Turn off with `duckplyr::methods_restore()`.</span></span>
-<span id="cb27-6"></span>
-<span id="cb27-7"><span class="co" style="color: #5E5E5E;
+<span id="cb21-6"></span>
+<span id="cb21-7"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># 通常のdplyr構文がそのまま使えます</span></span>
-<span id="cb27-8">mtcars <span class="sc" style="color: #5E5E5E;
+<span id="cb21-8">mtcars <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">|&gt;</span></span>
-<span id="cb27-9">  <span class="fu" style="color: #4758AB;
+<span id="cb21-9">  <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">group_by</span>(cyl) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">|&gt;</span></span>
-<span id="cb27-10">  <span class="fu" style="color: #4758AB;
+<span id="cb21-10">  <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">summarise</span>(</span>
-<span id="cb27-11">    <span class="at" style="color: #657422;
+<span id="cb21-11">    <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">mean_mpg =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">mean</span>(mpg),</span>
-<span id="cb27-12">    <span class="at" style="color: #657422;
+<span id="cb21-12">    <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">mean_hp =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">mean</span>(hp),</span>
-<span id="cb27-13">    <span class="at" style="color: #657422;
+<span id="cb21-13">    <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">.groups =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"drop"</span></span>
-<span id="cb27-14">  )</span></code></pre></div></div>
+<span id="cb21-14">  )</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3 × 3
     cyl mean_mpg mean_hp
@@ -10307,21 +10210,35 @@ font-style: inherit;">"drop"</span></span>
 3     8     15.1   209. </code></pre>
 </div>
 </div>
-<p>注意点として、<strong>読み込み順序が重要</strong>です。<code>library(tidyverse)</code>の後に<code>library(duckplyr)</code>を読み込むことで、dplyrのメソッドがduckplyrで上書きされます。逆の順序で読み込むと、通常のdplyrが優先されてしまいます。</p>
-<p>小さいデータだとあまり速さを実感できないかもしれませんが、大きいデータを扱うときに効果を発揮します。</p>
-</section>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>読み込み順序が重要です。</strong> <code>library(tidyverse)</code>の後に<code>library(duckplyr)</code>を読み込んでください。逆の順序だと、通常のdplyrが優先されてしまいます。</p>
+</div>
+</div>
+<p>小さいデータだと速さを実感しにくいかもしれませんが、大きいデータを扱うときに効果を発揮します。</p>
 </section>
 </section>
 <section id="まとめ" class="level2">
 <h2 class="anchored" data-anchor-id="まとめ">まとめ</h2>
-<p>今回は、RとPythonでDuckDBを使用する方法についてまとめました。</p>
-<p>DuckDBは軽量で高速な組み込み型データベースであり、大規模なデータセットを効率的に処理できます。RではSQLを直接使う方法と、<code>dplyr</code>を使う方法の両方が利用可能であり、遅延評価によりパフォーマンスが向上します。</p>
-<p>また、Rの<code>duckplyr</code>パッケージを使うことで、既存の<code>dplyr</code>コードをほぼそのまま高速化できるため、データ処理の効率化が図れます。</p>
-<p>最近は仕事ででかいデータを扱うことが増えてきたので、今後もDuckDBを活用していきたいと思います（というか活用し始めています）。ぜひお試しあれ。</p>
+<p>DuckDBは軽量で高速な組み込み型データベースであり、R/Python上で手軽に大規模データを扱えます。</p>
+<ul>
+<li><strong>SQL</strong>で直接ファイルを読み込み・操作する方法が、最もメモリ効率が良い</li>
+<li>Rでは<strong>dplyr</strong>を使ったデータベース操作も可能で、SQLに不慣れでも扱いやすい</li>
+<li>さらにRでは<strong>duckplyr</strong>を使えば、既存のdplyrコードをほぼそのまま高速化できる</li>
+</ul>
+<p>ぜひお試しあれ。</p>
 </section>
 <section id="参考" class="level2">
 <h2 class="anchored" data-anchor-id="参考">参考</h2>
-<a href="https://duckdb.org/docs/stable/clients/python/overview" class="linkcard linkcard--default" target="" aria-label="Link to Python API: The latest stable version of the DuckDB Python client is {{ site.current_duckdb_version }}. Installation The DuckDB Python API can be installed using pip: pip install duckdb. Please see the installation page for details. It is also possible to install DuckDB using conda: conda install python-duckdb -c conda-forge. Python version: DuckDB requires Python 3.9 or newer. Basic API Usage The most straight-forward manner of running SQL queries using DuckDB is using the duckdb.sql command. import duckdb duckdb.sql(&amp;quot;SELECT 42&amp;quot;).show() This will run queries using an in-memory database that is stored globally inside the Python module. The result of the query is returned…"><img src="https://duckdb.org/images/sharingduckdb.jpg" alt="Preview image for Python API" class="linkcard__image" loading="lazy"><div class="linkcard__content"><div class="linkcard__title">Python API</div><div class="linkcard__description">The latest stable version of the DuckDB Python client is {{ site.current_duckdb_version }}. Installation The DuckDB Python API can be installed using pip: pip install duckdb. Please see the installation page for details. It is also possible to install DuckDB using conda: conda install python-duckdb -c conda-forge. Python version: DuckDB requires Python 3.9 or newer. Basic API Usage The most straight-forward manner of running SQL queries using DuckDB is using the duckdb.sql command. import duckdb duckdb.sql("SELECT 42").show() This will run queries using an in-memory database that is stored globally inside the Python module. The result of the query is returned…</div><div class="linkcard__url">duckdb.org</div></div></a>
+<a href="https://duckdb.org/docs/stable/" class="linkcard linkcard--default" target="" aria-label="Link to Documentation: Connecting to DuckDB DuckDB connection overview Client APIs C C++ CLI (command line interface) Go Java (JDBC) Node.js ODBC Python R Rust WebAssembly All client APIs SQL Introduction Statements Other Guides Installation Building DuckDB Browsing offline"><img src="https://duckdb.org/images/sharingduckdb.jpg" alt="Preview image for Documentation" class="linkcard__image" loading="lazy"><div class="linkcard__content"><div class="linkcard__title">Documentation</div><div class="linkcard__description">Connecting to DuckDB DuckDB connection overview Client APIs C C++ CLI (command line interface) Go Java (JDBC) Node.js ODBC Python R Rust WebAssembly All client APIs SQL Introduction Statements Other Guides Installation Building DuckDB Browsing offline</div><div class="linkcard__url">duckdb.org</div></div></a>
 
 
 <!-- -->
@@ -10332,8 +10249,7 @@ font-style: inherit;">"drop"</span></span>
 <div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
 
 <ol>
-<li id="fn1"><p>ただ、SQLを使う場合のメリットの裏返しで、一度R上でデータを読み込んでからデータベースに送り込むことになるので、メモリを多く消費することと、データが大きいと処理速度が遅くなることには注意してください。↩︎</p></li>
-<li id="fn2"><p>とはいえ、プロジェクトごとなどで<code>.duckdb</code>は分けた方が良いとは思います。↩︎</p></li>
+<li id="fn1"><p>とはいえ、プロジェクトごとなどで<code>.duckdb</code>は分けた方が良いとは思います。↩︎</p></li>
 </ol>
 </section></div> ]]></description>
   <category>R</category>
