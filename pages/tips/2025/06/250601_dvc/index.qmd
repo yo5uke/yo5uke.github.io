@@ -1,119 +1,184 @@
 ---
 title: 【データ管理】DVCの設定まとめ
 description: |
-  トークン切れによる再認証が必要な問題を解消できるかもしれません。
+  サービスアカウントを使ったDVCの設定方法をまとめます。
 date: 2025-06-01
+date-modified: 2026-02-01
 categories:
 - DVC
 image: image/dvc_share_mail.png
-editor: visual
 aliases:
 - /pages/tips/250601_dvc/index.html
 ---
+
 ## はじめに
 
-[環境構築の記事](/pages/tips/2024/12/241219_container/index.qmd)でDVCを使用したデータ管理についてもまとめていますが、Google Cloud Projectを使用するため若干ややこしいことに加え、定期的にトークンが切れて認証し直さないといけないという大きいデメリットがありました。
+DVCはデータのバージョン管理ツールで、GitHubの容量制限（100MiB）を超えるデータをGoogle Driveなどの外部ストレージで管理できます。
 
-今回は初回の設定のみで設定がすむ方法について解説します。
+DVCでGoogle Driveをリモートストレージとして使う場合、認証方法には主にOAuthとサービスアカウントの2つがあります。
 
-[記事](/pages/tips/2024/12/241219_container/index.qmd)と同様の流れでの作業を想定しているので、その点ご留意ください。
+| | OAuth | サービスアカウント |
+|---|---|---|
+| 設定の手軽さ | やや複雑 | シンプル |
+| トークン管理 | 定期的に再認証が必要 | 不要（キーファイルで認証） |
+| 共有のしやすさ | 各自が認証を行う | キーファイルを共有するだけ |
 
-## Google Cloud Console
+本記事ではサービスアカウントを使った方法を解説します。
+
+開発コンテナでの利用を想定していますが、それ以外の環境でも同様の手順で設定できます。開発コンテナの環境構築については[こちらの記事](/pages/tips/2024/12/241219_container/index.qmd)を参考にしてください。
+
+## 前提条件
+
+以下がインストールされていることを前提とします。
+
+- Python（pipが使える状態）
+- Git
+
+DVCとGoogle Drive用のパッケージをインストールしてください。
+
+``` {.sh filename="Terminal"}
+pip install dvc dvc-gdrive
+```
+
+## サービスアカウントの作成
+
+Google Cloudのサービスアカウントは、人ではなくアプリケーションがGoogle APIにアクセスするための仕組みです。DVCがGoogle Driveにアクセスするために使用します。
 
 1.  [Google Cloud Console](https://console.cloud.google.com/)へアクセス
 2.  画面上部のボックスからプロジェクトを作成
-    -   左上にGoogle Cloudと書いてある部分の右です
-    -   出てくるウィンドウの右上から作れます
+    - 左上にGoogle Cloudと書いてある部分の右です。
+    - 出てくるウィンドウの右上から作れます。
 
 ![](image/new_project.png){fig-align="center" width="60%"}
 
 3.  画面左のメニューから「IAMと管理」を選択
-    -   左にメニューがない場合は左上の3本線から開けます
+    - 左にメニューがない場合は左上の3本線から開けます。
 4.  サイドバーの真ん中上あたりから「サービスアカウント」を選択
 5.  画面上部の「サービスアカウントを作成」へ進む
 6.  任意の名前と説明を入力し、完了を押下
-    -   権限のところはスキップで構いません
+    - 権限のところはスキップで構いません。
 
 ![](image/create_service_account.png){fig-align="center" width="60%"}
 
-7.  メールの列に書いてある、長いメールアドレスをコピーしておく
-    -   後ほどGoogle Driveのフォルダにこのアドレスを共有します
+7.  メールの列に書いてある長いメールアドレスをコピーしておく
+    - 後ほどGoogle Driveのフォルダにこのアドレスを共有します。
 8.  作成したサービスアカウントの一番右にある「操作」から「鍵を管理」を選択
-    -   長ったらしいメールアドレスの右側にある点々の部分です
-9.  「キーを追加」→「新しい鍵を作成」→「JSON」を選択、作成へ進む
-10. ファイルとして保存されるので、作業ディレクトリへ保存する
-    -   `.secrets`フォルダを作り、その中へ保存してください
-    -   ファイル名は変えて問題ありません。`key.json`とかで大丈夫です
+    - 長いメールアドレスの右側にある点々の部分です。
+9.  「キーを追加」→「新しい鍵を作成」→「JSON」を選択し、作成へ進む
+10. ファイルとして保存されるので、作業ディレクトリの`.secrets`フォルダに保存する
+    - `.secrets`フォルダがなければ作成してください。
+    - ファイル名は`key.json`などわかりやすいもので構いません。
 
-## Google Drive
+## Google Driveの設定
 
-1.  Google Driveの任意の場所にプロジェクトでデータをしまうフォルダを作成する
-2.  フォルダの共有の設定から、先ほどコピーしたメールアドレスを貼り付け共有する
+1.  Google Driveの任意の場所にデータ保管用のフォルダを作成
+2.  フォルダの共有設定から、先ほどコピーしたサービスアカウントのメールアドレスを貼り付け、「編集者」権限で共有
 
 ![メールアドレスを貼り付け、権限を「編集者」にして共有します](image/dvc_share_mail.png){fig-align="center" width="50%"}
 
-3.  Googleドライブで作成したフォルダのIDをコピー
-    -   IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（\~/folders/）より右側の部分です
+3.  フォルダのIDをコピー
+    - IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（\~/folders/）より右側の部分です。
 
-## VSCode
+## DVCの初期化とリモート設定
 
-1.  VSCodeのターミナルで次のコマンドを入力して実行 - 最後の部分（四角括弧ごと）をコピーしたIDに変更してください
+ターミナルで以下のコマンドを順番に実行します。
 
-``` bash
+### リモートの追加
+
+フォルダIDの部分を、先ほどコピーしたIDに置き換えてください。
+
+``` {.sh filename="Terminal"}
 dvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]
 ```
 
-2.  サービスアカウントを有効にする
-    -   以下のコマンドを実行してください
+### サービスアカウントの有効化
 
-``` bash
+``` {.sh filename="Terminal"}
 dvc remote modify myremote gdrive_use_service_account true
 ```
 
-3.  次のコマンドを実行する
-    -   フォルダ名やファイル名を自分で変えた場合、修正してから実行してください
+### キーファイルのパスを設定
 
-``` bash
+`--local`を付けることで、この設定は`.dvc/config.local`に保存され、Gitには追跡されません。フォルダ名やファイル名を変更した場合は、適宜修正してください。
+
+``` {.sh filename="Terminal"}
 dvc remote modify myremote --local \
     gdrive_service_account_json_file_path .secrets/key.json
 ```
 
-## 設定ファイルをgitignore（重要！）
+## セキュリティ設定
 
-いま`.secrets`を作りましたが、この中身はいわば個人情報であり他人に漏らしていいものではないので、`.gitignore`ファイルにしっかり記載し、Gitのトラッキングを解除しておく必要があります。
-
-以下のように`.gitignore`に追記してください。
+`.secrets`フォルダにはサービスアカウントのキーファイルが含まれています。これは機密情報なので、必ず`.gitignore`に追記してGitの追跡対象から外してください。
 
 ``` {filename=".gitignore"}
 /.secrets/
 ```
 
-これで`.secrets`フォルダの中身がGitに追跡されません。
+これで`.secrets`フォルダの中身がGitにコミットされることはありません。
 
-## データフォルダを作ったら適宜`add`, `push`
+## データの追加とプッシュ
 
-以上で設定は終了です。
+以上で設定は完了です。あとはデータを管理していきましょう。
 
-[環境構築の記事](/pages/tips/2024/12/241219_container/index.qmd)でも説明しているように、あとは`data`などデータを入れるフォルダを作りデータを追加したら、`dvc add data/`を実行し、最後は`dvc push`でプッシュすることでデータファイルをGoogle Drive上で管理することができます。
+1.  ワーキングディレクトリに`data`フォルダを作成し、データを追加
+2.  DVCにデータを登録
 
-## 共有する場合
+``` {.sh filename="Terminal"}
+dvc add data/
+```
 
-共同研究などで他の人と作業を進める場合はこのデータフォルダも共有したいということになると思います。その場合は、[記事](/pages/tips/2024/12/241219_container/index.qmd)における共有に加え、`.secrets`は別に送る必要があります（Gitで追跡していないのでクローンしても`.secrets`は現れないからです）。
+3.  Google Driveにプッシュ
 
-別に共有したうえでワーキングディレクトリに`.secrets`を置いてもらえば`dvc pull`でデータを引っ張ってくることができるようになります。
+``` {.sh filename="Terminal"}
+dvc push
+```
 
-その際、`.dvc/config.local`ファイルを以下のように編集してもらってください。
+4.  データをダウンロードしたい場合
 
-```         
-[remote "myremote"]
-    gdrive_use_service_account = true
+``` {.sh filename="Terminal"}
+dvc pull
+```
+
+## 共同作業者の設定
+
+共同研究で他のメンバーとデータを共有する場合、以下の手順が必要です。
+
+### キーファイルの共有
+
+`.secrets`フォルダはGitで追跡されないため、クローンしただけでは含まれません。キーファイルはメールやチャットなど別の手段で共有し、ワーキングディレクトリに`.secrets/key.json`として配置してもらってください。
+
+### DVCの設定
+
+共同作業者は以下のコマンドを順番に実行して、リモートの設定を行います。
+
+``` {.sh filename="Terminal"}
+dvc remote modify myremote gdrive_use_service_account true
+```
+
+``` {.sh filename="Terminal"}
+dvc remote modify myremote --local \
+    gdrive_service_account_json_file_path .secrets/key.json
+```
+
+これにより、`.dvc/config.local`に以下のような内容が書き込まれます。
+
+```
+['remote "myremote"']
     gdrive_service_account_json_file_path = ../.secrets/key.json
 ```
 
-`../`は1つ上の階層のフォルダの～という意味なので、これであっています。`.dvc/config.local`もgitignoreされているので、クローン下だけでは共有されません。
+::: callout-note
+パスが`../.secrets/key.json`となるのは、`.dvc/config.local`から見た相対パスだからです。`.dvc/config.local`もGitで追跡されないため、各自が設定する必要があります。
+:::
 
-## 感想
+設定が完了したら、`dvc pull`でデータをダウンロードできます。
 
-今のところ結構いい感じです。例えばこのウェブサイトを作るうえではあまり新しくデータを追加することがないので、追加するたびにトークンが切れて認証のし直しということが頻発していました。今回の方法では再認証がない（はず）なので、ストレスが軽減されたかなという印象です。
+``` {.sh filename="Terminal"}
+dvc pull
+```
 
-何かあればぜひコメントまでお願いします。
+## おわりに
+
+サービスアカウントを使ったDVCの設定方法を紹介しました。OAuthと比べてトークンの再認証が不要になるため、運用面でのストレスが軽減されます。
+
+何かあればコメントでお知らせください。
