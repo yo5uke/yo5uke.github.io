@@ -3,7 +3,7 @@ title: 【改訂版】開発コンテナを使ってR環境を構築！
 description: |
   ローカル環境から卒業！
 date: 2024-12-19
-date-modified: last-modified
+date-modified: 2026-02-01
 categories:
 - R
 - Docker
@@ -13,32 +13,24 @@ categories:
 - VSCode
 - GitHub
 image: image/Rlogo.png
-editor: visual
 aliases:
 - /pages/tips/241219_container/index.html
 ---
+
 ## はじめに
-
-::: callout-note
-## DVCの設定について
-
-[こちらの記事](/pages/tips/2025/06/250601_dvc/index.qmd)でより簡便なDVCの設定について解説しました。このページを書き直す時間がないためまだ修正できていませんが、もしDVCを採用するということであれば、ぜひ参考にしてみてください。
-:::
 
 ::: callout-note
 ## 本記事について
 
 本記事は以前投稿した同タイトルの記事をアップデートしたものです。
 
-変更点としては、
+今回の主な変更点:
 
-1.  Dockerfileの見直し
-2.  Rのアップデートとそれに伴うPython仮想環境の追加
-3.  全体的にコードを整理
+1.  DVCの設定をサービスアカウント方式に変更（OAuth方式は非推奨）
+2.  Juliaセクションの削除
+3.  全体的な記述の見直し
 
-です。
-
-記事の構成もブラッシュアップしました。
+なお、Dockerfileやdevcontainer.jsonの最新のシンプルな構成については、[こちらの記事](/pages/tips/2025/10/251011_dev_container/index.qmd)もあわせてご覧ください。
 :::
 
 DockerとVSCodeを使ってRの環境を構築する方法を説明します。
@@ -53,24 +45,30 @@ DockerとVSCodeを使ってRの環境を構築する方法を説明します。
 
 全体的に、導入済みの箇所は飛ばしてください。
 
-### WSL2（Windowsユーザーのみ） {#sec-wsl2-setting}
+### WSL2 / Homebrew {#sec-wsl2-setting}
+
+WindowsではWSL2（Linux環境）を、MacではHomebrew（パッケージマネージャー）をそれぞれ準備します。
+
+::: {.panel-tabset}
+
+#### Windows（WSL2）
 
 1.  PowerShellまたはWindowsコマンドプロンプトを管理者権限で開く
-    -   右クリックで管理者権限を使えます。
+    - 右クリックで管理者権限を使えます。
 
 ![](image/powershell.png){width="70%" fig-align="center"}
 
 2.  以下のコマンドを入力して実行
-    -   これでインストールはできるはずですが、詳しくは[こちらのサイト](https://learn.microsoft.com/ja-jp/windows/wsl/install)を参照してください。
+    - これでインストールはできるはずですが、詳しくは[こちらのサイト](https://learn.microsoft.com/ja-jp/windows/wsl/install)を参照してください。
 
 ``` {.sh filename="PowerShell"}
 wsl --install
 ```
 
 3.  ユーザー名とパスワードを設定
-    -   インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます[^1]。
-    -   ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。
-    -   パスワードは**画面上には表示されませんが、ちゃんと入力されています**。慌てて何回も入力しないようにしてください。
+    - インストールが終わると、Linuxディストリビューションのユーザー名とパスワードの作成を求められます[^1]。
+    - ユーザー名は何でも大丈夫です。パスワードもめちゃくちゃ簡単で問題ありません。
+    - パスワードは**画面上には表示されませんが、ちゃんと入力されています**。慌てて何回も入力しないようにしてください。
 
 [^1]: 求められない場合は、続けて`wsl`とだけ入力して実行してください。
 
@@ -78,27 +76,29 @@ wsl --install
 
 [^2]: 左のサイドバーの1番下です。
 
-### Homebrew（Macユーザーのみ）
+#### Mac（Homebrew）
 
-MacユーザーはHomebrewを使って諸々インストールしていくので、まだの方はここでインストールしてください。
+Homebrewを使って諸々インストールしていくので、まだの方はここでインストールしてください。
 
 1.  ターミナルを開く
-    -   アプリ一覧から「ターミナル」を探してください。
+    - アプリ一覧から「ターミナル」を探してください。
 2.  以下のコマンドを入力して実行
-    -   パスワードを求められるので、入力してください。
+    - パスワードを求められるので、入力してください。
 
 ``` {.sh filename="Terminal"}
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
+:::
+
 ### VSCode {#sec-vscode-setting}
 
 1.  VSCodeの[ダウンロードサイト](https://code.visualstudio.com/)からダウンロード、インストール
-    -   Download for Windows[^3]をクリックしてダウンロードできます。
-    -   インストールができたら、VSCodeを開いてください。
+    - Download for Windows[^3]をクリックしてダウンロードできます。
+    - インストールができたら、VSCodeを開いてください。
 2.  （任意）日本語の拡張機能をインストール
-    -   画面左側に拡張機能のアイコン{{< iconify gg:extension >}}があります。ここの検索ボックスに`MS-CEINTL.vscode-language-pack-ja`と入力し、1番上に出てきたものをインストールします[^4]。
-    -   インストール後、VSCodeを再起動すれば日本語が反映されていると思います。
+    - 画面左側に拡張機能のアイコン{{< iconify gg:extension >}}があります。ここの検索ボックスに`MS-CEINTL.vscode-language-pack-ja`と入力し、1番上に出てきたものをインストールします[^4]。
+    - インストール後、VSCodeを再起動すれば日本語が反映されていると思います。
 
 [^3]: もしくは Mac
 
@@ -107,12 +107,12 @@ MacユーザーはHomebrewを使って諸々インストールしていくので
 ![](image/vscode-ja.png)
 
 3.  拡張機能のインストール
-    -   拡張機能の検索ボックスで、次のIDを入力し、インストールします。
-    -   `ms-vscode-remote.remote-containers` (Dev Containers)
-    -   `ms-vscode-remote.remote-wsl` (WSL, Windowsユーザーのみ)\
+    - 拡張機能の検索ボックスで、次のIDを入力し、インストールします。
+    - `ms-vscode-remote.remote-containers` (Dev Containers)
+    - `ms-vscode-remote.remote-wsl` (WSL, Windowsユーザーのみ)\
 4.  WSLに接続（Windowsユーザーのみ）
-    -   VSCodeから先ほどインストールしたWSLに接続します。
-    -   画面左下の青い{{< iconify gg:remote >}}をクリックして、「WSLへの接続」をクリックします。
+    - VSCodeから先ほどインストールしたWSLに接続します。
+    - 画面左下の青い{{< iconify gg:remote >}}をクリックして、「WSLへの接続」をクリックします。
 
 ![](image/vscode-wsl.png)
 
@@ -122,25 +122,33 @@ Dockerをインストールします。
 
 1.  Windowsの方は[ここ](https://docs.docker.com/desktop/install/windows-install/)からDocker Desktop for Windowsを、Macの方は[こちら](https://docs.docker.com/desktop/install/mac-install/)からダウンロード＆インストール
 2.  設定の確認（Windowsのみ）
-    -   インストール出来たら、画面上部の設定ボタンからResources、WSL integrationと進み、チェックボックスにチェック、Ubuntuがオンになっていることを確認してください。
-    -   たまに、何もしていないのにここがオフになっていて、トラブることがあります。
-    -   詳しくは[こちら](https://docs.docker.jp/docker-for-windows/install.html)をご覧ください。日本語で書いてあります。
+    - インストール出来たら、画面上部の設定ボタンからResources、WSL integrationと進み、チェックボックスにチェック、Ubuntuがオンになっていることを確認してください。
+    - たまに、何もしていないのにここがオフになっていて、トラブることがあります。
+    - 詳しくは[こちら](https://docs.docker.jp/docker-for-windows/install.html)をご覧ください。日本語で書いてあります。
 
 ![](image/docker-desktop.png)
 
 3.  画面左側のVolumesに進み、Createからボリュームを作成
-    -   次の4つを作成します（大文字小文字に注意！）。
-    -   `TinyTeX`, `cache`, `fonts`, `venv`
+    - 次の4つを作成します（大文字小文字に注意！）。
+    - `TinyTeX`, `cache`, `fonts`, `venv`
 
 ![Macでの画面](image/create_volume_mac.png)
 
+::: {.callout-tip collapse="true"}
+## ボリュームを使わない構成について
+
+ボリュームを使わないよりシンプルな構成もあります。詳しくは[こちらの記事](/pages/tips/2025/10/251011_dev_container/index.qmd)をご覧ください。
+:::
+
 ### Git
+
+::: {.panel-tabset}
 
 #### Windows
 
 1.  UbuntuでGitをインストール
-    -   Windowsのアプリ一覧からUbuntuを探し、開いてください。開いたら、以下のコマンドを入力して実行します。
-    -   `sudo`を使うとパスワードを求められますが、最初に設定したものです。
+    - Windowsのアプリ一覧からUbuntuを探し、開いてください。開いたら、以下のコマンドを入力して実行します。
+    - `sudo`を使うとパスワードを求められますが、最初に設定したものです。
 
 ``` {.sh filename="Ubuntu"}
 sudo apt-get install git
@@ -148,19 +156,10 @@ sudo apt-get install git
 
 ![Ubuntu](image/ubuntu-git.png){width="70%"}
 
-2.  設定
-    -   以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。
-    -   ここに限らずですが、特に注意がない限り`[]`ごと置き換えてください。
-
-``` {.sh filename="Ubuntu"}
-git config --global user.name [任意のユーザ名]
-git config --global user.email [任意のメールアドレス]
-```
-
 #### Mac
 
 1.  HomebrewでGitをインストール
-    -   ターミナルを開いて、以下のコマンドを入力して実行します。
+    - ターミナルを開いて、以下のコマンドを入力して実行します。
 
 ``` {.sh filename="Terminal"}
 brew install git
@@ -168,8 +167,9 @@ brew install git
 
 ![このMacでは2回目なのでgit is already installedと表示されてます…。](image/homebrew.png){width="70%"}
 
-2.  設定
-    -   以下のコマンドを入力、実行します。ユーザー名は何でも大丈夫です。
+:::
+
+Gitをインストールしたら、以下のコマンドでユーザー名とメールアドレスを設定してください。`[]`ごと置き換えてください。
 
 ``` {.sh filename="Terminal"}
 git config --global user.name [任意のユーザ名]
@@ -186,7 +186,7 @@ GitHubアカウントを作成したら、VSCodeにログインしておきま�
 
 1.  VSCodeを開く
 2.  画面左下のアイコンをクリック
-    -   GitHubでサインインを行う
+    - GitHubでサインインを行う
 
 GitHubにログインすることで、その後の作業がスムーズに進みます。
 
@@ -218,7 +218,7 @@ RStudioでこの後作業することになりますが、コマンドを打つ�
 2.  画面右の「Use this template」から「Create a new repository」を選択
 3.  Repository nameを記入
 4.  Privateを選択
-    -   通常の研究プロジェクトならPrivateでOK
+    - 通常の研究プロジェクトならPrivateでOK
 5.  「Create repository」をクリック
 
 #### リポジトリをクローン {#sec-host-vscode}
@@ -227,12 +227,12 @@ RStudioでこの後作業することになりますが、コマンドを打つ�
 2.  画面左側の{{< fa code-branch >}}を開く
 3.  「リポジトリの複製」を選択し、さらに「GitHubから複製」を選ぶ
 4.  リポジトリを選択し、クローン
-    -   リポジトリは、「ユーザー名/リポジトリ名」の形式で表示されます。
-    -   基本的に表示されると思いますが、表示されない場合は手入力してください。
-    -   クローンしたリポジトリを開くか問われるので、開いてください。
+    - リポジトリは、「ユーザー名/リポジトリ名」の形式で表示されます。
+    - 基本的に表示されると思いますが、表示されない場合は手入力してください。
+    - クローンしたリポジトリを開くか問われるので、開いてください。
 5.  画面右下に「コンテナーで再度開く」と出たらクリック
-    -   出ない場合、画面左下「{{< iconify gg:remote >}} WSL: Ubuntu」[^6]をクリックし、「コンテナーで再度開く」を選択してください。
-    -   初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。
+    - 出ない場合、画面左下「{{< iconify gg:remote >}} WSL: Ubuntu」[^6]をクリックし、「コンテナーで再度開く」を選択してください。
+    - 初めて環境を構築する場合、ここでかなり時間がかかるので辛抱強く待ちましょう。
 
 [^6]: Mac なら{{< iconify gg:remote >}}
 
@@ -273,10 +273,10 @@ killall Finder
 2.  右上の ![](data:image/png;base64,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) をクリックし、「New Project...」を選択
 3.  「Existing Directory」を選択
 4.  「Browse...」より「work」を選択して「Choose」をクリック
-    -   「Create project」をクリックするとプロジェクトが作成されます。
+    - 「Create project」をクリックするとプロジェクトが作成されます。
 5.  コンソールに以下を入力して実行
-    -   `renv`はパッケージを管理するためのパッケージです。
-    -   Dockerfileでインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です[^8]。
+    - `renv`はパッケージを管理するためのパッケージです。
+    - Dockerfileでインストールすることを指示しているので、コンソールでインストールせずとも既に使用可能です[^8]。
 
 [^8]: 余談ですが、`renv::init()`のように`パッケージ名::関数`のような書き方をすれば、`library(パッケージ名)`をせずとも関数を使えます。1度だけ使いたいようなときに便利です。
 
@@ -304,29 +304,59 @@ pip install ipykernel jupyter
 
 #### DVCの設定 {#sec-dvc-setting}
 
-DVCはデータを管理するためのツールです。
+DVCはデータを管理するためのツールです。GitHubの容量制限（100MiB）を超えるデータを扱う場合に便利です。
 
-事前準備として、自分のGoogleドライブの任意の場所で、データを入れる用のフォルダを作成しておいてください。
+ここではサービスアカウントを使った方法で設定します。OAuthに比べてトークン切れの問題がなく、一度設定すれば再認証が不要です。
 
-また、共同プロジェクトの場合は、フォルダの共有も設定してください。
+詳しい設定手順は[DVCの設定まとめ](/pages/tips/2025/06/250601_dvc/index.qmd#サービスアカウントの作成)にまとめていますので、あわせてご覧ください。
+
+##### 事前準備
+
+1.  自分のGoogleドライブの任意の場所で、データを入れる用のフォルダを作成
+    - 共同プロジェクトの場合は、フォルダの共有も設定してください。
+2.  Google Cloud Consoleでサービスアカウントを作成し、JSONキーをダウンロード
+    - 詳しくは[DVCの設定まとめ](/pages/tips/2025/06/250601_dvc/index.qmd#サービスアカウントの作成)を参照してください。
+3.  Googleドライブのフォルダをサービスアカウントのメールアドレスに「編集者」権限で共有
+
+##### パッケージのインストール
 
 1.  VSCodeに戻る
 2.  画面上部「ターミナル」より「新しいターミナル」を選択
-    -   既に画面下部にターミナルが表示されている場合はスキップしてください。
+    - 既に画面下部にターミナルが表示されている場合はスキップしてください。
 3.  以下のコマンドを入力して実行
-    -   初めて環境構築するときに1回実行しておけば、2回目以降の環境構築では不要です。
+    - 初めて環境構築するときに1回実行しておけば、2回目以降の環境構築では不要です。
 
 ``` {.sh filename="Terminal"}
 pip install dvc dvc-gdrive
 ```
 
-4.  Googleドライブで作成したフォルダのIDをコピー
-    -   IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（\~/folders/）より右側の部分です。
-5.  次のコマンドを入力して実行
-    -   最後の部分（四角括弧ごと）をコピーしたIDに変更してください。
+##### DVCの初期化とリモート設定
+
+1.  Googleドライブで作成したフォルダのIDをコピー
+    - IDは、ドライブでフォルダを開いたときのURLで、最後のスラッシュ（\~/folders/）より右側の部分です。
+2.  次のコマンドを順番に実行してください。
 
 ``` {.sh filename="Terminal"}
 dvc init && dvc remote add -d myremote gdrive://[Google DriveのフォルダID]
+```
+
+``` {.sh filename="Terminal"}
+dvc remote modify myremote gdrive_use_service_account true
+```
+
+3.  JSONキーのパスを設定
+    - `.secrets/key.json`にキーを配置してください。
+
+``` {.sh filename="Terminal"}
+dvc remote modify myremote --local \
+    gdrive_service_account_json_file_path .secrets/key.json
+```
+
+4.  `.gitignore`に`.secrets/`を追記
+    - キーファイルは機密情報なので、Gitで追跡しないようにしてください。
+
+``` {filename=".gitignore"}
+/.secrets/
 ```
 
 #### LaTeXの設定
@@ -368,9 +398,9 @@ VSCode上でファイルやフォルダを作成するためには、左側の�
 
 共同プロジェクトの場合は、GitHubで共有するため、以下の手順を踏んでおいてください。
 
--   GitHubリポジトリでコラボレーターを追加
-    -   リポジトリのSettingsからCollaboratorsに進み、コラボレーターを追加してください。
-    -   Add peopleから招待できます。
+- GitHubリポジトリでコラボレーターを追加
+  - リポジトリのSettingsからCollaboratorsに進み、コラボレーターを追加してください。
+  - Add peopleから招待できます。
 
 ホスト側の環境構築はここで一区切りです！
 
@@ -379,11 +409,11 @@ VSCode上でファイルやフォルダを作成するためには、左側の�
 **前提：**[事前準備](#sec-pre)を終わらせている
 
 1.  GitHubで招待を受ける
-    -   メールが届いているはずですので、そこからGitHubにログインしてください。
-    -   リポジトリにアクセスできるようになります。
+    - メールが届いているはずですので、そこからGitHubにログインしてください。
+    - リポジトリにアクセスできるようになります。
 2.  リポジトリをクローン
-    -   ホスト側が作成したリポジトリをクローンします。
-    -   ホスト側の設定と同様にしてクローンし、開いてください。
+    - ホスト側が作成したリポジトリをクローンします。
+    - ホスト側の設定と同様にしてクローンし、開いてください。
 
 一旦ここまでで、共同作業者の設定は終わりです。
 
@@ -428,24 +458,24 @@ renv::restore()
 また、そもそもDVCがPythonのパッケージなので、それも`renv`と同様に記録できます。Pythonの場合はvenvを用いてパッケージを管理します。
 
 1.  Pythonのパッケージを追加
-    -   [先ほど](#sec-dvc-setting)と同様に、新しいターミナルを開いて、以下のコードでパッケージをインストールします。
-    -   DVC以外特に使うものがなければ、ここはスキップしてください。
+    - [先ほど](#sec-dvc-setting)と同様に、新しいターミナルを開いて、以下のコードでパッケージをインストールします。
+    - DVC以外特に使うものがなければ、ここはスキップしてください。
 
 ``` {.sh filename="Terminal"}
 pip install [パッケージ名]
 ```
 
 2.  パッケージを記録
-    -   Rと同様に、作業が終わったら以下のコードでパッケージを記録します。
-    -   `requirements.txt`は`renv.lock`と同じような役割です。
+    - Rと同様に、作業が終わったら以下のコードでパッケージを記録します。
+    - `requirements.txt`は`renv.lock`と同じような役割です。
 
 ``` {.sh filename="Terminal"}
 pip freeze > requirements.txt
 ```
 
 3.  パッケージをインストール（異なる環境に移行した場合）
-    -   次のコードで、`requirements.txt`に記録したパッケージをインストールできます。
-    -   つまり`renv::restore()`と同じ役割です。
+    - 次のコードで、`requirements.txt`に記録したパッケージをインストールできます。
+    - つまり`renv::restore()`と同じ役割です。
 
 ``` {.sh filename="Terminal"}
 pip install -r requirements.txt
@@ -453,16 +483,14 @@ pip install -r requirements.txt
 
 ### データの管理
 
-データはDVCで管理、Google Drive上で保管します。
+データはDVCで管理し、Google Drive上で保管します。
 
-DVCでデータを管理するメリットとしては、GitHub上のデータ容量の制限を受けずに管理できることが大きいと思います。GitHubは100MiBを超えるデータをブロックしますので、注意が必要です。
+[DVCの設定](#sec-dvc-setting)が済んでいれば、以下の手順でデータを管理できます。
 
-まずは[この記事](/pages/tips/2024/08/240831_google_cloud_project/index.html)を見ていただき、Google Cloudでの設定をしてください。
-
-1.  ワーキングディレクトリに、`data`というフォルダを作成
+1.  ワーキングディレクトリに`data`というフォルダを作成
 2.  データが入ったら、以下のコードを実行
-    -   `data`フォルダごとドライブに追加します。
-    -   `data`フォルダは`.gitignore`に記載されているため、GitHubにはアップロードされません。
+    - `data`フォルダごとドライブに追加します。
+    - `data`フォルダは`.gitignore`に記載されているため、GitHubにはアップロードされません。
 
 ``` {.sh filename="Terminal"}
 dvc add data/
@@ -476,40 +504,17 @@ dvc add data/
 ちなみにWindowsユーザーの方で、一回ローカルに落としてからLinuxにデータやコードを入れたら`Zone.Identifier`というファイルができることがありますが、これは無視して大丈夫です。邪魔であればまとめて消してください。
 :::
 
-3.  以下のコードを実行
-    -   `'client-id'`と`'client-secret'`は[こちら](/pages/tips/2024/08/240831_google_cloud_project/index.html)を参考に変更してください。
+3.  データをアップロード
 
-``` {.bash filename="Terminal"}
-dvc remote modify --local myremote gdrive_client_id 'client-id'
-dvc remote modify --local myremote gdrive_client_secret 'client-secret'
-dvc remote modify --local myremote gdrive_user_credentials_file ~/.cache/myremote-credentials.json
-```
-
-4.  データをアップロード
-
-    -   以下のコードでデータをプッシュします。
-    -   最初はpushをする過程でアカウントの認証が必要になりますが、表示に従って認証を進めてください。
-
-``` {.bash filename="Terminal"}
+``` {.sh filename="Terminal"}
 dvc push
 ```
 
-5.  データのダウンロード
-    -   プッシュしたデータをダウンロードしたい場合は、以下を実行します。
+4.  データのダウンロード
+    - プッシュしたデータをダウンロードしたい場合は、以下を実行します。
 
 ``` {.sh filename="Terminal"}
 dvc pull
-```
-
-### Juliaのパッケージ
-
-Julia はパッケージが自動で`Project.toml`に保存されるため、共同作業者がインストールするだけで大丈夫です。
-
-1.  [先ほど](#sec-julia-setting)と同じ手順で環境をアクティベートする
-2.  以下のコードでパッケージをインストール
-
-``` {.julia filename="Julia"}
-Pkg.instantiate()
 ```
 
 ### まとめ
@@ -527,27 +532,29 @@ Pkg.instantiate()
 ### ホスト
 
 0.  必要なソフト等をインストールし、事前準備を行う。
-    -   WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
+    - WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
 1.  GitHubでリポジトリをインポート、クローン
 2.  RStudio Serverでプロジェクトを作成
-    -   `renv::init()` でrenvを開始
-    -   `renv::snapshot()`で適宜パッケージを記録
-3.  `data`フォルダを作成し、DVCで管理
-    -   データは`data`内に追加
-    -   `dvc add data/`と`dvc push`を使用
+    - `renv::init()` でrenvを開始
+    - `renv::snapshot()`で適宜パッケージを記録
+3.  `.secrets`フォルダにサービスアカウントのキーを配置し、DVCを設定
+    - データは`data`内に追加
+    - `dvc add data/`と`dvc push`を使用
 4.  VSCode上でコミット、プッシュ
 
 ### 共同作業者
 
 0.  必要なソフト等をインストールし、事前準備を行う。
-    -   WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
+    - WSL2, Ubuntu, Homebrew, VSCode, Docker, Git, GitHub
 1.  GitHubでリポジトリをクローン
 2.  RStudio Serverでプロジェクトを開く
-    -   `renv::restore()` でパッケージをインストール
-3.  VSCode上で`pip install -r requirements.txt`を実行
-    -   Pythonパッケージをインストール
-4.  `dvc pull`でデータをダウンロード
-5.  VSCode上でコミット、プッシュ
+    - `renv::restore()` でパッケージをインストール
+3.  ホストから`.secrets`フォルダを受け取り、ワーキングディレクトリに配置
+4.  VSCode上で`pip install -r requirements.txt`を実行
+    - Pythonパッケージをインストール
+5.  DVCのリモート設定を行い、`dvc pull`でデータをダウンロード
+    - 詳しくは[DVCの設定まとめ](/pages/tips/2025/06/250601_dvc/index.qmd)の「共同作業者の設定」を参照
+6.  VSCode上でコミット、プッシュ
 
 ## おわりに
 
@@ -559,14 +566,10 @@ Pkg.instantiate()
 
 ## 参考文献
 
-::: {.callout-tip appearance="minimal"}
-[VSCode + Dockerでよりミニマルでポータブルな研究環境を](https://zenn.dev/nicetak/articles/vscode-docker-2023)
-:::
+{{< linkcard url="/pages/tips/2025/10/251011_dev_container/index.qmd" >}}
 
-::: {.callout-tip appearance="minimal"}
-[UbuntuにGitをインストールする](https://qiita.com/tommy_g/items/771ac45b89b02e8a5d64)
-:::
+{{< linkcard url="https://zenn.dev/nicetak/articles/vscode-docker-2023" >}}
 
-::: {.callout-tip appearance="minimal"}
-[githubを使った共同作業の手順](https://qiita.com/future_kame/items/9fa256aea09faa28b357)
-:::
+{{< linkcard url="https://qiita.com/tommy_g/items/771ac45b89b02e8a5d64" >}}
+
+{{< linkcard url="https://qiita.com/future_kame/items/9fa256aea09faa28b357" >}}
