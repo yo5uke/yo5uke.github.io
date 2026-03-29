@@ -1,0 +1,298 @@
+---
+title: Black Marbleを用いた夜間光データの利用
+description: |
+  Rパッケージを使ってより簡単に夜間光を扱いましょう！
+date: 2026-03-29
+categories:
+  - R
+  - GIS
+execute: 
+  cache: true
+---
+
+## はじめに
+
+ご無沙汰の更新となります。今回は、Rを使ってBlack Marbleの夜間光データを取得・分析する方法を紹介します。
+
+[GIS in R](/pages/gis_in_r/4_nighttime_light/index.qmd)にてVIIRSの夜間光データを取得する方法を紹介していますが、今回はBlack Marbleを扱います。
+
+{{< linkcard url="/pages/gis_in_r/4_nighttime_light/index.qmd" >}}
+
+{{< linkcard url="/pages/software/nighttime_lights/index.qmd" >}}
+
+## VIIRSデータとBlack Marbleの違い
+
+夜間光データといえば、NASAとNOAAが運用するSuomi NPP衛星・NOAA-20衛星・NOAA-21衛星に搭載されたVIIRS（Visible Infrared Imaging Radiometer Suite）センサーで取得されたデータが広く使われています。
+
+本サイトで扱っていた夜間光データは、Earth Observation Group（EOG）が提供する**Annual VNL V2**という年次データでしたが、NASA EarthdataのLAADS DAACでは**Black Marble（VNP46）**というシリーズも提供されています。
+
+これまで扱っていたものと、今回扱うBlack Marbleの違いを簡単にまとめると以下のようになります。
+
+| | EOG/VNL（Annual VNL V2） | Black Marble（VNP46） |
+|---|---|---|
+| 提供元 | Colorado School of Mines（Earth Observation Group） | NASA Earthdata（LAADS DAAC） |
+| センサー | VIIRS（Suomi NPP・NOAA-20） | VIIRS（Suomi NPP・NOAA-20・NOAA-21） |
+| 時間分解能 | 年次 | 日次・月次・年次 |
+| 空間分解能 | 約500m（15 arc-second） | 約500m（15 arc-second） |
+| 主な補正処理 | 雲マスク・月光ピクセル除外・ストレイライト除去・外れ値除去（火災等） | 大気補正・月光BRDF補正・雲マスク・積雪補正・地形補正・植生補正・ストレイライト除去 |
+| アカウント | EOGアカウントが必要 | NASA Earthdataアカウントが必要 |
+
+## Black Marbleの製品ラインナップ
+
+Black MarbleはVNP46シリーズとして提供されており、時間解像度によって以下の製品があります。
+
+| 製品ID | 内容 | 時間解像度 |
+|---|---|---|
+| VNP46A1 | 日次データ（未補正・大気上端の生輝度値） | 日次 |
+| VNP46A2 | 日次データ（月光BRDF補正・大気補正・雲マスク・ギャップフィル済み） | 日次 |
+| VNP46A3 | 月次合成データ | 月次 |
+| VNP46A4 | 年次合成データ | 年次 |
+
+**VNP46A2**は月光・大気・積雪の影響を補正したうえで、雲による欠損ピクセルをギャップフィルしたプロダクトです。日次データを使いたい場合は補正済みのこちらが適していると思います。**VNP46A1**は補正前の生輝度値（TOA radiance）で、補正処理を自分でカスタマイズしたい場合に使います。日次データを使いたい場合はこちらが扱いやすいのではないでしょうか。年次・月次でよければ**VNP46A4**・**VNP46A3**を使います。
+
+## 事前準備：NASA Earthdataアカウントとトークンの取得
+
+Black Marbleのデータ取得にはNASA Earthdataのアカウントが必要です。
+
+### アカウント登録
+
+1. [NASA Earthdataのサイト](https://urs.earthdata.nasa.gov/users/new)にアクセスし、アカウントを作成します。
+
+### Bearerトークンの取得
+
+RからAPIでデータを取得するために、**Bearerトークン**が必要です。
+
+1. [Earthdataにログイン](https://urs.earthdata.nasa.gov/)します。
+2. 右上のユーザー名をクリックし、「Generate Token」を選択します。
+3. 「Generate Token」ボタンをクリックするとトークンが表示されます。
+4. このトークンをコピーしてRのコード内で使います。
+
+:::{.callout-warning}
+## トークンの扱いについて
+
+個人で使う分には問題ないかもしれませんが、Bearerトークンは**パスワードと同様**の機密情報です。コードに直接書いてGitHubなどに公開しないようにしてください。コードに直接書くのではなく`.Renviron`ファイルに環境変数として保存し、`Sys.getenv()`で読み込む方法が安全です（後述）。
+:::
+
+## パッケージのインストールと準備
+
+今回は世界銀行が開発した`blackmarbler`パッケージを使います。
+
+```r
+# pakを使う場合
+pak::pak("blackmarbler")
+
+# もしくは
+install.packages("blackmarbler")
+```
+
+また、地理データの処理に`sf`と`terra`、可視化に`ggplot2`と`tidyterra`も使います。
+
+```r
+pak::pak(c("sf", "terra", "ggplot2", "tidyterra", "here"))
+```
+
+```{r}
+library(blackmarbler)
+library(sf)
+library(terra)
+library(ggplot2)
+library(tidyterra)
+library(here)
+```
+
+### トークンの安全な管理
+
+`.Renviron`ファイルにトークンを保存しておくと、コードをそのまま共有してもトークンが漏れません。
+
+プロジェクトのルートディレクトリに`.Renviron`ファイルを作成し、以下の1行を追加して保存してRを再起動します。
+
+```{.text filename=".Renviron"}
+NASA_BEARER=ここにコピーしたトークンを貼り付ける
+```
+
+以降は以下でトークンを読み込めます。
+
+```{r}
+bearer <- Sys.getenv("NASA_BEARER")
+```
+
+## データの取得
+
+### 対象地域の準備
+
+まず、データを取得したい地域の地理情報を用意します。ここでは日本全国の市区町村データを使います。
+
+私が全国のデータを結合したものは、以下のリンクからダウンロードできます。
+
+[GPKGファイル](/data/jpn_geojson/municipality_summarise.zip){download="municipality_summarise.zip"}
+
+また、座標系をWGS84（EPSG:4326）に変換しておきます^[座標系については[こちら](/pages/gis_in_r/5_crs/index.qmd)も参照してください。]。
+
+```{r}
+muni <- read_sf(here("data/jpn_geojson/municipality_summarise.gpkg")) |>
+  st_transform(4326) # WGS84に変換
+```
+
+### `bm_raster()`でラスタデータを取得
+
+`blackmarbler`パッケージの`bm_raster()`関数でデータを取得します。主な引数は以下の通りです。
+
+| 引数 | 説明 |
+|---|---|
+| `roi_sf` | 対象地域のsfオブジェクト |
+| `product_id` | 製品ID（`"VNP46A4"`など） |
+| `date_range` | 取得期間（`c("開始日", "終了日")`） |
+| `bearer` | NASA Bearerトークン |
+
+年次データ（VNP46A4）で2020〜2023年の日本を取得する例です。
+
+```r
+ntl <- bm_raster(
+  roi_sf = muni,
+  product_id = "VNP46A4",
+  date = 2020:2023,
+  bearer = bearer
+)
+```
+
+単年で`date = 2023`のようにすることもできます。
+
+:::{.callout-note}
+## 取得されるデータについて
+
+`bm_raster()`は対象地域（`roi_sf`）を覆うNASAのタイルを自動的に判定し、ダウンロード・モザイク合成・クリップまで行ってくれます。1年ぶんのデータが1レイヤーとして格納され、複数年を指定した場合は多レイヤーの`SpatRaster`オブジェクトが返されます。
+:::
+
+月次データ（VNP46A3）の場合は`product_id = "VNP46A3"`とし、`date`に月初日を指定します。
+
+```r
+ntl_monthly <- bm_raster(
+  roi_sf = muni,
+  product_id = "VNP46A3",
+  date = c("2023-01-01", "2023-12-01"), # 日は無視されます
+  bearer = bearer
+)
+```
+
+## 地域別の集計：`bm_extract()`
+
+ポリゴン単位（今回でいえば市区町村単位）で夜間光の平均値などを集計したい場合は、`bm_extract()`が使えます。
+
+```{r}
+#| include: false
+
+hokkaido <- muni |>
+  dplyr::filter(id_pref == "01", stringr::str_ends(name_muni, "市"))
+
+ntl_df <- bm_extract(
+  roi_sf = hokkaido,
+  product_id = "VNP46A4",
+  date = 2012:2022,
+  bearer = bearer
+)
+```
+
+```r
+# ポリゴンデータから北海道の市を抽出
+hokkaido <- muni |>
+  dplyr::filter(id_pref == "01", stringr::str_ends(name_muni, "市"))
+
+ntl_df <- bm_extract(
+  roi_sf = hokkaido,
+  product_id = "VNP46A4",
+  date = 2012:2022,
+  bearer = bearer
+)
+```
+
+```{r}
+#| echo: false
+#| label: tbl-ntl-hokkaido
+#| tbl-cap: "北海道の市の夜間光の年次平均値（一部）"
+
+tinytable::tt(head(ntl_df))
+```
+
+返り値はsfオブジェクトで、各ポリゴンに年ごとの統計量（平均・合計など）が列として付与されます。これはそのまま夜間光の指標にできますし、他の属性データと結合して分析することもできます。
+
+## データの可視化
+
+### 単年のプロット
+
+取得したラスタデータは`terra`パッケージでそのまま扱えます。`bm_raster()`で得たデータをそのままプロットすると日本周辺の範囲も含まれるので、`terra::mask()`で範囲を限定し、さらに対数スケールを使うと光量の分布が見やすくなります。
+
+```{r}
+#| label: fig-ntl-single
+#| fig-cap: "2023年1月の日本の夜間光"
+
+# 2023年1月1日のデータを使用
+r <- bm_raster(
+  roi_sf = muni,
+  product_id = "VNP46A3",
+  date = "2023-01-01",
+  bearer = bearer
+)
+
+# 範囲を日本に限定
+r <- r |> terra::mask(muni)
+
+# 分布が歪んでいるので対数変換
+r[] <- log(r[] + 1) # 0を避けるために1を加算
+
+ggplot() +
+  geom_spatraster(data = r) +
+  scale_fill_gradient2(
+    low = "black",
+    mid = "yellow",
+    high = "red",
+    midpoint = 4.5,
+    na.value = "transparent",
+  ) +
+  coord_sf() +
+  theme_void() +
+  theme(
+    legend.position = "none"
+  )
+```
+
+やはり3大都市圏などでは夜間光が強い傾向が見て取れます。
+
+### 複数年の変化を比較する
+
+先ほど`bm_extract()`で得た市区町村ごとの年次平均値を使えば、年ごとの変化を比較できます。
+
+```{r}
+#| label: fig-ntl-multi
+#| fig-cap: "2012年〜2022年の北海道（市）の夜間光の推移"
+
+ntl_df |>
+  ggplot() +
+  geom_col(aes(x = date, y = ntl_mean), fill = "darkorange") +
+  facet_wrap(~name_muni) +
+  labs(
+    x = NULL,
+    y = "平均輝度",
+  ) +
+  scale_x_continuous(
+    labels = seq(2012, 2022, by = 4),
+    breaks = seq(2012, 2022, by = 4)
+  ) +
+  theme_bw() +
+  theme(
+    strip.text = element_text(face = "bold")
+  )
+```
+
+特に大した理由もなく北海道の市を抽出してプロットしてみたのですが、札幌はともかく、それに匹敵するレベルで室蘭市の夜間光が強いのが意外ですね…。
+
+簡単に調べた感じでは室蘭市は工業都市で、夜景が魅力なんだとか。単純に並べて見るだけでも面白いですね。
+
+## おわりに
+
+今回はBlack Marbleの夜間光データをRで取得する方法についてまとめました。夜間光というのは文明を感じれて結構好きです。笑
+
+行政区域データを使って、目的に合わせて必要なデータを取得してみてください！
+
+## 参考
+
+{{< linkcard url="https://worldbank.github.io/blackmarbler/" no-image=true >}}
