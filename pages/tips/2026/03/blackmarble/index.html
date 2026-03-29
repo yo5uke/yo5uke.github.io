@@ -1,0 +1,1804 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.35">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Rパッケージを使ってより簡単に夜間光を扱いましょう！">
+
+<title>Black Marbleを用いた夜間光データの利用 – Yosuke Abe</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../../../">
+<link href="../../../../../assets/icons/favicon.ico" rel="icon">
+<script src="../../../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-22b4aaf4c2978829df3684e8f2c068db.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-46f66b053e56abd73bb6e954d61a315b.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../../../site_libs/bootstrap/bootstrap-e50e4ec41c9cdf244d0bb8bc48d16910.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../../site_libs/bootstrap/bootstrap-dark-fa8b82352a411f8342305ca916d4874b.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../../../site_libs/bootstrap/bootstrap-e50e4ec41c9cdf244d0bb8bc48d16910.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../../../site_libs/quarto-contrib/iconify-3.0.0/iconify-icon.min.js"></script>
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/all.min.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/latex-fontsize.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "一致なし",
+    "search-matching-documents-text": "一致した文書",
+    "search-copy-link-title": "検索へのリンクをコピー",
+    "search-hide-matches-text": "追加の検索結果を非表示",
+    "search-more-match-text": "追加の検索結果",
+    "search-more-matches-text": "追加の検索結果",
+    "search-clear-button-title": "消去",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "キャンセル",
+    "search-submit-button-title": "検索",
+    "search-label": "サーチ"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
+</script>
+
+
+<meta property="og:title" content="Black Marbleを用いた夜間光データの利用 – Yosuke Abe">
+<meta property="og:description" content="Rパッケージを使ってより簡単に夜間光を扱いましょう！">
+<meta property="og:image" content="https://yo5uke.com/pages/tips/2026/03/blackmarble/index_files/figure-html/fig-ntl-single-1.png">
+<meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="960">
+<meta property="og:image:width" content="1344">
+<meta name="twitter:title" content="Black Marbleを用いた夜間光データの利用 – Yosuke Abe">
+<meta name="twitter:description" content="Rパッケージを使ってより簡単に夜間光を扱いましょう！">
+<meta name="twitter:image" content="https://yo5uke.com/pages/tips/2026/03/blackmarble/index_files/figure-html/fig-ntl-single-1.png">
+<meta name="twitter:creator" content="@5uke_y">
+<meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="960">
+<meta name="twitter:image-width" content="1344">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://yo5uke.com/pages/tips/2026/03/blackmarble/">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../../../index.html">
+    <span class="navbar-title">Yosuke Abe</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="サーチ"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="ナビゲーションを切り替える" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/tips/index.html"> 
+<span class="menu-text">Tips</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/gis_in_r/index.html"> 
+<span class="menu-text">GIS in <i class="fa-brands fa-r-project" aria-label="r-project"></i></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools tools-wide">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            ソースコード
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            問題を報告
+            </a>
+          </li>
+      </ul>
+    </div>
+    <a href="../../../../../pages/tips/index.xml" title="RSS" class="quarto-navigation-tool px-1" aria-label="RSS"><i class="bi bi-rss"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="ダークモードの切り替え"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">Black Marbleを用いた夜間光データの利用</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i></button></div></div>
+                  <div>
+        <div class="description">
+          <p>Rパッケージを使ってより簡単に夜間光を扱いましょう！</p>
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">R</div>
+                <div class="quarto-category">GIS</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">公開</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2026年3月29日</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目次</h2>
+   
+  <ul>
+  <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
+  <li><a href="#viirsデータとblack-marbleの違い" id="toc-viirsデータとblack-marbleの違い" class="nav-link" data-scroll-target="#viirsデータとblack-marbleの違い">VIIRSデータとBlack Marbleの違い</a></li>
+  <li><a href="#black-marbleの製品ラインナップ" id="toc-black-marbleの製品ラインナップ" class="nav-link" data-scroll-target="#black-marbleの製品ラインナップ">Black Marbleの製品ラインナップ</a></li>
+  <li><a href="#事前準備nasa-earthdataアカウントとトークンの取得" id="toc-事前準備nasa-earthdataアカウントとトークンの取得" class="nav-link" data-scroll-target="#事前準備nasa-earthdataアカウントとトークンの取得">事前準備：NASA Earthdataアカウントとトークンの取得</a>
+  <ul>
+  <li><a href="#アカウント登録" id="toc-アカウント登録" class="nav-link" data-scroll-target="#アカウント登録">アカウント登録</a></li>
+  <li><a href="#bearerトークンの取得" id="toc-bearerトークンの取得" class="nav-link" data-scroll-target="#bearerトークンの取得">Bearerトークンの取得</a></li>
+  </ul></li>
+  <li><a href="#パッケージのインストールと準備" id="toc-パッケージのインストールと準備" class="nav-link" data-scroll-target="#パッケージのインストールと準備">パッケージのインストールと準備</a>
+  <ul>
+  <li><a href="#トークンの安全な管理" id="toc-トークンの安全な管理" class="nav-link" data-scroll-target="#トークンの安全な管理">トークンの安全な管理</a></li>
+  </ul></li>
+  <li><a href="#データの取得" id="toc-データの取得" class="nav-link" data-scroll-target="#データの取得">データの取得</a>
+  <ul>
+  <li><a href="#対象地域の準備" id="toc-対象地域の準備" class="nav-link" data-scroll-target="#対象地域の準備">対象地域の準備</a></li>
+  <li><a href="#bm_rasterでラスタデータを取得" id="toc-bm_rasterでラスタデータを取得" class="nav-link" data-scroll-target="#bm_rasterでラスタデータを取得"><code>bm_raster()</code>でラスタデータを取得</a></li>
+  </ul></li>
+  <li><a href="#地域別の集計bm_extract" id="toc-地域別の集計bm_extract" class="nav-link" data-scroll-target="#地域別の集計bm_extract">地域別の集計：<code>bm_extract()</code></a></li>
+  <li><a href="#データの可視化" id="toc-データの可視化" class="nav-link" data-scroll-target="#データの可視化">データの可視化</a>
+  <ul>
+  <li><a href="#単年のプロット" id="toc-単年のプロット" class="nav-link" data-scroll-target="#単年のプロット">単年のプロット</a></li>
+  <li><a href="#複数年の変化を比較する" id="toc-複数年の変化を比較する" class="nav-link" data-scroll-target="#複数年の変化を比較する">複数年の変化を比較する</a></li>
+  </ul></li>
+  <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
+  <li><a href="#参考" id="toc-参考" class="nav-link" data-scroll-target="#参考">参考</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>ご無沙汰の更新となります。今回は、Rを使ってBlack Marbleの夜間光データを取得・分析する方法を紹介します。</p>
+<p><a href="../../../../../pages/gis_in_r/4_nighttime_light/index.html">GIS in R</a>にてVIIRSの夜間光データを取得する方法を紹介していますが、今回はBlack Marbleを扱います。</p>
+<a href="https://yo5uke.com/pages/gis_in_r/4_nighttime_light/" class="linkcard linkcard--default linkcard--no-image" target="" aria-label="Link to 夜間光を可視化する"><div class="linkcard__content"><div class="linkcard__title">夜間光を可視化する</div><div class="linkcard__url">yo5uke.com</div></div></a>
+<a href="https://yo5uke.com/pages/software/nighttime_lights/" class="linkcard linkcard--default linkcard--no-image" target="" aria-label="Link to 日本の夜間光データ（2012～2024）: 2012～2024年のVIIRS夜間光データから日本領域を抽出・処理したデータセット。"><div class="linkcard__content"><div class="linkcard__title">日本の夜間光データ（2012～2024）</div><div class="linkcard__description">2012～2024年のVIIRS夜間光データから日本領域を抽出・処理したデータセット。</div><div class="linkcard__url">yo5uke.com</div></div></a>
+</section>
+<section id="viirsデータとblack-marbleの違い" class="level2">
+<h2 class="anchored" data-anchor-id="viirsデータとblack-marbleの違い">VIIRSデータとBlack Marbleの違い</h2>
+<p>夜間光データといえば、NASAとNOAAが運用するSuomi NPP衛星・NOAA-20衛星・NOAA-21衛星に搭載されたVIIRS（Visible Infrared Imaging Radiometer Suite）センサーで取得されたデータが広く使われています。</p>
+<p>本サイトで扱っていた夜間光データは、Earth Observation Group（EOG）が提供する<strong>Annual VNL V2</strong>という年次データでしたが、NASA EarthdataのLAADS DAACでは<strong>Black Marble（VNP46）</strong>というシリーズも提供されています。</p>
+<p>これまで扱っていたものと、今回扱うBlack Marbleの違いを簡単にまとめると以下のようになります。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>EOG/VNL（Annual VNL V2）</th>
+<th>Black Marble（VNP46）</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>提供元</td>
+<td>Colorado School of Mines（Earth Observation Group）</td>
+<td>NASA Earthdata（LAADS DAAC）</td>
+</tr>
+<tr class="even">
+<td>センサー</td>
+<td>VIIRS（Suomi NPP・NOAA-20）</td>
+<td>VIIRS（Suomi NPP・NOAA-20・NOAA-21）</td>
+</tr>
+<tr class="odd">
+<td>時間分解能</td>
+<td>年次</td>
+<td>日次・月次・年次</td>
+</tr>
+<tr class="even">
+<td>空間分解能</td>
+<td>約500m（15 arc-second）</td>
+<td>約500m（15 arc-second）</td>
+</tr>
+<tr class="odd">
+<td>主な補正処理</td>
+<td>雲マスク・月光ピクセル除外・ストレイライト除去・外れ値除去（火災等）</td>
+<td>大気補正・月光BRDF補正・雲マスク・積雪補正・地形補正・植生補正・ストレイライト除去</td>
+</tr>
+<tr class="even">
+<td>アカウント</td>
+<td>EOGアカウントが必要</td>
+<td>NASA Earthdataアカウントが必要</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="black-marbleの製品ラインナップ" class="level2">
+<h2 class="anchored" data-anchor-id="black-marbleの製品ラインナップ">Black Marbleの製品ラインナップ</h2>
+<p>Black MarbleはVNP46シリーズとして提供されており、時間解像度によって以下の製品があります。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>製品ID</th>
+<th>内容</th>
+<th>時間解像度</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>VNP46A1</td>
+<td>日次データ（未補正・大気上端の生輝度値）</td>
+<td>日次</td>
+</tr>
+<tr class="even">
+<td>VNP46A2</td>
+<td>日次データ（月光BRDF補正・大気補正・雲マスク・ギャップフィル済み）</td>
+<td>日次</td>
+</tr>
+<tr class="odd">
+<td>VNP46A3</td>
+<td>月次合成データ</td>
+<td>月次</td>
+</tr>
+<tr class="even">
+<td>VNP46A4</td>
+<td>年次合成データ</td>
+<td>年次</td>
+</tr>
+</tbody>
+</table>
+<p><strong>VNP46A2</strong>は月光・大気・積雪の影響を補正したうえで、雲による欠損ピクセルをギャップフィルしたプロダクトです。日次データを使いたい場合は補正済みのこちらが適していると思います。<strong>VNP46A1</strong>は補正前の生輝度値（TOA radiance）で、補正処理を自分でカスタマイズしたい場合に使います。日次データを使いたい場合はこちらが扱いやすいのではないでしょうか。年次・月次でよければ<strong>VNP46A4</strong>・<strong>VNP46A3</strong>を使います。</p>
+</section>
+<section id="事前準備nasa-earthdataアカウントとトークンの取得" class="level2">
+<h2 class="anchored" data-anchor-id="事前準備nasa-earthdataアカウントとトークンの取得">事前準備：NASA Earthdataアカウントとトークンの取得</h2>
+<p>Black Marbleのデータ取得にはNASA Earthdataのアカウントが必要です。</p>
+<section id="アカウント登録" class="level3">
+<h3 class="anchored" data-anchor-id="アカウント登録">アカウント登録</h3>
+<ol type="1">
+<li><a href="https://urs.earthdata.nasa.gov/users/new">NASA Earthdataのサイト</a>にアクセスし、アカウントを作成します。</li>
+</ol>
+</section>
+<section id="bearerトークンの取得" class="level3">
+<h3 class="anchored" data-anchor-id="bearerトークンの取得">Bearerトークンの取得</h3>
+<p>RからAPIでデータを取得するために、<strong>Bearerトークン</strong>が必要です。</p>
+<ol type="1">
+<li><a href="https://urs.earthdata.nasa.gov/">Earthdataにログイン</a>します。</li>
+<li>右上のユーザー名をクリックし、「Generate Token」を選択します。</li>
+<li>「Generate Token」ボタンをクリックするとトークンが表示されます。</li>
+<li>このトークンをコピーしてRのコード内で使います。</li>
+</ol>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>トークンの扱いについて
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>個人で使う分には問題ないかもしれませんが、Bearerトークンは<strong>パスワードと同様</strong>の機密情報です。コードに直接書いてGitHubなどに公開しないようにしてください。コードに直接書くのではなく<code>.Renviron</code>ファイルに環境変数として保存し、<code>Sys.getenv()</code>で読み込む方法が安全です（後述）。</p>
+</div>
+</div>
+</section>
+</section>
+<section id="パッケージのインストールと準備" class="level2">
+<h2 class="anchored" data-anchor-id="パッケージのインストールと準備">パッケージのインストールと準備</h2>
+<p>今回は世界銀行が開発した<code>blackmarbler</code>パッケージを使います。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pakを使う場合</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"blackmarbler"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># もしくは</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"blackmarbler"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>また、地理データの処理に<code>sf</code>と<code>terra</code>、可視化に<code>ggplot2</code>と<code>tidyterra</code>も使います。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="fu">c</span>(<span class="st">"sf"</span>, <span class="st">"terra"</span>, <span class="st">"ggplot2"</span>, <span class="st">"tidyterra"</span>, <span class="st">"here"</span>))</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(blackmarbler)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyterra)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="トークンの安全な管理" class="level3">
+<h3 class="anchored" data-anchor-id="トークンの安全な管理">トークンの安全な管理</h3>
+<p><code>.Renviron</code>ファイルにトークンを保存しておくと、コードをそのまま共有してもトークンが漏れません。</p>
+<p>プロジェクトのルートディレクトリに<code>.Renviron</code>ファイルを作成し、以下の1行を追加して保存してRを再起動します。</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>.Renviron</strong></pre>
+</div>
+<pre class="text" data-filename=".Renviron"><code>NASA_BEARER=ここにコピーしたトークンを貼り付ける</code></pre>
+</div>
+<p>以降は以下でトークンを読み込めます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>bearer <span class="ot">&lt;-</span> <span class="fu">Sys.getenv</span>(<span class="st">"NASA_BEARER"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="データの取得" class="level2">
+<h2 class="anchored" data-anchor-id="データの取得">データの取得</h2>
+<section id="対象地域の準備" class="level3">
+<h3 class="anchored" data-anchor-id="対象地域の準備">対象地域の準備</h3>
+<p>まず、データを取得したい地域の地理情報を用意します。ここでは日本全国の市区町村データを使います。</p>
+<p>私が全国のデータを結合したものは、以下のリンクからダウンロードできます。</p>
+<p><a href="../../../../../data/jpn_geojson/municipality_summarise.zip" download="municipality_summarise.zip">GPKGファイル</a></p>
+<p>また、座標系をWGS84（EPSG:4326）に変換しておきます<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>muni <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/jpn_geojson/municipality_summarise.gpkg"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">4326</span>) <span class="co"># WGS84に変換</span></span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="bm_rasterでラスタデータを取得" class="level3">
+<h3 class="anchored" data-anchor-id="bm_rasterでラスタデータを取得"><code>bm_raster()</code>でラスタデータを取得</h3>
+<p><code>blackmarbler</code>パッケージの<code>bm_raster()</code>関数でデータを取得します。主な引数は以下の通りです。</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>引数</th>
+<th>説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>roi_sf</code></td>
+<td>対象地域のsfオブジェクト</td>
+</tr>
+<tr class="even">
+<td><code>product_id</code></td>
+<td>製品ID（<code>"VNP46A4"</code>など）</td>
+</tr>
+<tr class="odd">
+<td><code>date_range</code></td>
+<td>取得期間（<code>c("開始日", "終了日")</code>）</td>
+</tr>
+<tr class="even">
+<td><code>bearer</code></td>
+<td>NASA Bearerトークン</td>
+</tr>
+</tbody>
+</table>
+<p>年次データ（VNP46A4）で2020〜2023年の日本を取得する例です。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>ntl <span class="ot">&lt;-</span> <span class="fu">bm_raster</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> muni,</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A4"</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="dv">2020</span><span class="sc">:</span><span class="dv">2023</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>単年で<code>date = 2023</code>のようにすることもできます。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>取得されるデータについて
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><code>bm_raster()</code>は対象地域（<code>roi_sf</code>）を覆うNASAのタイルを自動的に判定し、ダウンロード・モザイク合成・クリップまで行ってくれます。1年ぶんのデータが1レイヤーとして格納され、複数年を指定した場合は多レイヤーの<code>SpatRaster</code>オブジェクトが返されます。</p>
+</div>
+</div>
+<p>月次データ（VNP46A3）の場合は<code>product_id = "VNP46A3"</code>とし、<code>date</code>に月初日を指定します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>ntl_monthly <span class="ot">&lt;-</span> <span class="fu">bm_raster</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> muni,</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A3"</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="fu">c</span>(<span class="st">"2023-01-01"</span>, <span class="st">"2023-12-01"</span>), <span class="co"># 日は無視されます</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="地域別の集計bm_extract" class="level2">
+<h2 class="anchored" data-anchor-id="地域別の集計bm_extract">地域別の集計：<code>bm_extract()</code></h2>
+<p>ポリゴン単位（今回でいえば市区町村単位）で夜間光の平均値などを集計したい場合は、<code>bm_extract()</code>が使えます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ポリゴンデータから北海道の市を抽出</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>hokkaido <span class="ot">&lt;-</span> muni <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(id_pref <span class="sc">==</span> <span class="st">"01"</span>, stringr<span class="sc">::</span><span class="fu">str_ends</span>(name_muni, <span class="st">"市"</span>))</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>ntl_df <span class="ot">&lt;-</span> <span class="fu">bm_extract</span>(</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> hokkaido,</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A4"</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="dv">2012</span><span class="sc">:</span><span class="dv">2022</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell">
+<div id="tbl-ntl-hokkaido" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-ntl-hokkaido-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: 北海道の市の夜間光の年次平均値（一部）
+</figcaption>
+<div aria-describedby="tbl-ntl-hokkaido-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
+
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_iezxbzvpdre8y3pfgtf2 = TinyTable.createTableFunctions("tinytable_iezxbzvpdre8y3pfgtf2");
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 }, { i: '6', j: 3 }, { i: '6', j: 4 }, { i: '6', j: 5 }, { i: '6', j: 6 }, { i: '6', j: 7 }, { i: '6', j: 8 }, { i: '6', j: 9 } ], css_id: 'tinytable_css_g4ve88io83lvckxkjpks',}, 
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 }, { i: '0', j: 5 }, { i: '0', j: 6 }, { i: '0', j: 7 }, { i: '0', j: 8 }, { i: '0', j: 9 } ], css_id: 'tinytable_css_rpx7l7cehrh0odmflciu',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_iezxbzvpdre8y3pfgtf2.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+    <style>
+    /* tinytable css entries after */
+    #tinytable_iezxbzvpdre8y3pfgtf2 td.tinytable_css_g4ve88io83lvckxkjpks, #tinytable_iezxbzvpdre8y3pfgtf2 th.tinytable_css_g4ve88io83lvckxkjpks {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_iezxbzvpdre8y3pfgtf2 td.tinytable_css_rpx7l7cehrh0odmflciu, #tinytable_iezxbzvpdre8y3pfgtf2 th.tinytable_css_rpx7l7cehrh0odmflciu {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+    <div class="container">
+      <table class="tinytable" id="tinytable_iezxbzvpdre8y3pfgtf2" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        
+        <thead>
+              <tr>
+                <th scope="col" data-row="0" data-col="1">name_muni</th>
+                <th scope="col" data-row="0" data-col="2">id_muni</th>
+                <th scope="col" data-row="0" data-col="3">id_pref</th>
+                <th scope="col" data-row="0" data-col="4">n_pixels</th>
+                <th scope="col" data-row="0" data-col="5">n_non_na_pixels</th>
+                <th scope="col" data-row="0" data-col="6">prop_non_na_pixels</th>
+                <th scope="col" data-row="0" data-col="7">ntl_mean</th>
+                <th scope="col" data-row="0" data-col="8">date</th>
+                <th scope="col" data-row="0" data-col="9">geom</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="1">札幌市</td>
+                  <td data-row="1" data-col="2">01100</td>
+                  <td data-row="1" data-col="3">01</td>
+                  <td data-row="1" data-col="4">7418</td>
+                  <td data-row="1" data-col="5">7418</td>
+                  <td data-row="1" data-col="6">1</td>
+                  <td data-row="1" data-col="7">7.6723404</td>
+                  <td data-row="1" data-col="8">2012</td>
+                  <td data-row="1" data-col="9">MULTIPOLYGON (((141.2828 43...</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="1">函館市</td>
+                  <td data-row="2" data-col="2">01202</td>
+                  <td data-row="2" data-col="3">01</td>
+                  <td data-row="2" data-col="4">4481</td>
+                  <td data-row="2" data-col="5">4481</td>
+                  <td data-row="2" data-col="6">1</td>
+                  <td data-row="2" data-col="7">1.6120635</td>
+                  <td data-row="2" data-col="8">2012</td>
+                  <td data-row="2" data-col="9">MULTIPOLYGON (((141.1571 41...</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="1">小樽市</td>
+                  <td data-row="3" data-col="2">01203</td>
+                  <td data-row="3" data-col="3">01</td>
+                  <td data-row="3" data-col="4">1787</td>
+                  <td data-row="3" data-col="5">1787</td>
+                  <td data-row="3" data-col="6">1</td>
+                  <td data-row="3" data-col="7">2.4043283</td>
+                  <td data-row="3" data-col="8">2012</td>
+                  <td data-row="3" data-col="9">MULTIPOLYGON (((140.8554 43...</td>
+                </tr>
+                <tr>
+                  <td data-row="4" data-col="1">旭川市</td>
+                  <td data-row="4" data-col="2">01204</td>
+                  <td data-row="4" data-col="3">01</td>
+                  <td data-row="4" data-col="4">5240</td>
+                  <td data-row="4" data-col="5">5240</td>
+                  <td data-row="4" data-col="6">1</td>
+                  <td data-row="4" data-col="7">2.5062435</td>
+                  <td data-row="4" data-col="8">2012</td>
+                  <td data-row="4" data-col="9">MULTIPOLYGON (((142.2877 43...</td>
+                </tr>
+                <tr>
+                  <td data-row="5" data-col="1">室蘭市</td>
+                  <td data-row="5" data-col="2">01205</td>
+                  <td data-row="5" data-col="3">01</td>
+                  <td data-row="5" data-col="4">640</td>
+                  <td data-row="5" data-col="5">640</td>
+                  <td data-row="5" data-col="6">1</td>
+                  <td data-row="5" data-col="7">8.6423740</td>
+                  <td data-row="5" data-col="8">2012</td>
+                  <td data-row="5" data-col="9">MULTIPOLYGON (((140.941 42....</td>
+                </tr>
+                <tr>
+                  <td data-row="6" data-col="1">釧路市</td>
+                  <td data-row="6" data-col="2">01206</td>
+                  <td data-row="6" data-col="3">01</td>
+                  <td data-row="6" data-col="4">9268</td>
+                  <td data-row="6" data-col="5">9268</td>
+                  <td data-row="6" data-col="6">1</td>
+                  <td data-row="6" data-col="7">0.6960174</td>
+                  <td data-row="6" data-col="8">2012</td>
+                  <td data-row="6" data-col="9">MULTIPOLYGON (((144.3589 42...</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
+<p>返り値はsfオブジェクトで、各ポリゴンに年ごとの統計量（平均・合計など）が列として付与されます。これはそのまま夜間光の指標にできますし、他の属性データと結合して分析することもできます。</p>
+</section>
+<section id="データの可視化" class="level2">
+<h2 class="anchored" data-anchor-id="データの可視化">データの可視化</h2>
+<section id="単年のプロット" class="level3">
+<h3 class="anchored" data-anchor-id="単年のプロット">単年のプロット</h3>
+<p>取得したラスタデータは<code>terra</code>パッケージでそのまま扱えます。<code>bm_raster()</code>で得たデータをそのままプロットすると日本周辺の範囲も含まれるので、<code>terra::mask()</code>で範囲を限定し、さらに対数スケールを使うと光量の分布が見やすくなります。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 2023年1月1日のデータを使用</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">bm_raster</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> muni,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A3"</span>,</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="st">"2023-01-01"</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 範囲を日本に限定</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> r <span class="sc">|&gt;</span> terra<span class="sc">::</span><span class="fu">mask</span>(muni)</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 分布が歪んでいるので対数変換</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>r[] <span class="ot">&lt;-</span> <span class="fu">log</span>(r[] <span class="sc">+</span> <span class="dv">1</span>) <span class="co"># 0を避けるために1を加算</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data =</span> r) <span class="sc">+</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient2</span>(</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> <span class="st">"black"</span>,</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">mid =</span> <span class="st">"yellow"</span>,</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="st">"red"</span>,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint =</span> <span class="fl">4.5</span>,</span>
+<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.value =</span> <span class="st">"transparent"</span>,</span>
+<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>() <span class="sc">+</span></span>
+<span id="cb10-25"><a href="#cb10-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb10-26"><a href="#cb10-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
+<span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-ntl-single" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ntl-single-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-ntl-single-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ntl-single-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;1: 2023年1月の日本の夜間光
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>やはり3大都市圏などでは夜間光が強い傾向が見て取れます。</p>
+</section>
+<section id="複数年の変化を比較する" class="level3">
+<h3 class="anchored" data-anchor-id="複数年の変化を比較する">複数年の変化を比較する</h3>
+<p>先ほど<code>bm_extract()</code>で得た市区町村ごとの年次平均値を使えば、年ごとの変化を比較できます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>ntl_df <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> ntl_mean), <span class="at">fill =</span> <span class="st">"darkorange"</span>) <span class="sc">+</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name_muni) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"平均輝度"</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">seq</span>(<span class="dv">2012</span>, <span class="dv">2022</span>, <span class="at">by =</span> <span class="dv">4</span>),</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">2012</span>, <span class="dv">2022</span>, <span class="at">by =</span> <span class="dv">4</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="fig-ntl-multi" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-ntl-multi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="index_files/figure-html/fig-ntl-multi-1.png" class="img-fluid figure-img" width="672">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-ntl-multi-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+図&nbsp;2: 2012年〜2022年の北海道（市）の夜間光の推移
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>特に大した理由もなく北海道の市を抽出してプロットしてみたのですが、札幌はともかく、それに匹敵するレベルで室蘭市の夜間光が強いのが意外ですね…。</p>
+<p>簡単に調べた感じでは室蘭市は工業都市で、夜景が魅力なんだとか。単純に並べて見るだけでも面白いですね。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はBlack Marbleの夜間光データをRで取得する方法についてまとめました。夜間光というのは文明を感じれて結構好きです。笑</p>
+<p>行政区域データを使って、目的に合わせて必要なデータを取得してみてください！</p>
+</section>
+<section id="参考" class="level2">
+<h2 class="anchored" data-anchor-id="参考">参考</h2>
+<a href="https://worldbank.github.io/blackmarbler/" class="linkcard linkcard--default linkcard--no-image" target="" aria-label="Link to Black Marble Data and Statistics: Geographically referenced data and statistics of nighttime lights from NASA Black Marble &amp;lt;https://blackmarble.gsfc.nasa.gov/&amp;gt;."><div class="linkcard__content"><div class="linkcard__title">Black Marble Data and Statistics</div><div class="linkcard__description">Geographically referenced data and statistics of nighttime lights from NASA Black Marble &lt;https://blackmarble.gsfc.nasa.gov/&gt;.</div><div class="linkcard__url">worldbank.github.io</div></div></a>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>座標系については<a href="../../../../../pages/gis_in_r/5_crs/index.html">こちら</a>も参照してください。<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "コピーしました");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "コピーしました");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yo5uke\.com");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<input type="hidden" id="giscus-base-theme" value="light_high_contrast">
+<input type="hidden" id="giscus-alt-theme" value="light_high_contrast">
+<script>
+  function loadGiscus() {
+    // Function to get the theme based on body class
+    const getTheme = () => {
+      let baseTheme = document.getElementById('giscus-base-theme').value;
+      let altTheme = document.getElementById('giscus-alt-theme').value;
+      if (authorPrefersDark) {
+          [baseTheme, altTheme] = [altTheme, baseTheme];
+      }
+      return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+    };
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "yo5uke/yo5uke.github.io";
+    script.dataset.repoId = "R_kgDOLsORUQ";
+    script.dataset.category = "General";
+    script.dataset.categoryId = "DIC_kwDOLsORUc4CfJ93";
+    script.dataset.mapping = "title";
+    script.dataset.reactionsEnabled = "1";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "top";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "en";
+    script.crossOrigin = "anonymous";
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  }
+  loadGiscus();
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> Black Marbleを用いた夜間光データの利用</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">  Rパッケージを使ってより簡単に夜間光を扱いましょう！</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2026-03-29</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - GIS</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="an">execute:</span><span class="co"> </span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co">  cache: true</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>ご無沙汰の更新となります。今回は、Rを使ってBlack Marbleの夜間光データを取得・分析する方法を紹介します。</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">GIS in R</span><span class="co">](/pages/gis_in_r/4_nighttime_light/index.qmd)</span>にてVIIRSの夜間光データを取得する方法を紹介していますが、今回はBlack Marbleを扱います。</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a>{{&lt; linkcard url="/pages/gis_in_r/4_nighttime_light/index.qmd" &gt;}}</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>{{&lt; linkcard url="/pages/software/nighttime_lights/index.qmd" &gt;}}</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="fu">## VIIRSデータとBlack Marbleの違い</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a>夜間光データといえば、NASAとNOAAが運用するSuomi NPP衛星・NOAA-20衛星・NOAA-21衛星に搭載されたVIIRS（Visible Infrared Imaging Radiometer Suite）センサーで取得されたデータが広く使われています。</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a>本サイトで扱っていた夜間光データは、Earth Observation Group（EOG）が提供する**Annual VNL V2**という年次データでしたが、NASA EarthdataのLAADS DAACでは**Black Marble（VNP46）**というシリーズも提供されています。</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a>これまで扱っていたものと、今回扱うBlack Marbleの違いを簡単にまとめると以下のようになります。</span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="pp">|</span> EOG/VNL（Annual VNL V2） <span class="pp">|</span> Black Marble（VNP46） <span class="pp">|</span></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 提供元 <span class="pp">|</span> Colorado School of Mines（Earth Observation Group） <span class="pp">|</span> NASA Earthdata（LAADS DAAC） <span class="pp">|</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> センサー <span class="pp">|</span> VIIRS（Suomi NPP・NOAA-20） <span class="pp">|</span> VIIRS（Suomi NPP・NOAA-20・NOAA-21） <span class="pp">|</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 時間分解能 <span class="pp">|</span> 年次 <span class="pp">|</span> 日次・月次・年次 <span class="pp">|</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 空間分解能 <span class="pp">|</span> 約500m（15 arc-second） <span class="pp">|</span> 約500m（15 arc-second） <span class="pp">|</span></span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 主な補正処理 <span class="pp">|</span> 雲マスク・月光ピクセル除外・ストレイライト除去・外れ値除去（火災等） <span class="pp">|</span> 大気補正・月光BRDF補正・雲マスク・積雪補正・地形補正・植生補正・ストレイライト除去 <span class="pp">|</span></span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> アカウント <span class="pp">|</span> EOGアカウントが必要 <span class="pp">|</span> NASA Earthdataアカウントが必要 <span class="pp">|</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a><span class="fu">## Black Marbleの製品ラインナップ</span></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>Black MarbleはVNP46シリーズとして提供されており、時間解像度によって以下の製品があります。</span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 製品ID <span class="pp">|</span> 内容 <span class="pp">|</span> 時間解像度 <span class="pp">|</span></span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|---|</span></span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> VNP46A1 <span class="pp">|</span> 日次データ（未補正・大気上端の生輝度値） <span class="pp">|</span> 日次 <span class="pp">|</span></span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> VNP46A2 <span class="pp">|</span> 日次データ（月光BRDF補正・大気補正・雲マスク・ギャップフィル済み） <span class="pp">|</span> 日次 <span class="pp">|</span></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> VNP46A3 <span class="pp">|</span> 月次合成データ <span class="pp">|</span> 月次 <span class="pp">|</span></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> VNP46A4 <span class="pp">|</span> 年次合成データ <span class="pp">|</span> 年次 <span class="pp">|</span></span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a>**VNP46A2**は月光・大気・積雪の影響を補正したうえで、雲による欠損ピクセルをギャップフィルしたプロダクトです。日次データを使いたい場合は補正済みのこちらが適していると思います。**VNP46A1**は補正前の生輝度値（TOA radiance）で、補正処理を自分でカスタマイズしたい場合に使います。日次データを使いたい場合はこちらが扱いやすいのではないでしょうか。年次・月次でよければ**VNP46A4**・**VNP46A3**を使います。</span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a><span class="fu">## 事前準備：NASA Earthdataアカウントとトークンの取得</span></span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a>Black Marbleのデータ取得にはNASA Earthdataのアカウントが必要です。</span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a><span class="fu">### アカウント登録</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span><span class="co">[</span><span class="ot">NASA Earthdataのサイト</span><span class="co">](https://urs.earthdata.nasa.gov/users/new)</span>にアクセスし、アカウントを作成します。</span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a><span class="fu">### Bearerトークンの取得</span></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>RからAPIでデータを取得するために、**Bearerトークン**が必要です。</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span><span class="co">[</span><span class="ot">Earthdataにログイン</span><span class="co">](https://urs.earthdata.nasa.gov/)</span>します。</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>右上のユーザー名をクリックし、「Generate Token」を選択します。</span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>「Generate Token」ボタンをクリックするとトークンが表示されます。</span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>このトークンをコピーしてRのコード内で使います。</span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>:::{.callout-warning}</span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a><span class="fu">## トークンの扱いについて</span></span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>個人で使う分には問題ないかもしれませんが、Bearerトークンは**パスワードと同様**の機密情報です。コードに直接書いてGitHubなどに公開しないようにしてください。コードに直接書くのではなく<span class="in">`.Renviron`</span>ファイルに環境変数として保存し、<span class="in">`Sys.getenv()`</span>で読み込む方法が安全です（後述）。</span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a><span class="fu">## パッケージのインストールと準備</span></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a>今回は世界銀行が開発した<span class="in">`blackmarbler`</span>パッケージを使います。</span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a><span class="co"># pakを使う場合</span></span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"blackmarbler"</span>)</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a><span class="co"># もしくは</span></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">"blackmarbler"</span>)</span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a>また、地理データの処理に<span class="in">`sf`</span>と<span class="in">`terra`</span>、可視化に<span class="in">`ggplot2`</span>と<span class="in">`tidyterra`</span>も使います。</span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="fu">c</span>(<span class="st">"sf"</span>, <span class="st">"terra"</span>, <span class="st">"ggplot2"</span>, <span class="st">"tidyterra"</span>, <span class="st">"here"</span>))</span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(blackmarbler)</span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(terra)</span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyterra)</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a><span class="fu">### トークンの安全な管理</span></span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a><span class="in">`.Renviron`</span>ファイルにトークンを保存しておくと、コードをそのまま共有してもトークンが漏れません。</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>プロジェクトのルートディレクトリに<span class="in">`.Renviron`</span>ファイルを作成し、以下の1行を追加して保存してRを再起動します。</span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a><span class="in">```{.text filename=".Renviron"}</span></span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a><span class="in">NASA_BEARER=ここにコピーしたトークンを貼り付ける</span></span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a>以降は以下でトークンを読み込めます。</span>
+<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>bearer <span class="ot">&lt;-</span> <span class="fu">Sys.getenv</span>(<span class="st">"NASA_BEARER"</span>)</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a><span class="fu">## データの取得</span></span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a><span class="fu">### 対象地域の準備</span></span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a>まず、データを取得したい地域の地理情報を用意します。ここでは日本全国の市区町村データを使います。</span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a>私が全国のデータを結合したものは、以下のリンクからダウンロードできます。</span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="ot">GPKGファイル</span><span class="co">](/data/jpn_geojson/municipality_summarise.zip)</span>{download="municipality_summarise.zip"}</span>
+<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-133"><a href="#cb12-133" aria-hidden="true" tabindex="-1"></a>また、座標系をWGS84（EPSG:4326）に変換しておきます^<span class="co">[</span><span class="ot">座標系については[こちら](/pages/gis_in_r/5_crs/index.qmd)も参照してください。</span><span class="co">]</span>。</span>
+<span id="cb12-134"><a href="#cb12-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>muni <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(<span class="fu">here</span>(<span class="st">"data/jpn_geojson/municipality_summarise.gpkg"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_transform</span>(<span class="dv">4326</span>) <span class="co"># WGS84に変換</span></span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a><span class="fu">### `bm_raster()`でラスタデータを取得</span></span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a><span class="in">`blackmarbler`</span>パッケージの<span class="in">`bm_raster()`</span>関数でデータを取得します。主な引数は以下の通りです。</span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 引数 <span class="pp">|</span> 説明 <span class="pp">|</span></span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a><span class="pp">|---|---|</span></span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`roi_sf`</span> <span class="pp">|</span> 対象地域のsfオブジェクト <span class="pp">|</span></span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`product_id`</span> <span class="pp">|</span> 製品ID（<span class="in">`"VNP46A4"`</span>など） <span class="pp">|</span></span>
+<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`date_range`</span> <span class="pp">|</span> 取得期間（<span class="in">`c("開始日", "終了日")`</span>） <span class="pp">|</span></span>
+<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`bearer`</span> <span class="pp">|</span> NASA Bearerトークン <span class="pp">|</span></span>
+<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a>年次データ（VNP46A4）で2020〜2023年の日本を取得する例です。</span>
+<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-155"><a href="#cb12-155" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb12-156"><a href="#cb12-156" aria-hidden="true" tabindex="-1"></a>ntl <span class="ot">&lt;-</span> <span class="fu">bm_raster</span>(</span>
+<span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> muni,</span>
+<span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A4"</span>,</span>
+<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="dv">2020</span><span class="sc">:</span><span class="dv">2023</span>,</span>
+<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-163"><a href="#cb12-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-164"><a href="#cb12-164" aria-hidden="true" tabindex="-1"></a>単年で<span class="in">`date = 2023`</span>のようにすることもできます。</span>
+<span id="cb12-165"><a href="#cb12-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-166"><a href="#cb12-166" aria-hidden="true" tabindex="-1"></a>:::{.callout-note}</span>
+<span id="cb12-167"><a href="#cb12-167" aria-hidden="true" tabindex="-1"></a><span class="fu">## 取得されるデータについて</span></span>
+<span id="cb12-168"><a href="#cb12-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-169"><a href="#cb12-169" aria-hidden="true" tabindex="-1"></a><span class="in">`bm_raster()`</span>は対象地域（<span class="in">`roi_sf`</span>）を覆うNASAのタイルを自動的に判定し、ダウンロード・モザイク合成・クリップまで行ってくれます。1年ぶんのデータが1レイヤーとして格納され、複数年を指定した場合は多レイヤーの<span class="in">`SpatRaster`</span>オブジェクトが返されます。</span>
+<span id="cb12-170"><a href="#cb12-170" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb12-171"><a href="#cb12-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-172"><a href="#cb12-172" aria-hidden="true" tabindex="-1"></a>月次データ（VNP46A3）の場合は<span class="in">`product_id = "VNP46A3"`</span>とし、<span class="in">`date`</span>に月初日を指定します。</span>
+<span id="cb12-173"><a href="#cb12-173" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-174"><a href="#cb12-174" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb12-175"><a href="#cb12-175" aria-hidden="true" tabindex="-1"></a>ntl_monthly <span class="ot">&lt;-</span> <span class="fu">bm_raster</span>(</span>
+<span id="cb12-176"><a href="#cb12-176" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> muni,</span>
+<span id="cb12-177"><a href="#cb12-177" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A3"</span>,</span>
+<span id="cb12-178"><a href="#cb12-178" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="fu">c</span>(<span class="st">"2023-01-01"</span>, <span class="st">"2023-12-01"</span>), <span class="co"># 日は無視されます</span></span>
+<span id="cb12-179"><a href="#cb12-179" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb12-180"><a href="#cb12-180" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-181"><a href="#cb12-181" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-182"><a href="#cb12-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-183"><a href="#cb12-183" aria-hidden="true" tabindex="-1"></a><span class="fu">## 地域別の集計：`bm_extract()`</span></span>
+<span id="cb12-184"><a href="#cb12-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-185"><a href="#cb12-185" aria-hidden="true" tabindex="-1"></a>ポリゴン単位（今回でいえば市区町村単位）で夜間光の平均値などを集計したい場合は、<span class="in">`bm_extract()`</span>が使えます。</span>
+<span id="cb12-186"><a href="#cb12-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-189"><a href="#cb12-189" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-190"><a href="#cb12-190" aria-hidden="true" tabindex="-1"></a><span class="co">#| include: false</span></span>
+<span id="cb12-191"><a href="#cb12-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a>hokkaido <span class="ot">&lt;-</span> muni <span class="sc">|&gt;</span></span>
+<span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(id_pref <span class="sc">==</span> <span class="st">"01"</span>, stringr<span class="sc">::</span><span class="fu">str_ends</span>(name_muni, <span class="st">"市"</span>))</span>
+<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a>ntl_df <span class="ot">&lt;-</span> <span class="fu">bm_extract</span>(</span>
+<span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> hokkaido,</span>
+<span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A4"</span>,</span>
+<span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="dv">2012</span><span class="sc">:</span><span class="dv">2022</span>,</span>
+<span id="cb12-199"><a href="#cb12-199" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb12-200"><a href="#cb12-200" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-201"><a href="#cb12-201" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-202"><a href="#cb12-202" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-203"><a href="#cb12-203" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb12-204"><a href="#cb12-204" aria-hidden="true" tabindex="-1"></a><span class="co"># ポリゴンデータから北海道の市を抽出</span></span>
+<span id="cb12-205"><a href="#cb12-205" aria-hidden="true" tabindex="-1"></a>hokkaido <span class="ot">&lt;-</span> muni <span class="sc">|&gt;</span></span>
+<span id="cb12-206"><a href="#cb12-206" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(id_pref <span class="sc">==</span> <span class="st">"01"</span>, stringr<span class="sc">::</span><span class="fu">str_ends</span>(name_muni, <span class="st">"市"</span>))</span>
+<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a>ntl_df <span class="ot">&lt;-</span> <span class="fu">bm_extract</span>(</span>
+<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> hokkaido,</span>
+<span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A4"</span>,</span>
+<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="dv">2012</span><span class="sc">:</span><span class="dv">2022</span>,</span>
+<span id="cb12-212"><a href="#cb12-212" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-214"><a href="#cb12-214" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-215"><a href="#cb12-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-218"><a href="#cb12-218" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-219"><a href="#cb12-219" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb12-220"><a href="#cb12-220" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-ntl-hokkaido</span></span>
+<span id="cb12-221"><a href="#cb12-221" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "北海道の市の夜間光の年次平均値（一部）"</span></span>
+<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-223"><a href="#cb12-223" aria-hidden="true" tabindex="-1"></a>tinytable<span class="sc">::</span><span class="fu">tt</span>(<span class="fu">head</span>(ntl_df))</span>
+<span id="cb12-224"><a href="#cb12-224" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-225"><a href="#cb12-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-226"><a href="#cb12-226" aria-hidden="true" tabindex="-1"></a>返り値はsfオブジェクトで、各ポリゴンに年ごとの統計量（平均・合計など）が列として付与されます。これはそのまま夜間光の指標にできますし、他の属性データと結合して分析することもできます。</span>
+<span id="cb12-227"><a href="#cb12-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-228"><a href="#cb12-228" aria-hidden="true" tabindex="-1"></a><span class="fu">## データの可視化</span></span>
+<span id="cb12-229"><a href="#cb12-229" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-230"><a href="#cb12-230" aria-hidden="true" tabindex="-1"></a><span class="fu">### 単年のプロット</span></span>
+<span id="cb12-231"><a href="#cb12-231" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-232"><a href="#cb12-232" aria-hidden="true" tabindex="-1"></a>取得したラスタデータは<span class="in">`terra`</span>パッケージでそのまま扱えます。<span class="in">`bm_raster()`</span>で得たデータをそのままプロットすると日本周辺の範囲も含まれるので、<span class="in">`terra::mask()`</span>で範囲を限定し、さらに対数スケールを使うと光量の分布が見やすくなります。</span>
+<span id="cb12-233"><a href="#cb12-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-236"><a href="#cb12-236" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-237"><a href="#cb12-237" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ntl-single</span></span>
+<span id="cb12-238"><a href="#cb12-238" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "2023年1月の日本の夜間光"</span></span>
+<span id="cb12-239"><a href="#cb12-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-240"><a href="#cb12-240" aria-hidden="true" tabindex="-1"></a><span class="co"># 2023年1月1日のデータを使用</span></span>
+<span id="cb12-241"><a href="#cb12-241" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="fu">bm_raster</span>(</span>
+<span id="cb12-242"><a href="#cb12-242" aria-hidden="true" tabindex="-1"></a>  <span class="at">roi_sf =</span> muni,</span>
+<span id="cb12-243"><a href="#cb12-243" aria-hidden="true" tabindex="-1"></a>  <span class="at">product_id =</span> <span class="st">"VNP46A3"</span>,</span>
+<span id="cb12-244"><a href="#cb12-244" aria-hidden="true" tabindex="-1"></a>  <span class="at">date =</span> <span class="st">"2023-01-01"</span>,</span>
+<span id="cb12-245"><a href="#cb12-245" aria-hidden="true" tabindex="-1"></a>  <span class="at">bearer =</span> bearer</span>
+<span id="cb12-246"><a href="#cb12-246" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-247"><a href="#cb12-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-248"><a href="#cb12-248" aria-hidden="true" tabindex="-1"></a><span class="co"># 範囲を日本に限定</span></span>
+<span id="cb12-249"><a href="#cb12-249" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> r <span class="sc">|&gt;</span> terra<span class="sc">::</span><span class="fu">mask</span>(muni)</span>
+<span id="cb12-250"><a href="#cb12-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-251"><a href="#cb12-251" aria-hidden="true" tabindex="-1"></a><span class="co"># 分布が歪んでいるので対数変換</span></span>
+<span id="cb12-252"><a href="#cb12-252" aria-hidden="true" tabindex="-1"></a>r[] <span class="ot">&lt;-</span> <span class="fu">log</span>(r[] <span class="sc">+</span> <span class="dv">1</span>) <span class="co"># 0を避けるために1を加算</span></span>
+<span id="cb12-253"><a href="#cb12-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-254"><a href="#cb12-254" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb12-255"><a href="#cb12-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data =</span> r) <span class="sc">+</span></span>
+<span id="cb12-256"><a href="#cb12-256" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient2</span>(</span>
+<span id="cb12-257"><a href="#cb12-257" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> <span class="st">"black"</span>,</span>
+<span id="cb12-258"><a href="#cb12-258" aria-hidden="true" tabindex="-1"></a>    <span class="at">mid =</span> <span class="st">"yellow"</span>,</span>
+<span id="cb12-259"><a href="#cb12-259" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="st">"red"</span>,</span>
+<span id="cb12-260"><a href="#cb12-260" aria-hidden="true" tabindex="-1"></a>    <span class="at">midpoint =</span> <span class="fl">4.5</span>,</span>
+<span id="cb12-261"><a href="#cb12-261" aria-hidden="true" tabindex="-1"></a>    <span class="at">na.value =</span> <span class="st">"transparent"</span>,</span>
+<span id="cb12-262"><a href="#cb12-262" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb12-263"><a href="#cb12-263" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_sf</span>() <span class="sc">+</span></span>
+<span id="cb12-264"><a href="#cb12-264" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb12-265"><a href="#cb12-265" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb12-266"><a href="#cb12-266" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
+<span id="cb12-267"><a href="#cb12-267" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb12-268"><a href="#cb12-268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-269"><a href="#cb12-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-270"><a href="#cb12-270" aria-hidden="true" tabindex="-1"></a>やはり3大都市圏などでは夜間光が強い傾向が見て取れます。</span>
+<span id="cb12-271"><a href="#cb12-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-272"><a href="#cb12-272" aria-hidden="true" tabindex="-1"></a><span class="fu">### 複数年の変化を比較する</span></span>
+<span id="cb12-273"><a href="#cb12-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-274"><a href="#cb12-274" aria-hidden="true" tabindex="-1"></a>先ほど<span class="in">`bm_extract()`</span>で得た市区町村ごとの年次平均値を使えば、年ごとの変化を比較できます。</span>
+<span id="cb12-275"><a href="#cb12-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-278"><a href="#cb12-278" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb12-279"><a href="#cb12-279" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-ntl-multi</span></span>
+<span id="cb12-280"><a href="#cb12-280" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "2012年〜2022年の北海道（市）の夜間光の推移"</span></span>
+<span id="cb12-281"><a href="#cb12-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-282"><a href="#cb12-282" aria-hidden="true" tabindex="-1"></a>ntl_df <span class="sc">|&gt;</span></span>
+<span id="cb12-283"><a href="#cb12-283" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb12-284"><a href="#cb12-284" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> ntl_mean), <span class="at">fill =</span> <span class="st">"darkorange"</span>) <span class="sc">+</span></span>
+<span id="cb12-285"><a href="#cb12-285" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>name_muni) <span class="sc">+</span></span>
+<span id="cb12-286"><a href="#cb12-286" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb12-287"><a href="#cb12-287" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb12-288"><a href="#cb12-288" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"平均輝度"</span>,</span>
+<span id="cb12-289"><a href="#cb12-289" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb12-290"><a href="#cb12-290" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(</span>
+<span id="cb12-291"><a href="#cb12-291" aria-hidden="true" tabindex="-1"></a>    <span class="at">labels =</span> <span class="fu">seq</span>(<span class="dv">2012</span>, <span class="dv">2022</span>, <span class="at">by =</span> <span class="dv">4</span>),</span>
+<span id="cb12-292"><a href="#cb12-292" aria-hidden="true" tabindex="-1"></a>    <span class="at">breaks =</span> <span class="fu">seq</span>(<span class="dv">2012</span>, <span class="dv">2022</span>, <span class="at">by =</span> <span class="dv">4</span>)</span>
+<span id="cb12-293"><a href="#cb12-293" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb12-294"><a href="#cb12-294" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb12-295"><a href="#cb12-295" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb12-296"><a href="#cb12-296" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)</span>
+<span id="cb12-297"><a href="#cb12-297" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb12-298"><a href="#cb12-298" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-299"><a href="#cb12-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-300"><a href="#cb12-300" aria-hidden="true" tabindex="-1"></a>特に大した理由もなく北海道の市を抽出してプロットしてみたのですが、札幌はともかく、それに匹敵するレベルで室蘭市の夜間光が強いのが意外ですね…。</span>
+<span id="cb12-301"><a href="#cb12-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-302"><a href="#cb12-302" aria-hidden="true" tabindex="-1"></a>簡単に調べた感じでは室蘭市は工業都市で、夜景が魅力なんだとか。単純に並べて見るだけでも面白いですね。</span>
+<span id="cb12-303"><a href="#cb12-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-304"><a href="#cb12-304" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb12-305"><a href="#cb12-305" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-306"><a href="#cb12-306" aria-hidden="true" tabindex="-1"></a>今回はBlack Marbleの夜間光データをRで取得する方法についてまとめました。夜間光というのは文明を感じれて結構好きです。笑</span>
+<span id="cb12-307"><a href="#cb12-307" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-308"><a href="#cb12-308" aria-hidden="true" tabindex="-1"></a>行政区域データを使って、目的に合わせて必要なデータを取得してみてください！</span>
+<span id="cb12-309"><a href="#cb12-309" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-310"><a href="#cb12-310" aria-hidden="true" tabindex="-1"></a><span class="fu">## 参考</span></span>
+<span id="cb12-311"><a href="#cb12-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-312"><a href="#cb12-312" aria-hidden="true" tabindex="-1"></a>{{&lt; linkcard url="https://worldbank.github.io/blackmarbler/" no-image=true &gt;}}</span>
+</code></pre></div><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Yosuke Abe <br> Made with <iconify-icon role="img" inline="" icon="simple-icons:quarto" style="color:#74aadb;" aria-label="Quarto icon" title="Quarto icon"></iconify-icon> <a href="https://quarto.org">Quarto</a></p>
+</div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/5uke_y">
+      <i class="bi bi-twitter-x" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="../../../../../pages/tips/index.xml">
+      <i class="bi bi-rss" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+    <div class="nav-footer-right">
+<p><i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/yo5uke/yo5uke.github.io">Source code</a> <br> <i class="fa-solid fa-location-dot" aria-label="location-dot"></i> <a href="https://maps.app.goo.gl/XFHvBiCdkQK4YXku9">Yokohama</a>, Kanagawa, Japan</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
