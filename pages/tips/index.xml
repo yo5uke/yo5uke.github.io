@@ -9,8 +9,222 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.9.36</generator>
-<lastBuildDate>Sat, 28 Mar 2026 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.9.37</generator>
+<lastBuildDate>Sat, 11 Apr 2026 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>新しいRのリンター、Jarlについて</title>
+  <link>https://yo5uke.com/pages/tips/2026/04/jarl/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>皆さん、リンターを使っていますでしょうか。</p>
+<p>おそらく多くの方は使ったことがあるというか知らぬ間に使っていると思うのですが、リンターとはコードの品質をチェックするツールのことであり、これまでリンターの代表格といえば<code>lintr</code>でした。</p>
+<p>しかし最近、新しいリンターとして<code>Jarl</code>が登場し、これも例のごとくRustで書かれているため、非常に高速であると評判です<sup>1</sup>。</p>
+</section>
+<section id="そもそもリンターとは" class="level2">
+<h2 class="anchored" data-anchor-id="そもそもリンターとは">そもそもリンターとは？</h2>
+<p>まずは<code>lintr</code>を使ってリンターについて説明します。</p>
+<p>リンターはコードの品質をチェックするツールであり、コードのスタイルや構文エラー、潜在的なバグなどを検出します。<code>lintr</code>はRのコードを解析し、これらの問題を指摘してくれます。</p>
+<p>例えば、以下のようなコードがあったとします。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1">x <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span></span>
+<span id="cb1-2">y <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">=</span> x<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">^</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb1-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(x, y)</span></code></pre></div></div>
+<p>このコードは基本的には問題ありませんが、<code>lintr</code>は以下のような警告を出してきます。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/04/jarl/images/lintr_example.png" class="img-fluid figure-img"></p>
+<figcaption>lintrの警告例</figcaption>
+</figure>
+</div>
+<p>Rでは、変数の代入には<code>&lt;-</code>を使うことが推奨されているため、<code>lintr</code>は<code>=</code>を使っていることを指摘しています。</p>
+<p>このように、リンターはコードのスタイルを統一するためのガイドラインを提供し、コードの品質を向上させるためのツールと思っていただければと思います。</p>
+</section>
+<section id="jarlの特徴" class="level2">
+<h2 class="anchored" data-anchor-id="jarlの特徴">Jarlの特徴</h2>
+<p>では、Jarlはどのような特徴があるのでしょうか。</p>
+<p>まずは冒頭にも書いた通り、JarlはRustで書かれているため、非常に高速であるという点が挙げられます。</p>
+<p>dplyrパッケージ（約25,000行）に20ルールを適用した場合…</p>
+<ul>
+<li>Jarl: 0.131秒</li>
+<li>flir: 4.5秒</li>
+<li>lintr: 18.5秒（キャッシュあり9秒）</li>
+</ul>
+<p>と、一般的な<code>lintr</code>と比較して約140倍の速度でコードをチェックすることができます<sup>2</sup>。</p>
+<p>さらに、自動修正機能もあり、コードの保存時に自動的にコードのスタイルを修正してくれるため、コードの品質を保つのが非常に簡単になります。</p>
+</section>
+<section id="インストール" class="level2">
+<h2 class="anchored" data-anchor-id="インストール">インストール</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>今回はVSCodeの例で説明しますが、PositronなどVSCodeベースのエディタであれば同様の機能が利用できると思います。</p>
+</div>
+</div>
+<p>Jarlのインストールは、CLIを使うか、VSCodeの拡張機能を使う方法があります。</p>
+<section id="cliでのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="cliでのインストール">CLIでのインストール</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">Windows</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">macOS/Linux</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">powershell</span> Set-ExecutionPolicy Bypass <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-Scope</span> Process <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-Force</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">;</span> <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">`</span></span>
+<span id="cb2-2">   <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">iwr</span> https://github.com/etiennebacher/jarl/releases/latest/download/jarl-installer.ps1 <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">iex</span></span></code></pre></div></div>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">curl</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--proto</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'=https'</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--tlsv1.2</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-LsSf</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb3-2">  https://github.com/etiennebacher/jarl/releases/latest/download/jarl-installer.sh <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sh</span></span></code></pre></div></div>
+</div>
+</div>
+</div>
+</section>
+<section id="vscodeの拡張機能でのインストール" class="level3">
+<h3 class="anchored" data-anchor-id="vscodeの拡張機能でのインストール">VSCodeの拡張機能でのインストール</h3>
+<p>VSCodeの拡張機能を使う場合は、VSCodeの拡張機能マーケットプレイスで「Jarl」を検索し、インストールしてください。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/04/jarl/images/jarl_vscode.png" class="img-fluid figure-img"></p>
+<figcaption>JarlのVSCode拡張機能</figcaption>
+</figure>
+</div>
+</section>
+<section id="vscodeでの例" class="level3">
+<h3 class="anchored" data-anchor-id="vscodeでの例">VSCodeでの例</h3>
+<p>VSCodeでは、Jarlをインストールするだけで機能が有効になります。</p>
+<p>例えば先ほどの簡単なコードを使って、Jarlが機能するのを見てみましょう。ただ拡張機能をインストールしただけです。</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/04/jarl/images/jarl_vscode_example.gif" class="img-fluid figure-img"></p>
+<figcaption>Jarlによって自動修正されたコード</figcaption>
+</figure>
+</div>
+<p>いかがでしょうか？保存したときに自動的にコードのスタイルが修正されているのがわかると思います。</p>
+<p>Jarlを使えば、コードのスタイルを簡単に統一することができます。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回は新しいRのリンター、Jarlについて紹介しました。Jarlは高速で自動修正機能もあるため、コードの品質を向上させるのに非常に便利なツールです。</p>
+<p>以前紹介したRのフォーマッターである<code>Air</code>と組み合わせて使うことで、コードのスタイルをさらに簡単に統一することができます。下の参考から記事も見てみてください！</p>
+<p>ぜひJarlを使って、コードの品質を向上させていきましょう！</p>
+</section>
+<section id="参考" class="level2">
+<h2 class="anchored" data-anchor-id="参考">参考</h2>
+<a href="https://jarl.etiennebacher.com/" class="linkcard linkcard--default linkcard--no-image" target="" aria-label="Link to Jarl"><div class="linkcard__content"><div class="linkcard__title">Jarl</div><div class="linkcard__url">jarl.etiennebacher.com</div></div></a>
+<a href="https://yo5uke.com/pages/tips/2025/10/251016_air/" class="linkcard linkcard--default" target="" aria-label="Link to 【Positron】拡張機能「Air」を使う【フォーマッタ】: Rのコードを自動で整えてくれる拡張機能です。"><img src="https://yo5uke.com/pages/tips/2025/10/251016_air/image/thumbnail.png" alt="Preview image for 【Positron】拡張機能「Air」を使う【フォーマッタ】" class="linkcard__image" loading="lazy"><div class="linkcard__content"><div class="linkcard__title">【Positron】拡張機能「Air」を使う【フォーマッタ】</div><div class="linkcard__description">Rのコードを自動で整えてくれる拡張機能です。</div><div class="linkcard__url">yo5uke.com</div></div></a>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>例のごとくというのは、これまでPolarsやuvといったRust製のツールを紹介してきたからです。気になった方は<a href="../../../../../pages/tips/2026/01/polars/index.html">こちら</a>などをご覧ください！↩︎</p></li>
+<li id="fn2"><p>参考：<a href="https://jarl.etiennebacher.com/">Jarl</a>↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>VSCode</category>
+  <category>Positron</category>
+  <guid>https://yo5uke.com/pages/tips/2026/04/jarl/</guid>
+  <pubDate>Sat, 11 Apr 2026 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.com/pages/tips/2026/04/jarl/images/jarl_vscode.png" medium="image" type="image/png" height="93" width="144"/>
+</item>
 <item>
   <title>Black Marbleを用いた夜間光データの利用</title>
   <link>https://yo5uke.com/pages/tips/2026/03/blackmarble/</link>
@@ -14700,364 +14914,6 @@ font-style: inherit;">-f</span></span></code></pre></div></div>
   <guid>https://yo5uke.com/pages/tips/2025/07/250715_rstudio_server/</guid>
   <pubDate>Mon, 14 Jul 2025 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/2025/07/250715_rstudio_server/image/rstudio_server.png" medium="image" type="image/png" height="74" width="144"/>
-</item>
-<item>
-  <title>【スクレイピング】Rでe-Statのメッシュ人口データファイルを一気に取得する</title>
-  <link>https://yo5uke.com/pages/tips/2025/06/250613_scraping_pop_by_mesh/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p><a href="../../../../../pages/tips/2025/03/250319_scraping/index.html">以前の記事</a>でe-Statから境界データ（シェープファイル）をスクレイピングで取得する方法をご紹介しました。</p>
-<p>今回は国勢調査をもとに公開しているメッシュごとの人口データを取得するコードの覚書です。時々実行することがあるので<del>自分は忘れっぽいですし</del>残しておくことにしました。</p>
-<p>詳細は前回とほぼ同じで、URL等が若干異なるくらいです。コードについては以下で詳しめに書いたので、不明点があればご覧下さい。</p>
-<div class="callout callout-style-simple callout-tip no-icon">
-<div class="callout-body d-flex">
-<div class="callout-icon-container">
-<i class="callout-icon no-icon"></i>
-</div>
-<div class="callout-body-container">
-<p><a href="../../../../../pages/tips/2025/03/250319_scraping/index.html">【スクレイピング】rvestを使ってe-Statからファイルを取得する</a></p>
-</div>
-</div>
-</div>
-</section>
-<section id="コード" class="level2">
-<h2 class="anchored" data-anchor-id="コード">コード</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(rvest)</span>
-<span id="cb1-2"></span>
-<span id="cb1-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># データを保存したいフォルダを指定</span></span>
-<span id="cb1-4">save_dir <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> here<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/pop_by_mesh"</span>)</span>
-<span id="cb1-5"></span>
-<span id="cb1-6"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 保存したいフォルダがない場合に作成</span></span>
-<span id="cb1-7"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dir.exists</span>(save_dir)) {</span>
-<span id="cb1-8">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">dir.create</span>(save_dir)</span>
-<span id="cb1-9">}</span>
-<span id="cb1-10"></span>
-<span id="cb1-11">base_url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://www.e-stat.go.jp"</span></span>
-<span id="cb1-12"></span>
-<span id="cb1-13"><span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (i <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">8</span>) {</span>
-<span id="cb1-14">  url <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(</span>
-<span id="cb1-15">    <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"https://www.e-stat.go.jp/gis/statmap-search?page="</span>,</span>
-<span id="cb1-16">    i,</span>
-<span id="cb1-17">    <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"&amp;type=1&amp;toukeiCode=00200521&amp;toukeiYear=2020&amp;aggregateUnit=H"</span>,</span>
-<span id="cb1-18">    <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"&amp;serveyId=H002005112020&amp;statsId=T001141&amp;datum=2011"</span></span>
-<span id="cb1-19">  )</span>
-<span id="cb1-20"></span>
-<span id="cb1-21">  html <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_html_live</span>(url)</span>
-<span id="cb1-22">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>)</span>
-<span id="cb1-23"></span>
-<span id="cb1-24">  links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> html <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb1-25">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_elements</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"a"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb1-26">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">html_attr</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"href"</span>)</span>
-<span id="cb1-27"></span>
-<span id="cb1-28">  csv_links <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> links[<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">grepl</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">?statsId=T001141"</span>, links)]</span>
-<span id="cb1-29">  full_urls <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(base_url, csv_links)</span>
-<span id="cb1-30"></span>
-<span id="cb1-31">  <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (j <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">seq_along</span>(full_urls)) {</span>
-<span id="cb1-32">    code <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">sub</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".*code=([0-9]+).*"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">1"</span>, csv_links[j])</span>
-<span id="cb1-33">    zip_path <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.path</span>(save_dir, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_mesh"</span>, code, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".zip"</span>))</span>
-<span id="cb1-34">    txt_path <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.path</span>(save_dir, <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"pop_mesh"</span>, code, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">".txt"</span>))</span>
-<span id="cb1-35">    </span>
-<span id="cb1-36">    <span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># 既にファイルがある場合は次のループへ</span></span>
-<span id="cb1-37">    <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.exists</span>(txt_path)) <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">next</span></span>
-<span id="cb1-38"></span>
-<span id="cb1-39">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tryCatch</span>({</span>
-<span id="cb1-40">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">download.file</span>(full_urls[j], <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">destfile =</span> zip_path, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">mode =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"wb"</span>)</span>
-<span id="cb1-41">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span>)</span>
-<span id="cb1-42"></span>
-<span id="cb1-43">      unzip_files <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">unzip</span>(zip_path, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">list =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>)<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">$</span>Name</span>
-<span id="cb1-44">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">unzip</span>(zip_path, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">exdir =</span> save_dir)</span>
-<span id="cb1-45"></span>
-<span id="cb1-46">      <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">for</span> (original_name <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">in</span> unzip_files) {</span>
-<span id="cb1-47">        <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">if</span> (<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">grepl</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">\\</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">.txt$"</span>, original_name, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">ignore.case =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>)) {</span>
-<span id="cb1-48">          old_path <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.path</span>(save_dir, original_name)</span>
-<span id="cb1-49">          new_path <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> txt_path</span>
-<span id="cb1-50">          <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.rename</span>(old_path, new_path)</span>
-<span id="cb1-51">        }</span>
-<span id="cb1-52">      }</span>
-<span id="cb1-53"></span>
-<span id="cb1-54">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">file.remove</span>(zip_path)</span>
-<span id="cb1-55"></span>
-<span id="cb1-56">    }, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">error =</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">function</span>(e) {</span>
-<span id="cb1-57">      <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">warning</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">paste</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"エラー："</span>, full_urls[j]))</span>
-<span id="cb1-58">    })</span>
-<span id="cb1-59"></span>
-<span id="cb1-60">    <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">Sys.sleep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb1-61">  }</span>
-<span id="cb1-62">}</span></code></pre></div></div>
-<p>最初の</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">save_dir <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> here<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/pop_by_mesh"</span>)</span></code></pre></div></div>
-<p>の部分だけ自分のディレクトリのパスに変えれば、あとはそっくりそのまま実行できると思います。次の<code>if</code>でもしディレクトリがない場合でも作成するようにしている<sup>1</sup>ので、エクスプローラー上でフォルダを作らなくても使うことができます。</p>
-<p>ダウンロードにはまあまあ時間がかかりますが、手作業よりは圧倒的に速いので、機会があれば使ってみてください。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>ある場合はスキップするので、わざわざ消さなくても問題ありません。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <category>備忘録</category>
-  <guid>https://yo5uke.com/pages/tips/2025/06/250613_scraping_pop_by_mesh/</guid>
-  <pubDate>Thu, 12 Jun 2025 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
