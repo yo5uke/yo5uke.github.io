@@ -40,19 +40,10 @@
   #stack(dir: ltr, spacing: 3pt, super[#num], contents)
 ]
 
-// Use nested show rule to preserve list structure for PDF/UA-1 accessibility
-// See: https://github.com/quarto-dev/quarto-cli/pull/13249#discussion_r2678934509
-#show terms: it => {
-  show terms.item: item => {
-    set text(weight: "bold")
-    item.term
-    block(inset: (left: 1.5em, top: -0.4em))[#item.description]
-  }
-  it
-}
-
-// Prevent breaking inside definition items, i.e., keep term and description together.
-#show terms.item: set block(breakable: false)
+#show terms.item: it => block(breakable: false)[
+  #text(weight: "bold")[#it.term]
+  #block(inset: (left: 1.5em, top: -0.4em))[#it.description]
+]
 
 // Some quarto-specific definitions.
 
@@ -64,15 +55,14 @@
   )
 
 #let block_with_new_content(old_block, new_content) = {
-  let d = (:)
   let fields = old_block.fields()
-  fields.remove("body")
+  let _ = fields.remove("body")
   if fields.at("below", default: none) != none {
     // TODO: this is a hack because below is a "synthesized element"
     // according to the experts in the typst discord...
     fields.below = fields.below.abs
   }
-  return block.with(..fields)(new_content)
+  block.with(..fields)(new_content)
 }
 
 #let empty(v) = {
@@ -186,9 +176,9 @@
         children.at(0) + new_title  // with icon: preserve icon block + new title
       }))
 
-  block_with_new_content(old_callout,
+  align(left, block_with_new_content(old_callout,
     block(below: 0pt, new_title_block) +
-    old_callout.body.children.at(1))
+    old_callout.body.children.at(1)))
 }
 
 // 2023-10-09: #fa-icon("fa-info") is not working, so we'll eval "#fa-info()" instead
@@ -231,7 +221,7 @@
      }
      blocks = blocks + ln + EndLine()
    }
-   block(fill: bgcolor, blocks)
+   block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)
 }
 #let AlertTok(s) = text(fill: rgb("#ad0000"),raw(s))
 #let AnnotationTok(s) = text(fill: rgb("#5e5e5e"),raw(s))
@@ -329,54 +319,64 @@
     }
    }
 
-  place(top, float: true, scope: "parent", clearance: 4mm)[
-    #if title != none {
-      align(center, block(inset: 2em)[
-        #set par(leading: heading-line-height) if heading-line-height != none
-        #set text(font: heading-family) if heading-family != none
-        #set text(weight: heading-weight)
-        #set text(style: heading-style) if heading-style != "normal"
-        #set text(fill: heading-color) if heading-color != black
+  let has-title-block = title != none or (authors != none and authors != ()) or date != none or abstract != none
+  if has-title-block {
+    place(
+      top,
+      float: true,
+      scope: "parent",
+      clearance: 4mm,
+      block(below: 1em, width: 100%)[
 
-        #text(size: title-size)[#title #if thanks != none {
-          footnote(thanks, numbering: "*")
-          counter(footnote).update(n => n - 1)
-        }]
-        #(if subtitle != none {
-          parbreak()
-          text(size: subtitle-size)[#subtitle]
-        })
-      ])
-    }
+        #if title != none {
+          align(center, block(inset: 2em)[
+            #set par(leading: heading-line-height) if heading-line-height != none
+            #set text(font: heading-family) if heading-family != none
+            #set text(weight: heading-weight)
+            #set text(style: heading-style) if heading-style != "normal"
+            #set text(fill: heading-color) if heading-color != black
 
-    #if authors != none and authors != () {
-      let count = authors.len()
-      let ncols = calc.min(count, 3)
-      grid(
-        columns: (1fr,) * ncols,
-        row-gutter: 1.5em,
-        ..authors.map(author =>
-            align(center)[
-              #author.name \
-              #author.affiliation \
-              #author.email
-            ]
-        )
-      )
-    }
+            #text(size: title-size)[#title #if thanks != none {
+              footnote(thanks, numbering: "*")
+              counter(footnote).update(n => n - 1)
+            }]
+            #(if subtitle != none {
+              parbreak()
+              text(size: subtitle-size)[#subtitle]
+            })
+          ])
+        }
 
-    #if date != none {
-      align(center)[#block(inset: 1em)[
-        #date
-      ]]
-    }
+        #if authors != none and authors != () {
+          let count = authors.len()
+          let ncols = calc.min(count, 3)
+          grid(
+            columns: (1fr,) * ncols,
+            row-gutter: 1.5em,
+            ..authors.map(author =>
+                align(center)[
+                  #author.name \
+                  #author.affiliation \
+                  #author.email
+                ]
+            )
+          )
+        }
 
-    #if abstract != none {
-      block(inset: 2em)[
-      #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
+        #if date != none {
+          align(center)[#block(inset: 1em)[
+            #date
+          ]]
+        }
+
+        #if abstract != none {
+          block(inset: 2em)[
+          #text(weight: "semibold")[#abstract-title] #h(1em) #abstract
+          ]
+        }
       ]
-    }
-  ]
+    )
+  }
 
   if toc {
     let title = if toc_title == none {
