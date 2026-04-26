@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.37">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="アップデートの内容について見てみます！">
+
+<title>Rのバージョン4.6.0がリリースされた件 – Yosuke Abe</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../../../">
+<link href="../../../../../assets/icons/favicon.ico" rel="icon">
+<script src="../../../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-d0ae9245876894da5ac7e18953ecc5cc.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-7f8f88aac4f3542376d5c11b86a4c14d.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../../../site_libs/bootstrap/bootstrap-3f10ab6c690bbea543cbf18e58d5fe6f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../../site_libs/bootstrap/bootstrap-dark-8559406cc3d9e1108d538bae41424aa8.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../../../site_libs/bootstrap/bootstrap-3f10ab6c690bbea543cbf18e58d5fe6f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../../../site_libs/quarto-contrib/iconify-3.0.0/iconify-icon.min.js"></script>
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/all.min.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/latex-fontsize.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "一致なし",
+    "search-matching-documents-text": "一致した文書",
+    "search-copy-link-title": "検索へのリンクをコピー",
+    "search-hide-matches-text": "追加の検索結果を非表示",
+    "search-more-match-text": "追加の検索結果",
+    "search-more-matches-text": "追加の検索結果",
+    "search-clear-button-title": "消去",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "キャンセル",
+    "search-submit-button-title": "検索",
+    "search-label": "サーチ"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
+</script>
+
+
+<meta property="og:title" content="Rのバージョン4.6.0がリリースされた件 – Yosuke Abe">
+<meta property="og:description" content="アップデートの内容について見てみます！">
+<meta property="og:image" content="https://yo5uke.com/pages/blog/2026/04/r_4.6.0/image/thumbnail.png">
+<meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="768">
+<meta property="og:image:width" content="1408">
+<meta name="twitter:title" content="Rのバージョン4.6.0がリリースされた件 – Yosuke Abe">
+<meta name="twitter:description" content="アップデートの内容について見てみます！">
+<meta name="twitter:image" content="https://yo5uke.com/pages/blog/2026/04/r_4.6.0/image/thumbnail.png">
+<meta name="twitter:creator" content="@5uke_y">
+<meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="768">
+<meta name="twitter:image-width" content="1408">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://yo5uke.com/pages/blog/2026/04/r_4.6.0/">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../../../index.html">
+    <span class="navbar-title">Yosuke Abe</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="サーチ"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="ナビゲーションを切り替える" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/tips/index.html"> 
+<span class="menu-text">Tips</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/gis_in_r/index.html"> 
+<span class="menu-text">GIS in <i class="fa-brands fa-r-project" aria-label="r-project"></i></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools tools-wide">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            ソースコード
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            問題を報告
+            </a>
+          </li>
+      </ul>
+    </div>
+    <a href="../../../../../pages/tips/index.xml" title="RSS" class="quarto-navigation-tool px-1" aria-label="RSS"><i class="bi bi-rss"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="ダークモードの切り替え"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">Rのバージョン4.6.0がリリースされた件</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i></button></div></div>
+                  <div>
+        <div class="description">
+          <p>アップデートの内容について見てみます！</p>
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">R</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">公開</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2026年4月26日</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目次</h2>
+   
+  <ul>
+  <li><a href="#r-4.6.0が4月24日にリリース" id="toc-r-4.6.0が4月24日にリリース" class="nav-link active" data-scroll-target="#r-4.6.0が4月24日にリリース">R 4.6.0が4月24日にリリース</a></li>
+  <li><a href="#notin演算子の追加" id="toc-notin演算子の追加" class="nav-link" data-scroll-target="#notin演算子の追加"><code>%notin%</code>演算子の追加</a>
+  <ul class="collapse">
+  <li><a href="#filterでの応用" id="toc-filterでの応用" class="nav-link" data-scroll-target="#filterでの応用"><code>filter()</code>での応用</a></li>
+  </ul></li>
+  <li><a href="#summary関数の改善" id="toc-summary関数の改善" class="nav-link" data-scroll-target="#summary関数の改善"><code>summary()</code>関数の改善</a></li>
+  <li><a href="#その他の変更点" id="toc-その他の変更点" class="nav-link" data-scroll-target="#その他の変更点">その他の変更点</a></li>
+  <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
+  <li><a href="#参考" id="toc-参考" class="nav-link" data-scroll-target="#参考">参考</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Windows版では、R 4.6.0がリリースされましたが、Linux版、Mac版はまだバイナリが提供されていないようです。本記事もLinux上で書いていますので、実行結果を直接記載できていませんが、Windows上で確認した内容をもとに書いています。</p>
+</div>
+</div>
+<section id="r-4.6.0が4月24日にリリース" class="level2">
+<h2 class="anchored" data-anchor-id="r-4.6.0が4月24日にリリース">R 4.6.0が4月24日にリリース</h2>
+<p>昨日（4月24日）、Rの新しいバージョン4.6.0がリリースされました！時差の関係で日本ではほとんど25日にリリースされたようなものですが、早速今回のアップデートの内容について簡単に見ていきたいと思います。</p>
+</section>
+<section id="notin演算子の追加" class="level2">
+<h2 class="anchored" data-anchor-id="notin演算子の追加"><code>%notin%</code>演算子の追加</h2>
+<p>個人的にはこれが一番大きい！Rのベースパッケージに、<code>%notin%</code> 演算子が追加されました。これは、<code>%in%</code> の否定バージョンで、ある要素がベクトルに含まれていないかどうかを簡単にチェックできるようになります。</p>
+<p>例えば…</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>x <span class="sc">%notin%</span> y</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1]  TRUE FALSE FALSE</span></span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>詳しく見てみると、Xの要素のうち、1はYに含まれていないためTRUE、2と3はYに含まれているためFALSEとなっています。<code>y %notin% x</code> とすると、4がXに含まれていないため<code>FALSE FALSE TRUE</code>となります。</p>
+<p>これまでは、<code>!(x %in% y)</code> と書いていたのが、より直感的に書けるようになりました！</p>
+<section id="filterでの応用" class="level3">
+<h3 class="anchored" data-anchor-id="filterでの応用"><code>filter()</code>での応用</h3>
+<p><code>dplyr</code>の<code>filter()</code>関数と組み合わせると、特定の条件に合わない行を簡単に抽出できます。</p>
+<p>例えば、以下のようなデータフレームがあるとします。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">value =</span> <span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span>, <span class="st">"E"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>ここで<code>value</code>が”B”と”D”であるものは除外したい場合、これまで<code>!(value %in% c("B", "D"))</code>と書いていたところ、</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>df <span class="sc">|&gt;</span> <span class="fu">filter</span>(value <span class="sc">%notin%</span> <span class="fu">c</span>(<span class="st">"B"</span>, <span class="st">"D"</span>))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   id value</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1  1     A</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2  3     C</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3  5     E</span></span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>として、よりシンプルに書けるようになりました。</p>
+<p>小さいデータフレームなのであまり効果を実感できないかもしれませんが、複数の条件付けをする場合などに<code>!</code>を使った否定形が多くなるとコードが読みづらくなってしまうことがあるので、<code>%notin%</code>の導入は非常に有用だと考えています。</p>
+</section>
+</section>
+<section id="summary関数の改善" class="level2">
+<h2 class="anchored" data-anchor-id="summary関数の改善"><code>summary()</code>関数の改善</h2>
+<p>一般的によく使われる<code>summary()</code>関数に関して、文字列列の要約が改善されました。</p>
+<p>例えば以下のようなデータフレームがある都市ます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">prefecture =</span> <span class="fu">c</span>(<span class="st">"東京都"</span>, <span class="st">"大阪府"</span>, <span class="st">"東京都"</span>, <span class="st">"愛知県"</span>, <span class="st">"東京都"</span>,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"大阪府"</span>, <span class="st">"福岡県"</span>, <span class="st">"大阪府"</span>, <span class="st">"愛知県"</span>, <span class="st">"東京都"</span>),</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">city       =</span> <span class="fu">c</span>(<span class="st">"新宿区"</span>, <span class="st">"大阪市"</span>, <span class="st">"渋谷区"</span>, <span class="st">"名古屋市"</span>, <span class="st">"港区"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"堺市"</span>, <span class="st">"福岡市"</span>, <span class="st">"大阪市"</span>, <span class="st">"豊田市"</span>, <span class="st">""</span>),  <span class="co"># 1件だけ空白</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">population =</span> <span class="fu">c</span>(<span class="dv">346000</span>, <span class="dv">275000</span>, <span class="dv">234000</span>, <span class="dv">232000</span>, <span class="dv">260000</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>                 <span class="dv">830000</span>, <span class="dv">164000</span>, <span class="dv">270000</span>, <span class="dv">425000</span>, <span class="dv">198000</span>)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>R 4.5.0の場合、</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(df)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   prefecture            city             population</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Length:10          Length:10          Min.   :164000</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Class :character   Class :character   1st Qu.:232500</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Mode  :character   Mode  :character   Median :265000</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                        Mean   :323400</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                        3rd Qu.:328250</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                        Max.   :830000</span></span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>となり、文字列の列に関してはほぼ情報量がゼロです。</p>
+<p>R 4.6.0では、文字列列の要約が改善され、以下のように表示されるようになりました。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(df)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      prefecture        city      population</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Length   :10   Length   :10   Min.   :164000</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N.unique : 4   N.unique : 9   1st Qu.:232500</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N.blank  : 0   N.blank  : 1   Median :265000</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Min.nchar: 3   Min.nchar: 0   Mean   :323400</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Max.nchar: 3   Max.nchar: 4   3rd Qu.:328250</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                Max.   :830000</span></span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p>このように、文字列列に対しても、ユニークな値の数や空白の数、最小・最大文字数などの情報が表示されるようになりました。</p>
+<p>異常値の有無の確認がやりやすくなったのではないかと感じており、自分の仕事でも出番が来るのではないかなと思ったところです。</p>
+</section>
+<section id="その他の変更点" class="level2">
+<h2 class="anchored" data-anchor-id="その他の変更点">その他の変更点</h2>
+<p>基本的にすぐ役立ちそうだなと思ったのは以上の2点で、あと挙げるとすれば<code>plot()</code>関数がパイプで使いやすくなったことでしょうか。</p>
+<p>以前は<code>df |&gt; plot(col2 ~ col1, data = _)</code>のように、データフレームをパイプで渡すときに、<code>data = _</code>と書いてあげる必要がありましたが、R 4.6.0では、<code>df |&gt; plot(col2 ~ col1)</code>のように、<code>data = _</code>を省略して書けるようになりました。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>mtcars <span class="sc">|&gt;</span> <span class="fu">plot</span>(mpg <span class="sc">~</span> wt)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="image/plot_mtcars.png" class="img-fluid figure-img"></p>
+<figcaption>左下にコマンド、右下にプロットが表示されています</figcaption>
+</figure>
+</div>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回は、R 4.6.0のリリースに伴う主な変更点について見てきました。</p>
+<p>特に、<code>%notin%</code>演算子の追加と、<code>summary()</code>関数の改善は、日常的にRを使う上で非常に便利な機能だと思います。</p>
+<p>早速アップデートして使っていきましょう👊</p>
+</section>
+<section id="参考" class="level2">
+<h2 class="anchored" data-anchor-id="参考">参考</h2>
+<a href="https://www.r-bloggers.com/2026/04/whats-new-in-r-4-6-0/" class="linkcard linkcard--default" target="" aria-label="Link to What’s new in R 4.6.0? | R-bloggers: R 4.6.0 (“Because it was There”) is set for release on April 24th 2026. Here we summarise some of the more interesting changes that have been introduced. In previous blog posts, we have discussed the new features introduced in R 4.5.0 and earlier versions (see the links at the end of this post). Once R 4.6.0 is released, the full changelog will be available at the r-release ‘NEWS’ page. If you want to keep up to date with developments in base R, have a look at the r-devel ‘NEWS’ page. Data comes in all shapes and sizes. It can often be difficult to know where to start. Whatever your problem, Jumping Rivers can help. ! (values %in% collection) Code should be readable, and easily understood. And although it isn’t a natural language, there’s something off about code that reads like: If not a blog post is readable, I close the browser tab. To check if one (or more) value is in some collection, R has the %in% operator: &amp;quot;a&amp;quot; %in% letters [1] TRUE &amp;quot;a&amp;quot; in LETTERS [1] FALSE This is different from the in keyword, which you use when iterating over a collection: for (x in letters[1:3]) { message(x) } # a # b # c Sometimes you want to know whether a value is absent from a collection. The standard way to do this is to invert results from %in%: ! &amp;quot;a&amp;quot; %in% LETTERS [1] TRUE It’s unambiguous to the R interpreter. But it can be hard to read and understand - on scanning that statement, you might forget that ! acts after the %in%. As such, we often wrap the %in% expression with parentheses to make the code more clear: ! (&amp;quot;a&amp;quot; %in% LETTERS) [1] TRUE For the sake of clarity, many developers have implemented their own absence-checking operator. Writing a custom operator in R uses similar syntax to that used when writing a function: `%NOTIN%` = function(x, y) { ! (x %in% y) } &amp;quot;a&amp;quot; %NOTIN% LETTERS [1] TRUE Were you to write the same code multiple times in the same project, you would write a function. Similarly, if you (or your team) wrote the same function in multiple files or projects, you might add it to a package and import it. So if lots of package developers have implemented the same operator or function, across their CRAN packages, maybe it should be pushed to a higher plane… That is what has happened with the introduction of %notin% in R 4.6.0. An operator that was found across lots of separate packages has been moved up into base R: &amp;quot;a&amp;quot; %notin% LETTERS [1] TRUE &amp;quot;a&amp;quot; %notin% letters [1] FALSE DOI citations If you use R in your publications or your projects, you may need to provide a citation for it. rOpenSci has a blog post about citing R and R packages - why, when and how to do it. For the R project as a whole, there is a simple function citation() that provides the information you need: citation() To cite R in publications use: R Core Team (2026). _R: A Language and Environment for Statistical Computing_. R Foundation for Statistical Computing, Vienna, Austria. doi:10.32614/R.manuals . . A BibTeX entry for LaTeX users is @Manual{, ... } ... In R 4.6.0, a DOI (Digital Object Identifier) has been added to the citation entry to make it easier to reference R in your published work. summary(character_vector, character.method = &amp;quot;factor&amp;quot;) str() and summary() are two of the first functions I reach for when exploring a dataset. For a data-frame, these tell me what type of columns are present (str(): chr, num, Date, …); and what is present in each column (summary(): gives the min, max, mean of each numeric column, for example). summary() works with data-structures other than just data-frames. For factors, summary() tells you how many observations of the factor levels were observed: # &amp;amp;#039;species&amp;amp;#039; and &amp;amp;#039;island&amp;amp;#039; are factor columns in `penguins` summary(penguins[1:3]) species island bill_len Adelie :152 Biscoe :168 Min. :32.10 Chinstrap: 68 Dream :124 1st Qu.:39.23 Gentoo :124 Torgersen: 52 Median :44.45 Mean :43.92 3rd Qu.:48.50 Max. :59.60 NA&amp;amp;#039;s :2 For character columns, the output from summary() has been a little obtuse: # R 4.5.0 # &amp;amp;#039;studyName&amp;amp;#039; and &amp;amp;#039;Species&amp;amp;#039; are character columns in `penguins_raw` summary(penguins_raw[1:3]) studyName Sample Number Species Length:344 Min. : 1.00 Length:344 Class :character 1st Qu.: 29.00 Class :character Mode :character Median : 58.00 Mode :character Mean : 63.15 3rd Qu.: 95.25 Max. :152.00 R 4.6.0 adds a neater way to summarise character vectors/columns to summary(): # R 4.6.0 summary(penguins_raw[1:3]) studyName Sample Number Species Length :344 Min. : 1.00 Length :344 N.unique : 3 1st Qu.: 29.00 N.unique : 3 N.blank : 0 Median : 58.00 N.blank : 0 Min.nchar: 7 Mean : 63.15 Min.nchar: 33 Max.nchar: 7 3rd Qu.: 95.25 Max.nchar: 41 Max. :152.00 We can also summarise character vectors/columns as if they were factors: # R 4.6.0 summary(penguins_raw[1:3], character.method = &amp;quot;factor&amp;quot;) studyName Sample Number Species PAL0708:110 Min. : 1.00 Adelie Penguin (Pygoscelis adeliae) :152 PAL0809:114 1st Qu.: 29.00 Chinstrap penguin (Pygoscelis antarctica): 68 PAL0910:120 Median : 58.00 Gentoo penguin (Pygoscelis papua) :124 Mean : 63.15 3rd Qu.: 95.25 Max. :152.00 list.files(..., fixed = TRUE) Suppose we have three files in my working directory: abc.Rmd, CONTRIBUTING.md and README.md. If I want to obtain the filenames for the “.md” files from an R script, I can list those files that match a pattern: # R 4.5.0 list.files(pattern = &amp;quot;.md&amp;quot;) [1] &amp;quot;abc.Rmd&amp;quot; &amp;quot;CONTRIBUTING.md&amp;quot; &amp;quot;README.md&amp;quot; Hmmm. In the pattern, . actually matches any character. In R 4.5.0, if I want to match the . character explicitly, I can escape it in the pattern. But pattern matching can lead to complicated code in R, because some characters are treated specially by the pattern matcher, and some are treated specially by R’s string parser. To tell R to find files with a literal ‘.md’ in the filename, we escape the . character twice: once for the . (to tell the pattern matcher to match a ., rather than any character), and once to escape the \ (to tell R that the subsequent \ is really a backslash) # R 4.5.0 list.files(pattern = &amp;quot;\.md&amp;quot;) [1] &amp;quot;CONTRIBUTING.md&amp;quot; &amp;quot;README.md&amp;quot; R 4.0.x cleaned that up a bit, we can now use ‘raw strings’ in R. Everything between the parentheses in the next pattern is passed directly to the pattern matcher: # R 4.5.0 list.files(pattern = r&amp;quot;(\.md)&amp;quot;) Now, in R 4.6.0, we can indicate to list.files() (and the synonym dir()) that our pattern is a fixed string (rather than a regular expression). With this, we don’t need to escape the . character to match the “.md” suffix. list.files(pattern = &amp;quot;.md&amp;quot;, fixed = TRUE) [1] &amp;quot;CONTRIBUTING.md&amp;quot; &amp;quot;README.md&amp;quot; Other matters read.dcf() now allows comment lines, which means you can annotate your config files (e.g., for {lintr}). df |&amp;gt; plot(col2 ~ col1) can now be used for base plotting; this is a little neater for exploratory work than df |&amp;gt; plot(col2 ~ col1, data = _) C++20 is now the default C++ standard Trying out R 4.6.0 To take away the pain of installing the latest development version of R, you can use docker. To use the devel version of R, you can use the following commands: docker pull rstudio/r-base:devel-jammy docker run --rm -it rstudio/r-base:devel-jammy Once R 4.6 is the released version of R and the r-docker repository has been updated, you should use the following command to test out R 4.6. docker pull rstudio/r-base:4.6-jammy docker run --rm -it rstudio/r-base:4.6-jammy An alternative way to install multiple versions of R on the same machine is using rig. See also The R 4.x versions have introduced a wealth of interesting changes. These have been summarised in our earlier blog posts: R 4.0.0 R 4.1.0 R 4.2.0 R 4.3.0 R 4.4.0 R 4.5.0 For updates and revisions to this article, see the original post"><img src="https://www.jumpingrivers.com/blog/whats-new-r46/featured.jpg" alt="Preview image for What’s new in R 4.6.0? | R-bloggers" class="linkcard__image" loading="lazy"><div class="linkcard__content"><div class="linkcard__title">What’s new in R 4.6.0? | R-bloggers</div><div class="linkcard__description">R 4.6.0 (“Because it was There”) is set for release on April 24th 2026. Here we summarise some of the more interesting changes that have been introduced. In previous blog posts, we have discussed the new features introduced in R 4.5.0 and earlier versions (see the links at the end of this post). Once R 4.6.0 is released, the full changelog will be available at the r-release ‘NEWS’ page. If you want to keep up to date with developments in base R, have a look at the r-devel ‘NEWS’ page. Data comes in all shapes and sizes. It can often be difficult to know where to start. Whatever your problem, Jumping Rivers can help. ! (values %in% collection) Code should be readable, and easily understood. And although it isn’t a natural language, there’s something off about code that reads like: If not a blog post is readable, I close the browser tab. To check if one (or more) value is in some collection, R has the %in% operator: "a" %in% letters [1] TRUE "a" in LETTERS [1] FALSE This is different from the in keyword, which you use when iterating over a collection: for (x in letters[1:3]) { message(x) } # a # b # c Sometimes you want to know whether a value is absent from a collection. The standard way to do this is to invert results from %in%: ! "a" %in% LETTERS [1] TRUE It’s unambiguous to the R interpreter. But it can be hard to read and understand - on scanning that statement, you might forget that ! acts after the %in%. As such, we often wrap the %in% expression with parentheses to make the code more clear: ! ("a" %in% LETTERS) [1] TRUE For the sake of clarity, many developers have implemented their own absence-checking operator. Writing a custom operator in R uses similar syntax to that used when writing a function: `%NOTIN%` = function(x, y) { ! (x %in% y) } "a" %NOTIN% LETTERS [1] TRUE Were you to write the same code multiple times in the same project, you would write a function. Similarly, if you (or your team) wrote the same function in multiple files or projects, you might add it to a package and import it. So if lots of package developers have implemented the same operator or function, across their CRAN packages, maybe it should be pushed to a higher plane… That is what has happened with the introduction of %notin% in R 4.6.0. An operator that was found across lots of separate packages has been moved up into base R: "a" %notin% LETTERS [1] TRUE "a" %notin% letters [1] FALSE DOI citations If you use R in your publications or your projects, you may need to provide a citation for it. rOpenSci has a blog post about citing R and R packages - why, when and how to do it. For the R project as a whole, there is a simple function citation() that provides the information you need: citation() To cite R in publications use: R Core Team (2026). _R: A Language and Environment for Statistical Computing_. R Foundation for Statistical Computing, Vienna, Austria. doi:10.32614/R.manuals . . A BibTeX entry for LaTeX users is @Manual{, ... } ... In R 4.6.0, a DOI (Digital Object Identifier) has been added to the citation entry to make it easier to reference R in your published work. summary(character_vector, character.method = "factor") str() and summary() are two of the first functions I reach for when exploring a dataset. For a data-frame, these tell me what type of columns are present (str(): chr, num, Date, …); and what is present in each column (summary(): gives the min, max, mean of each numeric column, for example). summary() works with data-structures other than just data-frames. For factors, summary() tells you how many observations of the factor levels were observed: # &amp;#039;species&amp;#039; and &amp;#039;island&amp;#039; are factor columns in `penguins` summary(penguins[1:3]) species island bill_len Adelie :152 Biscoe :168 Min. :32.10 Chinstrap: 68 Dream :124 1st Qu.:39.23 Gentoo :124 Torgersen: 52 Median :44.45 Mean :43.92 3rd Qu.:48.50 Max. :59.60 NA&amp;#039;s :2 For character columns, the output from summary() has been a little obtuse: # R 4.5.0 # &amp;#039;studyName&amp;#039; and &amp;#039;Species&amp;#039; are character columns in `penguins_raw` summary(penguins_raw[1:3]) studyName Sample Number Species Length:344 Min. : 1.00 Length:344 Class :character 1st Qu.: 29.00 Class :character Mode :character Median : 58.00 Mode :character Mean : 63.15 3rd Qu.: 95.25 Max. :152.00 R 4.6.0 adds a neater way to summarise character vectors/columns to summary(): # R 4.6.0 summary(penguins_raw[1:3]) studyName Sample Number Species Length :344 Min. : 1.00 Length :344 N.unique : 3 1st Qu.: 29.00 N.unique : 3 N.blank : 0 Median : 58.00 N.blank : 0 Min.nchar: 7 Mean : 63.15 Min.nchar: 33 Max.nchar: 7 3rd Qu.: 95.25 Max.nchar: 41 Max. :152.00 We can also summarise character vectors/columns as if they were factors: # R 4.6.0 summary(penguins_raw[1:3], character.method = "factor") studyName Sample Number Species PAL0708:110 Min. : 1.00 Adelie Penguin (Pygoscelis adeliae) :152 PAL0809:114 1st Qu.: 29.00 Chinstrap penguin (Pygoscelis antarctica): 68 PAL0910:120 Median : 58.00 Gentoo penguin (Pygoscelis papua) :124 Mean : 63.15 3rd Qu.: 95.25 Max. :152.00 list.files(..., fixed = TRUE) Suppose we have three files in my working directory: abc.Rmd, CONTRIBUTING.md and README.md. If I want to obtain the filenames for the “.md” files from an R script, I can list those files that match a pattern: # R 4.5.0 list.files(pattern = ".md") [1] "abc.Rmd" "CONTRIBUTING.md" "README.md" Hmmm. In the pattern, . actually matches any character. In R 4.5.0, if I want to match the . character explicitly, I can escape it in the pattern. But pattern matching can lead to complicated code in R, because some characters are treated specially by the pattern matcher, and some are treated specially by R’s string parser. To tell R to find files with a literal ‘.md’ in the filename, we escape the . character twice: once for the . (to tell the pattern matcher to match a ., rather than any character), and once to escape the \ (to tell R that the subsequent \ is really a backslash) # R 4.5.0 list.files(pattern = "\.md") [1] "CONTRIBUTING.md" "README.md" R 4.0.x cleaned that up a bit, we can now use ‘raw strings’ in R. Everything between the parentheses in the next pattern is passed directly to the pattern matcher: # R 4.5.0 list.files(pattern = r"(\.md)") Now, in R 4.6.0, we can indicate to list.files() (and the synonym dir()) that our pattern is a fixed string (rather than a regular expression). With this, we don’t need to escape the . character to match the “.md” suffix. list.files(pattern = ".md", fixed = TRUE) [1] "CONTRIBUTING.md" "README.md" Other matters read.dcf() now allows comment lines, which means you can annotate your config files (e.g., for {lintr}). df |&gt; plot(col2 ~ col1) can now be used for base plotting; this is a little neater for exploratory work than df |&gt; plot(col2 ~ col1, data = _) C++20 is now the default C++ standard Trying out R 4.6.0 To take away the pain of installing the latest development version of R, you can use docker. To use the devel version of R, you can use the following commands: docker pull rstudio/r-base:devel-jammy docker run --rm -it rstudio/r-base:devel-jammy Once R 4.6 is the released version of R and the r-docker repository has been updated, you should use the following command to test out R 4.6. docker pull rstudio/r-base:4.6-jammy docker run --rm -it rstudio/r-base:4.6-jammy An alternative way to install multiple versions of R on the same machine is using rig. See also The R 4.x versions have introduced a wealth of interesting changes. These have been summarised in our earlier blog posts: R 4.0.0 R 4.1.0 R 4.2.0 R 4.3.0 R 4.4.0 R 4.5.0 For updates and revisions to this article, see the original post</div><div class="linkcard__url">r-bloggers.com</div></div></a>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "コピーしました");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "コピーしました");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yo5uke\.com");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<input type="hidden" id="giscus-base-theme" value="light_high_contrast">
+<input type="hidden" id="giscus-alt-theme" value="light_high_contrast">
+<script>
+  function loadGiscus() {
+    // Function to get the theme based on body class
+    const getTheme = () => {
+      let baseTheme = document.getElementById('giscus-base-theme').value;
+      let altTheme = document.getElementById('giscus-alt-theme').value;
+      if (authorPrefersDark) {
+          [baseTheme, altTheme] = [altTheme, baseTheme];
+      }
+      return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+    };
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "yo5uke/yo5uke.github.io";
+    script.dataset.repoId = "R_kgDOLsORUQ";
+    script.dataset.category = "General";
+    script.dataset.categoryId = "DIC_kwDOLsORUc4CfJ93";
+    script.dataset.mapping = "title";
+    script.dataset.reactionsEnabled = "1";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "top";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "en";
+    script.crossOrigin = "anonymous";
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  }
+  loadGiscus();
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Rのバージョン4.6.0がリリースされた件"</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co">  アップデートの内容について見てみます！</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2026-04-26</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> image/thumbnail.png</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>:::{.callout-note}</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>Windows版では、R 4.6.0がリリースされましたが、Linux版、Mac版はまだバイナリが提供されていないようです。本記事もLinux上で書いていますので、実行結果を直接記載できていませんが、Windows上で確認した内容をもとに書いています。</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## R 4.6.0が4月24日にリリース</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>昨日（4月24日）、Rの新しいバージョン4.6.0がリリースされました！時差の関係で日本ではほとんど25日にリリースされたようなものですが、早速今回のアップデートの内容について簡単に見ていきたいと思います。</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="fu">## `%notin%`演算子の追加</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>個人的にはこれが一番大きい！Rのベースパッケージに、<span class="in">`%notin%`</span> 演算子が追加されました。これは、<span class="in">`%in%`</span> の否定バージョンで、ある要素がベクトルに含まれていないかどうかを簡単にチェックできるようになります。</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>例えば…</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>)</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>x <span class="sc">%notin%</span> y</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1]  TRUE FALSE FALSE</span></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>詳しく見てみると、Xの要素のうち、1はYに含まれていないためTRUE、2と3はYに含まれているためFALSEとなっています。<span class="in">`y %notin% x`</span> とすると、4がXに含まれていないため<span class="in">`FALSE FALSE TRUE`</span>となります。</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>これまでは、<span class="in">`!(x %in% y)`</span> と書いていたのが、より直感的に書けるようになりました！</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a><span class="fu">### `filter()`での応用</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="in">`dplyr`</span>の<span class="in">`filter()`</span>関数と組み合わせると、特定の条件に合わない行を簡単に抽出できます。</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>例えば、以下のようなデータフレームがあるとします。</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>,</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>  <span class="at">value =</span> <span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>, <span class="st">"C"</span>, <span class="st">"D"</span>, <span class="st">"E"</span>)</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>ここで<span class="in">`value`</span>が"B"と"D"であるものは除外したい場合、これまで<span class="in">`!(value %in% c("B", "D"))`</span>と書いていたところ、</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a>df <span class="sc">|&gt;</span> <span class="fu">filter</span>(value <span class="sc">%notin%</span> <span class="fu">c</span>(<span class="st">"B"</span>, <span class="st">"D"</span>))</span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   id value</span></span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1  1     A</span></span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2  3     C</span></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3  5     E</span></span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>として、よりシンプルに書けるようになりました。</span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>小さいデータフレームなのであまり効果を実感できないかもしれませんが、複数の条件付けをする場合などに<span class="in">`!`</span>を使った否定形が多くなるとコードが読みづらくなってしまうことがあるので、<span class="in">`%notin%`</span>の導入は非常に有用だと考えています。</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a><span class="fu">## `summary()`関数の改善</span></span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a>一般的によく使われる<span class="in">`summary()`</span>関数に関して、文字列列の要約が改善されました。</span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>例えば以下のようなデータフレームがある都市ます。</span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>  <span class="at">prefecture =</span> <span class="fu">c</span>(<span class="st">"東京都"</span>, <span class="st">"大阪府"</span>, <span class="st">"東京都"</span>, <span class="st">"愛知県"</span>, <span class="st">"東京都"</span>,</span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"大阪府"</span>, <span class="st">"福岡県"</span>, <span class="st">"大阪府"</span>, <span class="st">"愛知県"</span>, <span class="st">"東京都"</span>),</span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a>  <span class="at">city       =</span> <span class="fu">c</span>(<span class="st">"新宿区"</span>, <span class="st">"大阪市"</span>, <span class="st">"渋谷区"</span>, <span class="st">"名古屋市"</span>, <span class="st">"港区"</span>,</span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"堺市"</span>, <span class="st">"福岡市"</span>, <span class="st">"大阪市"</span>, <span class="st">"豊田市"</span>, <span class="st">""</span>),  <span class="co"># 1件だけ空白</span></span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>  <span class="at">population =</span> <span class="fu">c</span>(<span class="dv">346000</span>, <span class="dv">275000</span>, <span class="dv">234000</span>, <span class="dv">232000</span>, <span class="dv">260000</span>,</span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>                 <span class="dv">830000</span>, <span class="dv">164000</span>, <span class="dv">270000</span>, <span class="dv">425000</span>, <span class="dv">198000</span>)</span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a>R 4.5.0の場合、</span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(df)</span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   prefecture            city             population</span></span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Length:10          Length:10          Min.   :164000</span></span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Class :character   Class :character   1st Qu.:232500</span></span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Mode  :character   Mode  :character   Median :265000</span></span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                        Mean   :323400</span></span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                        3rd Qu.:328250</span></span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                        Max.   :830000</span></span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>となり、文字列の列に関してはほぼ情報量がゼロです。</span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>R 4.6.0では、文字列列の要約が改善され、以下のように表示されるようになりました。</span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(df)</span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      prefecture        city      population</span></span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Length   :10   Length   :10   Min.   :164000</span></span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N.unique : 4   N.unique : 9   1st Qu.:232500</span></span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  N.blank  : 0   N.blank  : 1   Median :265000</span></span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Min.nchar: 3   Min.nchar: 0   Mean   :323400</span></span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  Max.nchar: 3   Max.nchar: 4   3rd Qu.:328250</span></span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                Max.   :830000</span></span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>このように、文字列列に対しても、ユニークな値の数や空白の数、最小・最大文字数などの情報が表示されるようになりました。</span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a>異常値の有無の確認がやりやすくなったのではないかと感じており、自分の仕事でも出番が来るのではないかなと思ったところです。</span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a><span class="fu">## その他の変更点</span></span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>基本的にすぐ役立ちそうだなと思ったのは以上の2点で、あと挙げるとすれば<span class="in">`plot()`</span>関数がパイプで使いやすくなったことでしょうか。</span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>以前は<span class="in">`df |&gt; plot(col2 ~ col1, data = _) `</span>のように、データフレームをパイプで渡すときに、<span class="in">`data = _`</span>と書いてあげる必要がありましたが、R 4.6.0では、<span class="in">`df |&gt; plot(col2 ~ col1)`</span>のように、<span class="in">`data = _`</span>を省略して書けるようになりました。</span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a><span class="in">```r</span></span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a>mtcars <span class="sc">|&gt;</span> <span class="fu">plot</span>(mpg <span class="sc">~</span> wt)</span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a><span class="al">![左下にコマンド、右下にプロットが表示されています](image/plot_mtcars.png)</span></span>
+<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>今回は、R 4.6.0のリリースに伴う主な変更点について見てきました。</span>
+<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>特に、<span class="in">`%notin%`</span>演算子の追加と、<span class="in">`summary()`</span>関数の改善は、日常的にRを使う上で非常に便利な機能だと思います。</span>
+<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>早速アップデートして使っていきましょう👊</span>
+<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a><span class="fu">## 参考</span></span>
+<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a>{{&lt; linkcard url="https://www.r-bloggers.com/2026/04/whats-new-in-r-4-6-0/" &gt;}}</span></code></pre></div><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Yosuke Abe <br> Made with <iconify-icon role="img" inline="" icon="simple-icons:quarto" style="color:#74aadb;" aria-label="Quarto icon" title="Quarto icon"></iconify-icon> <a href="https://quarto.org">Quarto</a> <br> Favicon designed by my wife.</p>
+</div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/5uke_y">
+      <i class="bi bi-twitter-x" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="../../../../../pages/tips/index.xml">
+      <i class="bi bi-rss" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+    <div class="nav-footer-right">
+<p><i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/yo5uke/yo5uke.github.io">Source code</a> <br> <i class="fa-solid fa-location-dot" aria-label="location-dot"></i> <a href="https://maps.app.goo.gl/XFHvBiCdkQK4YXku9">Yokohama</a>, Kanagawa, Japan</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
