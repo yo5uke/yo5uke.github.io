@@ -1,0 +1,97 @@
+---
+title: "WSL環境でLanguage Serverが起動しないときの対処法について"
+description: |
+  languageserverのインストール先をいじります。
+date: 2026-05-02
+categories:
+  - R
+  - WSL
+  - VSCode
+---
+
+## はじめに
+
+今回はVSCode×WSL環境でRを使っていてLanguage Serverが起動しない場合の対処法についてまとめます。超ニッチな内容ですが、同じような状況に陥っている人の参考になれば幸いです。
+
+## 環境
+
+- Windows 11
+- VSCode 1.118.1
+- Ubuntu 24.04.4 LTS
+- WSL2
+- R 4.6.0
+- renvを使用^[renvについては[こちら](/pages/tips/2025/09/250926_virtual_environment/index.qmd)をご覧ください。]
+
+## そもそもの問題
+
+本記事で紹介する対処法が必要になるのは、**VSCodeのRemote-WSL機能を使ってWSL環境でRを動かしているときに、Language Serverが起動しない場合、起動してもすぐに落ちてしまう場合**です。Language Serverが起動しないと、コード補完や関数の説明などの便利な機能が使えなくなってしまいます。
+
+僕の実際にあったケースでは、まさにこのページを作っているプロジェクトで、紹介するRパッケージが多いためインストールしたパッケージも多く、renvの環境構築に時間がかかりすぎてしまってLanguage Serverがタイムアウトしてしまうというものでした。
+
+Language Serverは、Rのパッケージであるlanguageserverを使って動いていますが、デフォルトではプロジェクトのrenv環境にインストールされます。
+
+renv環境を構築すると、`.Rprofile`が作成され、そこに`source("renv/activate.R")`というコードが書かれます。これによって、Rを立ち上げるときに自動的にrenv環境が読み込まれるようになります。
+
+ただし、Rのパッケージがとても多い場合には、renvからRを立ち上げるのに時間がかかってしまい、Language Serverがタイムアウトしてしまうことがあります^[Language Serverは起動時に3秒待ってくれます。それよりrenvの起動時間が長いとタイムアウトしてしまいます。]。
+
+これによりVSCode上に警告が表示され、Language Serverが使えないという状況に陥ります。
+
+## 対処法
+
+対処法は、**Language Serverのインストール先をプロジェクトのrenv環境からグローバル環境に変更すること**です。
+
+イメージとしては、renvで一緒に読み込まれていたLanguage Serverをグローバル環境に切り離し、先行してグローバル環境から起動するという感じです。
+
+### 1. Language Serverをグローバル環境にインストールする
+
+まずはVSCodeのターミナルで以下のコマンドからRを起動します。
+
+```bash
+R --vanilla
+```
+
+こうして起動したRのコンソールで、以下のコマンドを実行してLanguage Serverをグローバル環境にインストールします。
+
+```r
+# 独立ライブラリのディレクトリを作成
+dir.create("~/languageserver-library", recursive = TRUE, showWarnings = FALSE)
+
+# そこにインストール
+install.packages(
+  "languageserver",
+  lib = "~/languageserver-library"
+)
+```
+
+プロジェクトフォルダとは別の場所にインストールすることで、renvの起動時間に影響されずにLanguage Serverが起動できるようになります。
+
+### 2. VSCodeの設定を変更する
+
+次に、VSCodeの設定を変更して、Language Serverがグローバル環境から起動するようにします。
+
+プロジェクトフォルダ内に`.vscode/settings.json`がなければ作成し、以下の設定を追加します。
+
+```json
+{
+    "r.lsp.args": ["--vanilla"],
+    "r.libPaths": ["~/languageserver-library"]
+}
+```
+
+これにより、VSCodeはLanguage Serverを起動するときに`--vanilla`オプションを付けてRを起動し、さらに`r.libPaths`で指定したディレクトリからパッケージを読み込むようになります。
+
+プロジェクトのrenv環境には影響しないのでご安心ください。
+
+### 3. VSCodeを再起動する
+
+最後に、VSCodeを再起動して設定を反映させます。これでLanguage Serverがグローバル環境から起動するようになり、タイムアウトの問題が解消されるはずです。
+
+## おわりに
+
+今回はWSL環境でLanguage Serverが起動しないときの対処法についてまとめました。
+
+そもそもVSCodeでRを使う人自体レアだと思いますが、もしこんなニッチな状況に陥ってしまったら試してみてください
+
+## 参考
+
+{{< linkcard url="https://github.com/REditorSupport/languageserver" >}}
