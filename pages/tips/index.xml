@@ -10,7 +10,186 @@
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
 <generator>quarto-1.9.37</generator>
-<lastBuildDate>Thu, 30 Apr 2026 15:00:00 GMT</lastBuildDate>
+<lastBuildDate>Fri, 01 May 2026 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>WSL環境でLanguage Serverが起動しないときの対処法について</title>
+  <link>https://yo5uke.com/pages/tips/2026/05/wsl_languageserver/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>今回はVSCode×WSL環境でRを使っていてLanguage Serverが起動しない場合の対処法についてまとめます。超ニッチな内容ですが、同じような状況に陥っている人の参考になれば幸いです。</p>
+</section>
+<section id="環境" class="level2">
+<h2 class="anchored" data-anchor-id="環境">環境</h2>
+<ul>
+<li>Windows 11</li>
+<li>VSCode 1.118.1</li>
+<li>Ubuntu 24.04.4 LTS</li>
+<li>WSL2</li>
+<li>R 4.6.0</li>
+<li>renvを使用<sup>1</sup></li>
+</ul>
+</section>
+<section id="そもそもの問題" class="level2">
+<h2 class="anchored" data-anchor-id="そもそもの問題">そもそもの問題</h2>
+<p>本記事で紹介する対処法が必要になるのは、<strong>VSCodeのRemote-WSL機能を使ってWSL環境でRを動かしているときに、Language Serverが起動しない場合、起動してもすぐに落ちてしまう場合</strong>です。Language Serverが起動しないと、コード補完や関数の説明などの便利な機能が使えなくなってしまいます。</p>
+<p>僕の実際にあったケースでは、まさにこのページを作っているプロジェクトで、紹介するRパッケージが多いためインストールしたパッケージも多く、renvの環境構築に時間がかかりすぎてしまってLanguage Serverがタイムアウトしてしまうというものでした。</p>
+<p>Language Serverは、Rのパッケージであるlanguageserverを使って動いていますが、デフォルトではプロジェクトのrenv環境にインストールされます。</p>
+<p>renv環境を構築すると、<code>.Rprofile</code>が作成され、そこに<code>source("renv/activate.R")</code>というコードが書かれます。これによって、Rを立ち上げるときに自動的にrenv環境が読み込まれるようになります。</p>
+<p>ただし、Rのパッケージがとても多い場合には、renvからRを立ち上げるのに時間がかかってしまい、Language Serverがタイムアウトしてしまうことがあります<sup>2</sup>。</p>
+<p>これによりVSCode上に警告が表示され、Language Serverが使えないという状況に陥ります。</p>
+</section>
+<section id="対処法" class="level2">
+<h2 class="anchored" data-anchor-id="対処法">対処法</h2>
+<p>対処法は、<strong>Language Serverのインストール先をプロジェクトのrenv環境からグローバル環境に変更すること</strong>です。</p>
+<p>イメージとしては、renvで一緒に読み込まれていたLanguage Serverをグローバル環境に切り離し、先行してグローバル環境から起動するという感じです。</p>
+<section id="language-serverをグローバル環境にインストールする" class="level3">
+<h3 class="anchored" data-anchor-id="language-serverをグローバル環境にインストールする">1. Language Serverをグローバル環境にインストールする</h3>
+<p>まずはVSCodeのターミナルで以下のコマンドからRを起動します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">R</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--vanilla</span></span></code></pre></div></div>
+<p>こうして起動したRのコンソールで、以下のコマンドを実行してLanguage Serverをグローバル環境にインストールします。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 独立ライブラリのディレクトリを作成</span></span>
+<span id="cb2-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">dir.create</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"~/languageserver-library"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">recursive =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">showWarnings =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span>
+<span id="cb2-3"></span>
+<span id="cb2-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># そこにインストール</span></span>
+<span id="cb2-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install.packages</span>(</span>
+<span id="cb2-6">  <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"languageserver"</span>,</span>
+<span id="cb2-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">lib =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"~/languageserver-library"</span></span>
+<span id="cb2-8">)</span></code></pre></div></div>
+<p>プロジェクトフォルダとは別の場所にインストールすることで、renvの起動時間に影響されずにLanguage Serverが起動できるようになります。</p>
+</section>
+<section id="vscodeの設定を変更する" class="level3">
+<h3 class="anchored" data-anchor-id="vscodeの設定を変更する">2. VSCodeの設定を変更する</h3>
+<p>次に、VSCodeの設定を変更して、Language Serverがグローバル環境から起動するようにします。</p>
+<p>プロジェクトフォルダ内に<code>.vscode/settings.json</code>がなければ作成し、以下の設定を追加します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">{</span></span>
+<span id="cb3-2">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"r.lsp.args"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"--vanilla"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">,</span></span>
+<span id="cb3-3">    <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">"r.libPaths"</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">:</span> <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"~/languageserver-library"</span><span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">]</span></span>
+<span id="cb3-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">}</span></span></code></pre></div></div>
+<p>これにより、VSCodeはLanguage Serverを起動するときに<code>--vanilla</code>オプションを付けてRを起動し、さらに<code>r.libPaths</code>で指定したディレクトリからパッケージを読み込むようになります。</p>
+<p>プロジェクトのrenv環境には影響しないのでご安心ください。</p>
+</section>
+<section id="vscodeを再起動する" class="level3">
+<h3 class="anchored" data-anchor-id="vscodeを再起動する">3. VSCodeを再起動する</h3>
+<p>最後に、VSCodeを再起動して設定を反映させます。これでLanguage Serverがグローバル環境から起動するようになり、タイムアウトの問題が解消されるはずです。</p>
+</section>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p>今回はWSL環境でLanguage Serverが起動しないときの対処法についてまとめました。</p>
+<p>そもそもVSCodeでRを使う人自体レアだと思いますが、もしこんなニッチな状況に陥ってしまったら試してみてください</p>
+</section>
+<section id="参考" class="level2">
+<h2 class="anchored" data-anchor-id="参考">参考</h2>
+<a href="https://github.com/REditorSupport/languageserver" class="linkcard linkcard--default" target="" aria-label="Link to GitHub - REditorSupport/languageserver: An implementation of the Language Server Protocol for R: An implementation of the Language Server Protocol for R - REditorSupport/languageserver"><img src="https://opengraph.githubassets.com/f5637804a266855103ac2e1aba48f9185b6b0b96ea9c38971eadb86adbf044d3/REditorSupport/languageserver" alt="Preview image for GitHub - REditorSupport/languageserver: An implementation of the Language Server Protocol for R" class="linkcard__image" loading="lazy"><div class="linkcard__content"><div class="linkcard__title">GitHub - REditorSupport/languageserver: An implementation of the Language Server Protocol for R</div><div class="linkcard__description">An implementation of the Language Server Protocol for R - REditorSupport/languageserver</div><div class="linkcard__url">github.com</div></div></a>
+
+
+<!-- -->
+
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
+
+<ol>
+<li id="fn1"><p>renvについては<a href="../../../../../pages/tips/2025/09/250926_virtual_environment/index.html">こちら</a>をご覧ください。↩︎</p></li>
+<li id="fn2"><p>Language Serverは起動時に3秒待ってくれます。それよりrenvの起動時間が長いとタイムアウトしてしまいます。↩︎</p></li>
+</ol>
+</section></div> ]]></description>
+  <category>R</category>
+  <category>WSL</category>
+  <category>VSCode</category>
+  <guid>https://yo5uke.com/pages/tips/2026/05/wsl_languageserver/</guid>
+  <pubDate>Fri, 01 May 2026 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【学生・非研究者向け】RSSフィードから読むべき論文を選んでくれるツール【Claude API】</title>
   <link>https://yo5uke.com/pages/tips/2026/05/rss-paper-digest/</link>
@@ -14364,488 +14543,6 @@ font-style: inherit;">"__main__"</span>:</span>
   <category>データ処理</category>
   <guid>https://yo5uke.com/pages/tips/2025/08/250816_scraping_python/</guid>
   <pubDate>Fri, 15 Aug 2025 15:00:00 GMT</pubDate>
-</item>
-<item>
-  <title>recode関数でデータフレームの中身を置き換える</title>
-  <link>https://yo5uke.com/pages/tips/2025/07/250727_recode/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<div class="callout callout-style-default callout-caution callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Caution</span>recode()関数について
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>このページでは{dplyr}パッケージの<code>recode()</code>関数を紹介しますが、現在<code>recode()</code>はsuperseded（置き換えられた）状態にあり<sup>1</sup>、代わりに<code>case_match()</code>関数の使用が推奨されています。<br>
-<code>case_match()</code>に関しては以下をご覧ください。</p>
-<p><a href="../../../../../pages/tips/2025/11/251124_case_match/index.html">【R】<span class="fira-code">case_match()</span>でデータフレームの中身を置き換える</a></p>
-</div>
-</div>
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>今回は{dplyr}パッケージの<code>recode()</code>関数を紹介します。</p>
-<p>例えばデータフレーム内の変数がカテゴリ変数で、便宜的に数値で表されているような場合、そのまま表に出すことはできないかもしれません。</p>
-<p>そんなときに中身を置き換える手段として使えるのが<code>recode()</code>関数で、イメージとしては<code>case_when()</code>と似ているかもしれません<sup>2</sup>。</p>
-<p>1度きりの変換であれば<code>case_when</code>でもあまり労力は変わらないかもしれませんが、何回も繰り返し置き換えたいときは、シンプルで強みを発揮します。</p>
-</section>
-<section id="使い方" class="level2">
-<h2 class="anchored" data-anchor-id="使い方">使い方</h2>
-<section id="パッケージ" class="level3">
-<h3 class="anchored" data-anchor-id="パッケージ">パッケージ</h3>
-<p>{dplyr}に入っているので、{tidyverse}を読み込んでいれば使えます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb1-2"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># あるいは</span></span>
-<span id="cb1-3"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># library(dplyr)</span></span></code></pre></div></div>
-</div>
-</section>
-<section id="データフレーム" class="level3">
-<h3 class="anchored" data-anchor-id="データフレーム">データフレーム</h3>
-<p>今回は以下のようなデータフレームを想定します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb2-2">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">id =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">4</span>,</span>
-<span id="cb2-3">  <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">sex =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">rep</span>(<span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">times =</span> <span class="dv" style="color: #AD0000;
-background-color: null;
-font-style: inherit;">2</span>)</span>
-<span id="cb2-4">)</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div id="tbl-example" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-表&nbsp;1: テーブルの例
-</figcaption>
-<div aria-describedby="tbl-example-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_sh8cl2i6buv2750rxu0s = TinyTable.createTableFunctions("tinytable_sh8cl2i6buv2750rxu0s");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '4', j: 1 }, { i: '4', j: 2 } ], css_id: 'tinytable_css_xgas7om6i0ix2gt461yw',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_l7o69ovuz9w23fqmspv9',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_sh8cl2i6buv2750rxu0s.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_sh8cl2i6buv2750rxu0s td.tinytable_css_xgas7om6i0ix2gt461yw, #tinytable_sh8cl2i6buv2750rxu0s th.tinytable_css_xgas7om6i0ix2gt461yw {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_sh8cl2i6buv2750rxu0s td.tinytable_css_l7o69ovuz9w23fqmspv9, #tinytable_sh8cl2i6buv2750rxu0s th.tinytable_css_l7o69ovuz9w23fqmspv9 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_sh8cl2i6buv2750rxu0s" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">id</th>
-                <th scope="col" data-row="0" data-col="2">sex</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">1</td>
-                  <td data-row="1" data-col="2">1</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">2</td>
-                  <td data-row="2" data-col="2">2</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">3</td>
-                  <td data-row="3" data-col="2">1</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">4</td>
-                  <td data-row="4" data-col="2">2</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</figure>
-</div>
-</div>
-<p>超絶簡単なデータフレームです。4人のIDと性別が1, 2の表記で含まれているだけです。ここで1を男性、2を女性とします。</p>
-</section>
-<section id="対応表を作る" class="level3">
-<h3 class="anchored" data-anchor-id="対応表を作る">対応表を作る</h3>
-<p>これを表に起こしたいとき、たとえばそのまま<code>tinytable::tt()</code>で表示したとしたら、 表&nbsp;1 がそのまま出てきてしまい、数字が誰を、何を表しているのかがわかりませんよね。</p>
-<p>そこで、あらかじめ対応表を作って置きます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1">id_map <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(</span>
-<span id="cb3-2">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Michael"</span>,</span>
-<span id="cb3-3">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"2"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Emily"</span>,</span>
-<span id="cb3-4">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"3"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"John"</span>,</span>
-<span id="cb3-5">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"4"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Jessica"</span></span>
-<span id="cb3-6">)</span>
-<span id="cb3-7"></span>
-<span id="cb3-8">sex_map <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(</span>
-<span id="cb3-9">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Male"</span>,</span>
-<span id="cb3-10">  <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"2"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Female"</span></span>
-<span id="cb3-11">)</span></code></pre></div></div>
-</div>
-<p><code>c()</code>の中に、<code>=</code>の左にデータフレーム内の表記を、右に表示したい表記を書いていきます。</p>
-<p>今回はIDと性別を両方書き換えたいので、2種類の対応関係を示したベクトルを作成しています。</p>
-</section>
-<section id="recodeを使う" class="level3">
-<h3 class="anchored" data-anchor-id="recodeを使う"><code>recode()</code>を使う</h3>
-<p>この対応表をもとに、<code>recode()</code>関数を使っていきます。使う際は、<code>mutate()</code>と組み合わせます。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">df_recode <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb4-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">mutate</span>(</span>
-<span id="cb4-3">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">id =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">recode</span>(id, <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!!!</span>id_map),</span>
-<span id="cb4-4">    <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">sex =</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">recode</span>(sex, <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">!!!</span>sex_map)</span>
-<span id="cb4-5">  )</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div id="tbl-recode" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-recode-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-表&nbsp;2: <code>recode()</code>を使用した表
-</figcaption>
-<div aria-describedby="tbl-recode-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_4s3j1hcltqzidtb90pmo = TinyTable.createTableFunctions("tinytable_4s3j1hcltqzidtb90pmo");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '4', j: 1 }, { i: '4', j: 2 } ], css_id: 'tinytable_css_es442noph79h6ki4t54p',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_xt295vrro2r64a75ogo5',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_4s3j1hcltqzidtb90pmo.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_4s3j1hcltqzidtb90pmo td.tinytable_css_es442noph79h6ki4t54p, #tinytable_4s3j1hcltqzidtb90pmo th.tinytable_css_es442noph79h6ki4t54p {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_4s3j1hcltqzidtb90pmo td.tinytable_css_xt295vrro2r64a75ogo5, #tinytable_4s3j1hcltqzidtb90pmo th.tinytable_css_xt295vrro2r64a75ogo5 {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_4s3j1hcltqzidtb90pmo" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">id</th>
-                <th scope="col" data-row="0" data-col="2">sex</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">Michael</td>
-                  <td data-row="1" data-col="2">Male</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">Emily</td>
-                  <td data-row="2" data-col="2">Female</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">John</td>
-                  <td data-row="3" data-col="2">Male</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">Jessica</td>
-                  <td data-row="4" data-col="2">Female</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</figure>
-</div>
-</div>
-<p>しっかり置き換えられていますね。</p>
-<p><code>!!!</code>という表記は見慣れないと思いますが、<code>id_map</code>や<code>sex_map</code>で作成したベクトルをバラバラにして渡すということです<sup>3</sup>。<code>recode(sex, "1" = "Male", "2" = "Female")</code>と同じ働きをします。</p>
-<p>あらかじめ対応関係を表すベクトルを作って置くことで、使いまわすことができ、特に何回も表を作る際に効率化が図れます。</p>
-</section>
-</section>
-<section id="おまけ" class="level2">
-<h2 class="anchored" data-anchor-id="おまけ">おまけ</h2>
-<p>表にするなら、列名も変えたいですよね。そんなときは{purrr}パッケージの<code>set_names()</code>関数を使います。これも{tidyverse}に入っていますので、特に追加でライブラリを読み込む必要はありません。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">col_names <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"名前"</span>, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"性別"</span>)</span>
-<span id="cb5-2"></span>
-<span id="cb5-3">df_set_names <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> df_recode <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span></span>
-<span id="cb5-4">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">set_names</span>(col_names)</span></code></pre></div></div>
-</div>
-<div class="cell">
-<div id="tbl-set-names" class="cell quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-set-names-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-表&nbsp;3: 列名を変更
-</figcaption>
-<div aria-describedby="tbl-set-names-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<div class="cell-output-display">
-<!-- preamble start -->
-
-    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
-
-    <script>
-      // Create table-specific functions using external factory
-      const tableFns_1hiubydwm664xi1y4vkw = TinyTable.createTableFunctions("tinytable_1hiubydwm664xi1y4vkw");
-      // tinytable span after
-      window.addEventListener('load', function () {
-          var cellsToStyle = [
-            // tinytable style arrays after
-          { positions: [ { i: '4', j: 1 }, { i: '4', j: 2 } ], css_id: 'tinytable_css_krfly964c86ylcdck4rw',}, 
-          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 } ], css_id: 'tinytable_css_7v8tqy40mzvgq14xzauc',}, 
-          ];
-
-          // Loop over the arrays to style the cells
-          cellsToStyle.forEach(function (group) {
-              group.positions.forEach(function (cell) {
-                  tableFns_1hiubydwm664xi1y4vkw.styleCell(cell.i, cell.j, group.css_id);
-              });
-          });
-      });
-    </script>
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
-    <style>
-    /* tinytable css entries after */
-    #tinytable_1hiubydwm664xi1y4vkw td.tinytable_css_krfly964c86ylcdck4rw, #tinytable_1hiubydwm664xi1y4vkw th.tinytable_css_krfly964c86ylcdck4rw {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.1em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    #tinytable_1hiubydwm664xi1y4vkw td.tinytable_css_7v8tqy40mzvgq14xzauc, #tinytable_1hiubydwm664xi1y4vkw th.tinytable_css_7v8tqy40mzvgq14xzauc {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
-    </style>
-    <div class="container">
-      <table class="tinytable" id="tinytable_1hiubydwm664xi1y4vkw" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
-        
-        <thead>
-              <tr>
-                <th scope="col" data-row="0" data-col="1">名前</th>
-                <th scope="col" data-row="0" data-col="2">性別</th>
-              </tr>
-        </thead>
-        
-        <tbody>
-                <tr>
-                  <td data-row="1" data-col="1">Michael</td>
-                  <td data-row="1" data-col="2">Male</td>
-                </tr>
-                <tr>
-                  <td data-row="2" data-col="1">Emily</td>
-                  <td data-row="2" data-col="2">Female</td>
-                </tr>
-                <tr>
-                  <td data-row="3" data-col="1">John</td>
-                  <td data-row="3" data-col="2">Male</td>
-                </tr>
-                <tr>
-                  <td data-row="4" data-col="1">Jessica</td>
-                  <td data-row="4" data-col="2">Female</td>
-                </tr>
-        </tbody>
-      </table>
-    </div>
-<!-- hack to avoid NA insertion in last line -->
-</div>
-</div>
-</figure>
-</div>
-</div>
-<p>あらかじめ<code>col_names</code>を作成しておきましたが、ここは任意です。<code>set_names()</code>の中に直接書くのも可能です。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回は表を整えるための<code>recode()</code>関数とおまけの<code>set_names()</code>関数をまとめました。</p>
-<p>以前<a href="../../../../../pages/tips/2024/06/240629_write_thesis/index.html">Quartoで論文を書くという記事</a>を書きましたが、論文はLaTeXで書きたい！という方には表だけLaTeXコードにして出力するという方法もありますので、それもまたまとめようかと思います。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>まだ関数は残っているので、使うことはできます。↩︎</p></li>
-<li id="fn2"><p>ただし、<code>case_when()</code>だと「○○以上○○以下」みたいな条件分岐に対応できるという強みがありますが、今回は想定しません。あくまでもデータフレーム内の値をある別の表記に値 = 値で置き換えるということを想定します。↩︎</p></li>
-<li id="fn3"><p>ややこしいですが、<code>id_map</code>自体はベクトルなので、ベクトルを渡すのではなく、中身を展開して渡したいということです。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <guid>https://yo5uke.com/pages/tips/2025/07/250727_recode/</guid>
-  <pubDate>Sat, 26 Jul 2025 15:00:00 GMT</pubDate>
 </item>
 </channel>
 </rss>
