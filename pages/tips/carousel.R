@@ -25,7 +25,8 @@ carousel <- function(id, duration, items) {
   overflow: hidden;
 }
 #%1$s .carousel-item {
-  height: 390px;
+  aspect-ratio: 2 / 1;
+  height: auto;
 }
 #%1$s .carousel-item a {
   display: block;
@@ -72,6 +73,18 @@ carousel <- function(id, duration, items) {
 .%1$s-dot.active {
   background: #4b5563;
   transform: scale(1.4);
+}
+[data-bs-theme=\"dark\"] .%1$s-cap,
+.quarto-dark .%1$s-cap {
+  color: #d1d5db;
+}
+[data-bs-theme=\"dark\"] .%1$s-dot,
+.quarto-dark .%1$s-dot {
+  background: #6b7280;
+}
+[data-bs-theme=\"dark\"] .%1$s-dot.active,
+.quarto-dark .%1$s-dot.active {
+  background: #d1d5db;
 }
 #%1$s .carousel-control-prev,
 #%1$s .carousel-control-next {
