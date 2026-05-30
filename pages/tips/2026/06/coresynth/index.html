@@ -1,0 +1,2317 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" xml:lang="ja"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.9.38">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="C++実装による高速化と6つの手法を統一インターフェースで提供します。">
+
+<title>【パッケージ開発】coresynthで合成コントロール法を高速に実装 – Yosuke Abe</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../../../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../../../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../../../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../../../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../../../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../../../../">
+<link href="../../../../../assets/icons/favicon.ico" rel="icon">
+<script src="../../../../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../../../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../../../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../../../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-dark-0a6b7249c26820e032cb0bd839ff02b1.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../../../../../site_libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../../../../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../../../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../../../../site_libs/bootstrap/bootstrap-0ec9b047aca764af10367a6ff3ef45c5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../../../../site_libs/bootstrap/bootstrap-dark-e44331e4d93d916731116a4f26e8357f.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../../../../site_libs/bootstrap/bootstrap-0ec9b047aca764af10367a6ff3ef45c5.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="../../../../../site_libs/quarto-contrib/iconify-3.0.0/iconify-icon.min.js"></script>
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/all.min.css" rel="stylesheet">
+<link href="../../../../../site_libs/quarto-contrib/fontawesome6-6.7.2/latex-fontsize.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "一致なし",
+    "search-matching-documents-text": "一致した文書",
+    "search-copy-link-title": "検索へのリンクをコピー",
+    "search-hide-matches-text": "追加の検索結果を非表示",
+    "search-more-match-text": "追加の検索結果",
+    "search-more-matches-text": "追加の検索結果",
+    "search-clear-button-title": "消去",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "キャンセル",
+    "search-submit-button-title": "検索",
+    "search-label": "サーチ"
+  }
+}</script>
+<script async="" src="https://www.googletagmanager.com/gtag/js?id=G-N3ZP99BG08"></script>
+
+<script type="text/javascript">
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-N3ZP99BG08', { 'anonymize_ip': true});
+</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<meta property="og:title" content="【パッケージ開発】coresynthで合成コントロール法を高速に実装 – Yosuke Abe">
+<meta property="og:description" content="C++実装による高速化と6つの手法を統一インターフェースで提供します。">
+<meta property="og:image" content="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-13-1.png">
+<meta property="og:site_name" content="Yosuke Abe">
+<meta property="og:image:height" content="960">
+<meta property="og:image:width" content="1344">
+<meta name="twitter:title" content="【パッケージ開発】coresynthで合成コントロール法を高速に実装 – Yosuke Abe">
+<meta name="twitter:description" content="C++実装による高速化と6つの手法を統一インターフェースで提供します。">
+<meta name="twitter:image" content="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-13-1.png">
+<meta name="twitter:creator" content="@5uke_y">
+<meta name="twitter:site" content="@5uke_y">
+<meta name="twitter:image-height" content="960">
+<meta name="twitter:image-width" content="1344">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://yo5uke.com/pages/tips/2026/06/coresynth/">
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const queryPrefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const darkModeDefault = queryPrefersDark.matches;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    queryPrefersDark.addEventListener("change", e => {
+      if(window.localStorage.getItem("quarto-color-scheme") !== null)
+        return;
+      const alternate = e.matches
+      toggleColorMode(alternate);
+      localAlternateSentinel = e.matches ? 'alternate' : 'default'; // this is used alongside local storage!
+      toggleGiscusIfUsed(alternate, darkModeDefault);
+    });
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../../../../../index.html">
+    <span class="navbar-title">Yosuke Abe</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="サーチ"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="ナビゲーションを切り替える" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/tips/index.html"> 
+<span class="menu-text">Tips</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/software/index.html"> 
+<span class="menu-text">Software</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/gis_in_r/index.html"> 
+<span class="menu-text">GIS in <i class="fa-brands fa-r-project" aria-label="r-project"></i></span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../../../../pages/blog/index.html"> 
+<span class="menu-text">Blog</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools tools-wide">
+    <div class="dropdown">
+      <a href="" title="" id="quarto-navigation-tool-dropdown-0" class="quarto-navigation-tool dropdown-toggle px-1" data-bs-toggle="dropdown" aria-expanded="false" role="link" aria-label=""><i class="bi bi-github"></i></a>
+      <ul class="dropdown-menu" aria-labelledby="quarto-navigation-tool-dropdown-0">
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/">
+            ソースコード
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item quarto-navbar-tools-item" href="https://github.com/yo5uke/yo5uke.github.io/issues/new/">
+            問題を報告
+            </a>
+          </li>
+      </ul>
+    </div>
+    <a href="../../../../../pages/tips/index.xml" title="RSS" class="quarto-navigation-tool px-1" aria-label="RSS"><i class="bi bi-rss"></i></a>
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="ダークモードの切り替え"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">【パッケージ開発】<span class="fira-code">coresynth</span>で合成コントロール法を高速に実装</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i></button></div></div>
+                  <div>
+        <div class="description">
+          <p>C++実装による高速化と6つの手法を統一インターフェースで提供します。</p>
+        </div>
+      </div>
+                          <div class="quarto-categories">
+                <div class="quarto-category">R</div>
+              </div>
+                  </div>
+  </div>
+    
+  
+  <div class="quarto-title-meta">
+
+      
+      <div>
+      <div class="quarto-title-meta-heading">公開</div>
+      <div class="quarto-title-meta-contents">
+        <p class="date">2026年6月1日</p>
+      </div>
+    </div>
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">目次</h2>
+   
+  <ul>
+  <li><a href="#はじめに" id="toc-はじめに" class="nav-link active" data-scroll-target="#はじめに">はじめに</a></li>
+  <li><a href="#インストール" id="toc-インストール" class="nav-link" data-scroll-target="#インストール">インストール</a></li>
+  <li><a href="#準備" id="toc-準備" class="nav-link" data-scroll-target="#準備">準備</a></li>
+  <li><a href="#scm_fit" id="toc-scm_fit" class="nav-link" data-scroll-target="#scm_fit"><code>scm_fit()</code></a>
+  <ul>
+  <li><a href="#scmmethod-scm" id="toc-scmmethod-scm" class="nav-link" data-scroll-target="#scmmethod-scm">SCM（<code>method = "scm"</code>）</a>
+  <ul class="collapse">
+  <li><a href="#予測変数の指定pred" id="toc-予測変数の指定pred" class="nav-link" data-scroll-target="#予測変数の指定pred">予測変数の指定（<code>pred()</code>）</a></li>
+  </ul></li>
+  <li><a href="#sdidmethod-sdid" id="toc-sdidmethod-sdid" class="nav-link" data-scroll-target="#sdidmethod-sdid">SDID（<code>method = "sdid"</code>）</a></li>
+  <li><a href="#gscmethod-gsc" id="toc-gscmethod-gsc" class="nav-link" data-scroll-target="#gscmethod-gsc">GSC（<code>method = "gsc"</code>）</a></li>
+  <li><a href="#mcmethod-mc" id="toc-mcmethod-mc" class="nav-link" data-scroll-target="#mcmethod-mc">MC（<code>method = "mc"</code>）</a></li>
+  <li><a href="#tascmethod-tasc" id="toc-tascmethod-tasc" class="nav-link" data-scroll-target="#tascmethod-tasc">TASC（<code>method = "tasc"</code>）</a></li>
+  <li><a href="#simethod-si" id="toc-simethod-si" class="nav-link" data-scroll-target="#simethod-si">SI（<code>method = "si"</code>）</a></li>
+  <li><a href="#手法の比較" id="toc-手法の比較" class="nav-link" data-scroll-target="#手法の比較">6手法の比較</a></li>
+  </ul></li>
+  <li><a href="#staggered-adoption" id="toc-staggered-adoption" class="nav-link" data-scroll-target="#staggered-adoption">Staggered Adoption</a></li>
+  <li><a href="#plot" id="toc-plot" class="nav-link" data-scroll-target="#plot"><code>plot()</code></a>
+  <ul>
+  <li><a href="#trend-プロット" id="toc-trend-プロット" class="nav-link" data-scroll-target="#trend-プロット">Trend プロット</a></li>
+  <li><a href="#gap-プロット" id="toc-gap-プロット" class="nav-link" data-scroll-target="#gap-プロット">Gap プロット</a></li>
+  <li><a href="#weights-プロット" id="toc-weights-プロット" class="nav-link" data-scroll-target="#weights-プロット">Weights プロット</a></li>
+  </ul></li>
+  <li><a href="#推論" id="toc-推論" class="nav-link" data-scroll-target="#推論">推論</a>
+  <ul>
+  <li><a href="#scmmspe比率置換検定mspe_ratio_pval" id="toc-scmmspe比率置換検定mspe_ratio_pval" class="nav-link" data-scroll-target="#scmmspe比率置換検定mspe_ratio_pval">SCM：MSPE比率置換検定（<code>mspe_ratio_pval()</code>）</a></li>
+  <li><a href="#sdidsdid_inference" id="toc-sdidsdid_inference" class="nav-link" data-scroll-target="#sdidsdid_inference">SDID：<code>sdid_inference()</code></a></li>
+  <li><a href="#gscgsc_boot" id="toc-gscgsc_boot" class="nav-link" data-scroll-target="#gscgsc_boot">GSC：<code>gsc_boot()</code></a></li>
+  <li><a href="#sisi_inference" id="toc-sisi_inference" class="nav-link" data-scroll-target="#sisi_inference">SI：<code>si_inference()</code></a></li>
+  <li><a href="#conformal推論conformal_inference" id="toc-conformal推論conformal_inference" class="nav-link" data-scroll-target="#conformal推論conformal_inference">Conformal推論：<code>conformal_inference()</code></a></li>
+  <li><a href="#broommodelsummaryとの連携" id="toc-broommodelsummaryとの連携" class="nav-link" data-scroll-target="#broommodelsummaryとの連携"><code>broom</code>・<code>modelsummary</code>との連携</a></li>
+  </ul></li>
+  <li><a href="#json出力export_json" id="toc-json出力export_json" class="nav-link" data-scroll-target="#json出力export_json">JSON出力（<code>export_json()</code>）</a></li>
+  <li><a href="#おわりに" id="toc-おわりに" class="nav-link" data-scroll-target="#おわりに">おわりに</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<p><a href="https://github.com/yo5uke/coresynth"><img src="https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&amp;color=blue.png" class="img-fluid" alt="dev version"></a> <a href="https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" class="img-fluid" alt="License: MIT"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" class="img-fluid" alt="Lifecycle: experimental"></a></p>
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>本ページでは、合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、<code>coresynth</code>について説明します。</p>
+<p><code>coresynth</code>の最大の特徴は<strong>パフォーマンス</strong>です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて<strong>最大約56倍の高速化</strong>を実現しています。</p>
+<p>バージョン0.2では<strong>Conformal推論</strong>（<code>conformal_inference()</code>）が追加されました。<span class="citation" data-cites="chernozhukov_exact_2021">Chernozhukov et al. (<a href="#ref-chernozhukov_exact_2021" role="doc-biblioref">2021</a>)</span> のPHT (Moving-Block Permutation)に基づく置換p値と信頼区間を、<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>の全推定量に対して利用できます。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>ご意見待ってます
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>実装・挙動に関するフィードバックや機能リクエストは、ページ下のコメントかGitHubの<a href="https://github.com/yo5uke/coresynth/issues">Issues</a>までお寄せください。</p>
+</div>
+</div>
+<p><code>coresynth</code>が対応する推定量は以下の6つです。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 35%">
+<col style="width: 35%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">推定量</th>
+<th style="text-align: left;"><code>method</code></th>
+<th style="text-align: left;">参考文献</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Synthetic Control Method</td>
+<td style="text-align: left;"><code>"scm"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="abadie_synthetic_2010">Abadie et al. (<a href="#ref-abadie_synthetic_2010" role="doc-biblioref">2010</a>)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Synthetic Difference-in-Differences</td>
+<td style="text-align: left;"><code>"sdid"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="arkhangelsky_synthetic_2021">Arkhangelsky et al. (<a href="#ref-arkhangelsky_synthetic_2021" role="doc-biblioref">2021</a>)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Generalised Synthetic Control</td>
+<td style="text-align: left;"><code>"gsc"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="xu_generalized_2017">Xu (<a href="#ref-xu_generalized_2017" role="doc-biblioref">2017</a>)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Matrix Completion</td>
+<td style="text-align: left;"><code>"mc"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="athey_matrix_2021">Athey et al. (<a href="#ref-athey_matrix_2021" role="doc-biblioref">2021</a>)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Time-Aware Synthetic Control</td>
+<td style="text-align: left;"><code>"tasc"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="rho_time-aware_2026">Rho et al. (<a href="#ref-rho_time-aware_2026" role="doc-biblioref">2026</a>)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Synthetic Interventions</td>
+<td style="text-align: left;"><code>"si"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="agarwal_synthetic_interventions_2024">Agarwal et al. (<a href="#ref-agarwal_synthetic_interventions_2024" role="doc-biblioref">2024</a>)</span></td>
+</tr>
+</tbody>
+</table>
+<p>また、各推定量に対して複数の推論手法が利用できます。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 42%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">推論手法</th>
+<th style="text-align: left;">対応推定量</th>
+<th style="text-align: left;">関数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">MSPE比率置換検定</td>
+<td style="text-align: left;"><code>scm</code></td>
+<td style="text-align: left;"><code>mspe_ratio_pval()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">プラセボ / Bootstrap / Jackknife</td>
+<td style="text-align: left;"><code>sdid</code></td>
+<td style="text-align: left;"><code>sdid_inference()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">パラメトリックBootstrap</td>
+<td style="text-align: left;"><code>gsc</code></td>
+<td style="text-align: left;"><code>gsc_boot()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ノンパラメトリックBootstrap / Jackknife</td>
+<td style="text-align: left;"><code>gsc</code></td>
+<td style="text-align: left;"><code>gsc_inference()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Bootstrap / Jackknife</td>
+<td style="text-align: left;"><code>si</code></td>
+<td style="text-align: left;"><code>si_inference()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Conformal推論（CWZ 2021）</td>
+<td style="text-align: left;"><code>scm</code>, <code>sdid</code>, <code>gsc</code>, <code>mc</code>, <code>si</code></td>
+<td style="text-align: left;"><code>conformal_inference()</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="インストール" class="level2">
+<h2 class="anchored" data-anchor-id="インストール">インストール</h2>
+<p>GitHubからインストールできます（Windowsは<a href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a>、macOSはXcodeが必要です）。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pak を使う場合</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"yo5uke/coresynth"</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># devtools を使う場合</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"yo5uke/coresynth"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="準備" class="level2">
+<h2 class="anchored" data-anchor-id="準備">準備</h2>
+<p>パッケージを読み込みます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coresynth)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>本ページで使用するデータを生成します。47都道府県に相当するバランスパネル（ユニット数47、期間数30、真のATT = 2.5）を3因子モデルで生成します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">47</span> <span class="co"># ユニット数（都道府県数相当）</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>TT <span class="ot">&lt;-</span> <span class="dv">30</span> <span class="co"># 期間数（年）</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>T_pre <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="co"># 処置前期間</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="co"># 潜在因子数</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co"># 3因子モデルによるパネル生成</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>F_t <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, TT, r)</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(r)) {</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  F_t[, j] <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(<span class="fu">rnorm</span>(TT, <span class="dv">0</span>, <span class="fl">0.4</span>))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>L_i <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">abs</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> r, <span class="dv">1</span>, <span class="fl">0.3</span>)), N, r)</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> L_i <span class="sc">%*%</span> <span class="fu">t</span>(F_t) <span class="sc">+</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> TT, <span class="dv">0</span>, <span class="fl">0.5</span>), N, TT)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">seq_len</span>(TT),</span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">paste0</span>(<span class="st">"pref_"</span>, <span class="fu">sprintf</span>(<span class="st">"%02d"</span>, <span class="fu">seq_len</span>(N)))</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat[<span class="fu">order</span>(dat<span class="sc">$</span>id, dat<span class="sc">$</span>time), ]</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>true_att <span class="ot">&lt;-</span> <span class="fl">2.5</span></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">t</span>(Y))</span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(dat<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat<span class="sc">$</span>time <span class="sc">&gt;</span> T_pre)</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> true_att <span class="co"># 真のATT = 2.5</span></span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p><code>id</code>がユニット識別変数（<code>pref_01</code>〜<code>pref_47</code>）、<code>time</code>が時間変数（1〜30）、<code>y</code>が結果変数、<code>d</code>が処置変数（処置ユニット<code>pref_01</code>が21期目以降に処置）です。<code>pref_01</code>以外の46ユニットがドナープールとなります。</p>
+</section>
+<section id="scm_fit" class="level2">
+<h2 class="anchored" data-anchor-id="scm_fit"><code>scm_fit()</code></h2>
+<p><code>scm_fit()</code>はすべての手法への統一エントリーポイントです。フォーミュラは <code>結果変数 ~ 処置変数 | ユニットID + 時間ID</code> の形式で指定します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">scm_fit</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  formula,</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  data,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">covariates =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_selection =</span> <span class="fu">c</span>(<span class="st">"insample"</span>, <span class="st">"oos"</span>),</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">donor_mspe_threshold =</span> <span class="cn">Inf</span>,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda_pen =</span> <span class="cn">NULL</span>,</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_optim =</span> <span class="fu">c</span>(<span class="st">"coord_descent"</span>, <span class="st">"auto"</span>, <span class="st">"bfgs"</span>),</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 75%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">引数</th>
+<th style="text-align: left;">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>formula</code></td>
+<td style="text-align: left;"><code>y ~ d | unit + time</code> 形式のFormulaオブジェクト</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;">ロング形式のデータフレーム（1行 = 1ユニット×1時点）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>method</code></td>
+<td style="text-align: left;">推定手法の選択（<code>"scm"</code>, <code>"sdid"</code>, <code>"gsc"</code>, <code>"mc"</code>, <code>"tasc"</code>, <code>"si"</code>）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>predictors</code></td>
+<td style="text-align: left;">SCM用の予測変数リスト（<code>pred()</code>で指定）。<code>NULL</code>の場合は処置前期間の全結果変数期間を使用</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>covariates</code></td>
+<td style="text-align: left;">時変共変量の列名（<code>"sdid"</code>, <code>"scm"</code>, <code>"gsc"</code>でサポート）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>v_selection</code></td>
+<td style="text-align: left;">SCM用のV行列選択方法。<code>"insample"</code>（デフォルト）または <span class="citation" data-cites="abadie_using_2021">Abadie (<a href="#ref-abadie_using_2021" role="doc-biblioref">2021</a>)</span> の<code>"oos"</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>donor_mspe_threshold</code></td>
+<td style="text-align: left;">ドナープール絞り込みの閾値（SCMのみ。デフォルト<code>Inf</code>で無効）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>lambda_pen</code></td>
+<td style="text-align: left;">ペナルティSCMのペナルティパラメータ（SCMのみ。<code>NULL</code>で通常SCM、<code>"auto"</code>で自動選択）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>v_optim</code></td>
+<td style="text-align: left;">V外部最適化の手法。<code>"coord_descent"</code>（デフォルト）、<code>"bfgs"</code>、<code>"auto"</code></td>
+</tr>
+</tbody>
+</table>
+<p>すべての手法は <code>c("coresynth_&lt;method&gt;", "coresynth")</code> クラスのオブジェクトを返します。共通フィールドは以下の通りです。</p>
+<ul>
+<li><code>method</code>：推定量名</li>
+<li><code>estimate</code>：ATT推定値</li>
+<li><code>times</code>：時間インデックスベクトル</li>
+<li><code>T_pre</code>：処置前期間数</li>
+<li><code>Y_treat</code>：処置ユニットの結果系列</li>
+<li><code>gap</code>：処置効果系列（<span class="math inline">\(Y_{\text{treat}} - Y_{\text{synthetic}}\)</span>）</li>
+</ul>
+<section id="scmmethod-scm" class="level3">
+<h3 class="anchored" data-anchor-id="scmmethod-scm">SCM（<code>method = "scm"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>fit_scm <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"scm"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_scm)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SCM 
+Estimate (ATT): 2.7521 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_scm)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth summary ===
+Method : SCM 
+Periods : T_pre = 20 | T_post = 10 
+ATT estimate: 2.752104 
+Unit weights (non-zero donors):
+pref_06 pref_08 pref_15 pref_16 pref_20 pref_30 pref_35 pref_39 pref_47 
+ 0.2634  0.1615  0.1564  0.0778  0.0729  0.0794  0.0681  0.0732  0.0472 </code></pre>
+</div>
+</div>
+<section id="予測変数の指定pred" class="level4">
+<h4 class="anchored" data-anchor-id="予測変数の指定pred">予測変数の指定（<code>pred()</code>）</h4>
+<p>SCMは <code>pred()</code> 関数を使って <span class="citation" data-cites="abadie_synthetic_2010">Abadie et al. (<a href="#ref-abadie_synthetic_2010" role="doc-biblioref">2010</a>)</span> §2.3の予測変数行列を指定できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># dat に income, unemp 列がある想定の例</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>fit_scm_cov <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data   =</span> dat,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"scm"</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="fu">list</span>(</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="fu">c</span>(<span class="st">"income"</span>, <span class="st">"unemp"</span>), <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>),     <span class="co"># 1〜8期平均</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">5</span>),                         <span class="co"># 5期の結果変数</span></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">op =</span> <span class="st">"mean"</span>)           <span class="co"># 1〜4期の平均</span></span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>pred()</code> の <code>op</code> 引数には <code>"mean"</code>（デフォルト）、<code>"median"</code>、<code>"sum"</code> が指定できます。</p>
+</section>
+</section>
+<section id="sdidmethod-sdid" class="level3">
+<h3 class="anchored" data-anchor-id="sdidmethod-sdid">SDID（<code>method = "sdid"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>fit_sdid <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SDID 
+Estimate (ATT): 2.5266 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+</section>
+<section id="gscmethod-gsc" class="level3">
+<h3 class="anchored" data-anchor-id="gscmethod-gsc">GSC（<code>method = "gsc"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>fit_gsc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"gsc"</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_gsc)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : GSC 
+Estimate (ATT): 2.5552 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>GSCは時変共変量の調整を <code>covariates</code> 引数でサポートしています（<code>data</code>の列名を文字ベクトルで指定）。内部では <span class="citation" data-cites="xu_generalized_2017">Xu (<a href="#ref-xu_generalized_2017" role="doc-biblioref">2017</a>)</span> の完全EMアルゴリズム（E-step：因子モデルのSVD、M-step：残差への共変量OLS）を実行します。</p>
+</section>
+<section id="mcmethod-mc" class="level3">
+<h3 class="anchored" data-anchor-id="mcmethod-mc">MC（<code>method = "mc"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>fit_mc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"mc"</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_mc)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : MC 
+Estimate (ATT): 2.5198 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>核ノルム正則化による行列補完（Soft-Impute）で反事実を推定します。</p>
+</section>
+<section id="tascmethod-tasc" class="level3">
+<h3 class="anchored" data-anchor-id="tascmethod-tasc">TASC（<code>method = "tasc"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>fit_tasc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"tasc"</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_tasc)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : TASC 
+Estimate (ATT): 2.1725 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>カルマンEMによる時間考慮型合成コントロール <span class="citation" data-cites="rho_time-aware_2026">(<a href="#ref-rho_time-aware_2026" role="doc-biblioref">Rho et al. 2026</a>)</span> です。</p>
+</section>
+<section id="simethod-si" class="level3">
+<h3 class="anchored" data-anchor-id="simethod-si">SI（<code>method = "si"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>fit_si <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"si"</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_si)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SI 
+Estimate (ATT): 2.6972 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>SI-PCR（主成分回帰）に基づく合成介入法 <span class="citation" data-cites="agarwal_synthetic_interventions_2024">(<a href="#ref-agarwal_synthetic_interventions_2024" role="doc-biblioref">Agarwal et al. 2024</a>)</span> です。シャープ・Staggered・マルチアームすべてに対応しています。</p>
+</section>
+<section id="手法の比較" class="level3">
+<h3 class="anchored" data-anchor-id="手法の比較">6手法の比較</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>methods <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>fits <span class="ot">&lt;-</span> <span class="fu">lapply</span>(methods, \(m) <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> m))</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(fits) <span class="ot">&lt;-</span> methods</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> methods,</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimate =</span> <span class="fu">round</span>(<span class="fu">sapply</span>(fits, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="st">"estimate"</span>), <span class="dv">3</span>)</span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     method estimate
+scm     scm    2.752
+sdid   sdid    2.527
+gsc     gsc    2.555
+mc       mc    2.520
+tasc   tasc    2.172
+si       si    2.697</code></pre>
+</div>
+</div>
+<p>真のATTは2.5です。</p>
+</section>
+</section>
+<section id="staggered-adoption" class="level2">
+<h2 class="anchored" data-anchor-id="staggered-adoption">Staggered Adoption</h2>
+<p>6つの手法すべてがStaggered Adoptionに対応しています。各コホートを個別に推定し、<span class="math inline">\(N_{\text{treated}} \times T_{\text{post}}\)</span> に比例したウェイトでATTを集計するアプローチ <span class="citation" data-cites="clarke_synthetic_2024">(<a href="#ref-clarke_synthetic_2024" role="doc-biblioref">Clarke et al. 2024</a>)</span> を採用しています。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pref_01: 21期から処置、pref_02: 26期から処置</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>dat_s <span class="ot">&lt;-</span> dat</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="dv">0</span>L</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">20</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_02"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">25</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> <span class="fl">2.5</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>fit_sdid_s <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat_s, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid_s)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SDID 
+Estimate (ATT): 4.1633 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>コホート別の推定値は <code>$cohort_estimates</code> フィールドで確認できます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>fit_sdid_s<span class="sc">$</span>cohort_estimates</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  cohort n_treated T_pre T_post estimate    weight
+1     21         1    20     10 4.864657 0.6666667
+2     26         1    25      5 2.760581 0.3333333</code></pre>
+</div>
+</div>
+<p><code>control_group</code> 引数でドナープールを制御できます。</p>
+<ul>
+<li><code>"clean"</code>（デフォルト）：never-treated + future adoptersをドナーとして使用 <span class="citation" data-cites="clarke_synthetic_2024">(<a href="#ref-clarke_synthetic_2024" role="doc-biblioref">Clarke et al. 2024</a>)</span></li>
+<li><code>"never_treated"</code>：never-treatedのみを使用</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>fit_sdid_never <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data          =</span> dat_s,</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method        =</span> <span class="st">"sdid"</span>,</span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">control_group =</span> <span class="st">"never_treated"</span></span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="plot" class="level2">
+<h2 class="anchored" data-anchor-id="plot"><code>plot()</code></h2>
+<p><code>plot()</code> で3種類のプロットを出力できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"trend"</span>, <span class="st">"gap"</span>, <span class="st">"weights"</span>))</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li><code>"trend"</code>：処置ユニット vs.&nbsp;合成コントロールの時系列</li>
+<li><code>"gap"</code>：処置効果の時系列（<span class="math inline">\(Y_{\text{treated}} - Y_{\text{synthetic}}\)</span>）</li>
+<li><code>"weights"</code>：ドナーユニットのウェイト棒グラフ（SCM・SDID・SI）</li>
+</ul>
+<section id="trend-プロット" class="level3">
+<h3 class="anchored" data-anchor-id="trend-プロット">Trend プロット</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">SCM</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">SDID</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">GSC</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_sdid, <span class="at">type =</span> <span class="st">"trend"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_gsc, <span class="at">type =</span> <span class="st">"trend"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="gap-プロット" class="level3">
+<h3 class="anchored" data-anchor-id="gap-プロット">Gap プロット</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"gap"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>垂直の点線が処置開始時点、水平の破線が0です。</p>
+</section>
+<section id="weights-プロット" class="level3">
+<h3 class="anchored" data-anchor-id="weights-プロット">Weights プロット</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"weights"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>ggplot2ベースなのでggplotの関数をつなげることも可能です。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>) <span class="sc">+</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"SCM: Observed vs. Synthetic Control"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="推論" class="level2">
+<h2 class="anchored" data-anchor-id="推論">推論</h2>
+<p>各推定量に対応した推論関数が用意されています。</p>
+<section id="scmmspe比率置換検定mspe_ratio_pval" class="level3">
+<h3 class="anchored" data-anchor-id="scmmspe比率置換検定mspe_ratio_pval">SCM：MSPE比率置換検定（<code>mspe_ratio_pval()</code>）</h3>
+<p><span class="citation" data-cites="abadie_synthetic_2010">Abadie et al. (<a href="#ref-abadie_synthetic_2010" role="doc-biblioref">2010</a>)</span> / <span class="citation" data-cites="abadie_using_2021">Abadie (<a href="#ref-abadie_using_2021" role="doc-biblioref">2021</a>)</span> のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>inf_scm <span class="ot">&lt;-</span> <span class="fu">mspe_ratio_pval</span>(fit_scm)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>inf_scm<span class="sc">$</span>p_value</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0212766</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mspe_ratio_pval</span>(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">mspe_threshold =</span> <span class="dv">0</span>,     <span class="co"># プラセボに含める最小MSPE（デフォルト：0）</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_iter       =</span> <span class="dv">100</span>L,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">tol            =</span> <span class="fl">1e-4</span>,</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">use_covariates =</span> <span class="cn">FALSE</span>, <span class="co"># 予測変数をプラセボにも適用するか</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative    =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>)</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="sdidsdid_inference" class="level3">
+<h3 class="anchored" data-anchor-id="sdidsdid_inference">SDID：<code>sdid_inference()</code></h3>
+<p><span class="citation" data-cites="clarke_synthetic_2024">Clarke et al. (<a href="#ref-clarke_synthetic_2024" role="doc-biblioref">2024</a>)</span> に基づく3種類の推論手法を提供します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># プラセボ検定（デフォルト）</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>inf_sdid <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(fit_sdid, <span class="at">method =</span> <span class="st">"placebo"</span>)</span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>inf_sdid<span class="sc">$</span>p_value</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0212766</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ブートストラップ（SE・CI付き）</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  fit_sdid,</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"bootstrap"</span>,</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot =</span> <span class="dv">200</span>,</span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>se</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1812056</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_lower</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.192366</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_upper</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.972953</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="fu">sdid_inference</span>(</span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"placebo"</span>, <span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">200</span>L,   <span class="co"># bootstrap のみ</span></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="gscgsc_boot" class="level3">
+<h3 class="anchored" data-anchor-id="gscgsc_boot">GSC：<code>gsc_boot()</code></h3>
+<p><span class="citation" data-cites="xu_generalized_2017">Xu (<a href="#ref-xu_generalized_2017" role="doc-biblioref">2017</a>)</span> §3のパラメトリックBootstrapです。推定された因子モデルから帰無仮説下の分布を生成します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>inf_gsc <span class="ot">&lt;-</span> <span class="fu">gsc_boot</span>(fit_gsc, <span class="at">B =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>p_value</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_lower</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -0.5585225</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_upper</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.5787406</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gsc_boot</span>(</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">B     =</span> <span class="dv">499</span>L,</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb52-5"><a href="#cb52-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed  =</span> <span class="cn">NULL</span></span>
+<span id="cb52-6"><a href="#cb52-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="sisi_inference" class="level3">
+<h3 class="anchored" data-anchor-id="sisi_inference">SI：<code>si_inference()</code></h3>
+<p><span class="citation" data-cites="agarwal_synthetic_interventions_2024">Agarwal et al. (<a href="#ref-agarwal_synthetic_interventions_2024" role="doc-biblioref">2024</a>)</span> のノンパラメトリックBootstrap / Jackknife推論です。Staggeredフィットにも対応しています。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>inf_si <span class="ot">&lt;-</span> <span class="fu">si_inference</span>(fit_si, <span class="at">method =</span> <span class="st">"bootstrap"</span>, <span class="at">n_boot =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>inf_si<span class="sc">$</span>p_value</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 4.194905e-223</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">si_inference</span>(</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
+<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">499</span>L,</span>
+<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb55-7"><a href="#cb55-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
+<span id="cb55-8"><a href="#cb55-8" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="conformal推論conformal_inference" class="level3">
+<h3 class="anchored" data-anchor-id="conformal推論conformal_inference">Conformal推論：<code>conformal_inference()</code></h3>
+<p><span class="citation" data-cites="chernozhukov_exact_2021">Chernozhukov et al. (<a href="#ref-chernozhukov_exact_2021" role="doc-biblioref">2021</a>)</span> の手法です。Moving-Block置換を用いた置換p値と信頼区間を返します。<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>の<strong>シャープフィット</strong>に対応しています。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>inf_conf <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_scm, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>p_value</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.03333333</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_lower</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.211775</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_upper</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 5.46472</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="co"># SDIDでも同様に使える</span></span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_sdid, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid<span class="sc">$</span>p_value</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.06666667</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb64"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><a href="#cb64-1" aria-hidden="true" tabindex="-1"></a><span class="fu">conformal_inference</span>(</span>
+<span id="cb64-2"><a href="#cb64-2" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau0        =</span> <span class="dv">0</span>,    <span class="co"># 帰無仮説のATT（デフォルト：0）</span></span>
+<span id="cb64-4"><a href="#cb64-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">q           =</span> <span class="dv">1</span>,    <span class="co"># S_q統計量の指数（デフォルト：1）</span></span>
+<span id="cb64-5"><a href="#cb64-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb64-6"><a href="#cb64-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci          =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb64-7"><a href="#cb64-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb64-8"><a href="#cb64-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid        =</span> <span class="cn">NULL</span>,     <span class="co"># 候補値ベクトル（NULLの場合は自動設定）</span></span>
+<span id="cb64-9"><a href="#cb64-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_grid      =</span> <span class="dv">200</span>L,</span>
+<span id="cb64-10"><a href="#cb64-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid_mult   =</span> <span class="dv">4</span></span>
+<span id="cb64-11"><a href="#cb64-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 75%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">引数</th>
+<th style="text-align: left;">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>fit</code></td>
+<td style="text-align: left;"><code>scm_fit()</code>の結果（<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>、シャープフィット）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>tau0</code></td>
+<td style="text-align: left;">報告するp値の帰無ATT（デフォルト：0）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>q</code></td>
+<td style="text-align: left;"><span class="math inline">\(S_q = (T_{\text{post}}^{-1}\sum\lvert u_t\rvert^q)^{1/q}\)</span> の指数。2値フィットでのみ有効</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>alternative</code></td>
+<td style="text-align: left;">対立仮説の方向</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>ci</code></td>
+<td style="text-align: left;">信頼区間を構築するか（デフォルト：<code>TRUE</code>）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>level</code></td>
+<td style="text-align: left;">信頼水準（デフォルト：0.95）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>grid</code></td>
+<td style="text-align: left;">検定反転の候補<span class="math inline">\(\tau_0\)</span>ベクトル。<code>NULL</code>の場合は自動設定</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>n_grid</code></td>
+<td style="text-align: left;">グリッド点数（デフォルト：200）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>grid_mult</code></td>
+<td style="text-align: left;">グリッド半幅の乗数（デフォルト：4）</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="broommodelsummaryとの連携" class="level3">
+<h3 class="anchored" data-anchor-id="broommodelsummaryとの連携"><code>broom</code>・<code>modelsummary</code>との連携</h3>
+<p>推論結果は<code>broom</code>と互換性があります。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb65"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(inf_conf)</span>
+<span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(inf_conf)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="json出力export_json" class="level2">
+<h2 class="anchored" data-anchor-id="json出力export_json">JSON出力（<code>export_json()</code>）</h2>
+<p>再現性ワークフロー向けに、推定結果をJSONとして出力できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb66"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>)</span>
+<span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb66-3"><a href="#cb66-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 推論結果も含める場合</span></span>
+<span id="cb66-4"><a href="#cb66-4" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>, <span class="at">inference =</span> inf_scm)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>file = NULL</code> を指定するとファイルには書き出さず、Rリストを invisibly に返します。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p><code>coresynth</code>は6つの合成コントロール関連手法を統一インターフェースで提供し、C++実装による高速化を実現しています。現時点では開発版のみで、フィードバックを積極的に受け付けています。</p>
+<p>もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの<a href="https://github.com/yo5uke/coresynth/issues">Issues</a>までお願いします。</p>
+
+
+<!-- -->
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">参考文献</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-abadie_using_2021" class="csl-entry" role="listitem">
+Abadie, Alberto. 2021. "Using Synthetic Controls: Feasibility, Data Requirements, and Methodological Aspects". <em>Journal of Economic Literature</em> 59 (2): 391–425. <a href="https://doi.org/10.1257/jel.20191450">https://doi.org/10.1257/jel.20191450</a>.
+</div>
+<div id="ref-abadie_synthetic_2010" class="csl-entry" role="listitem">
+Abadie, Alberto, Alexis Diamond, and Jens Hainmueller. 2010. "Synthetic Control Methods for Comparative Case Studies: Estimating the Effect of <span>California</span>’s Tobacco Control Program". <em>Journal of the American Statistical Association</em> 105 (490): 493–505. <a href="https://doi.org/10.1198/jasa.2009.ap08746">https://doi.org/10.1198/jasa.2009.ap08746</a>.
+</div>
+<div id="ref-agarwal_synthetic_interventions_2024" class="csl-entry" role="listitem">
+Agarwal, Anish, Devavrat Shah, and Dennis Shen. 2024. "Synthetic Interventions". <a href="https://doi.org/10.48550/arXiv.2006.07691">https://doi.org/10.48550/arXiv.2006.07691</a>.
+</div>
+<div id="ref-arkhangelsky_synthetic_2021" class="csl-entry" role="listitem">
+Arkhangelsky, Dmitry, Susan Athey, David A. Hirshberg, Guido W. Imbens, and Stefan Wager. 2021. "Synthetic Difference-in-Differences". <em>American Economic Review</em> 111 (12): 4088–118. <a href="https://doi.org/10.1257/aer.20190159">https://doi.org/10.1257/aer.20190159</a>.
+</div>
+<div id="ref-athey_matrix_2021" class="csl-entry" role="listitem">
+Athey, Susan, Mohsen Bayati, Nikolay Doudchenko, Guido Imbens, and Khashayar Khosravi. 2021. "Matrix Completion Methods for Causal Panel Data Models". <em>Journal of the American Statistical Association</em> 116 (536): 1716–30. <a href="https://doi.org/10.1080/01621459.2021.1891924">https://doi.org/10.1080/01621459.2021.1891924</a>.
+</div>
+<div id="ref-chernozhukov_exact_2021" class="csl-entry" role="listitem">
+Chernozhukov, Victor, Kaspar Wüthrich, and Yinchu Zhu. 2021. "An Exact and Robust Conformal Inference Method for Counterfactual and Synthetic Controls". <em>Journal of the American Statistical Association</em> 116 (536): 1849–64. <a href="https://doi.org/10.1080/01621459.2021.1920957">https://doi.org/10.1080/01621459.2021.1920957</a>.
+</div>
+<div id="ref-clarke_synthetic_2024" class="csl-entry" role="listitem">
+Clarke, Damian, Daniel Pailañir, Susan Athey, and Guido Imbens. 2024. "On synthetic difference-in-differences and related estimation methods in <span>Stata</span>". <em>The Stata Journal</em> 24 (4): 557–98. <a href="https://doi.org/10.1177/1536867X241297914">https://doi.org/10.1177/1536867X241297914</a>.
+</div>
+<div id="ref-rho_time-aware_2026" class="csl-entry" role="listitem">
+Rho, Saeyoung, Cyrus Illick, Samhitha Narasipura, Alberto Abadie, Daniel Hsu, and Vishal Misra. 2026. "Time-Aware Synthetic Control". <a href="https://doi.org/10.48550/arXiv.2601.03099">https://doi.org/10.48550/arXiv.2601.03099</a>.
+</div>
+<div id="ref-xu_generalized_2017" class="csl-entry" role="listitem">
+Xu, Yiqing. 2017. "Generalized Synthetic Control Method: Causal Inference with Interactive Fixed Effects Models". <em>Political Analysis</em> 25 (1): 57–76. <a href="https://doi.org/10.1017/pan.2016.2">https://doi.org/10.1017/pan.2016.2</a>.
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "コピーしました");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "コピーしました");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/yo5uke\.com");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<input type="hidden" id="giscus-base-theme" value="light_high_contrast">
+<input type="hidden" id="giscus-alt-theme" value="light_high_contrast">
+<script>
+  function loadGiscus() {
+    // Function to get the theme based on body class
+    const getTheme = () => {
+      let baseTheme = document.getElementById('giscus-base-theme').value;
+      let altTheme = document.getElementById('giscus-alt-theme').value;
+      if (authorPrefersDark) {
+          [baseTheme, altTheme] = [altTheme, baseTheme];
+      }
+      return document.body.classList.contains('quarto-dark') ? altTheme : baseTheme;
+    };
+    const script = document.createElement("script");
+    script.src = "https://giscus.app/client.js";
+    script.async = true;
+    script.dataset.repo = "yo5uke/yo5uke.github.io";
+    script.dataset.repoId = "R_kgDOLsORUQ";
+    script.dataset.category = "General";
+    script.dataset.categoryId = "DIC_kwDOLsORUc4CfJ93";
+    script.dataset.mapping = "title";
+    script.dataset.reactionsEnabled = "1";
+    script.dataset.emitMetadata = "0";
+    script.dataset.inputPosition = "top";
+    script.dataset.theme = getTheme();
+    script.dataset.lang = "en";
+    script.crossOrigin = "anonymous";
+    // Append the script to the desired div instead of at the end of the body
+    document.getElementById("quarto-content").appendChild(script);
+  }
+  loadGiscus();
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">ソースコード</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb67" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> 【パッケージ開発】[coresynth]{.fira-code}で合成コントロール法を高速に実装</span></span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a><span class="co">  C++実装による高速化と6つの手法を統一インターフェースで提供します。</span></span>
+<span id="cb67-5"><a href="#cb67-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2026-06-01</span></span>
+<span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
+<span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
+<span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb67-9"><a href="#cb67-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-10"><a href="#cb67-10" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![dev version](https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&amp;color=blue)</span><span class="co">](https://github.com/yo5uke/coresynth)</span></span>
+<span id="cb67-11"><a href="#cb67-11" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![R-CMD-check](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg)</span><span class="co">](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml)</span></span>
+<span id="cb67-12"><a href="#cb67-12" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)</span><span class="co">](https://opensource.org/licenses/MIT)</span></span>
+<span id="cb67-13"><a href="#cb67-13" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)</span><span class="co">](https://lifecycle.r-lib.org/articles/stages.html#experimental)</span></span>
+<span id="cb67-14"><a href="#cb67-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-15"><a href="#cb67-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb67-16"><a href="#cb67-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-17"><a href="#cb67-17" aria-hidden="true" tabindex="-1"></a>本ページでは、合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、<span class="in">`coresynth`</span>について説明します。</span>
+<span id="cb67-18"><a href="#cb67-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-19"><a href="#cb67-19" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>の最大の特徴は**パフォーマンス**です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて**最大約56倍の高速化**を実現しています。</span>
+<span id="cb67-20"><a href="#cb67-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-21"><a href="#cb67-21" aria-hidden="true" tabindex="-1"></a>バージョン0.2では**Conformal推論**（<span class="in">`conformal_inference()`</span>）が追加されました。@chernozhukov_exact_2021 のPHT (Moving-Block Permutation)に基づく置換p値と信頼区間を、<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>の全推定量に対して利用できます。</span>
+<span id="cb67-22"><a href="#cb67-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-23"><a href="#cb67-23" aria-hidden="true" tabindex="-1"></a>:::{.callout-note}</span>
+<span id="cb67-24"><a href="#cb67-24" aria-hidden="true" tabindex="-1"></a><span class="fu">## ご意見待ってます</span></span>
+<span id="cb67-25"><a href="#cb67-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-26"><a href="#cb67-26" aria-hidden="true" tabindex="-1"></a>実装・挙動に関するフィードバックや機能リクエストは、ページ下のコメントかGitHubの<span class="co">[</span><span class="ot">Issues</span><span class="co">](https://github.com/yo5uke/coresynth/issues)</span>までお寄せください。</span>
+<span id="cb67-27"><a href="#cb67-27" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb67-28"><a href="#cb67-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-29"><a href="#cb67-29" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>が対応する推定量は以下の6つです。</span>
+<span id="cb67-30"><a href="#cb67-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-31"><a href="#cb67-31" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 推定量 <span class="pp">|</span> <span class="in">`method`</span> <span class="pp">|</span> 参考文献 <span class="pp">|</span></span>
+<span id="cb67-32"><a href="#cb67-32" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-------|:---------|:---------|</span></span>
+<span id="cb67-33"><a href="#cb67-33" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Control Method <span class="pp">|</span> <span class="in">`"scm"`</span> <span class="pp">|</span> @abadie_synthetic_2010 <span class="pp">|</span></span>
+<span id="cb67-34"><a href="#cb67-34" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Difference-in-Differences <span class="pp">|</span> <span class="in">`"sdid"`</span> <span class="pp">|</span> @arkhangelsky_synthetic_2021 <span class="pp">|</span></span>
+<span id="cb67-35"><a href="#cb67-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Generalised Synthetic Control <span class="pp">|</span> <span class="in">`"gsc"`</span> <span class="pp">|</span> @xu_generalized_2017 <span class="pp">|</span></span>
+<span id="cb67-36"><a href="#cb67-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matrix Completion <span class="pp">|</span> <span class="in">`"mc"`</span> <span class="pp">|</span> @athey_matrix_2021 <span class="pp">|</span></span>
+<span id="cb67-37"><a href="#cb67-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Time-Aware Synthetic Control <span class="pp">|</span> <span class="in">`"tasc"`</span> <span class="pp">|</span> @rho_time-aware_2026 <span class="pp">|</span></span>
+<span id="cb67-38"><a href="#cb67-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Interventions <span class="pp">|</span> <span class="in">`"si"`</span> <span class="pp">|</span> @agarwal_synthetic_interventions_2024 <span class="pp">|</span></span>
+<span id="cb67-39"><a href="#cb67-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-40"><a href="#cb67-40" aria-hidden="true" tabindex="-1"></a>また、各推定量に対して複数の推論手法が利用できます。</span>
+<span id="cb67-41"><a href="#cb67-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-42"><a href="#cb67-42" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 推論手法 <span class="pp">|</span> 対応推定量 <span class="pp">|</span> 関数 <span class="pp">|</span></span>
+<span id="cb67-43"><a href="#cb67-43" aria-hidden="true" tabindex="-1"></a><span class="pp">|:---------|:-----------|:-----|</span></span>
+<span id="cb67-44"><a href="#cb67-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> MSPE比率置換検定 <span class="pp">|</span> <span class="in">`scm`</span> <span class="pp">|</span> <span class="in">`mspe_ratio_pval()`</span> <span class="pp">|</span></span>
+<span id="cb67-45"><a href="#cb67-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> プラセボ / Bootstrap / Jackknife <span class="pp">|</span> <span class="in">`sdid`</span> <span class="pp">|</span> <span class="in">`sdid_inference()`</span> <span class="pp">|</span></span>
+<span id="cb67-46"><a href="#cb67-46" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> パラメトリックBootstrap <span class="pp">|</span> <span class="in">`gsc`</span> <span class="pp">|</span> <span class="in">`gsc_boot()`</span> <span class="pp">|</span></span>
+<span id="cb67-47"><a href="#cb67-47" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ノンパラメトリックBootstrap / Jackknife <span class="pp">|</span> <span class="in">`gsc`</span> <span class="pp">|</span> <span class="in">`gsc_inference()`</span> <span class="pp">|</span></span>
+<span id="cb67-48"><a href="#cb67-48" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Bootstrap / Jackknife <span class="pp">|</span> <span class="in">`si`</span> <span class="pp">|</span> <span class="in">`si_inference()`</span> <span class="pp">|</span></span>
+<span id="cb67-49"><a href="#cb67-49" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Conformal推論（CWZ 2021） <span class="pp">|</span> <span class="in">`scm`</span>, <span class="in">`sdid`</span>, <span class="in">`gsc`</span>, <span class="in">`mc`</span>, <span class="in">`si`</span> <span class="pp">|</span> <span class="in">`conformal_inference()`</span> <span class="pp">|</span></span>
+<span id="cb67-50"><a href="#cb67-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-51"><a href="#cb67-51" aria-hidden="true" tabindex="-1"></a><span class="fu">## インストール</span></span>
+<span id="cb67-52"><a href="#cb67-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-53"><a href="#cb67-53" aria-hidden="true" tabindex="-1"></a>GitHubからインストールできます（Windowsは<span class="co">[</span><span class="ot">Rtools</span><span class="co">](https://cran.r-project.org/bin/windows/Rtools/)</span>、macOSはXcodeが必要です）。</span>
+<span id="cb67-54"><a href="#cb67-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-55"><a href="#cb67-55" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-56"><a href="#cb67-56" aria-hidden="true" tabindex="-1"></a><span class="co"># pak を使う場合</span></span>
+<span id="cb67-57"><a href="#cb67-57" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"yo5uke/coresynth"</span>)</span>
+<span id="cb67-58"><a href="#cb67-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-59"><a href="#cb67-59" aria-hidden="true" tabindex="-1"></a><span class="co"># devtools を使う場合</span></span>
+<span id="cb67-60"><a href="#cb67-60" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"yo5uke/coresynth"</span>)</span>
+<span id="cb67-61"><a href="#cb67-61" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-62"><a href="#cb67-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-63"><a href="#cb67-63" aria-hidden="true" tabindex="-1"></a><span class="fu">## 準備</span></span>
+<span id="cb67-64"><a href="#cb67-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-65"><a href="#cb67-65" aria-hidden="true" tabindex="-1"></a>パッケージを読み込みます。</span>
+<span id="cb67-66"><a href="#cb67-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-69"><a href="#cb67-69" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-70"><a href="#cb67-70" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coresynth)</span>
+<span id="cb67-71"><a href="#cb67-71" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-72"><a href="#cb67-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-73"><a href="#cb67-73" aria-hidden="true" tabindex="-1"></a>本ページで使用するデータを生成します。47都道府県に相当するバランスパネル（ユニット数47、期間数30、真のATT = 2.5）を3因子モデルで生成します。</span>
+<span id="cb67-74"><a href="#cb67-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-77"><a href="#cb67-77" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-78"><a href="#cb67-78" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>)</span>
+<span id="cb67-79"><a href="#cb67-79" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">47</span> <span class="co"># ユニット数（都道府県数相当）</span></span>
+<span id="cb67-80"><a href="#cb67-80" aria-hidden="true" tabindex="-1"></a>TT <span class="ot">&lt;-</span> <span class="dv">30</span> <span class="co"># 期間数（年）</span></span>
+<span id="cb67-81"><a href="#cb67-81" aria-hidden="true" tabindex="-1"></a>T_pre <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="co"># 処置前期間</span></span>
+<span id="cb67-82"><a href="#cb67-82" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="co"># 潜在因子数</span></span>
+<span id="cb67-83"><a href="#cb67-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-84"><a href="#cb67-84" aria-hidden="true" tabindex="-1"></a><span class="co"># 3因子モデルによるパネル生成</span></span>
+<span id="cb67-85"><a href="#cb67-85" aria-hidden="true" tabindex="-1"></a>F_t <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, TT, r)</span>
+<span id="cb67-86"><a href="#cb67-86" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(r)) {</span>
+<span id="cb67-87"><a href="#cb67-87" aria-hidden="true" tabindex="-1"></a>  F_t[, j] <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(<span class="fu">rnorm</span>(TT, <span class="dv">0</span>, <span class="fl">0.4</span>))</span>
+<span id="cb67-88"><a href="#cb67-88" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb67-89"><a href="#cb67-89" aria-hidden="true" tabindex="-1"></a>L_i <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">abs</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> r, <span class="dv">1</span>, <span class="fl">0.3</span>)), N, r)</span>
+<span id="cb67-90"><a href="#cb67-90" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> L_i <span class="sc">%*%</span> <span class="fu">t</span>(F_t) <span class="sc">+</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> TT, <span class="dv">0</span>, <span class="fl">0.5</span>), N, TT)</span>
+<span id="cb67-91"><a href="#cb67-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-92"><a href="#cb67-92" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb67-93"><a href="#cb67-93" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">seq_len</span>(TT),</span>
+<span id="cb67-94"><a href="#cb67-94" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">paste0</span>(<span class="st">"pref_"</span>, <span class="fu">sprintf</span>(<span class="st">"%02d"</span>, <span class="fu">seq_len</span>(N)))</span>
+<span id="cb67-95"><a href="#cb67-95" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-96"><a href="#cb67-96" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat[<span class="fu">order</span>(dat<span class="sc">$</span>id, dat<span class="sc">$</span>time), ]</span>
+<span id="cb67-97"><a href="#cb67-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-98"><a href="#cb67-98" aria-hidden="true" tabindex="-1"></a>true_att <span class="ot">&lt;-</span> <span class="fl">2.5</span></span>
+<span id="cb67-99"><a href="#cb67-99" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">t</span>(Y))</span>
+<span id="cb67-100"><a href="#cb67-100" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(dat<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat<span class="sc">$</span>time <span class="sc">&gt;</span> T_pre)</span>
+<span id="cb67-101"><a href="#cb67-101" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> true_att <span class="co"># 真のATT = 2.5</span></span>
+<span id="cb67-102"><a href="#cb67-102" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-103"><a href="#cb67-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-104"><a href="#cb67-104" aria-hidden="true" tabindex="-1"></a><span class="in">`id`</span>がユニット識別変数（<span class="in">`pref_01`</span>〜<span class="in">`pref_47`</span>）、<span class="in">`time`</span>が時間変数（1〜30）、<span class="in">`y`</span>が結果変数、<span class="in">`d`</span>が処置変数（処置ユニット<span class="in">`pref_01`</span>が21期目以降に処置）です。<span class="in">`pref_01`</span>以外の46ユニットがドナープールとなります。</span>
+<span id="cb67-105"><a href="#cb67-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-106"><a href="#cb67-106" aria-hidden="true" tabindex="-1"></a><span class="fu">## `scm_fit()`</span></span>
+<span id="cb67-107"><a href="#cb67-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-108"><a href="#cb67-108" aria-hidden="true" tabindex="-1"></a><span class="in">`scm_fit()`</span>はすべての手法への統一エントリーポイントです。フォーミュラは <span class="in">`結果変数 ~ 処置変数 | ユニットID + 時間ID`</span> の形式で指定します。</span>
+<span id="cb67-109"><a href="#cb67-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-110"><a href="#cb67-110" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-111"><a href="#cb67-111" aria-hidden="true" tabindex="-1"></a><span class="fu">scm_fit</span>(</span>
+<span id="cb67-112"><a href="#cb67-112" aria-hidden="true" tabindex="-1"></a>  formula,</span>
+<span id="cb67-113"><a href="#cb67-113" aria-hidden="true" tabindex="-1"></a>  data,</span>
+<span id="cb67-114"><a href="#cb67-114" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>),</span>
+<span id="cb67-115"><a href="#cb67-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="cn">NULL</span>,</span>
+<span id="cb67-116"><a href="#cb67-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">covariates =</span> <span class="cn">NULL</span>,</span>
+<span id="cb67-117"><a href="#cb67-117" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_selection =</span> <span class="fu">c</span>(<span class="st">"insample"</span>, <span class="st">"oos"</span>),</span>
+<span id="cb67-118"><a href="#cb67-118" aria-hidden="true" tabindex="-1"></a>  <span class="at">donor_mspe_threshold =</span> <span class="cn">Inf</span>,</span>
+<span id="cb67-119"><a href="#cb67-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda_pen =</span> <span class="cn">NULL</span>,</span>
+<span id="cb67-120"><a href="#cb67-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_optim =</span> <span class="fu">c</span>(<span class="st">"coord_descent"</span>, <span class="st">"auto"</span>, <span class="st">"bfgs"</span>),</span>
+<span id="cb67-121"><a href="#cb67-121" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb67-122"><a href="#cb67-122" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-123"><a href="#cb67-123" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-124"><a href="#cb67-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-125"><a href="#cb67-125" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 引数 <span class="pp">|</span> 説明 <span class="pp">|</span></span>
+<span id="cb67-126"><a href="#cb67-126" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-----|:-----|</span></span>
+<span id="cb67-127"><a href="#cb67-127" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`formula`</span> <span class="pp">|</span> <span class="in">`y ~ d | unit + time`</span> 形式のFormulaオブジェクト <span class="pp">|</span></span>
+<span id="cb67-128"><a href="#cb67-128" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`data`</span> <span class="pp">|</span> ロング形式のデータフレーム（1行 = 1ユニット×1時点） <span class="pp">|</span></span>
+<span id="cb67-129"><a href="#cb67-129" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`method`</span> <span class="pp">|</span> 推定手法の選択（<span class="in">`"scm"`</span>, <span class="in">`"sdid"`</span>, <span class="in">`"gsc"`</span>, <span class="in">`"mc"`</span>, <span class="in">`"tasc"`</span>, <span class="in">`"si"`</span>） <span class="pp">|</span></span>
+<span id="cb67-130"><a href="#cb67-130" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`predictors`</span> <span class="pp">|</span> SCM用の予測変数リスト（<span class="in">`pred()`</span>で指定）。<span class="in">`NULL`</span>の場合は処置前期間の全結果変数期間を使用 <span class="pp">|</span></span>
+<span id="cb67-131"><a href="#cb67-131" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`covariates`</span> <span class="pp">|</span> 時変共変量の列名（<span class="in">`"sdid"`</span>, <span class="in">`"scm"`</span>, <span class="in">`"gsc"`</span>でサポート） <span class="pp">|</span></span>
+<span id="cb67-132"><a href="#cb67-132" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`v_selection`</span> <span class="pp">|</span> SCM用のV行列選択方法。<span class="in">`"insample"`</span>（デフォルト）または @abadie_using_2021 の<span class="in">`"oos"`</span> <span class="pp">|</span></span>
+<span id="cb67-133"><a href="#cb67-133" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`donor_mspe_threshold`</span> <span class="pp">|</span> ドナープール絞り込みの閾値（SCMのみ。デフォルト<span class="in">`Inf`</span>で無効） <span class="pp">|</span></span>
+<span id="cb67-134"><a href="#cb67-134" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`lambda_pen`</span> <span class="pp">|</span> ペナルティSCMのペナルティパラメータ（SCMのみ。<span class="in">`NULL`</span>で通常SCM、<span class="in">`"auto"`</span>で自動選択） <span class="pp">|</span></span>
+<span id="cb67-135"><a href="#cb67-135" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`v_optim`</span> <span class="pp">|</span> V外部最適化の手法。<span class="in">`"coord_descent"`</span>（デフォルト）、<span class="in">`"bfgs"`</span>、<span class="in">`"auto"`</span> <span class="pp">|</span></span>
+<span id="cb67-136"><a href="#cb67-136" aria-hidden="true" tabindex="-1"></a>: {tbl-colwidths="<span class="co">[</span><span class="ot">25,75</span><span class="co">]</span>"}</span>
+<span id="cb67-137"><a href="#cb67-137" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-138"><a href="#cb67-138" aria-hidden="true" tabindex="-1"></a>すべての手法は <span class="in">`c("coresynth_&lt;method&gt;", "coresynth")`</span> クラスのオブジェクトを返します。共通フィールドは以下の通りです。</span>
+<span id="cb67-139"><a href="#cb67-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-140"><a href="#cb67-140" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`method`</span>：推定量名</span>
+<span id="cb67-141"><a href="#cb67-141" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimate`</span>：ATT推定値</span>
+<span id="cb67-142"><a href="#cb67-142" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`times`</span>：時間インデックスベクトル</span>
+<span id="cb67-143"><a href="#cb67-143" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`T_pre`</span>：処置前期間数</span>
+<span id="cb67-144"><a href="#cb67-144" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`Y_treat`</span>：処置ユニットの結果系列</span>
+<span id="cb67-145"><a href="#cb67-145" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`gap`</span>：処置効果系列（$Y_{\text{treat}} - Y_{\text{synthetic}}$）</span>
+<span id="cb67-146"><a href="#cb67-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-147"><a href="#cb67-147" aria-hidden="true" tabindex="-1"></a><span class="fu">### SCM（`method = "scm"`）</span></span>
+<span id="cb67-148"><a href="#cb67-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-151"><a href="#cb67-151" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-152"><a href="#cb67-152" aria-hidden="true" tabindex="-1"></a>fit_scm <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"scm"</span>)</span>
+<span id="cb67-153"><a href="#cb67-153" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_scm)</span>
+<span id="cb67-154"><a href="#cb67-154" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-155"><a href="#cb67-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-158"><a href="#cb67-158" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-159"><a href="#cb67-159" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_scm)</span>
+<span id="cb67-160"><a href="#cb67-160" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-161"><a href="#cb67-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-162"><a href="#cb67-162" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 予測変数の指定（`pred()`）</span></span>
+<span id="cb67-163"><a href="#cb67-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-164"><a href="#cb67-164" aria-hidden="true" tabindex="-1"></a>SCMは <span class="in">`pred()`</span> 関数を使って @abadie_synthetic_2010 §2.3の予測変数行列を指定できます。</span>
+<span id="cb67-165"><a href="#cb67-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-166"><a href="#cb67-166" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-167"><a href="#cb67-167" aria-hidden="true" tabindex="-1"></a><span class="co"># dat に income, unemp 列がある想定の例</span></span>
+<span id="cb67-168"><a href="#cb67-168" aria-hidden="true" tabindex="-1"></a>fit_scm_cov <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
+<span id="cb67-169"><a href="#cb67-169" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
+<span id="cb67-170"><a href="#cb67-170" aria-hidden="true" tabindex="-1"></a>  <span class="at">data   =</span> dat,</span>
+<span id="cb67-171"><a href="#cb67-171" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"scm"</span>,</span>
+<span id="cb67-172"><a href="#cb67-172" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="fu">list</span>(</span>
+<span id="cb67-173"><a href="#cb67-173" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="fu">c</span>(<span class="st">"income"</span>, <span class="st">"unemp"</span>), <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>),     <span class="co"># 1〜8期平均</span></span>
+<span id="cb67-174"><a href="#cb67-174" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">5</span>),                         <span class="co"># 5期の結果変数</span></span>
+<span id="cb67-175"><a href="#cb67-175" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">op =</span> <span class="st">"mean"</span>)           <span class="co"># 1〜4期の平均</span></span>
+<span id="cb67-176"><a href="#cb67-176" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb67-177"><a href="#cb67-177" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-178"><a href="#cb67-178" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-179"><a href="#cb67-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-180"><a href="#cb67-180" aria-hidden="true" tabindex="-1"></a><span class="in">`pred()`</span> の <span class="in">`op`</span> 引数には <span class="in">`"mean"`</span>（デフォルト）、<span class="in">`"median"`</span>、<span class="in">`"sum"`</span> が指定できます。</span>
+<span id="cb67-181"><a href="#cb67-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-182"><a href="#cb67-182" aria-hidden="true" tabindex="-1"></a><span class="fu">### SDID（`method = "sdid"`）</span></span>
+<span id="cb67-183"><a href="#cb67-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-186"><a href="#cb67-186" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-187"><a href="#cb67-187" aria-hidden="true" tabindex="-1"></a>fit_sdid <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
+<span id="cb67-188"><a href="#cb67-188" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid)</span>
+<span id="cb67-189"><a href="#cb67-189" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-190"><a href="#cb67-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-191"><a href="#cb67-191" aria-hidden="true" tabindex="-1"></a><span class="fu">### GSC（`method = "gsc"`）</span></span>
+<span id="cb67-192"><a href="#cb67-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-195"><a href="#cb67-195" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-196"><a href="#cb67-196" aria-hidden="true" tabindex="-1"></a>fit_gsc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"gsc"</span>)</span>
+<span id="cb67-197"><a href="#cb67-197" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_gsc)</span>
+<span id="cb67-198"><a href="#cb67-198" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-199"><a href="#cb67-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-200"><a href="#cb67-200" aria-hidden="true" tabindex="-1"></a>GSCは時変共変量の調整を <span class="in">`covariates`</span> 引数でサポートしています（<span class="in">`data`</span>の列名を文字ベクトルで指定）。内部では @xu_generalized_2017 の完全EMアルゴリズム（E-step：因子モデルのSVD、M-step：残差への共変量OLS）を実行します。</span>
+<span id="cb67-201"><a href="#cb67-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-202"><a href="#cb67-202" aria-hidden="true" tabindex="-1"></a><span class="fu">### MC（`method = "mc"`）</span></span>
+<span id="cb67-203"><a href="#cb67-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-206"><a href="#cb67-206" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-207"><a href="#cb67-207" aria-hidden="true" tabindex="-1"></a>fit_mc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"mc"</span>)</span>
+<span id="cb67-208"><a href="#cb67-208" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_mc)</span>
+<span id="cb67-209"><a href="#cb67-209" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-210"><a href="#cb67-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-211"><a href="#cb67-211" aria-hidden="true" tabindex="-1"></a>核ノルム正則化による行列補完（Soft-Impute）で反事実を推定します。</span>
+<span id="cb67-212"><a href="#cb67-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-213"><a href="#cb67-213" aria-hidden="true" tabindex="-1"></a><span class="fu">### TASC（`method = "tasc"`）</span></span>
+<span id="cb67-214"><a href="#cb67-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-217"><a href="#cb67-217" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-218"><a href="#cb67-218" aria-hidden="true" tabindex="-1"></a>fit_tasc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"tasc"</span>)</span>
+<span id="cb67-219"><a href="#cb67-219" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_tasc)</span>
+<span id="cb67-220"><a href="#cb67-220" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-221"><a href="#cb67-221" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-222"><a href="#cb67-222" aria-hidden="true" tabindex="-1"></a>カルマンEMによる時間考慮型合成コントロール <span class="co">[</span><span class="ot">@rho_time-aware_2026</span><span class="co">]</span> です。</span>
+<span id="cb67-223"><a href="#cb67-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-224"><a href="#cb67-224" aria-hidden="true" tabindex="-1"></a><span class="fu">### SI（`method = "si"`）</span></span>
+<span id="cb67-225"><a href="#cb67-225" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-228"><a href="#cb67-228" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-229"><a href="#cb67-229" aria-hidden="true" tabindex="-1"></a>fit_si <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"si"</span>)</span>
+<span id="cb67-230"><a href="#cb67-230" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_si)</span>
+<span id="cb67-231"><a href="#cb67-231" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-232"><a href="#cb67-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-233"><a href="#cb67-233" aria-hidden="true" tabindex="-1"></a>SI-PCR（主成分回帰）に基づく合成介入法 <span class="co">[</span><span class="ot">@agarwal_synthetic_interventions_2024</span><span class="co">]</span> です。シャープ・Staggered・マルチアームすべてに対応しています。</span>
+<span id="cb67-234"><a href="#cb67-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-235"><a href="#cb67-235" aria-hidden="true" tabindex="-1"></a><span class="fu">### 6手法の比較</span></span>
+<span id="cb67-236"><a href="#cb67-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-239"><a href="#cb67-239" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-240"><a href="#cb67-240" aria-hidden="true" tabindex="-1"></a>methods <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>)</span>
+<span id="cb67-241"><a href="#cb67-241" aria-hidden="true" tabindex="-1"></a>fits <span class="ot">&lt;-</span> <span class="fu">lapply</span>(methods, \(m) <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> m))</span>
+<span id="cb67-242"><a href="#cb67-242" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(fits) <span class="ot">&lt;-</span> methods</span>
+<span id="cb67-243"><a href="#cb67-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-244"><a href="#cb67-244" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb67-245"><a href="#cb67-245" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> methods,</span>
+<span id="cb67-246"><a href="#cb67-246" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimate =</span> <span class="fu">round</span>(<span class="fu">sapply</span>(fits, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="st">"estimate"</span>), <span class="dv">3</span>)</span>
+<span id="cb67-247"><a href="#cb67-247" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-248"><a href="#cb67-248" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-249"><a href="#cb67-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-250"><a href="#cb67-250" aria-hidden="true" tabindex="-1"></a>真のATTは2.5です。</span>
+<span id="cb67-251"><a href="#cb67-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-252"><a href="#cb67-252" aria-hidden="true" tabindex="-1"></a><span class="fu">## Staggered Adoption</span></span>
+<span id="cb67-253"><a href="#cb67-253" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-254"><a href="#cb67-254" aria-hidden="true" tabindex="-1"></a>6つの手法すべてがStaggered Adoptionに対応しています。各コホートを個別に推定し、$N_{\text{treated}} \times T_{\text{post}}$ に比例したウェイトでATTを集計するアプローチ <span class="co">[</span><span class="ot">@clarke_synthetic_2024</span><span class="co">]</span> を採用しています。</span>
+<span id="cb67-255"><a href="#cb67-255" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-258"><a href="#cb67-258" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-259"><a href="#cb67-259" aria-hidden="true" tabindex="-1"></a><span class="co"># pref_01: 21期から処置、pref_02: 26期から処置</span></span>
+<span id="cb67-260"><a href="#cb67-260" aria-hidden="true" tabindex="-1"></a>dat_s <span class="ot">&lt;-</span> dat</span>
+<span id="cb67-261"><a href="#cb67-261" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="dv">0</span>L</span>
+<span id="cb67-262"><a href="#cb67-262" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">20</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
+<span id="cb67-263"><a href="#cb67-263" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_02"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">25</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
+<span id="cb67-264"><a href="#cb67-264" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> <span class="fl">2.5</span></span>
+<span id="cb67-265"><a href="#cb67-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-266"><a href="#cb67-266" aria-hidden="true" tabindex="-1"></a>fit_sdid_s <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat_s, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
+<span id="cb67-267"><a href="#cb67-267" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid_s)</span>
+<span id="cb67-268"><a href="#cb67-268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-269"><a href="#cb67-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-270"><a href="#cb67-270" aria-hidden="true" tabindex="-1"></a>コホート別の推定値は <span class="in">`$cohort_estimates`</span> フィールドで確認できます。</span>
+<span id="cb67-271"><a href="#cb67-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-274"><a href="#cb67-274" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-275"><a href="#cb67-275" aria-hidden="true" tabindex="-1"></a>fit_sdid_s<span class="sc">$</span>cohort_estimates</span>
+<span id="cb67-276"><a href="#cb67-276" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-277"><a href="#cb67-277" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-278"><a href="#cb67-278" aria-hidden="true" tabindex="-1"></a><span class="in">`control_group`</span> 引数でドナープールを制御できます。</span>
+<span id="cb67-279"><a href="#cb67-279" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-280"><a href="#cb67-280" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"clean"`</span>（デフォルト）：never-treated + future adoptersをドナーとして使用 <span class="co">[</span><span class="ot">@clarke_synthetic_2024</span><span class="co">]</span></span>
+<span id="cb67-281"><a href="#cb67-281" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"never_treated"`</span>：never-treatedのみを使用</span>
+<span id="cb67-282"><a href="#cb67-282" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-283"><a href="#cb67-283" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-284"><a href="#cb67-284" aria-hidden="true" tabindex="-1"></a>fit_sdid_never <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
+<span id="cb67-285"><a href="#cb67-285" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
+<span id="cb67-286"><a href="#cb67-286" aria-hidden="true" tabindex="-1"></a>  <span class="at">data          =</span> dat_s,</span>
+<span id="cb67-287"><a href="#cb67-287" aria-hidden="true" tabindex="-1"></a>  <span class="at">method        =</span> <span class="st">"sdid"</span>,</span>
+<span id="cb67-288"><a href="#cb67-288" aria-hidden="true" tabindex="-1"></a>  <span class="at">control_group =</span> <span class="st">"never_treated"</span></span>
+<span id="cb67-289"><a href="#cb67-289" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-290"><a href="#cb67-290" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-291"><a href="#cb67-291" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-292"><a href="#cb67-292" aria-hidden="true" tabindex="-1"></a><span class="fu">## `plot()`</span></span>
+<span id="cb67-293"><a href="#cb67-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-294"><a href="#cb67-294" aria-hidden="true" tabindex="-1"></a><span class="in">`plot()`</span> で3種類のプロットを出力できます。</span>
+<span id="cb67-295"><a href="#cb67-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-296"><a href="#cb67-296" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-297"><a href="#cb67-297" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"trend"</span>, <span class="st">"gap"</span>, <span class="st">"weights"</span>))</span>
+<span id="cb67-298"><a href="#cb67-298" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-299"><a href="#cb67-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-300"><a href="#cb67-300" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"trend"`</span>：処置ユニット vs. 合成コントロールの時系列</span>
+<span id="cb67-301"><a href="#cb67-301" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"gap"`</span>：処置効果の時系列（$Y_{\text{treated}} - Y_{\text{synthetic}}$）</span>
+<span id="cb67-302"><a href="#cb67-302" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"weights"`</span>：ドナーユニットのウェイト棒グラフ（SCM・SDID・SI）</span>
+<span id="cb67-303"><a href="#cb67-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-304"><a href="#cb67-304" aria-hidden="true" tabindex="-1"></a><span class="fu">### Trend プロット</span></span>
+<span id="cb67-305"><a href="#cb67-305" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-306"><a href="#cb67-306" aria-hidden="true" tabindex="-1"></a>::: {.panel-tabset}</span>
+<span id="cb67-307"><a href="#cb67-307" aria-hidden="true" tabindex="-1"></a><span class="fu">## SCM</span></span>
+<span id="cb67-308"><a href="#cb67-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-311"><a href="#cb67-311" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-312"><a href="#cb67-312" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
+<span id="cb67-313"><a href="#cb67-313" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-314"><a href="#cb67-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-315"><a href="#cb67-315" aria-hidden="true" tabindex="-1"></a><span class="fu">## SDID</span></span>
+<span id="cb67-316"><a href="#cb67-316" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-319"><a href="#cb67-319" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-320"><a href="#cb67-320" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_sdid, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
+<span id="cb67-321"><a href="#cb67-321" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-322"><a href="#cb67-322" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-323"><a href="#cb67-323" aria-hidden="true" tabindex="-1"></a><span class="fu">## GSC</span></span>
+<span id="cb67-324"><a href="#cb67-324" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-327"><a href="#cb67-327" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-328"><a href="#cb67-328" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_gsc, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
+<span id="cb67-329"><a href="#cb67-329" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-330"><a href="#cb67-330" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb67-331"><a href="#cb67-331" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-332"><a href="#cb67-332" aria-hidden="true" tabindex="-1"></a><span class="fu">### Gap プロット</span></span>
+<span id="cb67-333"><a href="#cb67-333" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-336"><a href="#cb67-336" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-337"><a href="#cb67-337" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"gap"</span>)</span>
+<span id="cb67-338"><a href="#cb67-338" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-339"><a href="#cb67-339" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-340"><a href="#cb67-340" aria-hidden="true" tabindex="-1"></a>垂直の点線が処置開始時点、水平の破線が0です。</span>
+<span id="cb67-341"><a href="#cb67-341" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-342"><a href="#cb67-342" aria-hidden="true" tabindex="-1"></a><span class="fu">### Weights プロット</span></span>
+<span id="cb67-343"><a href="#cb67-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-346"><a href="#cb67-346" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-347"><a href="#cb67-347" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"weights"</span>)</span>
+<span id="cb67-348"><a href="#cb67-348" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-349"><a href="#cb67-349" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-350"><a href="#cb67-350" aria-hidden="true" tabindex="-1"></a>ggplot2ベースなのでggplotの関数をつなげることも可能です。</span>
+<span id="cb67-351"><a href="#cb67-351" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-354"><a href="#cb67-354" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-355"><a href="#cb67-355" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb67-356"><a href="#cb67-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-357"><a href="#cb67-357" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>) <span class="sc">+</span></span>
+<span id="cb67-358"><a href="#cb67-358" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"SCM: Observed vs. Synthetic Control"</span>)</span>
+<span id="cb67-359"><a href="#cb67-359" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-360"><a href="#cb67-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-361"><a href="#cb67-361" aria-hidden="true" tabindex="-1"></a><span class="fu">## 推論</span></span>
+<span id="cb67-362"><a href="#cb67-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-363"><a href="#cb67-363" aria-hidden="true" tabindex="-1"></a>各推定量に対応した推論関数が用意されています。</span>
+<span id="cb67-364"><a href="#cb67-364" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-365"><a href="#cb67-365" aria-hidden="true" tabindex="-1"></a><span class="fu">### SCM：MSPE比率置換検定（`mspe_ratio_pval()`）</span></span>
+<span id="cb67-366"><a href="#cb67-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-367"><a href="#cb67-367" aria-hidden="true" tabindex="-1"></a>@abadie_synthetic_2010 / @abadie_using_2021 のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。</span>
+<span id="cb67-368"><a href="#cb67-368" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-371"><a href="#cb67-371" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-372"><a href="#cb67-372" aria-hidden="true" tabindex="-1"></a>inf_scm <span class="ot">&lt;-</span> <span class="fu">mspe_ratio_pval</span>(fit_scm)</span>
+<span id="cb67-373"><a href="#cb67-373" aria-hidden="true" tabindex="-1"></a>inf_scm<span class="sc">$</span>p_value</span>
+<span id="cb67-374"><a href="#cb67-374" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-375"><a href="#cb67-375" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-376"><a href="#cb67-376" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-377"><a href="#cb67-377" aria-hidden="true" tabindex="-1"></a><span class="fu">mspe_ratio_pval</span>(</span>
+<span id="cb67-378"><a href="#cb67-378" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb67-379"><a href="#cb67-379" aria-hidden="true" tabindex="-1"></a>  <span class="at">mspe_threshold =</span> <span class="dv">0</span>,     <span class="co"># プラセボに含める最小MSPE（デフォルト：0）</span></span>
+<span id="cb67-380"><a href="#cb67-380" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_iter       =</span> <span class="dv">100</span>L,</span>
+<span id="cb67-381"><a href="#cb67-381" aria-hidden="true" tabindex="-1"></a>  <span class="at">tol            =</span> <span class="fl">1e-4</span>,</span>
+<span id="cb67-382"><a href="#cb67-382" aria-hidden="true" tabindex="-1"></a>  <span class="at">use_covariates =</span> <span class="cn">FALSE</span>, <span class="co"># 予測変数をプラセボにも適用するか</span></span>
+<span id="cb67-383"><a href="#cb67-383" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative    =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>)</span>
+<span id="cb67-384"><a href="#cb67-384" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-385"><a href="#cb67-385" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-386"><a href="#cb67-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-387"><a href="#cb67-387" aria-hidden="true" tabindex="-1"></a><span class="fu">### SDID：`sdid_inference()`</span></span>
+<span id="cb67-388"><a href="#cb67-388" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-389"><a href="#cb67-389" aria-hidden="true" tabindex="-1"></a>@clarke_synthetic_2024 に基づく3種類の推論手法を提供します。</span>
+<span id="cb67-390"><a href="#cb67-390" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-393"><a href="#cb67-393" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-394"><a href="#cb67-394" aria-hidden="true" tabindex="-1"></a><span class="co"># プラセボ検定（デフォルト）</span></span>
+<span id="cb67-395"><a href="#cb67-395" aria-hidden="true" tabindex="-1"></a>inf_sdid <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(fit_sdid, <span class="at">method =</span> <span class="st">"placebo"</span>)</span>
+<span id="cb67-396"><a href="#cb67-396" aria-hidden="true" tabindex="-1"></a>inf_sdid<span class="sc">$</span>p_value</span>
+<span id="cb67-397"><a href="#cb67-397" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-398"><a href="#cb67-398" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-401"><a href="#cb67-401" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-402"><a href="#cb67-402" aria-hidden="true" tabindex="-1"></a><span class="co"># ブートストラップ（SE・CI付き）</span></span>
+<span id="cb67-403"><a href="#cb67-403" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(</span>
+<span id="cb67-404"><a href="#cb67-404" aria-hidden="true" tabindex="-1"></a>  fit_sdid,</span>
+<span id="cb67-405"><a href="#cb67-405" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"bootstrap"</span>,</span>
+<span id="cb67-406"><a href="#cb67-406" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot =</span> <span class="dv">200</span>,</span>
+<span id="cb67-407"><a href="#cb67-407" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span></span>
+<span id="cb67-408"><a href="#cb67-408" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-409"><a href="#cb67-409" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>se</span>
+<span id="cb67-410"><a href="#cb67-410" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_lower</span>
+<span id="cb67-411"><a href="#cb67-411" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_upper</span>
+<span id="cb67-412"><a href="#cb67-412" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-413"><a href="#cb67-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-414"><a href="#cb67-414" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-415"><a href="#cb67-415" aria-hidden="true" tabindex="-1"></a><span class="fu">sdid_inference</span>(</span>
+<span id="cb67-416"><a href="#cb67-416" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb67-417"><a href="#cb67-417" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"placebo"</span>, <span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
+<span id="cb67-418"><a href="#cb67-418" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">200</span>L,   <span class="co"># bootstrap のみ</span></span>
+<span id="cb67-419"><a href="#cb67-419" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb67-420"><a href="#cb67-420" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb67-421"><a href="#cb67-421" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
+<span id="cb67-422"><a href="#cb67-422" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-423"><a href="#cb67-423" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-424"><a href="#cb67-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-425"><a href="#cb67-425" aria-hidden="true" tabindex="-1"></a><span class="fu">### GSC：`gsc_boot()`</span></span>
+<span id="cb67-426"><a href="#cb67-426" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-427"><a href="#cb67-427" aria-hidden="true" tabindex="-1"></a>@xu_generalized_2017 §3のパラメトリックBootstrapです。推定された因子モデルから帰無仮説下の分布を生成します。</span>
+<span id="cb67-428"><a href="#cb67-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-431"><a href="#cb67-431" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-432"><a href="#cb67-432" aria-hidden="true" tabindex="-1"></a>inf_gsc <span class="ot">&lt;-</span> <span class="fu">gsc_boot</span>(fit_gsc, <span class="at">B =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb67-433"><a href="#cb67-433" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>p_value</span>
+<span id="cb67-434"><a href="#cb67-434" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_lower</span>
+<span id="cb67-435"><a href="#cb67-435" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_upper</span>
+<span id="cb67-436"><a href="#cb67-436" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-437"><a href="#cb67-437" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-438"><a href="#cb67-438" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-439"><a href="#cb67-439" aria-hidden="true" tabindex="-1"></a><span class="fu">gsc_boot</span>(</span>
+<span id="cb67-440"><a href="#cb67-440" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb67-441"><a href="#cb67-441" aria-hidden="true" tabindex="-1"></a>  <span class="at">B     =</span> <span class="dv">499</span>L,</span>
+<span id="cb67-442"><a href="#cb67-442" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb67-443"><a href="#cb67-443" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed  =</span> <span class="cn">NULL</span></span>
+<span id="cb67-444"><a href="#cb67-444" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-445"><a href="#cb67-445" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-446"><a href="#cb67-446" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-447"><a href="#cb67-447" aria-hidden="true" tabindex="-1"></a><span class="fu">### SI：`si_inference()`</span></span>
+<span id="cb67-448"><a href="#cb67-448" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-449"><a href="#cb67-449" aria-hidden="true" tabindex="-1"></a>@agarwal_synthetic_interventions_2024 のノンパラメトリックBootstrap / Jackknife推論です。Staggeredフィットにも対応しています。</span>
+<span id="cb67-450"><a href="#cb67-450" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-453"><a href="#cb67-453" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-454"><a href="#cb67-454" aria-hidden="true" tabindex="-1"></a>inf_si <span class="ot">&lt;-</span> <span class="fu">si_inference</span>(fit_si, <span class="at">method =</span> <span class="st">"bootstrap"</span>, <span class="at">n_boot =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb67-455"><a href="#cb67-455" aria-hidden="true" tabindex="-1"></a>inf_si<span class="sc">$</span>p_value</span>
+<span id="cb67-456"><a href="#cb67-456" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-457"><a href="#cb67-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-458"><a href="#cb67-458" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-459"><a href="#cb67-459" aria-hidden="true" tabindex="-1"></a><span class="fu">si_inference</span>(</span>
+<span id="cb67-460"><a href="#cb67-460" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb67-461"><a href="#cb67-461" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
+<span id="cb67-462"><a href="#cb67-462" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">499</span>L,</span>
+<span id="cb67-463"><a href="#cb67-463" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb67-464"><a href="#cb67-464" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb67-465"><a href="#cb67-465" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
+<span id="cb67-466"><a href="#cb67-466" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-467"><a href="#cb67-467" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-468"><a href="#cb67-468" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-469"><a href="#cb67-469" aria-hidden="true" tabindex="-1"></a><span class="fu">### Conformal推論：`conformal_inference()`</span></span>
+<span id="cb67-470"><a href="#cb67-470" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-471"><a href="#cb67-471" aria-hidden="true" tabindex="-1"></a>@chernozhukov_exact_2021 の手法です。Moving-Block置換を用いた置換p値と信頼区間を返します。<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>の**シャープフィット**に対応しています。</span>
+<span id="cb67-472"><a href="#cb67-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-475"><a href="#cb67-475" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-476"><a href="#cb67-476" aria-hidden="true" tabindex="-1"></a>inf_conf <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_scm, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
+<span id="cb67-477"><a href="#cb67-477" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>p_value</span>
+<span id="cb67-478"><a href="#cb67-478" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_lower</span>
+<span id="cb67-479"><a href="#cb67-479" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_upper</span>
+<span id="cb67-480"><a href="#cb67-480" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-481"><a href="#cb67-481" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-484"><a href="#cb67-484" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb67-485"><a href="#cb67-485" aria-hidden="true" tabindex="-1"></a><span class="co"># SDIDでも同様に使える</span></span>
+<span id="cb67-486"><a href="#cb67-486" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_sdid, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
+<span id="cb67-487"><a href="#cb67-487" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid<span class="sc">$</span>p_value</span>
+<span id="cb67-488"><a href="#cb67-488" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-489"><a href="#cb67-489" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-490"><a href="#cb67-490" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-491"><a href="#cb67-491" aria-hidden="true" tabindex="-1"></a><span class="fu">conformal_inference</span>(</span>
+<span id="cb67-492"><a href="#cb67-492" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb67-493"><a href="#cb67-493" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau0        =</span> <span class="dv">0</span>,    <span class="co"># 帰無仮説のATT（デフォルト：0）</span></span>
+<span id="cb67-494"><a href="#cb67-494" aria-hidden="true" tabindex="-1"></a>  <span class="at">q           =</span> <span class="dv">1</span>,    <span class="co"># S_q統計量の指数（デフォルト：1）</span></span>
+<span id="cb67-495"><a href="#cb67-495" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb67-496"><a href="#cb67-496" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci          =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb67-497"><a href="#cb67-497" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb67-498"><a href="#cb67-498" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid        =</span> <span class="cn">NULL</span>,     <span class="co"># 候補値ベクトル（NULLの場合は自動設定）</span></span>
+<span id="cb67-499"><a href="#cb67-499" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_grid      =</span> <span class="dv">200</span>L,</span>
+<span id="cb67-500"><a href="#cb67-500" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid_mult   =</span> <span class="dv">4</span></span>
+<span id="cb67-501"><a href="#cb67-501" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb67-502"><a href="#cb67-502" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-503"><a href="#cb67-503" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-504"><a href="#cb67-504" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 引数 <span class="pp">|</span> 説明 <span class="pp">|</span></span>
+<span id="cb67-505"><a href="#cb67-505" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-----|:-----|</span></span>
+<span id="cb67-506"><a href="#cb67-506" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`fit`</span> <span class="pp">|</span> <span class="in">`scm_fit()`</span>の結果（<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>、シャープフィット） <span class="pp">|</span></span>
+<span id="cb67-507"><a href="#cb67-507" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`tau0`</span> <span class="pp">|</span> 報告するp値の帰無ATT（デフォルト：0） <span class="pp">|</span></span>
+<span id="cb67-508"><a href="#cb67-508" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`q`</span> <span class="pp">|</span> $S_q = (T_{\text{post}}^{-1}\sum\lvert u_t\rvert^q)^{1/q}$ の指数。2値フィットでのみ有効 <span class="pp">|</span></span>
+<span id="cb67-509"><a href="#cb67-509" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`alternative`</span> <span class="pp">|</span> 対立仮説の方向 <span class="pp">|</span></span>
+<span id="cb67-510"><a href="#cb67-510" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`ci`</span> <span class="pp">|</span> 信頼区間を構築するか（デフォルト：<span class="in">`TRUE`</span>） <span class="pp">|</span></span>
+<span id="cb67-511"><a href="#cb67-511" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`level`</span> <span class="pp">|</span> 信頼水準（デフォルト：0.95） <span class="pp">|</span></span>
+<span id="cb67-512"><a href="#cb67-512" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`grid`</span> <span class="pp">|</span> 検定反転の候補$\tau_0$ベクトル。<span class="in">`NULL`</span>の場合は自動設定 <span class="pp">|</span></span>
+<span id="cb67-513"><a href="#cb67-513" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`n_grid`</span> <span class="pp">|</span> グリッド点数（デフォルト：200） <span class="pp">|</span></span>
+<span id="cb67-514"><a href="#cb67-514" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`grid_mult`</span> <span class="pp">|</span> グリッド半幅の乗数（デフォルト：4） <span class="pp">|</span></span>
+<span id="cb67-515"><a href="#cb67-515" aria-hidden="true" tabindex="-1"></a>: {tbl-colwidths="<span class="co">[</span><span class="ot">25,75</span><span class="co">]</span>"}</span>
+<span id="cb67-516"><a href="#cb67-516" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-517"><a href="#cb67-517" aria-hidden="true" tabindex="-1"></a><span class="fu">### `broom`・`modelsummary`との連携</span></span>
+<span id="cb67-518"><a href="#cb67-518" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-519"><a href="#cb67-519" aria-hidden="true" tabindex="-1"></a>推論結果は<span class="in">`broom`</span>と互換性があります。</span>
+<span id="cb67-520"><a href="#cb67-520" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-521"><a href="#cb67-521" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-522"><a href="#cb67-522" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(inf_conf)</span>
+<span id="cb67-523"><a href="#cb67-523" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(inf_conf)</span>
+<span id="cb67-524"><a href="#cb67-524" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-525"><a href="#cb67-525" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-526"><a href="#cb67-526" aria-hidden="true" tabindex="-1"></a><span class="fu">## JSON出力（`export_json()`）</span></span>
+<span id="cb67-527"><a href="#cb67-527" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-528"><a href="#cb67-528" aria-hidden="true" tabindex="-1"></a>再現性ワークフロー向けに、推定結果をJSONとして出力できます。</span>
+<span id="cb67-529"><a href="#cb67-529" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-530"><a href="#cb67-530" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb67-531"><a href="#cb67-531" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>)</span>
+<span id="cb67-532"><a href="#cb67-532" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-533"><a href="#cb67-533" aria-hidden="true" tabindex="-1"></a><span class="co"># 推論結果も含める場合</span></span>
+<span id="cb67-534"><a href="#cb67-534" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>, <span class="at">inference =</span> inf_scm)</span>
+<span id="cb67-535"><a href="#cb67-535" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb67-536"><a href="#cb67-536" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-537"><a href="#cb67-537" aria-hidden="true" tabindex="-1"></a><span class="in">`file = NULL`</span> を指定するとファイルには書き出さず、Rリストを invisibly に返します。</span>
+<span id="cb67-538"><a href="#cb67-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-539"><a href="#cb67-539" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb67-540"><a href="#cb67-540" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-541"><a href="#cb67-541" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>は6つの合成コントロール関連手法を統一インターフェースで提供し、C++実装による高速化を実現しています。現時点では開発版のみで、フィードバックを積極的に受け付けています。</span>
+<span id="cb67-542"><a href="#cb67-542" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb67-543"><a href="#cb67-543" aria-hidden="true" tabindex="-1"></a>もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの<span class="co">[</span><span class="ot">Issues</span><span class="co">](https://github.com/yo5uke/coresynth/issues)</span>までお願いします。</span>
+</code></pre></div><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>© 2024-2026 Yosuke Abe <br> Made with <iconify-icon role="img" inline="" icon="simple-icons:quarto" style="color:#74aadb;" aria-label="Quarto icon" title="Quarto icon"></iconify-icon> <a href="https://quarto.org">Quarto</a> <br> Favicon designed by my wife.</p>
+</div>   
+    <div class="nav-footer-center">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://x.com/5uke_y">
+      <i class="bi bi-twitter-x" role="img">
+</i> 
+    </a>
+  </li>  
+    <li class="nav-item compact">
+    <a class="nav-link" href="../../../../../pages/tips/index.xml">
+      <i class="bi bi-rss" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+    <div class="nav-footer-right">
+<p><i class="fa-brands fa-github" aria-label="github"></i> <a href="https://github.com/yo5uke/yo5uke.github.io">Source code</a> <br> <i class="fa-solid fa-location-dot" aria-label="location-dot"></i> <a href="https://maps.app.goo.gl/XFHvBiCdkQK4YXku9">Yokohama</a>, Kanagawa, Japan</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

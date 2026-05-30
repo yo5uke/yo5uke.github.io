@@ -9,8 +9,1729 @@
 <link>https://yo5uke.com/pages/tips/</link>
 <atom:link href="https://yo5uke.com/pages/tips/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.9.37</generator>
-<lastBuildDate>Wed, 06 May 2026 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.9.38</generator>
+<lastBuildDate>Sun, 31 May 2026 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>【パッケージ開発】coresynthで合成コントロール法を高速に実装</title>
+  <link>https://yo5uke.com/pages/tips/2026/06/coresynth/</link>
+  <description><![CDATA[ 
+
+<div class="social-share-buttons">
+  <!-- Twitter (X) -->
+  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+
+  <!-- Bluesky -->
+  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
+</div>
+
+<script>
+  const twitterUsername = "@5uke_y";
+  const blueskyUsername = "@5uke.bsky.social";
+
+  const share_url = encodeURIComponent(location.href);
+  const share_title = document.title;
+
+  // Twitter (X)
+  document.getElementById('js-share-twitter').setAttribute(
+    "href",
+    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
+    "&hashtags=rstats"
+  );
+
+  // Bluesky
+  document.getElementById('js-share-bluesky').setAttribute(
+    "href",
+    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
+  );
+</script>
+
+
+
+
+
+<p><a href="https://github.com/yo5uke/coresynth"><img src="https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&amp;color=blue.png" class="img-fluid" alt="dev version"></a> <a href="https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" class="img-fluid" alt="License: MIT"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" class="img-fluid" alt="Lifecycle: experimental"></a></p>
+<section id="はじめに" class="level2">
+<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
+<p>本ページでは、合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、<code>coresynth</code>について説明します。</p>
+<p><code>coresynth</code>の最大の特徴は<strong>パフォーマンス</strong>です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて<strong>最大約56倍の高速化</strong>を実現しています。</p>
+<p>バージョン0.2では<strong>Conformal推論</strong>（<code>conformal_inference()</code>）が追加されました。<span class="citation" data-cites="chernozhukov_exact_2021">Chernozhukov et al. (2021)</span> のPHT (Moving-Block Permutation)に基づく置換p値と信頼区間を、<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>の全推定量に対して利用できます。</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>ご意見待ってます
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>実装・挙動に関するフィードバックや機能リクエストは、ページ下のコメントかGitHubの<a href="https://github.com/yo5uke/coresynth/issues">Issues</a>までお寄せください。</p>
+</div>
+</div>
+<p><code>coresynth</code>が対応する推定量は以下の6つです。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 35%">
+<col style="width: 35%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">推定量</th>
+<th style="text-align: left;"><code>method</code></th>
+<th style="text-align: left;">参考文献</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Synthetic Control Method</td>
+<td style="text-align: left;"><code>"scm"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="abadie_synthetic_2010">Abadie et al. (2010)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Synthetic Difference-in-Differences</td>
+<td style="text-align: left;"><code>"sdid"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="arkhangelsky_synthetic_2021">Arkhangelsky et al. (2021)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Generalised Synthetic Control</td>
+<td style="text-align: left;"><code>"gsc"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="xu_generalized_2017">Xu (2017)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Matrix Completion</td>
+<td style="text-align: left;"><code>"mc"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="athey_matrix_2021">Athey et al. (2021)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Time-Aware Synthetic Control</td>
+<td style="text-align: left;"><code>"tasc"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="rho_time-aware_2026">Rho et al. (2026)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Synthetic Interventions</td>
+<td style="text-align: left;"><code>"si"</code></td>
+<td style="text-align: left;"><span class="citation" data-cites="agarwal_synthetic_interventions_2024">Agarwal et al. (2024)</span></td>
+</tr>
+</tbody>
+</table>
+<p>また、各推定量に対して複数の推論手法が利用できます。</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 42%">
+<col style="width: 21%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">推論手法</th>
+<th style="text-align: left;">対応推定量</th>
+<th style="text-align: left;">関数</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">MSPE比率置換検定</td>
+<td style="text-align: left;"><code>scm</code></td>
+<td style="text-align: left;"><code>mspe_ratio_pval()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">プラセボ / Bootstrap / Jackknife</td>
+<td style="text-align: left;"><code>sdid</code></td>
+<td style="text-align: left;"><code>sdid_inference()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">パラメトリックBootstrap</td>
+<td style="text-align: left;"><code>gsc</code></td>
+<td style="text-align: left;"><code>gsc_boot()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ノンパラメトリックBootstrap / Jackknife</td>
+<td style="text-align: left;"><code>gsc</code></td>
+<td style="text-align: left;"><code>gsc_inference()</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Bootstrap / Jackknife</td>
+<td style="text-align: left;"><code>si</code></td>
+<td style="text-align: left;"><code>si_inference()</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Conformal推論（CWZ 2021）</td>
+<td style="text-align: left;"><code>scm</code>, <code>sdid</code>, <code>gsc</code>, <code>mc</code>, <code>si</code></td>
+<td style="text-align: left;"><code>conformal_inference()</code></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="インストール" class="level2">
+<h2 class="anchored" data-anchor-id="インストール">インストール</h2>
+<p>GitHubからインストールできます（Windowsは<a href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a>、macOSはXcodeが必要です）。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pak を使う場合</span></span>
+<span id="cb1-2">pak<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pak</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"yo5uke/coresynth"</span>)</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># devtools を使う場合</span></span>
+<span id="cb1-5">devtools<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">install_github</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"yo5uke/coresynth"</span>)</span></code></pre></div></div>
+</section>
+<section id="準備" class="level2">
+<h2 class="anchored" data-anchor-id="準備">準備</h2>
+<p>パッケージを読み込みます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(coresynth)</span></code></pre></div></div>
+</div>
+<p>本ページで使用するデータを生成します。47都道府県に相当するバランスパネル（ユニット数47、期間数30、真のATT = 2.5）を3因子モデルで生成します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">set.seed</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2024</span>)</span>
+<span id="cb3-2">N <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">47</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ユニット数（都道府県数相当）</span></span>
+<span id="cb3-3">TT <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 期間数（年）</span></span>
+<span id="cb3-4">T_pre <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 処置前期間</span></span>
+<span id="cb3-5">r <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 潜在因子数</span></span>
+<span id="cb3-6"></span>
+<span id="cb3-7"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 3因子モデルによるパネル生成</span></span>
+<span id="cb3-8">F_t <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">matrix</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, TT, r)</span>
+<span id="cb3-9"><span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">for</span> (j <span class="cf" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">in</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">seq_len</span>(r)) {</span>
+<span id="cb3-10">  F_t[, j] <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">cumsum</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rnorm</span>(TT, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.4</span>))</span>
+<span id="cb3-11">}</span>
+<span id="cb3-12">L_i <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">matrix</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">abs</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rnorm</span>(N <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> r, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.3</span>)), N, r)</span>
+<span id="cb3-13">Y <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> L_i <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">%*%</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">t</span>(F_t) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">matrix</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rnorm</span>(N <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> TT, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>, <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>), N, TT)</span>
+<span id="cb3-14"></span>
+<span id="cb3-15">dat <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">expand.grid</span>(</span>
+<span id="cb3-16">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">seq_len</span>(TT),</span>
+<span id="cb3-17">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">id =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">paste0</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pref_"</span>, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sprintf</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"%02d"</span>, <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">seq_len</span>(N)))</span>
+<span id="cb3-18">)</span>
+<span id="cb3-19">dat <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> dat[<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">order</span>(dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>id, dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>time), ]</span>
+<span id="cb3-20"></span>
+<span id="cb3-21">true_att <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.5</span></span>
+<span id="cb3-22">dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>y <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.vector</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">t</span>(Y))</span>
+<span id="cb3-23">dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.integer</span>(dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pref_01"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>time <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> T_pre)</span>
+<span id="cb3-24">dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>y[dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>y[dat<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> true_att <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 真のATT = 2.5</span></span></code></pre></div></div>
+</div>
+<p><code>id</code>がユニット識別変数（<code>pref_01</code>〜<code>pref_47</code>）、<code>time</code>が時間変数（1〜30）、<code>y</code>が結果変数、<code>d</code>が処置変数（処置ユニット<code>pref_01</code>が21期目以降に処置）です。<code>pref_01</code>以外の46ユニットがドナープールとなります。</p>
+</section>
+<section id="scm_fit" class="level2">
+<h2 class="anchored" data-anchor-id="scm_fit"><code>scm_fit()</code></h2>
+<p><code>scm_fit()</code>はすべての手法への統一エントリーポイントです。フォーミュラは <code>結果変数 ~ 処置変数 | ユニットID + 時間ID</code> の形式で指定します。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb4-2">  formula,</span>
+<span id="cb4-3">  data,</span>
+<span id="cb4-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"scm"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gsc"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mc"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"tasc"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"si"</span>),</span>
+<span id="cb4-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">predictors =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>,</span>
+<span id="cb4-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">covariates =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>,</span>
+<span id="cb4-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">v_selection =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"insample"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"oos"</span>),</span>
+<span id="cb4-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">donor_mspe_threshold =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">Inf</span>,</span>
+<span id="cb4-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">lambda_pen =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>,</span>
+<span id="cb4-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">v_optim =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"coord_descent"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"auto"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bfgs"</span>),</span>
+<span id="cb4-11">  ...</span>
+<span id="cb4-12">)</span></code></pre></div></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 75%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">引数</th>
+<th style="text-align: left;">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>formula</code></td>
+<td style="text-align: left;"><code>y ~ d | unit + time</code> 形式のFormulaオブジェクト</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>data</code></td>
+<td style="text-align: left;">ロング形式のデータフレーム（1行 = 1ユニット×1時点）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>method</code></td>
+<td style="text-align: left;">推定手法の選択（<code>"scm"</code>, <code>"sdid"</code>, <code>"gsc"</code>, <code>"mc"</code>, <code>"tasc"</code>, <code>"si"</code>）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>predictors</code></td>
+<td style="text-align: left;">SCM用の予測変数リスト（<code>pred()</code>で指定）。<code>NULL</code>の場合は処置前期間の全結果変数期間を使用</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>covariates</code></td>
+<td style="text-align: left;">時変共変量の列名（<code>"sdid"</code>, <code>"scm"</code>, <code>"gsc"</code>でサポート）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>v_selection</code></td>
+<td style="text-align: left;">SCM用のV行列選択方法。<code>"insample"</code>（デフォルト）または <span class="citation" data-cites="abadie_using_2021">Abadie (2021)</span> の<code>"oos"</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>donor_mspe_threshold</code></td>
+<td style="text-align: left;">ドナープール絞り込みの閾値（SCMのみ。デフォルト<code>Inf</code>で無効）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>lambda_pen</code></td>
+<td style="text-align: left;">ペナルティSCMのペナルティパラメータ（SCMのみ。<code>NULL</code>で通常SCM、<code>"auto"</code>で自動選択）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>v_optim</code></td>
+<td style="text-align: left;">V外部最適化の手法。<code>"coord_descent"</code>（デフォルト）、<code>"bfgs"</code>、<code>"auto"</code></td>
+</tr>
+</tbody>
+</table>
+<p>すべての手法は <code>c("coresynth_&lt;method&gt;", "coresynth")</code> クラスのオブジェクトを返します。共通フィールドは以下の通りです。</p>
+<ul>
+<li><code>method</code>：推定量名</li>
+<li><code>estimate</code>：ATT推定値</li>
+<li><code>times</code>：時間インデックスベクトル</li>
+<li><code>T_pre</code>：処置前期間数</li>
+<li><code>Y_treat</code>：処置ユニットの結果系列</li>
+<li><code>gap</code>：処置効果系列（<img src="https://latex.codecogs.com/png.latex?Y_%7B%5Ctext%7Btreat%7D%7D%20-%20Y_%7B%5Ctext%7Bsynthetic%7D%7D">）</li>
+</ul>
+<section id="scmmethod-scm" class="level3">
+<h3 class="anchored" data-anchor-id="scmmethod-scm">SCM（<code>method = "scm"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">fit_scm <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"scm"</span>)</span>
+<span id="cb5-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(fit_scm)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SCM 
+Estimate (ATT): 2.7521 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(fit_scm)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth summary ===
+Method : SCM 
+Periods : T_pre = 20 | T_post = 10 
+ATT estimate: 2.752104 
+Unit weights (non-zero donors):
+pref_06 pref_08 pref_15 pref_16 pref_20 pref_30 pref_35 pref_39 pref_47 
+ 0.2634  0.1615  0.1564  0.0778  0.0729  0.0794  0.0681  0.0732  0.0472 </code></pre>
+</div>
+</div>
+<section id="予測変数の指定pred" class="level4">
+<h4 class="anchored" data-anchor-id="予測変数の指定pred">予測変数の指定（<code>pred()</code>）</h4>
+<p>SCMは <code>pred()</code> 関数を使って <span class="citation" data-cites="abadie_synthetic_2010">Abadie et al. (2010)</span> §2.3の予測変数行列を指定できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># dat に income, unemp 列がある想定の例</span></span>
+<span id="cb9-2">fit_scm_cov <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb9-3">  y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time,</span>
+<span id="cb9-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data   =</span> dat,</span>
+<span id="cb9-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"scm"</span>,</span>
+<span id="cb9-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">predictors =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list</span>(</span>
+<span id="cb9-7">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"income"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"unemp"</span>), <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">8</span>),     <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 1〜8期平均</span></span>
+<span id="cb9-8">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"y"</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>),                         <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 5期の結果変数</span></span>
+<span id="cb9-9">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"y"</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">op =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mean"</span>)           <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 1〜4期の平均</span></span>
+<span id="cb9-10">  )</span>
+<span id="cb9-11">)</span></code></pre></div></div>
+<p><code>pred()</code> の <code>op</code> 引数には <code>"mean"</code>（デフォルト）、<code>"median"</code>、<code>"sum"</code> が指定できます。</p>
+</section>
+</section>
+<section id="sdidmethod-sdid" class="level3">
+<h3 class="anchored" data-anchor-id="sdidmethod-sdid">SDID（<code>method = "sdid"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1">fit_sdid <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>)</span>
+<span id="cb10-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(fit_sdid)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SDID 
+Estimate (ATT): 2.5266 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+</section>
+<section id="gscmethod-gsc" class="level3">
+<h3 class="anchored" data-anchor-id="gscmethod-gsc">GSC（<code>method = "gsc"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1">fit_gsc <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gsc"</span>)</span>
+<span id="cb12-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(fit_gsc)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : GSC 
+Estimate (ATT): 2.5552 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>GSCは時変共変量の調整を <code>covariates</code> 引数でサポートしています（<code>data</code>の列名を文字ベクトルで指定）。内部では <span class="citation" data-cites="xu_generalized_2017">Xu (2017)</span> の完全EMアルゴリズム（E-step：因子モデルのSVD、M-step：残差への共変量OLS）を実行します。</p>
+</section>
+<section id="mcmethod-mc" class="level3">
+<h3 class="anchored" data-anchor-id="mcmethod-mc">MC（<code>method = "mc"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">fit_mc <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mc"</span>)</span>
+<span id="cb14-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(fit_mc)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : MC 
+Estimate (ATT): 2.5198 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>核ノルム正則化による行列補完（Soft-Impute）で反事実を推定します。</p>
+</section>
+<section id="tascmethod-tasc" class="level3">
+<h3 class="anchored" data-anchor-id="tascmethod-tasc">TASC（<code>method = "tasc"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1">fit_tasc <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"tasc"</span>)</span>
+<span id="cb16-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(fit_tasc)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : TASC 
+Estimate (ATT): 2.1725 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>カルマンEMによる時間考慮型合成コントロール <span class="citation" data-cites="rho_time-aware_2026">(Rho et al. 2026)</span> です。</p>
+</section>
+<section id="simethod-si" class="level3">
+<h3 class="anchored" data-anchor-id="simethod-si">SI（<code>method = "si"</code>）</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1">fit_si <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"si"</span>)</span>
+<span id="cb18-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(fit_si)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SI 
+Estimate (ATT): 2.6972 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>SI-PCR（主成分回帰）に基づく合成介入法 <span class="citation" data-cites="agarwal_synthetic_interventions_2024">(Agarwal et al. 2024)</span> です。シャープ・Staggered・マルチアームすべてに対応しています。</p>
+</section>
+<section id="手法の比較" class="level3">
+<h3 class="anchored" data-anchor-id="手法の比較">6手法の比較</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">methods <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"scm"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gsc"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mc"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"tasc"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"si"</span>)</span>
+<span id="cb20-2">fits <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">lapply</span>(methods, \(m) <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> m))</span>
+<span id="cb20-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">names</span>(fits) <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> methods</span>
+<span id="cb20-4"></span>
+<span id="cb20-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data.frame</span>(</span>
+<span id="cb20-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> methods,</span>
+<span id="cb20-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">estimate =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">round</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sapply</span>(fits, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">[[</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">`</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"estimate"</span>), <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3</span>)</span>
+<span id="cb20-8">)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>     method estimate
+scm     scm    2.752
+sdid   sdid    2.527
+gsc     gsc    2.555
+mc       mc    2.520
+tasc   tasc    2.172
+si       si    2.697</code></pre>
+</div>
+</div>
+<p>真のATTは2.5です。</p>
+</section>
+</section>
+<section id="staggered-adoption" class="level2">
+<h2 class="anchored" data-anchor-id="staggered-adoption">Staggered Adoption</h2>
+<p>6つの手法すべてがStaggered Adoptionに対応しています。各コホートを個別に推定し、<img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Btreated%7D%7D%20%5Ctimes%20T_%7B%5Ctext%7Bpost%7D%7D"> に比例したウェイトでATTを集計するアプローチ <span class="citation" data-cites="clarke_synthetic_2024">(Clarke et al. 2024)</span> を採用しています。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># pref_01: 21期から処置、pref_02: 26期から処置</span></span>
+<span id="cb22-2">dat_s <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> dat</span>
+<span id="cb22-3">dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>L</span>
+<span id="cb22-4">dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d[dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pref_01"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>time <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">20</span>] <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>L</span>
+<span id="cb22-5">dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d[dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"pref_02"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>time <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">25</span>] <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>L</span>
+<span id="cb22-6">dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>y[dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>y[dat_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>] <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.5</span></span>
+<span id="cb22-7"></span>
+<span id="cb22-8">fit_sdid_s <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> dat_s, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>)</span>
+<span id="cb22-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">print</span>(fit_sdid_s)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth fit ===
+Method : SDID 
+Estimate (ATT): 4.1633 
+Pre-treatment periods: 20 </code></pre>
+</div>
+</div>
+<p>コホート別の推定値は <code>$cohort_estimates</code> フィールドで確認できます。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1">fit_sdid_s<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>cohort_estimates</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  cohort n_treated T_pre T_post estimate    weight
+1     21         1    20     10 4.864657 0.6666667
+2     26         1    25      5 2.760581 0.3333333</code></pre>
+</div>
+</div>
+<p><code>control_group</code> 引数でドナープールを制御できます。</p>
+<ul>
+<li><code>"clean"</code>（デフォルト）：never-treated + future adoptersをドナーとして使用 <span class="citation" data-cites="clarke_synthetic_2024">(Clarke et al. 2024)</span></li>
+<li><code>"never_treated"</code>：never-treatedのみを使用</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1">fit_sdid_never <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb26-2">  y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> time,</span>
+<span id="cb26-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data          =</span> dat_s,</span>
+<span id="cb26-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method        =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>,</span>
+<span id="cb26-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">control_group =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"never_treated"</span></span>
+<span id="cb26-6">)</span></code></pre></div></div>
+</section>
+<section id="plot" class="level2">
+<h2 class="anchored" data-anchor-id="plot"><code>plot()</code></h2>
+<p><code>plot()</code> で3種類のプロットを出力できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gap"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"weights"</span>))</span></code></pre></div></div>
+<ul>
+<li><code>"trend"</code>：処置ユニット vs.&nbsp;合成コントロールの時系列</li>
+<li><code>"gap"</code>：処置効果の時系列（<img src="https://latex.codecogs.com/png.latex?Y_%7B%5Ctext%7Btreated%7D%7D%20-%20Y_%7B%5Ctext%7Bsynthetic%7D%7D">）</li>
+<li><code>"weights"</code>：ドナーユニットのウェイト棒グラフ（SCM・SDID・SI）</li>
+</ul>
+<section id="trend-プロット" class="level3">
+<h3 class="anchored" data-anchor-id="trend-プロット">Trend プロット</h3>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">SCM</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">SDID</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" aria-controls="tabset-1-3" aria-selected="false" href="">GSC</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_gsc, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="gap-プロット" class="level3">
+<h3 class="anchored" data-anchor-id="gap-プロット">Gap プロット</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gap"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>垂直の点線が処置開始時点、水平の破線が0です。</p>
+</section>
+<section id="weights-プロット" class="level3">
+<h3 class="anchored" data-anchor-id="weights-プロット">Weights プロット</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"weights"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>ggplot2ベースなのでggplotの関数をつなげることも可能です。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(ggplot2)</span>
+<span id="cb33-2"></span>
+<span id="cb33-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb33-4">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">title =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SCM: Observed vs. Synthetic Control"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="推論" class="level2">
+<h2 class="anchored" data-anchor-id="推論">推論</h2>
+<p>各推定量に対応した推論関数が用意されています。</p>
+<section id="scmmspe比率置換検定mspe_ratio_pval" class="level3">
+<h3 class="anchored" data-anchor-id="scmmspe比率置換検定mspe_ratio_pval">SCM：MSPE比率置換検定（<code>mspe_ratio_pval()</code>）</h3>
+<p><span class="citation" data-cites="abadie_synthetic_2010">Abadie et al. (2010)</span> / <span class="citation" data-cites="abadie_using_2021">Abadie (2021)</span> のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1">inf_scm <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mspe_ratio_pval</span>(fit_scm)</span>
+<span id="cb34-2">inf_scm<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0212766</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mspe_ratio_pval</span>(</span>
+<span id="cb36-2">  fit,</span>
+<span id="cb36-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">mspe_threshold =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>,     <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># プラセボに含める最小MSPE（デフォルト：0）</span></span>
+<span id="cb36-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">max_iter       =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>L,</span>
+<span id="cb36-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">tol            =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1e-4</span>,</span>
+<span id="cb36-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">use_covariates =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>, <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 予測変数をプラセボにも適用するか</span></span>
+<span id="cb36-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alternative    =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"two.sided"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"less"</span>)</span>
+<span id="cb36-8">)</span></code></pre></div></div>
+</section>
+<section id="sdidsdid_inference" class="level3">
+<h3 class="anchored" data-anchor-id="sdidsdid_inference">SDID：<code>sdid_inference()</code></h3>
+<p><span class="citation" data-cites="clarke_synthetic_2024">Clarke et al. (2024)</span> に基づく3種類の推論手法を提供します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># プラセボ検定（デフォルト）</span></span>
+<span id="cb37-2">inf_sdid <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(fit_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"placebo"</span>)</span>
+<span id="cb37-3">inf_sdid<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.0212766</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># ブートストラップ（SE・CI付き）</span></span>
+<span id="cb39-2">inf_sdid_boot <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(</span>
+<span id="cb39-3">  fit_sdid,</span>
+<span id="cb39-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bootstrap"</span>,</span>
+<span id="cb39-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_boot =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>,</span>
+<span id="cb39-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span></span>
+<span id="cb39-7">)</span>
+<span id="cb39-8">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>se</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1812056</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_lower</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.192366</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_upper</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 2.972953</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(</span>
+<span id="cb45-2">  fit,</span>
+<span id="cb45-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method      =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"placebo"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bootstrap"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"jackknife"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"jackknife_global"</span>),</span>
+<span id="cb45-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_boot      =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>L,   <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># bootstrap のみ</span></span>
+<span id="cb45-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">level       =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>,</span>
+<span id="cb45-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alternative =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"two.sided"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"less"</span>),</span>
+<span id="cb45-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed        =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span></span>
+<span id="cb45-8">)</span></code></pre></div></div>
+</section>
+<section id="gscgsc_boot" class="level3">
+<h3 class="anchored" data-anchor-id="gscgsc_boot">GSC：<code>gsc_boot()</code></h3>
+<p><span class="citation" data-cites="xu_generalized_2017">Xu (2017)</span> §3のパラメトリックBootstrapです。推定された因子モデルから帰無仮説下の分布を生成します。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1">inf_gsc <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">gsc_boot</span>(fit_gsc, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">B =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">499</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span>)</span>
+<span id="cb46-2">inf_gsc<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1">inf_gsc<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_lower</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -0.5585225</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1">inf_gsc<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_upper</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.5787406</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb52" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">gsc_boot</span>(</span>
+<span id="cb52-2">  fit,</span>
+<span id="cb52-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">B     =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">499</span>L,</span>
+<span id="cb52-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alpha =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.05</span>,</span>
+<span id="cb52-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed  =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span></span>
+<span id="cb52-6">)</span></code></pre></div></div>
+</section>
+<section id="sisi_inference" class="level3">
+<h3 class="anchored" data-anchor-id="sisi_inference">SI：<code>si_inference()</code></h3>
+<p><span class="citation" data-cites="agarwal_synthetic_interventions_2024">Agarwal et al. (2024)</span> のノンパラメトリックBootstrap / Jackknife推論です。Staggeredフィットにも対応しています。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1">inf_si <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">si_inference</span>(fit_si, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bootstrap"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_boot =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">499</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span>)</span>
+<span id="cb53-2">inf_si<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 4.194905e-223</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb55" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">si_inference</span>(</span>
+<span id="cb55-2">  fit,</span>
+<span id="cb55-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method      =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bootstrap"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"jackknife"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"jackknife_global"</span>),</span>
+<span id="cb55-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_boot      =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">499</span>L,</span>
+<span id="cb55-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">level       =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>,</span>
+<span id="cb55-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alternative =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"two.sided"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"less"</span>),</span>
+<span id="cb55-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed        =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span></span>
+<span id="cb55-8">)</span></code></pre></div></div>
+</section>
+<section id="conformal推論conformal_inference" class="level3">
+<h3 class="anchored" data-anchor-id="conformal推論conformal_inference">Conformal推論：<code>conformal_inference()</code></h3>
+<p><span class="citation" data-cites="chernozhukov_exact_2021">Chernozhukov et al. (2021)</span> の手法です。Moving-Block置換を用いた置換p値と信頼区間を返します。<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>の<strong>シャープフィット</strong>に対応しています。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1">inf_conf <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">conformal_inference</span>(fit_scm, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">level =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>)</span>
+<span id="cb56-2">inf_conf<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.03333333</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1">inf_conf<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_lower</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.211775</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1">inf_conf<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_upper</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 5.46472</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># SDIDでも同様に使える</span></span>
+<span id="cb62-2">inf_conf_sdid <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">conformal_inference</span>(fit_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">level =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>)</span>
+<span id="cb62-3">inf_conf_sdid<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.06666667</code></pre>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb64" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">conformal_inference</span>(</span>
+<span id="cb64-2">  fit,</span>
+<span id="cb64-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">tau0        =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>,    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 帰無仮説のATT（デフォルト：0）</span></span>
+<span id="cb64-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">q           =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>,    <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># S_q統計量の指数（デフォルト：1）</span></span>
+<span id="cb64-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alternative =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"two.sided"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"less"</span>),</span>
+<span id="cb64-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">ci          =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb64-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">level       =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>,</span>
+<span id="cb64-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">grid        =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>,     <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 候補値ベクトル（NULLの場合は自動設定）</span></span>
+<span id="cb64-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_grid      =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>L,</span>
+<span id="cb64-10">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">grid_mult   =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span></span>
+<span id="cb64-11">)</span></code></pre></div></div>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 25%">
+<col style="width: 75%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">引数</th>
+<th style="text-align: left;">説明</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><code>fit</code></td>
+<td style="text-align: left;"><code>scm_fit()</code>の結果（<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>、シャープフィット）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>tau0</code></td>
+<td style="text-align: left;">報告するp値の帰無ATT（デフォルト：0）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>q</code></td>
+<td style="text-align: left;"><img src="https://latex.codecogs.com/png.latex?S_q%20=%20(T_%7B%5Ctext%7Bpost%7D%7D%5E%7B-1%7D%5Csum%5Clvert%20u_t%5Crvert%5Eq)%5E%7B1/q%7D"> の指数。2値フィットでのみ有効</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>alternative</code></td>
+<td style="text-align: left;">対立仮説の方向</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>ci</code></td>
+<td style="text-align: left;">信頼区間を構築するか（デフォルト：<code>TRUE</code>）</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>level</code></td>
+<td style="text-align: left;">信頼水準（デフォルト：0.95）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>grid</code></td>
+<td style="text-align: left;">検定反転の候補<img src="https://latex.codecogs.com/png.latex?%5Ctau_0">ベクトル。<code>NULL</code>の場合は自動設定</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><code>n_grid</code></td>
+<td style="text-align: left;">グリッド点数（デフォルト：200）</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><code>grid_mult</code></td>
+<td style="text-align: left;">グリッド半幅の乗数（デフォルト：4）</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="broommodelsummaryとの連携" class="level3">
+<h3 class="anchored" data-anchor-id="broommodelsummaryとの連携"><code>broom</code>・<code>modelsummary</code>との連携</h3>
+<p>推論結果は<code>broom</code>と互換性があります。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb65" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1">broom<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tidy</span>(inf_conf)</span>
+<span id="cb65-2">broom<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glance</span>(inf_conf)</span></code></pre></div></div>
+</section>
+</section>
+<section id="json出力export_json" class="level2">
+<h2 class="anchored" data-anchor-id="json出力export_json">JSON出力（<code>export_json()</code>）</h2>
+<p>再現性ワークフロー向けに、推定結果をJSONとして出力できます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb66" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">export_json</span>(fit_scm, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">file =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"scm_results.json"</span>)</span>
+<span id="cb66-2"></span>
+<span id="cb66-3"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 推論結果も含める場合</span></span>
+<span id="cb66-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">export_json</span>(fit_scm, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">file =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"scm_results.json"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">inference =</span> inf_scm)</span></code></pre></div></div>
+<p><code>file = NULL</code> を指定するとファイルには書き出さず、Rリストを invisibly に返します。</p>
+</section>
+<section id="おわりに" class="level2">
+<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
+<p><code>coresynth</code>は6つの合成コントロール関連手法を統一インターフェースで提供し、C++実装による高速化を実現しています。現時点では開発版のみで、フィードバックを積極的に受け付けています。</p>
+<p>もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの<a href="https://github.com/yo5uke/coresynth/issues">Issues</a>までお願いします。</p>
+
+
+<!-- -->
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">参考文献</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="ref-abadie_using_2021" class="csl-entry">
+Abadie, Alberto. 2021. "Using Synthetic Controls: Feasibility, Data Requirements, and Methodological Aspects". <em>Journal of Economic Literature</em> 59 (2): 391–425. <a href="https://doi.org/10.1257/jel.20191450">https://doi.org/10.1257/jel.20191450</a>.
+</div>
+<div id="ref-abadie_synthetic_2010" class="csl-entry">
+Abadie, Alberto, Alexis Diamond, and Jens Hainmueller. 2010. "Synthetic Control Methods for Comparative Case Studies: Estimating the Effect of <span>California</span>’s Tobacco Control Program". <em>Journal of the American Statistical Association</em> 105 (490): 493–505. <a href="https://doi.org/10.1198/jasa.2009.ap08746">https://doi.org/10.1198/jasa.2009.ap08746</a>.
+</div>
+<div id="ref-agarwal_synthetic_interventions_2024" class="csl-entry">
+Agarwal, Anish, Devavrat Shah, and Dennis Shen. 2024. "Synthetic Interventions". <a href="https://doi.org/10.48550/arXiv.2006.07691">https://doi.org/10.48550/arXiv.2006.07691</a>.
+</div>
+<div id="ref-arkhangelsky_synthetic_2021" class="csl-entry">
+Arkhangelsky, Dmitry, Susan Athey, David A. Hirshberg, Guido W. Imbens, and Stefan Wager. 2021. "Synthetic Difference-in-Differences". <em>American Economic Review</em> 111 (12): 4088–118. <a href="https://doi.org/10.1257/aer.20190159">https://doi.org/10.1257/aer.20190159</a>.
+</div>
+<div id="ref-athey_matrix_2021" class="csl-entry">
+Athey, Susan, Mohsen Bayati, Nikolay Doudchenko, Guido Imbens, and Khashayar Khosravi. 2021. "Matrix Completion Methods for Causal Panel Data Models". <em>Journal of the American Statistical Association</em> 116 (536): 1716–30. <a href="https://doi.org/10.1080/01621459.2021.1891924">https://doi.org/10.1080/01621459.2021.1891924</a>.
+</div>
+<div id="ref-chernozhukov_exact_2021" class="csl-entry">
+Chernozhukov, Victor, Kaspar Wüthrich, and Yinchu Zhu. 2021. "An Exact and Robust Conformal Inference Method for Counterfactual and Synthetic Controls". <em>Journal of the American Statistical Association</em> 116 (536): 1849–64. <a href="https://doi.org/10.1080/01621459.2021.1920957">https://doi.org/10.1080/01621459.2021.1920957</a>.
+</div>
+<div id="ref-clarke_synthetic_2024" class="csl-entry">
+Clarke, Damian, Daniel Pailañir, Susan Athey, and Guido Imbens. 2024. "On synthetic difference-in-differences and related estimation methods in <span>Stata</span>". <em>The Stata Journal</em> 24 (4): 557–98. <a href="https://doi.org/10.1177/1536867X241297914">https://doi.org/10.1177/1536867X241297914</a>.
+</div>
+<div id="ref-rho_time-aware_2026" class="csl-entry">
+Rho, Saeyoung, Cyrus Illick, Samhitha Narasipura, Alberto Abadie, Daniel Hsu, and Vishal Misra. 2026. "Time-Aware Synthetic Control". <a href="https://doi.org/10.48550/arXiv.2601.03099">https://doi.org/10.48550/arXiv.2601.03099</a>.
+</div>
+<div id="ref-xu_generalized_2017" class="csl-entry">
+Xu, Yiqing. 2017. "Generalized Synthetic Control Method: Causal Inference with Interactive Fixed Effects Models". <em>Political Analysis</em> 25 (1): 57–76. <a href="https://doi.org/10.1017/pan.2016.2">https://doi.org/10.1017/pan.2016.2</a>.
+</div>
+</div></section></div> ]]></description>
+  <category>R</category>
+  <guid>https://yo5uke.com/pages/tips/2026/06/coresynth/</guid>
+  <pubDate>Sun, 31 May 2026 15:00:00 GMT</pubDate>
+</item>
 <item>
   <title>【Windows】CopilotキーをCtrlキーに置き換える【PowerToys】</title>
   <link>https://yo5uke.com/pages/tips/2026/05/powertoys_copilot_key/</link>
@@ -12706,751 +14427,6 @@ font-style: inherit;">]</span></span></code></pre></div></div>
   <guid>https://yo5uke.com/pages/tips/2025/09/250901_positron_setting/</guid>
   <pubDate>Sun, 31 Aug 2025 15:00:00 GMT</pubDate>
   <media:content url="https://yo5uke.com/pages/tips/2025/09/250901_positron_setting/image/interface.png" medium="image" type="image/png" height="90" width="144"/>
-</item>
-<item>
-  <title>XMLファイルから情報を抽出する</title>
-  <link>https://yo5uke.com/pages/tips/2025/08/250826_xml/</link>
-  <description><![CDATA[ 
-
-<div class="social-share-buttons">
-  <!-- Twitter (X) -->
-  <a href="" id="js-share-twitter" class="share_button ri--twitter-x-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-
-  <!-- Bluesky -->
-  <a href="" id="js-share-bluesky" class="share_button ri--bluesky-fill" target="_blank" rel="nofollow noopener noreferrer"></a>
-</div>
-
-<script>
-  const twitterUsername = "@5uke_y";
-  const blueskyUsername = "@5uke.bsky.social";
-
-  const share_url = encodeURIComponent(location.href);
-  const share_title = document.title;
-
-  // Twitter (X)
-  document.getElementById('js-share-twitter').setAttribute(
-    "href",
-    "https://twitter.com/share?url=" + share_url + "&text=" + share_title + " " + encodeURIComponent(twitterUsername) + " より" +
-    "&hashtags=rstats"
-  );
-
-  // Bluesky
-  document.getElementById('js-share-bluesky').setAttribute(
-    "href",
-    "https://bsky.app/intent/compose?text=" + share_title + " " + share_url + " " + encodeURIComponent(blueskyUsername) + " より"
-  );
-</script>
-
-
-
-
-
-<section id="はじめに" class="level2">
-<h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
-<p>今度は仕事でXMLファイルを扱う機会がやってきました。</p>
-<p>XMLファイルは、データを「タグ」で階層的に記述するテキスト形式のファイルで、構造化された情報を表現・交換するための標準仕様であり、システム間でデータ連携や保存に広く利用されています。</p>
-<p>見たことがない方にはとんとイメージがわかないと思うのですが、XMLは以下のような構造をしています。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode xml code-with-copy"><code class="sourceCode xml"><span id="cb1-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">&lt;?xml</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">version=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1.0"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">encoding=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"UTF-8"</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">?&gt;</span></span>
-<span id="cb1-2">&lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Library</span>&gt;</span>
-<span id="cb1-3">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Book</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"B001"</span>&gt;</span>
-<span id="cb1-4">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Title</span>&gt;データ分析入門&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Title</span>&gt;</span>
-<span id="cb1-5">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Author</span>&gt;山田太郎&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Author</span>&gt;</span>
-<span id="cb1-6">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Year</span>&gt;2021&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Year</span>&gt;</span>
-<span id="cb1-7">  &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Book</span>&gt;</span>
-<span id="cb1-8">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Book</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"B002"</span>&gt;</span>
-<span id="cb1-9">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Title</span>&gt;XML活用ガイド&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Title</span>&gt;</span>
-<span id="cb1-10">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Author</span>&gt;佐藤花子&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Author</span>&gt;</span>
-<span id="cb1-11">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Year</span>&gt;2023&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Year</span>&gt;</span>
-<span id="cb1-12">  &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Book</span>&gt;</span>
-<span id="cb1-13">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Magazine</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"M001"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">category=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"Technology"</span>&gt;</span>
-<span id="cb1-14">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Title</span>&gt;Tech Monthly&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Title</span>&gt;</span>
-<span id="cb1-15">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Issue</span>&gt;2024-08&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Issue</span>&gt;</span>
-<span id="cb1-16">  &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Magazine</span>&gt;</span>
-<span id="cb1-17">&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Library</span>&gt;</span></code></pre></div></div>
-<p><code>Library</code>の中に<code>Book</code>や<code>Magazine</code>が入っていることがわかります。インデントされているので少しはわかりやすいのではないでしょうか。</p>
-<p>さらにその中にはタイトルや著者等の情報が含まれています。</p>
-<p>これが簡単なXMLの例です。</p>
-<p>これがもっと長くずらーっと書かれているものの中から情報を取ってくる作業が仕事で必要になったので、その方法についてまとめたいと思います。</p>
-</section>
-<section id="準備" class="level2">
-<h2 class="anchored" data-anchor-id="準備">準備</h2>
-<p>必要なパッケージは<code>xml2</code>です。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(xml2)</span></code></pre></div></div>
-</div>
-<p>また、解析に使用するXMLは以下です。著作権の問題で、データはいかにもそれっぽいですが、中身は架空のものに置き換えています。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode xml code-with-copy"><code class="sourceCode xml"><span id="cb3-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">&lt;?xml</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">version=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1.0"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">encoding=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"UTF-8"</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">?&gt;</span></span>
-<span id="cb3-2">&lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Mdevices</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">xmlns=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"http://info.pmda.go.jp/namespace/medical_devices/package_insert"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">version=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1.0"</span>&gt;</span>
-<span id="cb3-3">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PackageInsertNo</span>&gt;99Z9Z99999999999_1_00_01&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PackageInsertNo</span>&gt;</span>
-<span id="cb3-4">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">CompanyIdentifier</span>&gt;999999&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">CompanyIdentifier</span>&gt;</span>
-<span id="cb3-5">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DateOfPreparationOrRevisionArray</span>&gt;</span>
-<span id="cb3-6">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DateOfPreparationOrRevisionDetail</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"初版"</span>&gt;</span>
-<span id="cb3-7">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">YearMonth</span>&gt;2025-08&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">YearMonth</span>&gt;</span>
-<span id="cb3-8">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Version</span>&gt;1.0&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Version</span>&gt;</span>
-<span id="cb3-9">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ReasonForRevision</span>&gt;新規作成&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ReasonForRevision</span>&gt;</span>
-<span id="cb3-10">    &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DateOfPreparationOrRevisionDetail</span>&gt;</span>
-<span id="cb3-11">  &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DateOfPreparationOrRevisionArray</span>&gt;</span>
-<span id="cb3-12">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalEtcArray</span>&gt;</span>
-<span id="cb3-13">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalEtcDetail</span>&gt;</span>
-<span id="cb3-14">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalAndLicenseNo</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">approvalType=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1"</span>&gt;99Z9Z99999999999&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalAndLicenseNo</span>&gt;</span>
-<span id="cb3-15">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalBrandNameDetail</span>&gt;</span>
-<span id="cb3-16">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalBrandName</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"BRD_ApprovalBrandName_01"</span>&gt;サンプルデバイスα&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalBrandName</span>&gt;</span>
-<span id="cb3-17">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">AccessoriesOrCompositionArticle</span>&gt;架空データ&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">AccessoriesOrCompositionArticle</span>&gt;</span>
-<span id="cb3-18">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalBrandNameReading</span>&gt;さんぷるでばいすあるふぁ&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalBrandNameReading</span>&gt;</span>
-<span id="cb3-19">      &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalBrandNameDetail</span>&gt;</span>
-<span id="cb3-20">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DoNotReuse</span>&gt;No&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DoNotReuse</span>&gt;</span>
-<span id="cb3-21">    &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalEtcDetail</span>&gt;</span>
-<span id="cb3-22">  &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ApprovalEtcArray</span>&gt;</span>
-<span id="cb3-23">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">CategoryAndGeneralName</span>&gt;</span>
-<span id="cb3-24">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Category</span>&gt;A9999&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Category</span>&gt;</span>
-<span id="cb3-25">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">GeneralName</span>&gt;</span>
-<span id="cb3-26">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PrimaryGeneralNameDetail</span>&gt;</span>
-<span id="cb3-27">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PrimaryGeneralName</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"GNN_Main_PrimaryGeneralName"</span>&gt;架空一般医療機器&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PrimaryGeneralName</span>&gt;</span>
-<span id="cb3-28">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">JMDNCode</span>&gt;99999999&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">JMDNCode</span>&gt;</span>
-<span id="cb3-29">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Classification</span>&gt;2&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Classification</span>&gt;</span>
-<span id="cb3-30">      &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PrimaryGeneralNameDetail</span>&gt;</span>
-<span id="cb3-31">    &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">GeneralName</span>&gt;</span>
-<span id="cb3-32">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DiscernmentOfMaintenanceInstallation</span>&gt;None&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DiscernmentOfMaintenanceInstallation</span>&gt;</span>
-<span id="cb3-33">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DiscernmentOfTheLivingThingOriginEtc</span>&gt;None&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">DiscernmentOfTheLivingThingOriginEtc</span>&gt;</span>
-<span id="cb3-34">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">TransgenicsMaterial</span>&gt;None&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">TransgenicsMaterial</span>&gt;</span>
-<span id="cb3-35">  &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">CategoryAndGeneralName</span>&gt;</span>
-<span id="cb3-36">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">FormAndStructureDetail</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"HDR_FormAndStructure"</span>/&gt;</span>
-<span id="cb3-37">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">InfoIndicationsOrEfficacy</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"HDR_InfoIndicationsOrEfficacy"</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">wordingPatternOfInfoIndicationsOrEfficacy=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"1"</span>/&gt;</span>
-<span id="cb3-38">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PrecautionsForUseDetail</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"HDR_PrecautionsForUse"</span>/&gt;</span>
-<span id="cb3-39">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameEtc</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"HDR_AManufacturingAndSellingContractorsNameOrANameEtc"</span>&gt;</span>
-<span id="cb3-40">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameDetail</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"HDR_AManufacturingAndSellingContractorsNameOrAName"</span>&gt;</span>
-<span id="cb3-41">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOfManufacturerEtc</span>&gt;株式会社サンプル医療&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOfManufacturerEtc</span>&gt;</span>
-<span id="cb3-42">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Phonenumber</span>&gt;000-0000-0000&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Phonenumber</span>&gt;</span>
-<span id="cb3-43">    &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameDetail</span>&gt;</span>
-<span id="cb3-44">    &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryArray</span> <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">id=</span><span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"HDR_ANameOrAnOverseasNameEtcOfAFactory"</span>&gt;</span>
-<span id="cb3-45">      &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
-<span id="cb3-46">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOfManufacturerEtc</span>&gt;サンプル工場&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOfManufacturerEtc</span>&gt;</span>
-<span id="cb3-47">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Phonenumber</span>&gt;000-1111-2222&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Phonenumber</span>&gt;</span>
-<span id="cb3-48">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;Sample Factory Inc.&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">TheCompanyNameOfSpecificationIntoEnglish</span>&gt;</span>
-<span id="cb3-49">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">TheCountryCode</span>&gt;888&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">TheCountryCode</span>&gt;</span>
-<span id="cb3-50">        &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">NameOfACountry</span>&gt;架空国&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">NameOfACountry</span>&gt;</span>
-<span id="cb3-51">      &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryDetail</span>&gt;</span>
-<span id="cb3-52">    &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">ANameOrAnOverseasNameEtcOfAFactoryArray</span>&gt;</span>
-<span id="cb3-53">  &lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">AManufacturingAndSellingContractorsNameOrANameEtc</span>&gt;</span>
-<span id="cb3-54">  &lt;<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PleaseSeeTechnicalManual</span>&gt;False&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">PleaseSeeTechnicalManual</span>&gt;</span>
-<span id="cb3-55">&lt;/<span class="kw" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">Mdevices</span>&gt;</span></code></pre></div></div>
-<p>これを<code>sample.xml</code>とします。人によってファイルへのパスは異なるかと思いますが、今回は<code>here::here("data/xml_sample/sample.xml</code>に格納されているとして進めます。</p>
-<p>一応サンプルファイルを以下からダウンロードできるようにしておきました。</p>
-<p><a href="../../../../../data/xml_sample/sample.zip" download="sample.zip">XMLファイル</a></p>
-</section>
-<section id="データの取得" class="level2">
-<h2 class="anchored" data-anchor-id="データの取得">データの取得</h2>
-<p>それでは早速XMLファイルを読み込んで、必要な情報を抽出したいと思います。</p>
-<p>抽出したい情報は、</p>
-<ul>
-<li><p>承認番号（<code>&lt;ApprovalAndLicenseNo&gt;</code>）</p></li>
-<li><p>一般名称（<code>&lt;PrimaryGeneralName&gt;</code>）</p></li>
-<li><p>日本医療機器名コード（<code>&lt;JMDNCode&gt;</code>）</p></li>
-</ul>
-<p>とします。他のタグについても同様の方法で取得できるので、一旦この3つに絞ります。</p>
-<p>まずはファイルを読み込みましょう。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># ファイルのパスは適宜変更</span></span>
-<span id="cb4-2">xml_sample <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_xml</span>(here<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/xml_sample/sample.xml"</span>))</span></code></pre></div></div>
-</div>
-<p>次に、タグを検索し、該当するものを引っ張ってきます。タグは上の括弧内で記したとおりです。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">xml_sample <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb5-2">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_all</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//*[local-name()='ApprovalAndLicenseNo']"</span>) <span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">|&gt;</span> </span>
-<span id="cb5-3">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>()</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] "99Z9Z99999999999"</code></pre>
-</div>
-</div>
-<p><code>xml_find_all()</code>はXML内の要素を探してくるための関数です。複数ヒットすればすべて返してきますが、<code>xml_find_first()</code>であれば最初の一つを返します。今回はタグは重複がないのでどちらでも同じ結果が返ってきます。</p>
-<p>ところで見慣れない書き方が出てきています。<code>//</code>も<code>local-name</code>などです。これらについて1つずつまとめます。</p>
-<ol type="1">
-<li><code>//</code>
-<ul>
-<li>これはXMLのタグがどの階層にあっても探す、ということです。</li>
-<li>特定の階層のみを探すこともできるのですが、今回は全体から探してきたいのでこれを使います。</li>
-</ul></li>
-<li><code>*</code>
-<ul>
-<li>これはワイルドカードと呼ばれ、どんな要素でも問わない、ということを示します。</li>
-<li>この後に条件を指定しているのですが、その条件を満たすあらゆる要素、ということを示すイメージです。</li>
-</ul></li>
-<li><code>[local-name()=]</code>
-<ul>
-<li>ここがややこしいのですが、XMLの冒頭2行目に<code>xmlns="http://info.pmda.go.jp/namespace/medical_devices/package_insert"</code>という表記があります。</li>
-<li>これがあるとこの後に出てくるタグはこれの後に続くことになる、ということを意味します。</li>
-<li>例：<code>http://info.pmda.go.jp/namespace/medical_devices/package_insert/ApprovalAndLicenseNo</code></li>
-<li>すなわち、一見<code>ApprovalAndLicenseNo</code>でヒットしそうですが、実際はこの例のように長い表記が正しいので、<code>ApprovalAndLicenseNo</code>単体だとヒットしません。</li>
-<li><code>xmlns</code>の部分を「名前空間」というのですが、名前空間がない場合でもこの書き方でヒットしますので、これを書いておけば間違いないといった感じです<sup>1</sup>。</li>
-</ul></li>
-</ol>
-<p>ややこしい書き方でしたが、これで注目しているタグを引っ張ってこれます。</p>
-<p>最後に<code>xml_text()</code>で、タグの中身のテキストを取得でき、今回であれば<code>99Z9Z99999999999</code>が表示できています。</p>
-<p>XMLファイルから情報を取得する方法については以上です。</p>
-</section>
-<section id="ファイルを巡回してデータフレームを作る" class="level2">
-<h2 class="anchored" data-anchor-id="ファイルを巡回してデータフレームを作る">ファイルを巡回してデータフレームを作る</h2>
-<p>複数のXMLファイルを巡回して、同じ要素を引っ張ってきたいことがありますよね。</p>
-<p>その方法についてもまとめます。今回はXMLファイルが2つ、<code>here::here("data/xml_sample")</code>内にあると仮定します。</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><span class="co" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;"># `tibble()`や`map_dfr()`のため</span></span>
-<span id="cb7-2"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">library</span>(tidyverse)</span>
-<span id="cb7-3"></span>
-<span id="cb7-4">xml_files <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">list.files</span>(here<span class="sc" style="color: #5E5E5E;
-background-color: null;
-font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">here</span>(<span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"data/xml_sample"</span>), <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">pattern =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"*.xml$"</span>, </span>
-<span id="cb7-5">                        <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">full.names =</span> <span class="cn" style="color: #8f5902;
-background-color: null;
-font-style: inherit;">TRUE</span>)</span>
-<span id="cb7-6"></span>
-<span id="cb7-7">extract_info <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="cf" style="color: #003B4F;
-background-color: null;
-font-weight: bold;
-font-style: inherit;">function</span>(fp) {</span>
-<span id="cb7-8">  doc <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">read_xml</span>(fp)</span>
-<span id="cb7-9">  </span>
-<span id="cb7-10">  <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">tibble</span>(</span>
-<span id="cb7-11">    承認番号 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_all</span>(doc, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//*[local-name()='ApprovalAndLicenseNo']"</span>)), </span>
-<span id="cb7-12">    一般名称 <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_all</span>(doc, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//*[local-name()='PrimaryGeneralName']"</span>)), </span>
-<span id="cb7-13">    日本医療機器名コード <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">=</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_text</span>(<span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">xml_find_all</span>(doc, <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"//*[local-name()='JMDNCode']"</span>))</span>
-<span id="cb7-14">  )</span>
-<span id="cb7-15">}</span>
-<span id="cb7-16"></span>
-<span id="cb7-17">df <span class="ot" style="color: #003B4F;
-background-color: null;
-font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">map_dfr</span>(xml_files, extract_info)</span>
-<span id="cb7-18"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">print</span>(df)</span></code></pre></div></div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 2 × 3
-  承認番号         一般名称          日本医療機器名コード
-  &lt;chr&gt;            &lt;chr&gt;             &lt;chr&gt;               
-1 99Z9Z99999999999 架空一般医療機器  99999999            
-2 88Y8Y88888888888 架空一般医療機器B 88888888            </code></pre>
-</div>
-</div>
-<p>ポイントをまとめます。</p>
-<ol type="1">
-<li><code>list.files()</code>でディレクトリ内のXMLファイルのファイル名（パス込み）を取得します。
-<ul>
-<li>ワイルドカード<code>*</code>が使われています。前が何であれ、<code>.xml</code>という条件にマッチする要素を取得するということです。</li>
-<li>また、<code>$</code>はそれで終わるということを指します。<code>.xml.csv</code>みたいに、<code>.xml</code>の後に別の要素が続くものは取得しないということです。</li>
-</ul></li>
-<li><code>function</code>で要素をデータフレームに入れる関数を作ります。
-<ul>
-<li><code>doc</code>に読み込んだXMLを格納し、そこからこれまでに見てきた方法で要素を抽出し、<code>tibble</code>（要はデータフレーム）の各列に格納します。</li>
-<li>パイプを使っていないので関数の出てくる順が先ほどと逆ですが、<code>doc |&gt; xml_find_all() |&gt; xml_text()</code>の流れと同じです。</li>
-</ul></li>
-<li><code>map_dfr()</code>で順番に処理しデータフレームを作成
-<ul>
-<li>そもそも<code>map()</code>関数はリストやベクトルに対して関数を適用するものです。</li>
-<li><code>map_dfr()</code>の<code>dfr</code>はdata frame row-bindの略で、<code>map()</code>の結果を行方向に結合することを指します。</li>
-<li>すなわち、各ファイルを読み込んで要素を抽出、1行3列（今回の場合）のデータフレームを作成し、それをどんどん下に結合していくというイメージです。</li>
-</ul></li>
-</ol>
-<p>ちなみに<code>for</code>ループでもできますが、そちらは今回は省略します。</p>
-</section>
-<section id="おわりに" class="level2">
-<h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p>今回はXMLファイルの扱い方について取り上げました。</p>
-<p>私は繰り返し処理までこれからやることになりそうなので、出番が増えそうです。</p>
-<p>ご参考になれば幸いです。</p>
-
-
-<!-- -->
-
-</section>
-
-
-<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document"><h2 class="anchored quarto-appendix-heading">注</h2>
-
-<ol>
-<li id="fn1"><p>名前空間がない場合は<code>//ApprovalAndLicenseNo</code>でもヒットします。↩︎</p></li>
-</ol>
-</section></div> ]]></description>
-  <category>R</category>
-  <category>データ処理</category>
-  <guid>https://yo5uke.com/pages/tips/2025/08/250826_xml/</guid>
-  <pubDate>Mon, 25 Aug 2025 15:00:00 GMT</pubDate>
-  <media:content url="https://yo5uke.com/pages/tips/2025/08/250826_xml/image/thumbnail.png" medium="image" type="image/png" height="97" width="144"/>
 </item>
 </channel>
 </rss>
