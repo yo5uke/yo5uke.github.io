@@ -1,19 +1,23 @@
 ---
-title: 【パッケージ開発】[fixes]{.fira-code}でイベントスタディを効率化
+title: 【パッケージ開発】[fixes]{.fira-code}でDiDを効率化
 description: |
-  バージョン0.7：バグを大幅に修正し、[plot_es_interactive()]{.fira-code}関数を追加しました。
+  バージョン0.11：honest_sensitivity()・run_did()・calc_att()の3関数を追加しました。
 date: 2025-05-25
-date-modified: 2025-11-02
+date-modified: 2026-05-30
 categories:
-- R
+  - R
 aliases:
-- /pages/tips/250525_fixes/index.html
+  - /pages/tips/250525_fixes/index.html
 ---
+
+[![CRAN status](https://www.r-pkg.org/badges/version/fixes)](https://CRAN.R-project.org/package=fixes) [![dev version](https://img.shields.io/github/r-package/v/yo5uke/fixes?label=dev%20version&color=blue)](https://github.com/yo5uke/fixes)
+[![R-CMD-check](https://github.com/yo5uke/fixes/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/yo5uke/fixes/actions/workflows/R-CMD-check.yaml)
+
 ## はじめに
 
-本ページでは、two-way fixed effects (TWFE)モデルのDifference-in-Differences (DiD)におけるイベントスタディを行うパッケージ、`fixes`について説明します。
+本ページでは、Difference-in-Differences (DiD)の推定とイベントスタディを行うパッケージ、`fixes`について説明します。
 
-僕が今年（2025年）の年始から地道に作成してきたパッケージで、初のパッケージ作成で試行錯誤、紆余曲折を経ながらアップデートを重ねてきました。
+2025年の年始から開発してきたパッケージで、試行錯誤を重ねながら現在はバージョン0.11.0になりました。
 
 :::{.callout-note}
 ## ご意見待ってます
@@ -21,22 +25,30 @@ aliases:
 実戦経験が足りないパッケージなので、挙動がおかしかったり、こういう機能にも対応してほしいということがあれば、ページ下のコメントからどしどしお寄せください。こぢんまりしたページなので、いただいたものは余裕で全部対応できると思います。
 :::
 
-これまでは処置個体において処置タイミングが同一のベーシックなイベントスタディにのみ対応していましたが、アップデートを経て**各個体で処置タイミングが異なる、いわゆるStaggered DiDにおけるイベントスタディにも対応しました**。
+バージョン0.8の最大の目玉は、Staggered DiDに対応する**3つの推定量の追加**です。バージョン0.9〜0.10ではさらに**2つの推定量が追加**されました。`run_es()`の`estimator`引数で選択できます。
 
-果たしてあらゆるケースに対応できているか、個人で開発しているパッケージとしては不安ではありますが、いくつかのデータセットでテストした分には問題なかったので、そのテストコードと併せて解説していきます。
+バージョン0.11では推定量の追加ではなく、**`honest_sensitivity()`・`run_did()`・`calc_att()`の3つの新関数**が追加されました。それぞれ平行トレンドへの感度分析、単一係数のDiD推定、ATT集計に対応します。
 
-## 使用するパッケージ
+| 推定量 | 引数 | データ | 参考文献 |
+|:-------|:-----|:-------|:---------|
+| Classic TWFE | `estimator = "twfe"` | Panel | — |
+| Callaway-Sant'Anna | `estimator = "cs"` | Panel | [Callaway & Sant'Anna (2021)](https://www.sciencedirect.com/science/article/abs/pii/S0304407620303948) |
+| Sun-Abraham | `estimator = "sa"` | Panel | [Sun & Abraham (2021)](https://www.sciencedirect.com/science/article/abs/pii/S030440762030378X) |
+| Borusyak-Jaravel-Spiess | `estimator = "bjs"` | Panel | [Borusyak, Jaravel & Spiess (2024)](https://academic.oup.com/restud/article-abstract/91/6/3253/7039921) |
+| Two-Way Mundlak | `estimator = "twm"` | Panel | [Wooldridge (2025)](https://doi.org/10.1007/s00181-025-02807-z) |
+| FLEX | `estimator = "flex"` | **繰り返しクロスセクション** | [Deb, Norton, Wooldridge & Zabel (2024)](https://www.nber.org/papers/w33026) |
 
-使用するのは`fixes`です。インストールは以下のコマンドでできます。
+加えて、Callaway-Sant'Anna推定量に対して**bootstrap simultaneous confidence bands**にも対応しています。
+
+## インストール
+
+CRANからインストールできます。
 
 ``` r
 install.packages("fixes")
-
-# or
-# pak::pak("fixes")
 ```
 
-です。開発版はGitHubからインストールできます。
+開発版はGitHubからインストールできます。
 
 ``` r
 # install.packages("pak")
@@ -45,123 +57,50 @@ pak::pak("yo5uke/fixes")
 
 ## 準備
 
-パッケージを読み込んで、デモに使うデータを準備します。
+パッケージを読み込みます。
 
 ```{r}
 library(fixes)
-library(tidyverse)
+library(fixest)
+library(dplyr)
 ```
 
-データは`fixest`パッケージで用意されている`base_did`および`base_stagg`と、Mixtapeの[Staggered DiDの章](https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of)で使用されている`castle`を使います。
+使用するデータは`fixest`パッケージの`base_did`と`base_stagg`です。
 
-`df_castle`に関しては、Mixtape内で行われている処理をし、変数を使用するものに絞っておきます^[参考：[Mixtape](https://mixtape.scunning.com/09-difference_in_differences#replicating-cheng2013-sort-of)]。
-
-また、少し後で述べる通り、never-treatedユニットの扱いに注意しながら、`year_treated`と`time_to_treatment`を作成しておきます。
+`base_stagg`はStaggered DiDのデモ用データですが、never-treated（処置を受けないユニット）の`year_treated`が`10000`になっています。バージョン0.8からはnever-treatedを`NA`で指定できるようになったので、変換しておきます。
 
 ```{r}
-library(fixest)
-
-castle <- haven::read_dta(
-  "https://github.com/scunning1975/mixtape/raw/master/castle.dta"
-)
-
-# 以下Mixtape参考
-# fmt: skip
-dropped_vars <- c(
-  "r20004", "r20014", "r20024", "r20034", "r20044", "r20054", "r20064",
-  "r20074", "r20084", "r20094", "r20101", "r20102", "r20103", "r20104",
-  "trend_9", "trend_46", "trend_49", "trend_50", "trend_51"
-)
-
-region <- castle |>
-  select(starts_with("r20")) |>
-  names() |>
-  setdiff(dropped_vars)
-
-df_castle <- castle |>
-  select(state, sid, year, treatment_date, l_homicide, all_of(region), popwt) |>
-  mutate(
-    is_treated = if_else(!is.na(treatment_date), 1, 0),
-    year_treated = if_else(is_treated == 1, treatment_date, 10000L),
-    time_to_treatment = if_else(is_treated == 1, year - treatment_date, -1000L)
-  )
+df_stagg <- base_stagg |>
+  mutate(timing = if_else(year_treated == 10000, NA_real_, year_treated))
 ```
-
-各データフレームは以下のような感じになっています。先頭の15行を見てみましょう。
 
 ::: {.panel-tabset}
 ## base_did
 
 ```{r}
 #| echo: false
-tinytable::tt(head(base_did, n = 15))
+tinytable::tt(head(base_did, n = 10))
 ```
 
-## base_stagg
+## df_stagg
 
 ```{r}
 #| echo: false
-tinytable::tt(head(base_stagg, n = 15))
-```
-
-## df_castle
-
-```{r}
-#| echo: false
-tinytable::tt(head(df_castle, n = 15))
+tinytable::tt(head(df_stagg, n = 10))
 ```
 :::
 
-`base_stagg`に関して、`year_treated`が10000、`time_to_treatment`が-1000となっているユニットがありますが、これは**処置を受けないユニット（never-treated）**を示しています。
-
-fixesが内部的に使用している`fixest::sunab()`関数は、`year_treated`にデータの`year`の範囲外にある大きな値（ここでは10000）を設定することで、これらを自動的にnever-treatedとして認識し、**参照グループ（対照群）**として扱います。`time_to_treatment`にも同様に極端に小さい負の値（-1000）を設定しています。
-
-これは、Staggered DIDにおいてnever-treatedのユニットの値を`NA`にしてしまうと、推定から完全に除外されてしまい、処置群と比較する対照群が失われてしまうためです。Never-treatedは処置効果を識別するための重要な比較対象なので、データに含める必要があります。
-
-```{r}
-# never-treatedの確認
-base_stagg |> 
-  filter(year_treated == 10000) |> 
-  select(id, year, year_treated, time_to_treatment, treated) |> 
-  head()
-```
-
-:::{.callout-tip}
-## Never-treatedユニットの扱いについて
-
-Staggered DIDのデータセットをご自分で用意される場合も、never-treatedのユニットには同様の処理が必要です：
-
-``` r
-# 例：処置年がNAのユニットをnever-treatedとして設定
-df <- df |> 
-  mutate(
-    year_treated = if_else(
-      is.na(year_treated),
-      max(year, na.rm = TRUE) + 1000,  # または10000など
-      year_treated
-    ),
-    time_to_treatment = if_else(
-      year_treated > max(year),  # never-treatedの条件
-      -1000,
-      year - year_treated
-    )
-  )
-```
-
-**ポイント**：`year_treated`はデータの時間範囲外の大きな値（例：10000）、`time_to_treatment`は極端に小さい負の値（例：-1000）を設定します。これにより、fixesの内部処理（fixest）が適切にnever-treatedを認識します。
-:::
+`df_stagg`の`timing`列はコホート（各ユニットの処置開始年）を示し、never-treatedのユニットは`NA`になっています。
 
 ## `run_es()`
 
-基本的な使い方と一緒にパッケージについて説明していきます。関数はイベントスタディを実行する`run_es()`関数とイベントスタディをggplotベースでプロットする`plot_es()`です。
-
-ひとまず、`run_es()`の基本的な引数を説明します。
+`run_es()`はイベントスタディを推定する関数です。主な引数は以下の通りです。
 
 ``` r
 run_es(
   data,
   outcome,
-  treatment,
+  treatment = NULL,
   time,
   timing,
   fe = NULL,
@@ -175,131 +114,292 @@ run_es(
   time_transform = FALSE,
   unit = NULL,
   staggered = FALSE,
-  method = c("classic", "sunab"),
+  estimator = c("twfe", "cs", "sa", "bjs", "twm", "flex"),
+  control_group = "nevertreated",
+  anticipation = 0L,
   conf.level = 0.95,
   vcov = "HC1",
-  vcov_args = list()
+  vcov_args = list(),
+  bootstrap = FALSE,
+  B = 999L,
+  boot_seed = NULL,
+  group = NULL,
+  trends = FALSE
 )
 ```
 
 | 引数 | 説明 |
 |:-----|:-----|
 | `data` | パネルデータを含むデータフレーム |
-| `outcome` | 結果変数（変数名または式、例：`log(y)`のように記述） |
-| `treatment` | 処置変数（0/1または論理値）。`method = "classic"`の場合のみ使用 |
+| `outcome` | 結果変数（変数名または式、例：`log(y)`） |
+| `treatment` | 処置変数（0/1または論理値）。`estimator = "twfe"`の場合のみ使用 |
 | `time` | 時間変数（数値型またはDate型） |
-| `timing` | classicの場合：処置タイミング（全ユニット共通の数値/Dateまたは`staggered = TRUE`時は変数名）。sunabの場合：処置採用時点を示す変数 |
-| `fe` | 固定効果の指定（片側式、例：`~ id + year`）。固定効果なしの場合は`NULL` |
-| `lead_range`, `lag_range` | 処置前後の期間範囲を指定する整数。`NULL`の場合は自動決定 |
-| `covariates` | 追加の共変量（片側式、例：`~ x1 + log(x2)`） |
-| `cluster` | クラスター指定（片側式`~ id + year`、列名の文字列、または`nrow(data)`の長さのベクトル） |
-| `weights` | 観測ウェイト（変数名/片側式または`nrow(data)`の長さの数値ベクトル） |
-| `baseline` | ベースライン期間（デフォルト：-1）。"classic"と"sunab"の両方で、参照期間として結果から除外される |
-| `interval` | 時間変数の間隔（デフォルト：1。Date型の場合は内部で無視される） |
-| `time_transform` | `TRUE`の場合、ユニット内で連続した整数時間を作成 |
-| `unit` | ユニット識別変数（`time_transform = TRUE`の場合は必須。指定時はメタデータにも使用） |
-| `staggered` | `TRUE`の場合、timing変数を使用（classicの場合）またはsunabで利用 |
-| `method` | `"classic"`または`"sunab"`を指定（デフォルト：`"classic"`） |
-| `conf.level` | 信頼水準（デフォルト：0.95）。数値ベクトルで複数指定可能 |
-| `vcov` | 分散共分散行列の種類。`fixest::vcov()`または`broom::tidy(vcov = ...)`に渡される（デフォルト：`"HC1"`） |
-| `vcov_args` | `fixest::vcov()`に渡す追加引数のリスト |
+| `timing` | TWFEの場合：全ユニット共通の数値/Date（`staggered = TRUE`なら変数名）。その他の推定量：各ユニットの処置開始時点を示す変数（never-treatedは`NA`） |
+| `fe` | 固定効果の指定（片側式、例：`~ id + year`）。`estimator = "cs"`の場合は無視 |
+| `lead_range`, `lag_range` | 処置前後の期間範囲。`NULL`の場合は自動決定 |
+| `covariates` | 追加の共変量（片側式、例：`~ x1 + log(x2)`）。`estimator = "twm"`, `"flex"`では共変量インタラクションを自動構築 |
+| `cluster` | クラスター指定（片側式`~ id`、列名の文字列、またはベクトル） |
+| `weights` | 観測ウェイト（変数名/片側式または数値ベクトル） |
+| `baseline` | ベースライン期間（デフォルト：-1）。参照期間として結果から除外 |
+| `unit` | ユニット識別変数。`estimator = "cs"`, `"sa"`, `"bjs"`, `"twm"`では必須 |
+| `staggered` | `TRUE`の場合、`timing`変数を使用（TWFE・SAの場合） |
+| `estimator` | 推定量の選択（`"twfe"`, `"cs"`, `"sa"`, `"bjs"`, `"twm"`, `"flex"`） |
+| `control_group` | CSの場合の対照群。`"nevertreated"`（デフォルト）または`"notyettreated"` |
+| `anticipation` | CSの場合の予期的処置効果の期間数（デフォルト：0） |
+| `conf.level` | 信頼水準（デフォルト：0.95）。ベクトルで複数指定可能 |
+| `vcov` | 分散共分散行列の種類（デフォルト：`"HC1"`） |
+| `bootstrap` | `TRUE`の場合、simultaneous confidence bandsを計算（`estimator = "cs"`のみ） |
+| `B` | ブートストラップの反復回数（デフォルト：999） |
+| `boot_seed` | ブートストラップの乱数シード（再現性のため） |
+| `group` | `estimator = "flex"`専用。繰り返し横断面データの処置グループ識別変数（$R_{ig}$） |
+| `trends` | `estimator = "twm"`専用。`TRUE`の場合、コホート別線形トレンドを追加（Wooldridge 2025 Section 8）。各コホート2期以上の処置前期間が必要 |
 : {tbl-colwidths="[25,75]"}
 
-文字で見てもわかりにくいと思うので、読み込んだデータを使って関数を回してみましょう。
+### Classic TWFE {#sec-twfe}
 
-### 通常のDiDにおけるイベントスタディ {#sec-basic-es}
+処置タイミングが全ユニットで共通の場合は`estimator = "twfe"`（デフォルト）を使います。`base_did`では全ユニットが6期目に処置されます。
 
 ```{r}
-es <- run_es(
+es_twfe <- run_es(
   data = base_did,
   outcome = y,
   treatment = treat,
   time = period,
   timing = 6,
-  fe = ~ id + period
+  fe = ~ id + period,
+  cluster = ~id
 )
 ```
 
-基本的なケースであればこれくらいの指定で済みます。プロットは後のセクションでまとめて載せます。
-
-### Staggered DiD 1
+`print()`で推定の概要を確認できます。
 
 ```{r}
-es_stagg1 <- run_es(
-  data = base_stagg,
+print(es_twfe)
+```
+
+### Staggered DiD
+
+Staggered DiDでは`staggered = TRUE`を指定し、`unit`でユニット識別変数を指定します。3つの推定量を試してみます。
+
+#### Sun-Abraham（`estimator = "sa"`）
+
+```{r}
+es_sa <- run_es(
+  data = df_stagg,
   outcome = y,
   treatment = treated,
   time = year,
-  timing = year_treated,
+  timing = timing,
+  unit = id,
   fe = ~ id + year,
   staggered = TRUE,
-  method = "sunab"
+  estimator = "sa",
+  cluster = ~id
 )
 ```
 
-[先ほど](#sec-basic-es)と違う点は、`staggered`がTRUE、`method`が"sunab"、`timing`が具体的な数値ではなく、処置年を示す変数を指定しているところです。
+コホート×相対時間のインタラクション項をコホートシェアで集計する手法です。内部では`fixest::sunab()`と数値的に同一の結果を返します。
 
-"sunab"は[Sun and Abraham (2021)](https://www.sciencedirect.com/science/article/abs/pii/S030440762030378X)で提唱されている方法を指し、Staggered DiDにおけるイベントスタディで有用です。裏では`fixest::sunab()`関数を使っています。
-
-### Staggered DiD 2
+#### Callaway-Sant'Anna（`estimator = "cs"`）
 
 ```{r}
-# 共変量の変数を式の形にしておく
-covariates <- as.formula(paste("~", paste(region, collapse = "+")))
-
-es_stagg2 <- run_es(
-  data = df_castle,
-  outcome = l_homicide,
-  treatment = is_treated,
+es_cs <- run_es(
+  data = df_stagg,
+  outcome = y,
   time = year,
-  timing = year_treated,
-  fe = ~ state + year,
-  covariates = covariates,
-  cluster = ~ sid,
-  weights = ~ popwt,
-  baseline = 0,
+  timing = timing,
+  unit = id,
   staggered = TRUE,
-  vcov = "cluster"
+  estimator = "cs",
+  control_group = "nevertreated"
 )
 ```
 
-今回の例は共変量が多いので事前に`as.formula()`を使って処理してしまっていますが、関数内で`covariates = ~ cov1 + cov2`のような指定の仕方で問題ありません。
+グループ時間ATT（$\text{ATT}(g,t)$）を計算し、集計する手法です。`treatment`引数は不要で、`timing`に`NA`を使うことでnever-treatedを指定します。`control_group`で対照群を`"nevertreated"`か`"notyettreated"`から選べます。
 
-また、ここでは`vcov`も"cluster"に指定して、`sid`でクラスタリングした標準誤差を計算しています。`vcov`については、`?fixest::feols()`で詳細を確認できます。
+:::{.callout-tip}
+## CSの特徴
+
+CSは他の推定量と異なり、`fe`引数を使いません（内部で適切に対処されます）。また、`timing`の`NA`を直接 never-treated として認識するので、10000などのダミー値は不要です。
+:::
+
+#### Borusyak-Jaravel-Spiess（`estimator = "bjs"`）
+
+```{r}
+es_bjs <- run_es(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  unit = id,
+  staggered = TRUE,
+  estimator = "bjs"
+)
+```
+
+インピュテーション推定量です。未処置観測値（never-treated + not-yet-treated）だけでTWFEを推定し、処置観測値の反事実結果をインピュートして処置効果を計算します。
+
+#### Two-Way Mundlak（`estimator = "twm"`）
+
+```{r}
+es_twm <- run_es(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  unit = id,
+  fe = ~ id + year,
+  staggered = TRUE,
+  estimator = "twm",
+  cluster = ~id
+)
+```
+
+Wooldridge (2025) による Two-Way Mundlak (TWM) 推定量です。コホート×カレンダー時間の処置セルインジケーターをコホートシェアで集計します。共変量なし・トレンドなしの場合は`estimator = "sa"`と代数的に同一です。
+
+`trends = TRUE`を指定すると、コホート別の線形トレンド項を追加してコホートごとに異なる時間トレンドを補正できます（各コホートに2期以上の処置前期間が必要）。
+
+```{r}
+es_twm_trends <- run_es(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  unit = id,
+  fe = ~ id + year,
+  staggered = TRUE,
+  estimator = "twm",
+  trends = TRUE,
+  cluster = ~id
+)
+```
+
+:::{.callout-note}
+## `trends = TRUE`の出力について
+
+`trends = TRUE`の場合、コホート別トレンドを用いた反事実を構築するため、pre-trendのテストは別途`trends = FALSE`のモデルで行う必要があります。出力には`relative_time >= 0`のみ含まれます。
+:::
+
+### Repeated Cross-Section (RCS) データ
+
+パネルデータではなく**繰り返し横断面 (Repeated Cross-Section, RCS)** データでのDiDには`estimator = "flex"`を使います。
+
+`fixest`パッケージには適切なRCSのデモデータがないため、`base_stagg`を用いた擬似的な例を示します。
+
+#### FLEX（`estimator = "flex"`）
+
+```{r}
+# RCSを想定：unit固定効果の代わりにgroup識別変数を使用
+es_flex <- run_es(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  estimator = "flex",
+  group = id
+)
+```
+
+Deb, Norton, Wooldridge & Zabel (2024) による FLEX (Flexible Linear Model) 推定量です。ユニット固定効果の代わりにグループ固定効果（コホート固定効果）を使い、同一個人を繰り返し観察できないRCSデータに対応します。
+
+`group`引数で各観測の処置グループ（コホート）を識別する変数を指定します。グループ固定効果 $\alpha_g$ と時間固定効果 $\lambda_t$ を含むOLSにより推定します。デフォルトのクラスターはグループ単位です。
+
+:::{.callout-tip}
+## FLEXの適用場面
+
+FLEXはパネルデータにも適用できますが、本来はRCSデータ（例：毎期異なるサンプルを調査するアンケートデータ）向けです。パネルデータであれば`estimator = "twm"`や`"bjs"`の方が情報を有効活用できます。
+:::
+
+## Bootstrap Simultaneous Confidence Bands
+
+通常のポイントワイズ信頼区間は各期間ごとに誤差率をコントロールします。イベントスタディでは多数の期間の係数を同時に表示するため、「少なくとも1つの区間が誤って0を外す確率」は名目水準よりも高くなります。
+
+**Simultaneous confidence bands**（Callaway & Sant'Anna 2021）はすべての期間の係数が同時に帯に含まれる確率を $1-\alpha$ 以上に保証します。
+
+`bootstrap = TRUE`で利用できます（`estimator = "cs"`のみ）。
+
+```{r}
+es_cs_boot <- run_es(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  unit = id,
+  staggered = TRUE,
+  estimator = "cs",
+  control_group = "nevertreated",
+  bootstrap = TRUE,
+  B = 999,
+  boot_seed = 42
+)
+```
+
+`boot_seed`を設定しておくと結果を再現できます。
 
 ## `plot_es()`
 
-こだわりがなければ、`plot_es(es)`の程度の書き方でプロットを出力することができます。引数の説明は後に回して、一旦先ほどのイベントスタディの結果をプロットしてみましょう。
+基本的には`plot_es(es_twfe)`の書き方でプロットを出力できます。
 
-### 通常のDiDにおけるイベントスタディ
-
-```{r}
-plot_es(es)
-```
-
-後の2つもそうですが、ベースラインがデフォルトのままなので、処置前年（-1）が抜けて値が0をとっています。
-
-### Staggered DiD 1
+### 通常のDiD（TWFE）
 
 ```{r}
-plot_es(es_stagg1)
+plot_es(es_twfe)
 ```
 
-### Staggered DiD 2
+### Staggered DiD 推定量の比較
+
+::: {.panel-tabset}
+## Sun-Abraham
 
 ```{r}
-plot_es(es_stagg2)
+plot_es(es_sa)
 ```
 
-Staggeredの方もいい感じにプロットできています。この図はMixtape内でlead変数とlag変数を手作業で作って実装しプロットされていますが、[その図](https://mixtape.scunning.com/09-difference_in_differences#fig-event-cheng2)と見比べても同じ推移が示されていることがわかります。
+## Callaway-Sant'Anna
+
+```{r}
+plot_es(es_cs)
+```
+
+## Borusyak-Jaravel-Spiess
+
+```{r}
+plot_es(es_bjs)
+```
+
+## Two-Way Mundlak
+
+```{r}
+plot_es(es_twm)
+```
+
+## TWM（トレンド補正）
+
+```{r}
+plot_es(es_twm_trends)
+```
+
+## FLEX
+
+```{r}
+plot_es(es_flex)
+```
+:::
+
+### Simultaneous confidence bandsの表示
+
+`show_simultaneous = TRUE`でbootstrap simultaneous confidence bandsをポイントワイズ信頼区間に重ねて表示できます。濃い帯がポイントワイズ、薄い帯がsimultaneous confidence bandsです。
+
+```{r}
+plot_es(es_cs_boot, show_simultaneous = TRUE)
+```
 
 ### 使い方
-
-基本的には上の使い方で十分ですが、ggplotベースで作ったこともあり、柔軟な対応も可能です。
 
 ``` r
 plot_es(
   data,
+  ci_level = 0.95,
   type = "ribbon",
   vline_val = 0,
   vline_color = "#000",
@@ -310,85 +410,352 @@ plot_es(
   alpha = 0.2,
   barwidth = 0.2,
   color = "#B25D91FF",
-  fill = "#B25D91FF"
+  fill = "#B25D91FF",
+  theme_style = "bw",
+  show_simultaneous = FALSE
 )
 ```
 
-- `data`：`run_es()`で作成した結果のデータフレーム
+- `ci_level`：表示する信頼水準（デフォルト：0.95）
 - `type`：`ribbon`と`errorbar`が指定可能
-- `vline_val`：縦の破線の位置（デフォルトは0）
-- `vline_color`：縦の破線の色（デフォルトは`#000`（黒））
-- `hline_val`：横の破線の位置（デフォルトは0）
-- `hline_color`：縦の破線の色（デフォルトは`#000`（黒））
-- `linewidth`：折れ線の太さ（デフォルトは1）
-- `pointsize`：点の大きさ（デフォルトは2）
-- `alpha`：リボンの透明度（デフォルトは0.2）
-- `color`：線と点の色（デフォルトは`#B25D91FF`（ピンク））
-- `fill`リボンの色（デフォルトは`#B25D91FF`（ピンク））
+- `vline_val`・`hline_val`：縦・横の破線の位置
+- `vline_color`・`hline_color`：縦・横の破線の色
+- `linewidth`・`pointsize`：折れ線の太さ・点の大きさ
+- `alpha`：リボンの透明度
+- `color`・`fill`：線・点・リボンの色
+- `theme_style`：`"bw"`、`"minimal"`、`"classic"`から選択
+- `show_simultaneous`：simultaneous confidence bandsを重ねて表示（`bootstrap = TRUE`の結果が必要）
 
----
-
-`plot_es()`関数内でもある程度自由度をもって設定できます。  
-例えばプロットをエラーバーのタイプにしてみましょう。
+エラーバーに変えてみます。
 
 ```{r}
-plot_es(es_stagg2, type = "errorbar")
+plot_es(es_twfe, type = "errorbar")
 ```
 
-さらに色も変えてみます。
+色やテーマも変えられます。
 
 ```{r}
-plot_es(es_stagg2, type = "errorbar", color = "#000")
+plot_es(es_twfe, type = "errorbar", color = "#000", theme_style = "minimal")
 ```
 
-リボンタイプとエラーバータイプがあり、さらにそこからある程度の自由度もある点が他のパッケージに対する優位性にもなっています。
-
-ちなみに、ggplotベースということで、**ggplotの関数をつなげることも可能です**！
+ggplotベースなのでggplotの関数をつなげることも可能です。
 
 ```{r}
-plot_es(es_stagg2, type = "errorbar", color = "#000") +
-  geom_hline(yintercept = .08, color = "red") +
-  annotate(
-    "text",
-    x = 3,
-    y = -.1,
-    label = "DD Coefficient = 0.08\n(s.e. = 0.03)"
-  )
+library(ggplot2)
+
+plot_es(es_twfe) +
+  labs(title = "Event Study: Classic TWFE")
 ```
 
-Mixtape風に係数を示す水平線と注釈を追加してみました。このようにどんどん要素を追加していくことができます。
+## `plot_att_gt()`
+
+CSの推定結果には、コホート×カレンダー時間の全$\text{ATT}(g,t)$行列が含まれています。`plot_att_gt()`でこの行列全体を可視化できます。
+
+### ヒートマップ
+
+```{r}
+plot_att_gt(es_cs)
+```
+
+横軸がカレンダー時間 $t$、縦軸がコホート $g$（処置開始年）で、セルの色が$\text{ATT}(g,t)$の推定値を示します。ポイントワイズ信頼区間が0を除外するセルには黒点（●）が付きます。
+
+### コホート別時系列
+
+```{r}
+plot_att_gt(es_cs, type = "facet")
+```
+
+各コホートについて、カレンダー時間に沿った$\text{ATT}(g,t)$の推移をパネル表示します。
+
+### ブートストラップ結果との組み合わせ
+
+`bootstrap = TRUE`で推定した結果では、ヒートマップにsimultaneously significantなセルのダイヤモンドマーカー（◇）が追加されます。
+
+```{r}
+plot_att_gt(es_cs_boot)
+```
+
+```{r}
+plot_att_gt(es_cs_boot, type = "facet")
+```
 
 ## `plot_es_interactive()`
 
-`plot_es()`で作成したプロットをインタラクティブにする関数も用意しています。`plot_es_interactive()`です。
-
-この関数で表示したプロットは、マウスオーバーで各点の推定値と信頼区間が表示されたり、ズームイン・ズームアウトができたりします。
-
-論文に載せるための関数ではないものの、結果の確認やコミュニケーションの際に便利かと思います。
+`plot_es_interactive()`でインタラクティブなプロットを作成できます。マウスオーバーで推定値・信頼区間・標準誤差・p値が表示されます。論文用ではないですが、結果の確認やプレゼンの場で便利です。
 
 ```{r}
-plot_es_interactive(es_stagg2)
+plot_es_interactive(es_cs)
 ```
 
-マウスオーバーすると値が表示されます。
+こちらも`show_simultaneous = TRUE`でsimultaneous confidence bandsを重ねて表示できます。
 
-こちらも`plot_es()`と同様に、引数で色や線の太さなどを指定できますので、いろいろ試してみてください。
+```{r}
+plot_es_interactive(es_cs_boot, show_simultaneous = TRUE)
+```
+
+## `run_did()`
+
+`run_did()`はイベントスタディではなく、**単一の処置効果係数**を返す classic TWFE DiD 推定関数です。`run_es()`と同じ NSE 記法で書けます。
+
+処置変数の指定方法は2通りあります。
+
+**Option A — 事前に $D_{it}$ を構築する方法：**
+
+``` r
+# D_it = 処置グループ × 処置後期間
+base_did$D <- as.integer(base_did$treat & base_did$period >= 6)
+
+res_did <- run_did(
+  base_did,
+  outcome    = y,
+  treatment  = D,
+  fe         = ~ id + period,
+  cluster    = ~id
+)
+
+print(res_did)
+```
+
+**Option B — `timing`を使って自動で $D_{it}$ を構築する方法：**
+
+```{r}
+res_did <- run_did(
+  base_did,
+  outcome = y,
+  treatment = treat, # 処置グループ識別変数（0/1）
+  time = period,
+  timing = 6, # 処置開始時点
+  fe = ~ id + period,
+  cluster = ~id
+)
+
+print(res_did)
+```
+
+`broom`・`modelsummary`との互換性があります。
+
+``` r
+broom::tidy(res_did)
+broom::glance(res_did)
+modelsummary::modelsummary(res_did)
+```
+
+### 使い方
+
+``` r
+run_did(
+  data,
+  outcome,
+  treatment,
+  timing     = NULL,
+  fe         = NULL,
+  unit       = NULL,
+  time       = NULL,
+  covariates = NULL,
+  cluster    = NULL,
+  weights    = NULL,
+  conf.level = 0.95,
+  vcov       = "HC1",
+  vcov_args  = list()
+)
+```
+
+| 引数 | 説明 |
+|:-----|:-----|
+| `data` | パネルデータを含むデータフレーム |
+| `outcome` | 結果変数（変数名または式、例：`log(y)`） |
+| `treatment` | 処置変数。`timing = NULL`（デフォルト）の場合は事前構築済みの $D_{it}$（0/1）。`timing`を指定する場合は処置グループ識別変数（ユニット固定の0/1）。 |
+| `timing` | 処置開始時点（スカラー数値）。指定すると`treatment × (time >= timing)`で $D_{it}$ を自動構築。`time`の指定も必要。 |
+| `fe` | 固定効果の指定（片側式）。`NULL`かつ`unit`・`time`が両方指定されている場合は`~ unit + time`を自動推定 |
+| `unit` | ユニット識別変数（メタデータ用・`fe`自動推定用） |
+| `time` | 時間変数。`timing`指定時の $D_{it}$ 構築にも使用 |
+| `covariates` | 追加の共変量（片側式） |
+| `cluster` | クラスター指定（片側式・文字列・数値ベクトル） |
+| `weights` | 観測ウェイト |
+| `conf.level` | 信頼水準（デフォルト：0.95）。ベクトルで複数指定可能 |
+| `vcov` | 分散共分散行列の種類（デフォルト：`"HC1"`） |
+: {tbl-colwidths="[25,75]"}
+
+## `calc_att()`
+
+`calc_att()`は**ATT（処置を受けた者の平均処置効果）を集計**する関数です。`run_es()`が相対時間ごとのダイナミックな効果を返すのに対し、`calc_att()`はそれを集計した単一（またはコホート・カレンダー時間別）の推定値を返します。
+
+対応推定量は`"cs"`（Callaway-Sant'Anna 2021）と`"bjs"`（Borusyak et al. 2024）です。
+
+```{r}
+# Overall ATT（全(g,t)ペアの加重平均）
+att_simple <- calc_att(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  unit = id,
+  estimator = "cs",
+  aggregation = "simple"
+)
+
+print(att_simple)
+```
+
+```{r}
+# コホート別 ATT
+att_cohort <- calc_att(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  unit = id,
+  estimator = "cs",
+  aggregation = "by_cohort"
+)
+
+print(att_cohort)
+```
+
+```{r}
+# カレンダー時間別 ATT
+att_time <- calc_att(
+  data = df_stagg,
+  outcome = y,
+  time = year,
+  timing = timing,
+  unit = id,
+  estimator = "cs",
+  aggregation = "by_time"
+)
+
+print(att_time)
+```
+
+### 使い方
+
+``` r
+calc_att(
+  data,
+  outcome,
+  time,
+  timing,
+  unit,
+  estimator     = c("cs", "bjs"),
+  aggregation   = c("simple", "by_cohort", "by_time"),
+  control_group = "nevertreated",
+  anticipation  = 0L,
+  conf.level    = 0.95
+)
+```
+
+| 引数 | 説明 |
+|:-----|:-----|
+| `data` | パネルデータを含むデータフレーム |
+| `outcome` | 結果変数 |
+| `time` | 時間変数 |
+| `timing` | 各ユニットの処置開始時点を示す変数（never-treatedは`NA`） |
+| `unit` | ユニット識別変数（必須） |
+| `estimator` | `"cs"`（Callaway-Sant'Anna 2021）または`"bjs"`（Borusyak et al. 2024） |
+| `aggregation` | `"simple"`（全体ATT、デフォルト）、`"by_cohort"`（コホート別）、`"by_time"`（カレンダー時間別） |
+| `control_group` | CSの場合の対照群。`"nevertreated"`（デフォルト）または`"notyettreated"` |
+| `anticipation` | CSの場合の予期的処置効果の期間数（デフォルト：0） |
+| `conf.level` | 信頼水準（デフォルト：0.95）。ベクトルで複数指定可能 |
+: {tbl-colwidths="[25,75]"}
+
+:::{.callout-note}
+## `calc_att()`のSEについて
+
+CS推定量のSEはコホート間独立を仮定した解析的SEs（`did::aggte()`は影響関数ベースの分散を用いるため、`calc_att()`のSEは系統的に小さくなります）。BJS推定量のSEは $\hat{\tau}_{it}$ のナイーブな標本標準誤差です。クラスター頑健SEs（BJS）は将来バージョンで対応予定です。
+:::
+
+## `honest_sensitivity()`
+
+`honest_sensitivity()`は**平行トレンド仮定が厳密に成立しない場合への感度分析**を行う関数です（Rambachan & Roth 2023）。処置後効果の推定において、トレンドの差（差分バイアス）がどの程度の大きさまで許容できるかを評価し、処置効果の**頑健な信頼集合**（robust confidence set）を返します。
+
+:::{.callout-important}
+## 必要なパッケージ
+
+`honest_sensitivity()`の実行には以下のパッケージが必要です（`Suggests`のため別途インストール要）：
+
+``` r
+install.packages(c("lpSolveAPI", "Rglpk", "TruncatedNormal", "Matrix", "pracma"))
+```
+:::
+
+現時点では`estimator = "twfe"`（classic または`method = "sunab"`）の`run_es()`結果に対応しています。
+
+```{r}
+# 1. TWFEでイベントスタディを推定
+es_twfe_h <- run_es(
+  data = base_did,
+  outcome = y,
+  treatment = treat,
+  time = period,
+  timing = 6,
+  fe = ~ id + period,
+  cluster = ~id
+)
+
+# 2. 感度分析：Relative Magnitude（デフォルト）
+h_rm <- honest_sensitivity(
+  es_twfe_h,
+  type = "relative_magnitude",
+  Mvec = c(0, 0.5, 1, 1.5, 2)
+)
+
+plot_honest(h_rm)
+```
+
+```{r}
+# Smoothnessによる感度分析
+h_sd <- honest_sensitivity(
+  es_twfe_h,
+  type = "smoothness",
+  Mvec = c(0, 0.5, 1, 1.5, 2)
+)
+
+plot_honest(h_sd)
+```
+
+`print()`でbreakdown value（処置効果が有意でなくなる最大のトレンド制約の大きさ）を確認できます。
+
+```{r}
+print(h_rm)
+```
+
+### 感度分析の考え方
+
+`honest_sensitivity()`は Rambachan & Roth (2023) の手法に基づき、処置前後の係数ベクトル $\hat{\beta}$ とその共分散行列 $\hat{\Sigma}$ から出発します。差分バイアス $\delta$ が特定の制約集合 $\Delta$ に属すると仮定し、Andrews-Roth-Pakes (2023) の条件付モーメント不等式検定を用いて、$1-\alpha$ の一様妥当性を持つ頑健な信頼集合を構築します。
+
+制約ファミリーは2種類あります：
+
+- **`"relative_magnitude"`**（デフォルト）：$\Delta^{RM}(\bar{M})$。処置後の第2差分の大きさが、処置前の第1差分の最大値の $\bar{M}$ 倍以下に制約。
+- **`"smoothness"`**：$\Delta^{SD}(M)$。連続する差分の変化幅が $M$ 以下に制約（トレンドの滑らかさを仮定）。
+
+### 使い方
+
+``` r
+honest_sensitivity(
+  object        = NULL,   # run_es()のes_result
+  type          = c("relative_magnitude", "smoothness"),
+  Mvec          = NULL,   # 制約パラメータのベクトル
+  l_vec         = NULL,   # 処置後期間への線形重みベクトル（デフォルト：最初の処置後期間のみ）
+  alpha         = 0.05,
+  gridPoints    = 1000L,
+  betahat       = NULL,   # オプション：係数ベクトルを直接渡す
+  sigma         = NULL    # オプション：共分散行列を直接渡す
+)
+```
+
+| 引数 | 説明 |
+|:-----|:-----|
+| `object` | `run_es()`の`es_result`（`estimator = "twfe"`） |
+| `type` | 制約ファミリー：`"relative_magnitude"`（デフォルト）または`"smoothness"` |
+| `Mvec` | 制約パラメータ $\bar{M}$（または $M$）のグリッド。`NULL`の場合は自動設定 |
+| `l_vec` | 処置後効果への線形重みベクトル。`NULL`の場合は最初の処置後期間の係数を対象 |
+| `alpha` | 有意水準（デフォルト：0.05） |
+| `gridPoints` | 検定反転のグリッド点数（デフォルト：1000） |
+| `betahat`, `sigma` | `object`の代わりに係数ベクトル・共分散行列を直接渡す場合に使用 |
+: {tbl-colwidths="[25,75]"}
 
 ## おわりに
 
-まだまだ開発途上ですが、staggeredまで対応できたので、これからしばらくはブラッシュアップを念頭にアップデートしていこうと思います。
+バージョン0.11でイベントスタディ・ATT集計・感度分析が一通り揃い、DiDの実証分析に必要なツールセットが完結に近づきました。
 
-冒頭にも書きましたが、もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの[Issues](https://github.com/yo5uke/fixes/issues)までお願いします。
-
-## 🔗 データ出典
-
-データ出典：[Causal Inference: The Mixtape](https://mixtape.scunning.com/)（Scott Cunnningham, 2021）  
-データはGitHub上で公開されており、以下のリポジトリから入手可能です：
-
-<https://github.com/scunning1975/mixtape>
-
-また、データはMITライセンスのもとで提供されています。
-
-
-
-
+もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの[Issues](https://github.com/yo5uke/fixes/issues)までお願いします。
