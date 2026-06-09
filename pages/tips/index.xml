@@ -53,7 +53,7 @@
 <section id="はじめに" class="level2">
 <h2 class="anchored" data-anchor-id="はじめに">はじめに</h2>
 <p>本ページでは、合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、<code>coresynth</code>について説明します。</p>
-<p><code>coresynth</code>の最大の特徴は<strong>パフォーマンス</strong>です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて<strong>最大約56倍の高速化</strong>を実現しています。</p>
+<p><code>coresynth</code>の最大の特徴は<strong>パフォーマンス</strong>です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて<strong>かなり高速化</strong>しています。</p>
 <p>バージョン0.2では<strong>Conformal推論</strong>（<code>conformal_inference()</code>）が追加されました。<span class="citation" data-cites="chernozhukov_exact_2021">Chernozhukov et al. (2021)</span> のPHT (Moving-Block Permutation)に基づく置換p値と信頼区間を、<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>の全推定量に対して利用できます。</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -393,7 +393,7 @@ font-style: inherit;"># 真のATT = 2.5</span></span></code></pre></div></div>
 </section>
 <section id="scm_fit" class="level2">
 <h2 class="anchored" data-anchor-id="scm_fit"><code>scm_fit()</code></h2>
-<p><code>scm_fit()</code>はすべての手法への統一エントリーポイントです。フォーミュラは <code>結果変数 ~ 処置変数 | ユニットID + 時間ID</code> の形式で指定します。</p>
+<p><code>scm_fit()</code>はすべての手法への統一エントリーポイントです。フォーミュラは <code>結果変数 ~ 処置変数 | ユニットID + 時間ID</code> の形式で指定します。重要な点として、処置変数はあらかじめ作成が必要です。「<strong>処置ユニットかつ処置時点以降は1、それ以外は0</strong>」となるように処置変数を設定してください。</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">scm_fit</span>(</span>
@@ -519,6 +519,7 @@ font-style: inherit;">"bfgs"</span>),</span>
 </ul>
 <section id="scmmethod-scm" class="level3">
 <h3 class="anchored" data-anchor-id="scmmethod-scm">SCM（<code>method = "scm"</code>）</h3>
+<p>先述の通り、<code>y</code>はアウトカム、<code>d</code>は処置ユニットかつ処置後で1になる変数です。<code>id</code>と<code>time</code>はユニットIDと時間IDを表す列名で、<code>|</code>の右側で指定します。</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">fit_scm <span class="ot" style="color: #003B4F;
 background-color: null;
@@ -639,11 +640,392 @@ font-style: inherit;"># 1〜4期の平均</span></span>
 <span id="cb9-11">)</span></code></pre></div></div>
 <p><code>pred()</code> の <code>op</code> 引数には <code>"mean"</code>（デフォルト）、<code>"median"</code>、<code>"sum"</code> が指定できます。</p>
 </section>
+<section id="smokingデータを使った例" class="level4">
+<h4 class="anchored" data-anchor-id="smokingデータを使った例">smokingデータを使った例</h4>
+<p>僕が以前使っていた<code>tidysynth</code>との比較を、カリフォルニアにおけるProposition 99の例で検証してみます。</p>
+<p>データは<code>tidysynth</code>の組み込みデータセット <code>smoking</code> を使用します。</p>
+<details class="code-fold">
+<summary>コード</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span>
+<span id="cb10-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidysynth)</span>
+<span id="cb10-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"smoking"</span>)</span>
+<span id="cb10-4"></span>
+<span id="cb10-5">smoking_out <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> smoking <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">synthetic_control</span>(</span>
+<span id="cb10-7">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">outcome =</span> cigsale,</span>
+<span id="cb10-8">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">unit =</span> state,</span>
+<span id="cb10-9">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time =</span> year,</span>
+<span id="cb10-10">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">i_unit =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"California"</span>,</span>
+<span id="cb10-11">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">i_time =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>,</span>
+<span id="cb10-12">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">generate_placebos =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span></span>
+<span id="cb10-13">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-14">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_predictor</span>(</span>
+<span id="cb10-15">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_window =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1980</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>,</span>
+<span id="cb10-16">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">ln_income =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(lnincome, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>),</span>
+<span id="cb10-17">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">ret_price =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(retprice, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>),</span>
+<span id="cb10-18">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">youth =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(age15to24, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb10-19">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-20">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_predictor</span>(</span>
+<span id="cb10-21">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_window =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1980</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>,</span>
+<span id="cb10-22">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">ln_cigsale =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(cigsale, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb10-23">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-24">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_predictor</span>(</span>
+<span id="cb10-25">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_window =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1984</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>,</span>
+<span id="cb10-26">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">beer_sales =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mean</span>(beer, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">na.rm =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span>
+<span id="cb10-27">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-28">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_predictor</span>(</span>
+<span id="cb10-29">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_window =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1975</span>,</span>
+<span id="cb10-30">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cigsale_1975 =</span> cigsale</span>
+<span id="cb10-31">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-32">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_predictor</span>(</span>
+<span id="cb10-33">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_window =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1980</span>,</span>
+<span id="cb10-34">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cigsale_1980 =</span> cigsale</span>
+<span id="cb10-35">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-36">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_predictor</span>(</span>
+<span id="cb10-37">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time_window =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>,</span>
+<span id="cb10-38">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">cigsale_1988 =</span> cigsale</span>
+<span id="cb10-39">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-40">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_weights</span>(</span>
+<span id="cb10-41">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">optimization_window =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1970</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>,</span>
+<span id="cb10-42">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">margin_ipop =</span> .<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">02</span>,</span>
+<span id="cb10-43">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sigf_ipop =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">7</span>,</span>
+<span id="cb10-44">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">bound_ipop =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span></span>
+<span id="cb10-45">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-46">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">generate_control</span>()</span>
+<span id="cb10-47"></span>
+<span id="cb10-48"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_trends</span>(smoking_out)</span>
+<span id="cb10-49"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># 以下、coresynthで同じ分析を実行</span></span>
+<span id="cb10-50">panel <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> smoking <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb10-51">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">d =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">if_else</span>(state <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"California"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> year <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>L, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>L))</span>
+<span id="cb10-52"></span>
+<span id="cb10-53">fit_scm_smoking <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb10-54">  cigsale <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> state <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> year,</span>
+<span id="cb10-55">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> panel,</span>
+<span id="cb10-56">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"scm"</span>,</span>
+<span id="cb10-57">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">predictors =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list</span>(</span>
+<span id="cb10-58">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"lnincome"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"retprice"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"age15to24"</span>), <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1980</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>),</span>
+<span id="cb10-59">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cigsale"</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1980</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">op =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mean"</span>),</span>
+<span id="cb10-60">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cigsale"</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1975</span>),</span>
+<span id="cb10-61">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cigsale"</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1980</span>),</span>
+<span id="cb10-62">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pred</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"cigsale"</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1988</span>)</span>
+<span id="cb10-63">  )</span>
+<span id="cb10-64">)</span>
+<span id="cb10-65"></span>
+<span id="cb10-66"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_scm_smoking, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb10-67">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">title =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SCM: California Cigarette Sales"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb10-68">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">legend.position =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bottom"</span>)</span></code></pre></div></div>
+</details>
+<div class="cell quarto-layout-panel" data-layout-ncol="2">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>tidysynthの結果</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid figure-img" width="672"></p>
+<figcaption>coresynthの結果</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<p>ご覧のとおり、両者からほぼ同じ結果が得られています。<code>tidysynth</code>は内部で<code>Synth</code>パッケージを呼び出しているのですが、<code>Synth</code>と<code>coresynth</code>は同じ最適化問題を異なるアルゴリズムで解いているため、わずかな差が生じます。これは推定手法そのものの違いではなく、ソルバーの収束に由来する数値的な差であり、どちらの結果も妥当です。</p>
+</section>
 </section>
 <section id="sdidmethod-sdid" class="level3">
 <h3 class="anchored" data-anchor-id="sdidmethod-sdid">SDID（<code>method = "sdid"</code>）</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1">fit_sdid <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1">fit_sdid <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -660,7 +1042,7 @@ background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"sdid"</span>)</span>
-<span id="cb10-2"><span class="fu" style="color: #4758AB;
+<span id="cb11-2"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">print</span>(fit_sdid)</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -674,7 +1056,7 @@ Pre-treatment periods: 20 </code></pre>
 <section id="gscmethod-gsc" class="level3">
 <h3 class="anchored" data-anchor-id="gscmethod-gsc">GSC（<code>method = "gsc"</code>）</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1">fit_gsc <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1">fit_gsc <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -691,7 +1073,7 @@ background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"gsc"</span>)</span>
-<span id="cb12-2"><span class="fu" style="color: #4758AB;
+<span id="cb13-2"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">print</span>(fit_gsc)</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -706,7 +1088,7 @@ Pre-treatment periods: 20 </code></pre>
 <section id="mcmethod-mc" class="level3">
 <h3 class="anchored" data-anchor-id="mcmethod-mc">MC（<code>method = "mc"</code>）</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1">fit_mc <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1">fit_mc <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -723,7 +1105,7 @@ background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"mc"</span>)</span>
-<span id="cb14-2"><span class="fu" style="color: #4758AB;
+<span id="cb15-2"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">print</span>(fit_mc)</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -738,7 +1120,7 @@ Pre-treatment periods: 20 </code></pre>
 <section id="tascmethod-tasc" class="level3">
 <h3 class="anchored" data-anchor-id="tascmethod-tasc">TASC（<code>method = "tasc"</code>）</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1">fit_tasc <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1">fit_tasc <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -755,7 +1137,7 @@ background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"tasc"</span>)</span>
-<span id="cb16-2"><span class="fu" style="color: #4758AB;
+<span id="cb17-2"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">print</span>(fit_tasc)</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -770,7 +1152,7 @@ Pre-treatment periods: 20 </code></pre>
 <section id="simethod-si" class="level3">
 <h3 class="anchored" data-anchor-id="simethod-si">SI（<code>method = "si"</code>）</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1">fit_si <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1">fit_si <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -787,7 +1169,7 @@ background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"si"</span>)</span>
-<span id="cb18-2"><span class="fu" style="color: #4758AB;
+<span id="cb19-2"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">print</span>(fit_si)</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -802,7 +1184,7 @@ Pre-treatment periods: 20 </code></pre>
 <section id="手法の比較" class="level3">
 <h3 class="anchored" data-anchor-id="手法の比較">6手法の比較</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1">methods <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1">methods <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -819,7 +1201,7 @@ background-color: null;
 font-style: inherit;">"tasc"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"si"</span>)</span>
-<span id="cb20-2">fits <span class="ot" style="color: #003B4F;
+<span id="cb21-2">fits <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -836,19 +1218,19 @@ background-color: null;
 font-style: inherit;">data =</span> dat, <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">method =</span> m))</span>
-<span id="cb20-3"><span class="fu" style="color: #4758AB;
+<span id="cb21-3"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">names</span>(fits) <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> methods</span>
-<span id="cb20-4"></span>
-<span id="cb20-5"><span class="fu" style="color: #4758AB;
+<span id="cb21-4"></span>
+<span id="cb21-5"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">data.frame</span>(</span>
-<span id="cb20-6">  <span class="at" style="color: #657422;
+<span id="cb21-6">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">method =</span> methods,</span>
-<span id="cb20-7">  <span class="at" style="color: #657422;
+<span id="cb21-7">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">estimate =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -865,7 +1247,7 @@ background-color: null;
 font-style: inherit;">"estimate"</span>), <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">3</span>)</span>
-<span id="cb20-8">)</span></code></pre></div></div>
+<span id="cb21-8">)</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>     method estimate
 scm     scm    2.752
@@ -883,20 +1265,20 @@ si       si    2.697</code></pre>
 <h2 class="anchored" data-anchor-id="staggered-adoption">Staggered Adoption</h2>
 <p>6つの手法すべてがStaggered Adoptionに対応しています。各コホートを個別に推定し、<img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Btreated%7D%7D%20%5Ctimes%20T_%7B%5Ctext%7Bpost%7D%7D"> に比例したウェイトでATTを集計するアプローチ <span class="citation" data-cites="clarke_synthetic_2024">(Clarke et al. 2024)</span> を採用しています。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><span class="co" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># pref_01: 21期から処置、pref_02: 26期から処置</span></span>
-<span id="cb22-2">dat_s <span class="ot" style="color: #003B4F;
+<span id="cb23-2">dat_s <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> dat</span>
-<span id="cb22-3">dat_s<span class="sc" style="color: #5E5E5E;
+<span id="cb23-3">dat_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>d <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>L</span>
-<span id="cb22-4">dat_s<span class="sc" style="color: #5E5E5E;
+<span id="cb23-4">dat_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>d[dat_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -917,7 +1299,7 @@ background-color: null;
 font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>L</span>
-<span id="cb22-5">dat_s<span class="sc" style="color: #5E5E5E;
+<span id="cb23-5">dat_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>d[dat_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -938,7 +1320,7 @@ background-color: null;
 font-style: inherit;">&lt;-</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>L</span>
-<span id="cb22-6">dat_s<span class="sc" style="color: #5E5E5E;
+<span id="cb23-6">dat_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>y[dat_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
@@ -961,8 +1343,8 @@ background-color: null;
 font-style: inherit;">+</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">2.5</span></span>
-<span id="cb22-7"></span>
-<span id="cb22-8">fit_sdid_s <span class="ot" style="color: #003B4F;
+<span id="cb23-7"></span>
+<span id="cb23-8">fit_sdid_s <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -979,7 +1361,7 @@ background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"sdid"</span>)</span>
-<span id="cb22-9"><span class="fu" style="color: #4758AB;
+<span id="cb23-9"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">print</span>(fit_sdid_s)</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -991,7 +1373,7 @@ Pre-treatment periods: 20 </code></pre>
 </div>
 <p>コホート別の推定値は <code>$cohort_estimates</code> フィールドで確認できます。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1">fit_sdid_s<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb25" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1">fit_sdid_s<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>cohort_estimates</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -1005,37 +1387,37 @@ font-style: inherit;">$</span>cohort_estimates</span></code></pre></div></div>
 <li><code>"clean"</code>（デフォルト）：never-treated + future adoptersをドナーとして使用 <span class="citation" data-cites="clarke_synthetic_2024">(Clarke et al. 2024)</span></li>
 <li><code>"never_treated"</code>：never-treatedのみを使用</li>
 </ul>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1">fit_sdid_never <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1">fit_sdid_never <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">scm_fit</span>(</span>
-<span id="cb26-2">  y <span class="sc" style="color: #5E5E5E;
+<span id="cb27-2">  y <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">~</span> d <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">|</span> id <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span> time,</span>
-<span id="cb26-3">  <span class="at" style="color: #657422;
+<span id="cb27-3">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">data          =</span> dat_s,</span>
-<span id="cb26-4">  <span class="at" style="color: #657422;
+<span id="cb27-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">method        =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"sdid"</span>,</span>
-<span id="cb26-5">  <span class="at" style="color: #657422;
+<span id="cb27-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">control_group =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"never_treated"</span></span>
-<span id="cb26-6">)</span></code></pre></div></div>
+<span id="cb27-6">)</span></code></pre></div></div>
 </section>
 <section id="plot" class="level2">
 <h2 class="anchored" data-anchor-id="plot"><code>plot()</code></h2>
 <p><code>plot()</code> で3種類のプロットを出力できます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">plot</span>(fit, <span class="at" style="color: #657422;
 background-color: null;
@@ -1060,27 +1442,9 @@ font-style: inherit;">"weights"</span>))</span></code></pre></div></div>
 <div class="tab-content">
 <div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><span class="fu" style="color: #4758AB;
-background-color: null;
-font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
-background-color: null;
-font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
-background-color: null;
-font-style: inherit;">"trend"</span>)</span></code></pre></div></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
-</div>
-</div>
-<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
-<div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb29" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">plot</span>(fit_sdid, <span class="at" style="color: #657422;
+font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
 background-color: null;
@@ -1094,11 +1458,11 @@ font-style: inherit;">"trend"</span>)</span></code></pre></div></div>
 </div>
 </div>
 </div>
-<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><span class="fu" style="color: #4758AB;
 background-color: null;
-font-style: inherit;">plot</span>(fit_gsc, <span class="at" style="color: #657422;
+font-style: inherit;">plot</span>(fit_sdid, <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
 background-color: null;
@@ -1112,13 +1476,31 @@ font-style: inherit;">"trend"</span>)</span></code></pre></div></div>
 </div>
 </div>
 </div>
+<div id="tabset-1-3" class="tab-pane" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(fit_gsc, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 </section>
 <section id="gap-プロット" class="level3">
 <h3 class="anchored" data-anchor-id="gap-プロット">Gap プロット</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb31" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
 background-color: null;
@@ -1128,7 +1510,7 @@ font-style: inherit;">"gap"</span>)</span></code></pre></div></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1138,7 +1520,7 @@ font-style: inherit;">"gap"</span>)</span></code></pre></div></div>
 <section id="weights-プロット" class="level3">
 <h3 class="anchored" data-anchor-id="weights-プロット">Weights プロット</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
 background-color: null;
@@ -1148,18 +1530,18 @@ font-style: inherit;">"weights"</span>)</span></code></pre></div></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>ggplot2ベースなのでggplotの関数をつなげることも可能です。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">library</span>(ggplot2)</span>
-<span id="cb33-2"></span>
-<span id="cb33-3"><span class="fu" style="color: #4758AB;
+<span id="cb34-2"></span>
+<span id="cb34-3"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">plot</span>(fit_scm, <span class="at" style="color: #657422;
 background-color: null;
@@ -1168,7 +1550,7 @@ background-color: null;
 font-style: inherit;">"trend"</span>) <span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">+</span></span>
-<span id="cb33-4">  <span class="fu" style="color: #4758AB;
+<span id="cb34-4">  <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">labs</span>(<span class="at" style="color: #657422;
 background-color: null;
@@ -1178,7 +1560,7 @@ font-style: inherit;">"SCM: Observed vs. Synthetic Control"</span>)</span></code
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
 </figure>
 </div>
 </div>
@@ -1192,47 +1574,47 @@ font-style: inherit;">"SCM: Observed vs. Synthetic Control"</span>)</span></code
 <h3 class="anchored" data-anchor-id="scmmspe比率置換検定mspe_ratio_pval">SCM：MSPE比率置換検定（<code>mspe_ratio_pval()</code>）</h3>
 <p><span class="citation" data-cites="abadie_synthetic_2010">Abadie et al. (2010)</span> / <span class="citation" data-cites="abadie_using_2021">Abadie (2021)</span> のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1">inf_scm <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1">inf_scm <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">mspe_ratio_pval</span>(fit_scm)</span>
-<span id="cb34-2">inf_scm<span class="sc" style="color: #5E5E5E;
+<span id="cb35-2">inf_scm<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>p_value</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.0212766</code></pre>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">mspe_ratio_pval</span>(</span>
-<span id="cb36-2">  fit,</span>
-<span id="cb36-3">  <span class="at" style="color: #657422;
+<span id="cb37-2">  fit,</span>
+<span id="cb37-3">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">mspe_threshold =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,     <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># プラセボに含める最小MSPE（デフォルト：0）</span></span>
-<span id="cb36-4">  <span class="at" style="color: #657422;
+<span id="cb37-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">max_iter       =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">100</span>L,</span>
-<span id="cb36-5">  <span class="at" style="color: #657422;
+<span id="cb37-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">tol            =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1e-4</span>,</span>
-<span id="cb36-6">  <span class="at" style="color: #657422;
+<span id="cb37-6">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">use_covariates =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">FALSE</span>, <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># 予測変数をプラセボにも適用するか</span></span>
-<span id="cb36-7">  <span class="at" style="color: #657422;
+<span id="cb37-7">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">alternative    =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1243,16 +1625,16 @@ background-color: null;
 font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"less"</span>)</span>
-<span id="cb36-8">)</span></code></pre></div></div>
+<span id="cb37-8">)</span></code></pre></div></div>
 </section>
 <section id="sdidsdid_inference" class="level3">
 <h3 class="anchored" data-anchor-id="sdidsdid_inference">SDID：<code>sdid_inference()</code></h3>
 <p><span class="citation" data-cites="clarke_synthetic_2024">Clarke et al. (2024)</span> に基づく3種類の推論手法を提供します。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><span class="co" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># プラセボ検定（デフォルト）</span></span>
-<span id="cb37-2">inf_sdid <span class="ot" style="color: #003B4F;
+<span id="cb38-2">inf_sdid <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1261,7 +1643,7 @@ background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"placebo"</span>)</span>
-<span id="cb37-3">inf_sdid<span class="sc" style="color: #5E5E5E;
+<span id="cb38-3">inf_sdid<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>p_value</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -1269,55 +1651,55 @@ font-style: inherit;">$</span>p_value</span></code></pre></div></div>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><span class="co" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># ブートストラップ（SE・CI付き）</span></span>
-<span id="cb39-2">inf_sdid_boot <span class="ot" style="color: #003B4F;
+<span id="cb40-2">inf_sdid_boot <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">sdid_inference</span>(</span>
-<span id="cb39-3">  fit_sdid,</span>
-<span id="cb39-4">  <span class="at" style="color: #657422;
+<span id="cb40-3">  fit_sdid,</span>
+<span id="cb40-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"bootstrap"</span>,</span>
-<span id="cb39-5">  <span class="at" style="color: #657422;
+<span id="cb40-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">n_boot =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">200</span>,</span>
-<span id="cb39-6">  <span class="at" style="color: #657422;
+<span id="cb40-6">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">42</span></span>
-<span id="cb39-7">)</span>
-<span id="cb39-8">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
+<span id="cb40-7">)</span>
+<span id="cb40-8">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>se</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.1812056</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>ci_lower</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 2.192366</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1">inf_sdid_boot<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>ci_upper</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 2.972953</code></pre>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">sdid_inference</span>(</span>
-<span id="cb45-2">  fit,</span>
-<span id="cb45-3">  <span class="at" style="color: #657422;
+<span id="cb46-2">  fit,</span>
+<span id="cb46-3">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">method      =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1330,19 +1712,19 @@ background-color: null;
 font-style: inherit;">"jackknife"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"jackknife_global"</span>),</span>
-<span id="cb45-4">  <span class="at" style="color: #657422;
+<span id="cb46-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">n_boot      =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">200</span>L,   <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># bootstrap のみ</span></span>
-<span id="cb45-5">  <span class="at" style="color: #657422;
+<span id="cb46-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">level       =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.95</span>,</span>
-<span id="cb45-6">  <span class="at" style="color: #657422;
+<span id="cb46-6">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">alternative =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1353,18 +1735,18 @@ background-color: null;
 font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"less"</span>),</span>
-<span id="cb45-7">  <span class="at" style="color: #657422;
+<span id="cb46-7">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">seed        =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">NULL</span></span>
-<span id="cb45-8">)</span></code></pre></div></div>
+<span id="cb46-8">)</span></code></pre></div></div>
 </section>
 <section id="gscgsc_boot" class="level3">
 <h3 class="anchored" data-anchor-id="gscgsc_boot">GSC：<code>gsc_boot()</code></h3>
 <p><span class="citation" data-cites="xu_generalized_2017">Xu (2017)</span> §3のパラメトリックBootstrapです。推定された因子モデルから帰無仮説下の分布を生成します。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb46" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1">inf_gsc <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1">inf_gsc <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1377,51 +1759,51 @@ background-color: null;
 font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">42</span>)</span>
-<span id="cb46-2">inf_gsc<span class="sc" style="color: #5E5E5E;
+<span id="cb47-2">inf_gsc<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>p_value</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb48" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1">inf_gsc<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1">inf_gsc<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>ci_lower</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] -0.5585225</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb50" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1">inf_gsc<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1">inf_gsc<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>ci_upper</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.5787406</code></pre>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb52" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb53" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">gsc_boot</span>(</span>
-<span id="cb52-2">  fit,</span>
-<span id="cb52-3">  <span class="at" style="color: #657422;
+<span id="cb53-2">  fit,</span>
+<span id="cb53-3">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">B     =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">499</span>L,</span>
-<span id="cb52-4">  <span class="at" style="color: #657422;
+<span id="cb53-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">alpha =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.05</span>,</span>
-<span id="cb52-5">  <span class="at" style="color: #657422;
+<span id="cb53-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">seed  =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">NULL</span></span>
-<span id="cb52-6">)</span></code></pre></div></div>
+<span id="cb53-6">)</span></code></pre></div></div>
 </section>
 <section id="sisi_inference" class="level3">
 <h3 class="anchored" data-anchor-id="sisi_inference">SI：<code>si_inference()</code></h3>
 <p><span class="citation" data-cites="agarwal_synthetic_interventions_2024">Agarwal et al. (2024)</span> のノンパラメトリックBootstrap / Jackknife推論です。Staggeredフィットにも対応しています。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1">inf_si <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb54" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb54-1">inf_si <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1438,18 +1820,18 @@ background-color: null;
 font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">42</span>)</span>
-<span id="cb53-2">inf_si<span class="sc" style="color: #5E5E5E;
+<span id="cb54-2">inf_si<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>p_value</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 4.194905e-223</code></pre>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb55" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb56" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">si_inference</span>(</span>
-<span id="cb55-2">  fit,</span>
-<span id="cb55-3">  <span class="at" style="color: #657422;
+<span id="cb56-2">  fit,</span>
+<span id="cb56-3">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">method      =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1460,17 +1842,17 @@ background-color: null;
 font-style: inherit;">"jackknife"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"jackknife_global"</span>),</span>
-<span id="cb55-4">  <span class="at" style="color: #657422;
+<span id="cb56-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">n_boot      =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">499</span>L,</span>
-<span id="cb55-5">  <span class="at" style="color: #657422;
+<span id="cb56-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">level       =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.95</span>,</span>
-<span id="cb55-6">  <span class="at" style="color: #657422;
+<span id="cb56-6">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">alternative =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1481,18 +1863,18 @@ background-color: null;
 font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"less"</span>),</span>
-<span id="cb55-7">  <span class="at" style="color: #657422;
+<span id="cb56-7">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">seed        =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">NULL</span></span>
-<span id="cb55-8">)</span></code></pre></div></div>
+<span id="cb56-8">)</span></code></pre></div></div>
 </section>
 <section id="conformal推論conformal_inference" class="level3">
 <h3 class="anchored" data-anchor-id="conformal推論conformal_inference">Conformal推論：<code>conformal_inference()</code></h3>
 <p><span class="citation" data-cites="chernozhukov_exact_2021">Chernozhukov et al. (2021)</span> の手法です。Moving-Block置換を用いた置換p値と信頼区間を返します。<code>scm</code>/<code>sdid</code>/<code>gsc</code>/<code>mc</code>/<code>si</code>の<strong>シャープフィット</strong>に対応しています。</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb56" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb56-1">inf_conf <span class="ot" style="color: #003B4F;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1">inf_conf <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1501,19 +1883,19 @@ background-color: null;
 font-style: inherit;">level =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.95</span>)</span>
-<span id="cb56-2">inf_conf<span class="sc" style="color: #5E5E5E;
+<span id="cb57-2">inf_conf<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>p_value</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.03333333</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb58" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb58-1">inf_conf<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb59-1">inf_conf<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>ci_lower</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 1.211775</code></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb60-1">inf_conf<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb61" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb61-1">inf_conf<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>ci_upper</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
@@ -1521,10 +1903,10 @@ font-style: inherit;">$</span>ci_upper</span></code></pre></div></div>
 </div>
 </div>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb62-1"><span class="co" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb63" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb63-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># SDIDでも同様に使える</span></span>
-<span id="cb62-2">inf_conf_sdid <span class="ot" style="color: #003B4F;
+<span id="cb63-2">inf_conf_sdid <span class="ot" style="color: #003B4F;
 background-color: null;
 font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1533,32 +1915,32 @@ background-color: null;
 font-style: inherit;">level =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.95</span>)</span>
-<span id="cb62-3">inf_conf_sdid<span class="sc" style="color: #5E5E5E;
+<span id="cb63-3">inf_conf_sdid<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">$</span>p_value</span></code></pre></div></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0.06666667</code></pre>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb64" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb64-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb65" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">conformal_inference</span>(</span>
-<span id="cb64-2">  fit,</span>
-<span id="cb64-3">  <span class="at" style="color: #657422;
+<span id="cb65-2">  fit,</span>
+<span id="cb65-3">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">tau0        =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0</span>,    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># 帰無仮説のATT（デフォルト：0）</span></span>
-<span id="cb64-4">  <span class="at" style="color: #657422;
+<span id="cb65-4">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">q           =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">1</span>,    <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># S_q統計量の指数（デフォルト：1）</span></span>
-<span id="cb64-5">  <span class="at" style="color: #657422;
+<span id="cb65-5">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">alternative =</span> <span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1569,34 +1951,34 @@ background-color: null;
 font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"less"</span>),</span>
-<span id="cb64-6">  <span class="at" style="color: #657422;
+<span id="cb65-6">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">ci          =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">TRUE</span>,</span>
-<span id="cb64-7">  <span class="at" style="color: #657422;
+<span id="cb65-7">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">level       =</span> <span class="fl" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">0.95</span>,</span>
-<span id="cb64-8">  <span class="at" style="color: #657422;
+<span id="cb65-8">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">grid        =</span> <span class="cn" style="color: #8f5902;
 background-color: null;
 font-style: inherit;">NULL</span>,     <span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># 候補値ベクトル（NULLの場合は自動設定）</span></span>
-<span id="cb64-9">  <span class="at" style="color: #657422;
+<span id="cb65-9">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">n_grid      =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">200</span>L,</span>
-<span id="cb64-10">  <span class="at" style="color: #657422;
+<span id="cb65-10">  <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">grid_mult   =</span> <span class="dv" style="color: #AD0000;
 background-color: null;
 font-style: inherit;">4</span></span>
-<span id="cb64-11">)</span></code></pre></div></div>
+<span id="cb65-11">)</span></code></pre></div></div>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 25%">
@@ -1651,12 +2033,12 @@ font-style: inherit;">4</span></span>
 <section id="broommodelsummaryとの連携" class="level3">
 <h3 class="anchored" data-anchor-id="broommodelsummaryとの連携"><code>broom</code>・<code>modelsummary</code>との連携</h3>
 <p>推論結果は<code>broom</code>と互換性があります。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb65" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb65-1">broom<span class="sc" style="color: #5E5E5E;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb66" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1">broom<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">tidy</span>(inf_conf)</span>
-<span id="cb65-2">broom<span class="sc" style="color: #5E5E5E;
+<span id="cb66-2">broom<span class="sc" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
 background-color: null;
@@ -1666,18 +2048,18 @@ font-style: inherit;">glance</span>(inf_conf)</span></code></pre></div></div>
 <section id="json出力export_json" class="level2">
 <h2 class="anchored" data-anchor-id="json出力export_json">JSON出力（<code>export_json()</code>）</h2>
 <p>再現性ワークフロー向けに、推定結果をJSONとして出力できます。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb66" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb66-1"><span class="fu" style="color: #4758AB;
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb67" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb67-1"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">export_json</span>(fit_scm, <span class="at" style="color: #657422;
 background-color: null;
 font-style: inherit;">file =</span> <span class="st" style="color: #20794D;
 background-color: null;
 font-style: inherit;">"scm_results.json"</span>)</span>
-<span id="cb66-2"></span>
-<span id="cb66-3"><span class="co" style="color: #5E5E5E;
+<span id="cb67-2"></span>
+<span id="cb67-3"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;"># 推論結果も含める場合</span></span>
-<span id="cb66-4"><span class="fu" style="color: #4758AB;
+<span id="cb67-4"><span class="fu" style="color: #4758AB;
 background-color: null;
 font-style: inherit;">export_json</span>(fit_scm, <span class="at" style="color: #657422;
 background-color: null;
