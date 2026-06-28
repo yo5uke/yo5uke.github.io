@@ -175,17 +175,17 @@ window.Quarto = {
 
 <meta property="og:title" content="【パッケージ開発】coresynthで合成コントロール法を高速に実装 – Yosuke Abe">
 <meta property="og:description" content="C++実装による高速化と6つの手法を統一インターフェースで提供します。">
-<meta property="og:image" content="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-5-1.png">
+<meta property="og:image" content="https://yo5uke.com/pages/tips/2026/06/coresynth/image/thumbnail.png">
 <meta property="og:site_name" content="Yosuke Abe">
-<meta property="og:image:height" content="960">
-<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="1200">
+<meta property="og:image:width" content="2400">
 <meta name="twitter:title" content="【パッケージ開発】coresynthで合成コントロール法を高速に実装 – Yosuke Abe">
 <meta name="twitter:description" content="C++実装による高速化と6つの手法を統一インターフェースで提供します。">
-<meta name="twitter:image" content="https://yo5uke.com/pages/tips/2026/06/coresynth/index_files/figure-html/unnamed-chunk-5-1.png">
+<meta name="twitter:image" content="https://yo5uke.com/pages/tips/2026/06/coresynth/image/thumbnail.png">
 <meta name="twitter:creator" content="@5uke_y">
 <meta name="twitter:site" content="@5uke_y">
-<meta name="twitter:image-height" content="960">
-<meta name="twitter:image-width" content="1344">
+<meta name="twitter:image-height" content="1200">
+<meta name="twitter:image-width" content="2400">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://yo5uke.com/pages/tips/2026/06/coresynth/">
 </head>
@@ -452,7 +452,7 @@ window.Quarto = {
       <div>
       <div class="quarto-title-meta-heading">最終更新</div>
       <div class="quarto-title-meta-contents">
-        <p class="date-modified">2026年6月11日</p>
+        <p class="date-modified">2026年6月28日</p>
       </div>
     </div>
       
@@ -657,12 +657,12 @@ window.Quarto = {
 </section>
 <section id="インストール" class="level2">
 <h2 class="anchored" data-anchor-id="インストール">インストール</h2>
-<p>GitHubからインストールできます（Windowsは<a href="https://cran.r-project.org/bin/windows/Rtools/">Rtools</a>、macOSはXcodeが必要です）。</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># pak を使う場合</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"yo5uke/coresynth"</span>)</span>
+<p>CRANに公開されましたので、以下のコマンドでインストールできます。</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"coresynth"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("coresynth")</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># devtools を使う場合</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"yo5uke/coresynth"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 開発版をインストールする場合</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"yo5uke/coresynth"</span>)</span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
 </section>
 <section id="準備" class="level2">
 <h2 class="anchored" data-anchor-id="準備">準備</h2>
@@ -698,6 +698,102 @@ window.Quarto = {
 <span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> true_att <span class="co"># 真のATT = 2.5</span></span></code></pre></div><button title="コピー" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 <p><code>id</code>がユニット識別変数（<code>pref_01</code>〜<code>pref_47</code>）、<code>time</code>が時間変数（1〜30）、<code>y</code>が結果変数、<code>d</code>が処置変数（処置ユニット<code>pref_01</code>が21期目以降に処置）です。<code>pref_01</code>以外の46ユニットがドナープールとなります。</p>
+<div class="cell">
+<div id="tbl-dat" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-dat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+表&nbsp;1: データの先頭5行
+</figcaption>
+<div aria-describedby="tbl-dat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script src="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.js"></script>
+
+    <script>
+      // Create table-specific functions using external factory
+      const tableFns_jxcfv2xdiyky4053ofdf = TinyTable.createTableFunctions("tinytable_jxcfv2xdiyky4053ofdf");
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '6', j: 1 }, { i: '6', j: 2 }, { i: '6', j: 3 }, { i: '6', j: 4 } ], css_id: 'tinytable_css_wjx8p1qnrqf1iq2qlgbd',}, 
+          { positions: [ { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 }, { i: '0', j: 4 } ], css_id: 'tinytable_css_6tchh3yanqkco4h3yklg',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  tableFns_jxcfv2xdiyky4053ofdf.styleCell(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/vincentarelbundock/tinytable@main/inst/tinytable.css">
+    <style>
+    /* tinytable css entries after */
+    #tinytable_jxcfv2xdiyky4053ofdf td.tinytable_css_wjx8p1qnrqf1iq2qlgbd, #tinytable_jxcfv2xdiyky4053ofdf th.tinytable_css_wjx8p1qnrqf1iq2qlgbd {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 0; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.08em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.1em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    #tinytable_jxcfv2xdiyky4053ofdf td.tinytable_css_6tchh3yanqkco4h3yklg, #tinytable_jxcfv2xdiyky4053ofdf th.tinytable_css_6tchh3yanqkco4h3yklg {  position: relative; --border-bottom: 1; --border-left: 0; --border-right: 0; --border-top: 1; --line-color-bottom: var(--tt-line-color); --line-color-left: var(--tt-line-color); --line-color-right: var(--tt-line-color); --line-color-top: var(--tt-line-color); --line-width-bottom: 0.05em; --line-width-left: 0.1em; --line-width-right: 0.1em; --line-width-top: 0.08em; --trim-bottom-left: 0%; --trim-bottom-right: 0%; --trim-left-bottom: 0%; --trim-left-top: 0%; --trim-right-bottom: 0%; --trim-right-top: 0%; --trim-top-left: 0%; --trim-top-right: 0%;  }
+    </style>
+    <div class="container">
+      <table class="tinytable" id="tinytable_jxcfv2xdiyky4053ofdf" style="table-layout: fixed; width: 100% !important; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        
+        <thead>
+              <tr>
+                <th scope="col" data-row="0" data-col="1">time</th>
+                <th scope="col" data-row="0" data-col="2">id</th>
+                <th scope="col" data-row="0" data-col="3">y</th>
+                <th scope="col" data-row="0" data-col="4">d</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="1">1</td>
+                  <td data-row="1" data-col="2">pref_01</td>
+                  <td data-row="1" data-col="3">0.48436018</td>
+                  <td data-row="1" data-col="4">0</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="1">2</td>
+                  <td data-row="2" data-col="2">pref_01</td>
+                  <td data-row="2" data-col="3">-0.04823072</td>
+                  <td data-row="2" data-col="4">0</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="1">3</td>
+                  <td data-row="3" data-col="2">pref_01</td>
+                  <td data-row="3" data-col="3">0.26755165</td>
+                  <td data-row="3" data-col="4">0</td>
+                </tr>
+                <tr>
+                  <td data-row="4" data-col="1">4</td>
+                  <td data-row="4" data-col="2">pref_01</td>
+                  <td data-row="4" data-col="3">0.70935689</td>
+                  <td data-row="4" data-col="4">0</td>
+                </tr>
+                <tr>
+                  <td data-row="5" data-col="1">5</td>
+                  <td data-row="5" data-col="2">pref_01</td>
+                  <td data-row="5" data-col="3">1.86655560</td>
+                  <td data-row="5" data-col="4">0</td>
+                </tr>
+                <tr>
+                  <td data-row="6" data-col="1">6</td>
+                  <td data-row="6" data-col="2">pref_01</td>
+                  <td data-row="6" data-col="3">2.09115042</td>
+                  <td data-row="6" data-col="4">0</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</figure>
+</div>
+</div>
 </section>
 <section id="scm_fit" class="level2">
 <h2 class="anchored" data-anchor-id="scm_fit"><code>scm_fit()</code></h2>
@@ -1354,8 +1450,7 @@ Pre-treatment periods: 20 </code></pre>
 </section>
 <section id="おわりに" class="level2">
 <h2 class="anchored" data-anchor-id="おわりに">おわりに</h2>
-<p><code>coresynth</code>は6つの合成コントロール関連手法を統一インターフェースで提供し、C++実装による高速化を実現しています。現時点では開発版のみで、フィードバックを積極的に受け付けています。</p>
-<p>もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの<a href="https://github.com/yo5uke/coresynth/issues">Issues</a>までお願いします。</p>
+<p><code>coresynth</code>は6つの合成コントロール関連手法を統一インターフェースで提供し、C++実装による高速化を実現しています。フィードバックも積極的に受け付けていますので、もし「使いにくい」や「こんな機能が欲しい」、バグの発見等ありましたら、以下のコメントやGitHubの<a href="https://github.com/yo5uke/coresynth/issues">Issues</a>までお願いします。</p>
 
 
 <!-- -->
@@ -1898,582 +1993,589 @@ Xu, Yiqing. 2017. "Generalized Synthetic Control Method: Causal Inference with I
 <span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a><span class="an">description:</span><span class="co"> |</span></span>
 <span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a><span class="co">  C++実装による高速化と6つの手法を統一インターフェースで提供します。</span></span>
 <span id="cb68-5"><a href="#cb68-5" aria-hidden="true" tabindex="-1"></a><span class="an">date:</span><span class="co"> 2026-06-01</span></span>
-<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> 2026-06-11</span></span>
+<span id="cb68-6"><a href="#cb68-6" aria-hidden="true" tabindex="-1"></a><span class="an">date-modified:</span><span class="co"> 2026-06-28</span></span>
 <span id="cb68-7"><a href="#cb68-7" aria-hidden="true" tabindex="-1"></a><span class="an">categories:</span></span>
 <span id="cb68-8"><a href="#cb68-8" aria-hidden="true" tabindex="-1"></a><span class="co">  - R</span></span>
-<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-11"><a href="#cb68-11" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![dev version](https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&amp;color=blue)</span><span class="co">](https://github.com/yo5uke/coresynth)</span></span>
-<span id="cb68-12"><a href="#cb68-12" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![R-CMD-check](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg)</span><span class="co">](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml)</span></span>
-<span id="cb68-13"><a href="#cb68-13" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)</span><span class="co">](https://opensource.org/licenses/MIT)</span></span>
-<span id="cb68-14"><a href="#cb68-14" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)</span><span class="co">](https://lifecycle.r-lib.org/articles/stages.html#experimental)</span></span>
-<span id="cb68-15"><a href="#cb68-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-16"><a href="#cb68-16" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
-<span id="cb68-17"><a href="#cb68-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-18"><a href="#cb68-18" aria-hidden="true" tabindex="-1"></a>本ページでは、合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、<span class="in">`coresynth`</span>について説明します。</span>
-<span id="cb68-19"><a href="#cb68-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-20"><a href="#cb68-20" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>の最大の特徴は**パフォーマンス**です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて**かなり高速化**しています。</span>
-<span id="cb68-21"><a href="#cb68-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-22"><a href="#cb68-22" aria-hidden="true" tabindex="-1"></a>バージョン0.2では**Conformal推論**（<span class="in">`conformal_inference()`</span>）が追加されました。@chernozhukov_exact_2021 のPHT (Moving-Block Permutation)に基づく置換p値と信頼区間を、<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>の全推定量に対して利用できます。</span>
-<span id="cb68-23"><a href="#cb68-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-24"><a href="#cb68-24" aria-hidden="true" tabindex="-1"></a>:::{.callout-note}</span>
-<span id="cb68-25"><a href="#cb68-25" aria-hidden="true" tabindex="-1"></a><span class="fu">## ご意見待ってます</span></span>
-<span id="cb68-26"><a href="#cb68-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-27"><a href="#cb68-27" aria-hidden="true" tabindex="-1"></a>実装・挙動に関するフィードバックや機能リクエストは、ページ下のコメントかGitHubの<span class="co">[</span><span class="ot">Issues</span><span class="co">](https://github.com/yo5uke/coresynth/issues)</span>までお寄せください。</span>
-<span id="cb68-28"><a href="#cb68-28" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb68-29"><a href="#cb68-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-30"><a href="#cb68-30" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>が対応する推定量は以下の6つです。</span>
-<span id="cb68-31"><a href="#cb68-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-32"><a href="#cb68-32" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 推定量 <span class="pp">|</span> <span class="in">`method`</span> <span class="pp">|</span> 参考文献 <span class="pp">|</span></span>
-<span id="cb68-33"><a href="#cb68-33" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-------|:---------|:---------|</span></span>
-<span id="cb68-34"><a href="#cb68-34" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Control Method <span class="pp">|</span> <span class="in">`"scm"`</span> <span class="pp">|</span> @abadie_synthetic_2010 <span class="pp">|</span></span>
-<span id="cb68-35"><a href="#cb68-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Difference-in-Differences <span class="pp">|</span> <span class="in">`"sdid"`</span> <span class="pp">|</span> @arkhangelsky_synthetic_2021 <span class="pp">|</span></span>
-<span id="cb68-36"><a href="#cb68-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Generalised Synthetic Control <span class="pp">|</span> <span class="in">`"gsc"`</span> <span class="pp">|</span> @xu_generalized_2017 <span class="pp">|</span></span>
-<span id="cb68-37"><a href="#cb68-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matrix Completion <span class="pp">|</span> <span class="in">`"mc"`</span> <span class="pp">|</span> @athey_matrix_2021 <span class="pp">|</span></span>
-<span id="cb68-38"><a href="#cb68-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Time-Aware Synthetic Control <span class="pp">|</span> <span class="in">`"tasc"`</span> <span class="pp">|</span> @rho_time-aware_2026 <span class="pp">|</span></span>
-<span id="cb68-39"><a href="#cb68-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Interventions <span class="pp">|</span> <span class="in">`"si"`</span> <span class="pp">|</span> @agarwal_synthetic_interventions_2024 <span class="pp">|</span></span>
-<span id="cb68-40"><a href="#cb68-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-41"><a href="#cb68-41" aria-hidden="true" tabindex="-1"></a>また、各推定量に対して複数の推論手法が利用できます。</span>
-<span id="cb68-42"><a href="#cb68-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-43"><a href="#cb68-43" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 推論手法 <span class="pp">|</span> 対応推定量 <span class="pp">|</span> 関数 <span class="pp">|</span></span>
-<span id="cb68-44"><a href="#cb68-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|:---------|:-----------|:-----|</span></span>
-<span id="cb68-45"><a href="#cb68-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> MSPE比率置換検定 <span class="pp">|</span> <span class="in">`scm`</span> <span class="pp">|</span> <span class="in">`mspe_ratio_pval()`</span> <span class="pp">|</span></span>
-<span id="cb68-46"><a href="#cb68-46" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> プラセボ / Bootstrap / Jackknife <span class="pp">|</span> <span class="in">`sdid`</span> <span class="pp">|</span> <span class="in">`sdid_inference()`</span> <span class="pp">|</span></span>
-<span id="cb68-47"><a href="#cb68-47" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> パラメトリックBootstrap <span class="pp">|</span> <span class="in">`gsc`</span> <span class="pp">|</span> <span class="in">`gsc_boot()`</span> <span class="pp">|</span></span>
-<span id="cb68-48"><a href="#cb68-48" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ノンパラメトリックBootstrap / Jackknife <span class="pp">|</span> <span class="in">`gsc`</span> <span class="pp">|</span> <span class="in">`gsc_inference()`</span> <span class="pp">|</span></span>
-<span id="cb68-49"><a href="#cb68-49" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Bootstrap / Jackknife <span class="pp">|</span> <span class="in">`si`</span> <span class="pp">|</span> <span class="in">`si_inference()`</span> <span class="pp">|</span></span>
-<span id="cb68-50"><a href="#cb68-50" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Conformal推論（CWZ 2021） <span class="pp">|</span> <span class="in">`scm`</span>, <span class="in">`sdid`</span>, <span class="in">`gsc`</span>, <span class="in">`mc`</span>, <span class="in">`si`</span> <span class="pp">|</span> <span class="in">`conformal_inference()`</span> <span class="pp">|</span></span>
-<span id="cb68-51"><a href="#cb68-51" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-52"><a href="#cb68-52" aria-hidden="true" tabindex="-1"></a><span class="fu">## インストール</span></span>
-<span id="cb68-53"><a href="#cb68-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-54"><a href="#cb68-54" aria-hidden="true" tabindex="-1"></a>GitHubからインストールできます（Windowsは<span class="co">[</span><span class="ot">Rtools</span><span class="co">](https://cran.r-project.org/bin/windows/Rtools/)</span>、macOSはXcodeが必要です）。</span>
-<span id="cb68-55"><a href="#cb68-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-56"><a href="#cb68-56" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-57"><a href="#cb68-57" aria-hidden="true" tabindex="-1"></a><span class="co"># pak を使う場合</span></span>
-<span id="cb68-58"><a href="#cb68-58" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"yo5uke/coresynth"</span>)</span>
-<span id="cb68-59"><a href="#cb68-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-60"><a href="#cb68-60" aria-hidden="true" tabindex="-1"></a><span class="co"># devtools を使う場合</span></span>
-<span id="cb68-61"><a href="#cb68-61" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">install_github</span>(<span class="st">"yo5uke/coresynth"</span>)</span>
-<span id="cb68-62"><a href="#cb68-62" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-63"><a href="#cb68-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-64"><a href="#cb68-64" aria-hidden="true" tabindex="-1"></a><span class="fu">## 準備</span></span>
-<span id="cb68-65"><a href="#cb68-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-66"><a href="#cb68-66" aria-hidden="true" tabindex="-1"></a>パッケージを読み込みます。</span>
-<span id="cb68-67"><a href="#cb68-67" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-70"><a href="#cb68-70" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-71"><a href="#cb68-71" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coresynth)</span>
-<span id="cb68-72"><a href="#cb68-72" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-73"><a href="#cb68-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-74"><a href="#cb68-74" aria-hidden="true" tabindex="-1"></a>本ページで使用するデータを生成します。47都道府県に相当するバランスパネル（ユニット数47、期間数30、真のATT = 2.5）を3因子モデルで生成します。</span>
-<span id="cb68-75"><a href="#cb68-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-78"><a href="#cb68-78" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-79"><a href="#cb68-79" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>)</span>
-<span id="cb68-80"><a href="#cb68-80" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">47</span> <span class="co"># ユニット数（都道府県数相当）</span></span>
-<span id="cb68-81"><a href="#cb68-81" aria-hidden="true" tabindex="-1"></a>TT <span class="ot">&lt;-</span> <span class="dv">30</span> <span class="co"># 期間数（年）</span></span>
-<span id="cb68-82"><a href="#cb68-82" aria-hidden="true" tabindex="-1"></a>T_pre <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="co"># 処置前期間</span></span>
-<span id="cb68-83"><a href="#cb68-83" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="co"># 潜在因子数</span></span>
-<span id="cb68-84"><a href="#cb68-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-85"><a href="#cb68-85" aria-hidden="true" tabindex="-1"></a><span class="co"># 3因子モデルによるパネル生成</span></span>
-<span id="cb68-86"><a href="#cb68-86" aria-hidden="true" tabindex="-1"></a>F_t <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, TT, r)</span>
-<span id="cb68-87"><a href="#cb68-87" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(r)) {</span>
-<span id="cb68-88"><a href="#cb68-88" aria-hidden="true" tabindex="-1"></a>  F_t[, j] <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(<span class="fu">rnorm</span>(TT, <span class="dv">0</span>, <span class="fl">0.4</span>))</span>
-<span id="cb68-89"><a href="#cb68-89" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb68-90"><a href="#cb68-90" aria-hidden="true" tabindex="-1"></a>L_i <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">abs</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> r, <span class="dv">1</span>, <span class="fl">0.3</span>)), N, r)</span>
-<span id="cb68-91"><a href="#cb68-91" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> L_i <span class="sc">%*%</span> <span class="fu">t</span>(F_t) <span class="sc">+</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> TT, <span class="dv">0</span>, <span class="fl">0.5</span>), N, TT)</span>
-<span id="cb68-92"><a href="#cb68-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-93"><a href="#cb68-93" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
-<span id="cb68-94"><a href="#cb68-94" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">seq_len</span>(TT),</span>
-<span id="cb68-95"><a href="#cb68-95" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">paste0</span>(<span class="st">"pref_"</span>, <span class="fu">sprintf</span>(<span class="st">"%02d"</span>, <span class="fu">seq_len</span>(N)))</span>
-<span id="cb68-96"><a href="#cb68-96" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-97"><a href="#cb68-97" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat[<span class="fu">order</span>(dat<span class="sc">$</span>id, dat<span class="sc">$</span>time), ]</span>
-<span id="cb68-98"><a href="#cb68-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-99"><a href="#cb68-99" aria-hidden="true" tabindex="-1"></a>true_att <span class="ot">&lt;-</span> <span class="fl">2.5</span></span>
-<span id="cb68-100"><a href="#cb68-100" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">t</span>(Y))</span>
-<span id="cb68-101"><a href="#cb68-101" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(dat<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat<span class="sc">$</span>time <span class="sc">&gt;</span> T_pre)</span>
-<span id="cb68-102"><a href="#cb68-102" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> true_att <span class="co"># 真のATT = 2.5</span></span>
-<span id="cb68-103"><a href="#cb68-103" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-104"><a href="#cb68-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-105"><a href="#cb68-105" aria-hidden="true" tabindex="-1"></a><span class="in">`id`</span>がユニット識別変数（<span class="in">`pref_01`</span>〜<span class="in">`pref_47`</span>）、<span class="in">`time`</span>が時間変数（1〜30）、<span class="in">`y`</span>が結果変数、<span class="in">`d`</span>が処置変数（処置ユニット<span class="in">`pref_01`</span>が21期目以降に処置）です。<span class="in">`pref_01`</span>以外の46ユニットがドナープールとなります。</span>
-<span id="cb68-106"><a href="#cb68-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-107"><a href="#cb68-107" aria-hidden="true" tabindex="-1"></a><span class="fu">## `scm_fit()`</span></span>
-<span id="cb68-108"><a href="#cb68-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-109"><a href="#cb68-109" aria-hidden="true" tabindex="-1"></a><span class="in">`scm_fit()`</span>はすべての手法への統一エントリーポイントです。フォーミュラは <span class="in">`結果変数 ~ 処置変数 | ユニットID + 時間ID`</span> の形式で指定します。重要な点として、処置変数はあらかじめ作成が必要です。「**処置ユニットかつ処置時点以降は1、それ以外は0**」となるように処置変数を設定してください。</span>
-<span id="cb68-110"><a href="#cb68-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-111"><a href="#cb68-111" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-112"><a href="#cb68-112" aria-hidden="true" tabindex="-1"></a><span class="fu">scm_fit</span>(</span>
-<span id="cb68-113"><a href="#cb68-113" aria-hidden="true" tabindex="-1"></a>  formula,</span>
-<span id="cb68-114"><a href="#cb68-114" aria-hidden="true" tabindex="-1"></a>  data,</span>
-<span id="cb68-115"><a href="#cb68-115" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>),</span>
-<span id="cb68-116"><a href="#cb68-116" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="cn">NULL</span>,</span>
-<span id="cb68-117"><a href="#cb68-117" aria-hidden="true" tabindex="-1"></a>  <span class="at">covariates =</span> <span class="cn">NULL</span>,</span>
-<span id="cb68-118"><a href="#cb68-118" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_selection =</span> <span class="fu">c</span>(<span class="st">"insample"</span>, <span class="st">"oos"</span>),</span>
-<span id="cb68-119"><a href="#cb68-119" aria-hidden="true" tabindex="-1"></a>  <span class="at">donor_mspe_threshold =</span> <span class="cn">Inf</span>,</span>
-<span id="cb68-120"><a href="#cb68-120" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda_pen =</span> <span class="cn">NULL</span>,</span>
-<span id="cb68-121"><a href="#cb68-121" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_optim =</span> <span class="fu">c</span>(<span class="st">"coord_descent"</span>, <span class="st">"auto"</span>, <span class="st">"bfgs"</span>),</span>
-<span id="cb68-122"><a href="#cb68-122" aria-hidden="true" tabindex="-1"></a>  ...</span>
-<span id="cb68-123"><a href="#cb68-123" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-124"><a href="#cb68-124" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-125"><a href="#cb68-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-126"><a href="#cb68-126" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 引数 <span class="pp">|</span> 説明 <span class="pp">|</span></span>
-<span id="cb68-127"><a href="#cb68-127" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-----|:-----|</span></span>
-<span id="cb68-128"><a href="#cb68-128" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`formula`</span> <span class="pp">|</span> <span class="in">`y ~ d | unit + time`</span> 形式のFormulaオブジェクト <span class="pp">|</span></span>
-<span id="cb68-129"><a href="#cb68-129" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`data`</span> <span class="pp">|</span> ロング形式のデータフレーム（1行 = 1ユニット×1時点） <span class="pp">|</span></span>
-<span id="cb68-130"><a href="#cb68-130" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`method`</span> <span class="pp">|</span> 推定手法の選択（<span class="in">`"scm"`</span>, <span class="in">`"sdid"`</span>, <span class="in">`"gsc"`</span>, <span class="in">`"mc"`</span>, <span class="in">`"tasc"`</span>, <span class="in">`"si"`</span>） <span class="pp">|</span></span>
-<span id="cb68-131"><a href="#cb68-131" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`predictors`</span> <span class="pp">|</span> SCM用の予測変数リスト（<span class="in">`pred()`</span>で指定）。<span class="in">`NULL`</span>の場合は処置前期間の全結果変数期間を使用 <span class="pp">|</span></span>
-<span id="cb68-132"><a href="#cb68-132" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`covariates`</span> <span class="pp">|</span> 時変共変量の列名（<span class="in">`"sdid"`</span>, <span class="in">`"scm"`</span>, <span class="in">`"gsc"`</span>でサポート） <span class="pp">|</span></span>
-<span id="cb68-133"><a href="#cb68-133" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`v_selection`</span> <span class="pp">|</span> SCM用のV行列選択方法。<span class="in">`"insample"`</span>（デフォルト）または @abadie_using_2021 の<span class="in">`"oos"`</span> <span class="pp">|</span></span>
-<span id="cb68-134"><a href="#cb68-134" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`donor_mspe_threshold`</span> <span class="pp">|</span> ドナープール絞り込みの閾値（SCMのみ。デフォルト<span class="in">`Inf`</span>で無効） <span class="pp">|</span></span>
-<span id="cb68-135"><a href="#cb68-135" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`lambda_pen`</span> <span class="pp">|</span> ペナルティSCMのペナルティパラメータ（SCMのみ。<span class="in">`NULL`</span>で通常SCM、<span class="in">`"auto"`</span>で自動選択） <span class="pp">|</span></span>
-<span id="cb68-136"><a href="#cb68-136" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`v_optim`</span> <span class="pp">|</span> V外部最適化の手法。<span class="in">`"coord_descent"`</span>（デフォルト）、<span class="in">`"bfgs"`</span>、<span class="in">`"auto"`</span> <span class="pp">|</span></span>
-<span id="cb68-137"><a href="#cb68-137" aria-hidden="true" tabindex="-1"></a>: {tbl-colwidths="<span class="co">[</span><span class="ot">25,75</span><span class="co">]</span>"}</span>
-<span id="cb68-138"><a href="#cb68-138" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-139"><a href="#cb68-139" aria-hidden="true" tabindex="-1"></a>すべての手法は <span class="in">`c("coresynth_&lt;method&gt;", "coresynth")`</span> クラスのオブジェクトを返します。共通フィールドは以下の通りです。</span>
-<span id="cb68-140"><a href="#cb68-140" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-141"><a href="#cb68-141" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`method`</span>：推定量名</span>
-<span id="cb68-142"><a href="#cb68-142" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimate`</span>：ATT推定値</span>
-<span id="cb68-143"><a href="#cb68-143" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`times`</span>：時間インデックスベクトル</span>
-<span id="cb68-144"><a href="#cb68-144" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`T_pre`</span>：処置前期間数</span>
-<span id="cb68-145"><a href="#cb68-145" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`Y_treat`</span>：処置ユニットの結果系列</span>
-<span id="cb68-146"><a href="#cb68-146" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`gap`</span>：処置効果系列（$Y_{\text{treat}} - Y_{\text{synthetic}}$）</span>
-<span id="cb68-147"><a href="#cb68-147" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-148"><a href="#cb68-148" aria-hidden="true" tabindex="-1"></a><span class="fu">### SCM（`method = "scm"`）</span></span>
+<span id="cb68-9"><a href="#cb68-9" aria-hidden="true" tabindex="-1"></a><span class="an">image:</span><span class="co"> image/thumbnail.png</span></span>
+<span id="cb68-10"><a href="#cb68-10" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb68-11"><a href="#cb68-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-12"><a href="#cb68-12" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![dev version](https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&amp;color=blue)</span><span class="co">](https://github.com/yo5uke/coresynth)</span></span>
+<span id="cb68-13"><a href="#cb68-13" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![R-CMD-check](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg)</span><span class="co">](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml)</span></span>
+<span id="cb68-14"><a href="#cb68-14" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)</span><span class="co">](https://opensource.org/licenses/MIT)</span></span>
+<span id="cb68-15"><a href="#cb68-15" aria-hidden="true" tabindex="-1"></a><span class="co">[</span><span class="al">![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)</span><span class="co">](https://lifecycle.r-lib.org/articles/stages.html#experimental)</span></span>
+<span id="cb68-16"><a href="#cb68-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-17"><a href="#cb68-17" aria-hidden="true" tabindex="-1"></a><span class="fu">## はじめに</span></span>
+<span id="cb68-18"><a href="#cb68-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-19"><a href="#cb68-19" aria-hidden="true" tabindex="-1"></a>本ページでは、合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、<span class="in">`coresynth`</span>について説明します。</span>
+<span id="cb68-20"><a href="#cb68-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-21"><a href="#cb68-21" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>の最大の特徴は**パフォーマンス**です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて**かなり高速化**しています。</span>
+<span id="cb68-22"><a href="#cb68-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-23"><a href="#cb68-23" aria-hidden="true" tabindex="-1"></a>バージョン0.2では**Conformal推論**（<span class="in">`conformal_inference()`</span>）が追加されました。@chernozhukov_exact_2021 のPHT (Moving-Block Permutation)に基づく置換p値と信頼区間を、<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>の全推定量に対して利用できます。</span>
+<span id="cb68-24"><a href="#cb68-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-25"><a href="#cb68-25" aria-hidden="true" tabindex="-1"></a>:::{.callout-note}</span>
+<span id="cb68-26"><a href="#cb68-26" aria-hidden="true" tabindex="-1"></a><span class="fu">## ご意見待ってます</span></span>
+<span id="cb68-27"><a href="#cb68-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-28"><a href="#cb68-28" aria-hidden="true" tabindex="-1"></a>実装・挙動に関するフィードバックや機能リクエストは、ページ下のコメントかGitHubの<span class="co">[</span><span class="ot">Issues</span><span class="co">](https://github.com/yo5uke/coresynth/issues)</span>までお寄せください。</span>
+<span id="cb68-29"><a href="#cb68-29" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb68-30"><a href="#cb68-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-31"><a href="#cb68-31" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>が対応する推定量は以下の6つです。</span>
+<span id="cb68-32"><a href="#cb68-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-33"><a href="#cb68-33" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 推定量 <span class="pp">|</span> <span class="in">`method`</span> <span class="pp">|</span> 参考文献 <span class="pp">|</span></span>
+<span id="cb68-34"><a href="#cb68-34" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-------|:---------|:---------|</span></span>
+<span id="cb68-35"><a href="#cb68-35" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Control Method <span class="pp">|</span> <span class="in">`"scm"`</span> <span class="pp">|</span> @abadie_synthetic_2010 <span class="pp">|</span></span>
+<span id="cb68-36"><a href="#cb68-36" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Difference-in-Differences <span class="pp">|</span> <span class="in">`"sdid"`</span> <span class="pp">|</span> @arkhangelsky_synthetic_2021 <span class="pp">|</span></span>
+<span id="cb68-37"><a href="#cb68-37" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Generalised Synthetic Control <span class="pp">|</span> <span class="in">`"gsc"`</span> <span class="pp">|</span> @xu_generalized_2017 <span class="pp">|</span></span>
+<span id="cb68-38"><a href="#cb68-38" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Matrix Completion <span class="pp">|</span> <span class="in">`"mc"`</span> <span class="pp">|</span> @athey_matrix_2021 <span class="pp">|</span></span>
+<span id="cb68-39"><a href="#cb68-39" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Time-Aware Synthetic Control <span class="pp">|</span> <span class="in">`"tasc"`</span> <span class="pp">|</span> @rho_time-aware_2026 <span class="pp">|</span></span>
+<span id="cb68-40"><a href="#cb68-40" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Synthetic Interventions <span class="pp">|</span> <span class="in">`"si"`</span> <span class="pp">|</span> @agarwal_synthetic_interventions_2024 <span class="pp">|</span></span>
+<span id="cb68-41"><a href="#cb68-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-42"><a href="#cb68-42" aria-hidden="true" tabindex="-1"></a>また、各推定量に対して複数の推論手法が利用できます。</span>
+<span id="cb68-43"><a href="#cb68-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-44"><a href="#cb68-44" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 推論手法 <span class="pp">|</span> 対応推定量 <span class="pp">|</span> 関数 <span class="pp">|</span></span>
+<span id="cb68-45"><a href="#cb68-45" aria-hidden="true" tabindex="-1"></a><span class="pp">|:---------|:-----------|:-----|</span></span>
+<span id="cb68-46"><a href="#cb68-46" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> MSPE比率置換検定 <span class="pp">|</span> <span class="in">`scm`</span> <span class="pp">|</span> <span class="in">`mspe_ratio_pval()`</span> <span class="pp">|</span></span>
+<span id="cb68-47"><a href="#cb68-47" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> プラセボ / Bootstrap / Jackknife <span class="pp">|</span> <span class="in">`sdid`</span> <span class="pp">|</span> <span class="in">`sdid_inference()`</span> <span class="pp">|</span></span>
+<span id="cb68-48"><a href="#cb68-48" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> パラメトリックBootstrap <span class="pp">|</span> <span class="in">`gsc`</span> <span class="pp">|</span> <span class="in">`gsc_boot()`</span> <span class="pp">|</span></span>
+<span id="cb68-49"><a href="#cb68-49" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> ノンパラメトリックBootstrap / Jackknife <span class="pp">|</span> <span class="in">`gsc`</span> <span class="pp">|</span> <span class="in">`gsc_inference()`</span> <span class="pp">|</span></span>
+<span id="cb68-50"><a href="#cb68-50" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Bootstrap / Jackknife <span class="pp">|</span> <span class="in">`si`</span> <span class="pp">|</span> <span class="in">`si_inference()`</span> <span class="pp">|</span></span>
+<span id="cb68-51"><a href="#cb68-51" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Conformal推論（CWZ 2021） <span class="pp">|</span> <span class="in">`scm`</span>, <span class="in">`sdid`</span>, <span class="in">`gsc`</span>, <span class="in">`mc`</span>, <span class="in">`si`</span> <span class="pp">|</span> <span class="in">`conformal_inference()`</span> <span class="pp">|</span></span>
+<span id="cb68-52"><a href="#cb68-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-53"><a href="#cb68-53" aria-hidden="true" tabindex="-1"></a><span class="fu">## インストール</span></span>
+<span id="cb68-54"><a href="#cb68-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-55"><a href="#cb68-55" aria-hidden="true" tabindex="-1"></a>CRANに公開されましたので、以下のコマンドでインストールできます。</span>
+<span id="cb68-56"><a href="#cb68-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-57"><a href="#cb68-57" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-58"><a href="#cb68-58" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"coresynth"</span>)</span>
+<span id="cb68-59"><a href="#cb68-59" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("coresynth")</span></span>
+<span id="cb68-60"><a href="#cb68-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-61"><a href="#cb68-61" aria-hidden="true" tabindex="-1"></a><span class="co"># 開発版をインストールする場合</span></span>
+<span id="cb68-62"><a href="#cb68-62" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"yo5uke/coresynth"</span>)</span>
+<span id="cb68-63"><a href="#cb68-63" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-64"><a href="#cb68-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-65"><a href="#cb68-65" aria-hidden="true" tabindex="-1"></a><span class="fu">## 準備</span></span>
+<span id="cb68-66"><a href="#cb68-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-67"><a href="#cb68-67" aria-hidden="true" tabindex="-1"></a>パッケージを読み込みます。</span>
+<span id="cb68-68"><a href="#cb68-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-71"><a href="#cb68-71" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-72"><a href="#cb68-72" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(coresynth)</span>
+<span id="cb68-73"><a href="#cb68-73" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-74"><a href="#cb68-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-75"><a href="#cb68-75" aria-hidden="true" tabindex="-1"></a>本ページで使用するデータを生成します。47都道府県に相当するバランスパネル（ユニット数47、期間数30、真のATT = 2.5）を3因子モデルで生成します。</span>
+<span id="cb68-76"><a href="#cb68-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-79"><a href="#cb68-79" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-80"><a href="#cb68-80" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2024</span>)</span>
+<span id="cb68-81"><a href="#cb68-81" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">47</span> <span class="co"># ユニット数（都道府県数相当）</span></span>
+<span id="cb68-82"><a href="#cb68-82" aria-hidden="true" tabindex="-1"></a>TT <span class="ot">&lt;-</span> <span class="dv">30</span> <span class="co"># 期間数（年）</span></span>
+<span id="cb68-83"><a href="#cb68-83" aria-hidden="true" tabindex="-1"></a>T_pre <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="co"># 処置前期間</span></span>
+<span id="cb68-84"><a href="#cb68-84" aria-hidden="true" tabindex="-1"></a>r <span class="ot">&lt;-</span> <span class="dv">3</span> <span class="co"># 潜在因子数</span></span>
+<span id="cb68-85"><a href="#cb68-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-86"><a href="#cb68-86" aria-hidden="true" tabindex="-1"></a><span class="co"># 3因子モデルによるパネル生成</span></span>
+<span id="cb68-87"><a href="#cb68-87" aria-hidden="true" tabindex="-1"></a>F_t <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, TT, r)</span>
+<span id="cb68-88"><a href="#cb68-88" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (j <span class="cf">in</span> <span class="fu">seq_len</span>(r)) {</span>
+<span id="cb68-89"><a href="#cb68-89" aria-hidden="true" tabindex="-1"></a>  F_t[, j] <span class="ot">&lt;-</span> <span class="fu">cumsum</span>(<span class="fu">rnorm</span>(TT, <span class="dv">0</span>, <span class="fl">0.4</span>))</span>
+<span id="cb68-90"><a href="#cb68-90" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb68-91"><a href="#cb68-91" aria-hidden="true" tabindex="-1"></a>L_i <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">abs</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> r, <span class="dv">1</span>, <span class="fl">0.3</span>)), N, r)</span>
+<span id="cb68-92"><a href="#cb68-92" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> L_i <span class="sc">%*%</span> <span class="fu">t</span>(F_t) <span class="sc">+</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(N <span class="sc">*</span> TT, <span class="dv">0</span>, <span class="fl">0.5</span>), N, TT)</span>
+<span id="cb68-93"><a href="#cb68-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-94"><a href="#cb68-94" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">expand.grid</span>(</span>
+<span id="cb68-95"><a href="#cb68-95" aria-hidden="true" tabindex="-1"></a>  <span class="at">time =</span> <span class="fu">seq_len</span>(TT),</span>
+<span id="cb68-96"><a href="#cb68-96" aria-hidden="true" tabindex="-1"></a>  <span class="at">id =</span> <span class="fu">paste0</span>(<span class="st">"pref_"</span>, <span class="fu">sprintf</span>(<span class="st">"%02d"</span>, <span class="fu">seq_len</span>(N)))</span>
+<span id="cb68-97"><a href="#cb68-97" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-98"><a href="#cb68-98" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat[<span class="fu">order</span>(dat<span class="sc">$</span>id, dat<span class="sc">$</span>time), ]</span>
+<span id="cb68-99"><a href="#cb68-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-100"><a href="#cb68-100" aria-hidden="true" tabindex="-1"></a>true_att <span class="ot">&lt;-</span> <span class="fl">2.5</span></span>
+<span id="cb68-101"><a href="#cb68-101" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y <span class="ot">&lt;-</span> <span class="fu">as.vector</span>(<span class="fu">t</span>(Y))</span>
+<span id="cb68-102"><a href="#cb68-102" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="fu">as.integer</span>(dat<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat<span class="sc">$</span>time <span class="sc">&gt;</span> T_pre)</span>
+<span id="cb68-103"><a href="#cb68-103" aria-hidden="true" tabindex="-1"></a>dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat<span class="sc">$</span>y[dat<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> true_att <span class="co"># 真のATT = 2.5</span></span>
+<span id="cb68-104"><a href="#cb68-104" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-105"><a href="#cb68-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-106"><a href="#cb68-106" aria-hidden="true" tabindex="-1"></a><span class="in">`id`</span>がユニット識別変数（<span class="in">`pref_01`</span>〜<span class="in">`pref_47`</span>）、<span class="in">`time`</span>が時間変数（1〜30）、<span class="in">`y`</span>が結果変数、<span class="in">`d`</span>が処置変数（処置ユニット<span class="in">`pref_01`</span>が21期目以降に処置）です。<span class="in">`pref_01`</span>以外の46ユニットがドナープールとなります。</span>
+<span id="cb68-107"><a href="#cb68-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-110"><a href="#cb68-110" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-111"><a href="#cb68-111" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb68-112"><a href="#cb68-112" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: tbl-dat</span></span>
+<span id="cb68-113"><a href="#cb68-113" aria-hidden="true" tabindex="-1"></a><span class="co">#| tbl-cap: "データの先頭5行"</span></span>
+<span id="cb68-114"><a href="#cb68-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-115"><a href="#cb68-115" aria-hidden="true" tabindex="-1"></a>tinytable<span class="sc">::</span><span class="fu">tt</span>(<span class="fu">head</span>(dat), <span class="at">width =</span> <span class="dv">1</span>)</span>
+<span id="cb68-116"><a href="#cb68-116" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-117"><a href="#cb68-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-118"><a href="#cb68-118" aria-hidden="true" tabindex="-1"></a><span class="fu">## `scm_fit()`</span></span>
+<span id="cb68-119"><a href="#cb68-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-120"><a href="#cb68-120" aria-hidden="true" tabindex="-1"></a><span class="in">`scm_fit()`</span>はすべての手法への統一エントリーポイントです。フォーミュラは <span class="in">`結果変数 ~ 処置変数 | ユニットID + 時間ID`</span> の形式で指定します。重要な点として、処置変数はあらかじめ作成が必要です。「**処置ユニットかつ処置時点以降は1、それ以外は0**」となるように処置変数を設定してください。</span>
+<span id="cb68-121"><a href="#cb68-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-122"><a href="#cb68-122" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-123"><a href="#cb68-123" aria-hidden="true" tabindex="-1"></a><span class="fu">scm_fit</span>(</span>
+<span id="cb68-124"><a href="#cb68-124" aria-hidden="true" tabindex="-1"></a>  formula,</span>
+<span id="cb68-125"><a href="#cb68-125" aria-hidden="true" tabindex="-1"></a>  data,</span>
+<span id="cb68-126"><a href="#cb68-126" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>),</span>
+<span id="cb68-127"><a href="#cb68-127" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="cn">NULL</span>,</span>
+<span id="cb68-128"><a href="#cb68-128" aria-hidden="true" tabindex="-1"></a>  <span class="at">covariates =</span> <span class="cn">NULL</span>,</span>
+<span id="cb68-129"><a href="#cb68-129" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_selection =</span> <span class="fu">c</span>(<span class="st">"insample"</span>, <span class="st">"oos"</span>),</span>
+<span id="cb68-130"><a href="#cb68-130" aria-hidden="true" tabindex="-1"></a>  <span class="at">donor_mspe_threshold =</span> <span class="cn">Inf</span>,</span>
+<span id="cb68-131"><a href="#cb68-131" aria-hidden="true" tabindex="-1"></a>  <span class="at">lambda_pen =</span> <span class="cn">NULL</span>,</span>
+<span id="cb68-132"><a href="#cb68-132" aria-hidden="true" tabindex="-1"></a>  <span class="at">v_optim =</span> <span class="fu">c</span>(<span class="st">"coord_descent"</span>, <span class="st">"auto"</span>, <span class="st">"bfgs"</span>),</span>
+<span id="cb68-133"><a href="#cb68-133" aria-hidden="true" tabindex="-1"></a>  ...</span>
+<span id="cb68-134"><a href="#cb68-134" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-135"><a href="#cb68-135" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-136"><a href="#cb68-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-137"><a href="#cb68-137" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 引数 <span class="pp">|</span> 説明 <span class="pp">|</span></span>
+<span id="cb68-138"><a href="#cb68-138" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-----|:-----|</span></span>
+<span id="cb68-139"><a href="#cb68-139" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`formula`</span> <span class="pp">|</span> <span class="in">`y ~ d | unit + time`</span> 形式のFormulaオブジェクト <span class="pp">|</span></span>
+<span id="cb68-140"><a href="#cb68-140" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`data`</span> <span class="pp">|</span> ロング形式のデータフレーム（1行 = 1ユニット×1時点） <span class="pp">|</span></span>
+<span id="cb68-141"><a href="#cb68-141" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`method`</span> <span class="pp">|</span> 推定手法の選択（<span class="in">`"scm"`</span>, <span class="in">`"sdid"`</span>, <span class="in">`"gsc"`</span>, <span class="in">`"mc"`</span>, <span class="in">`"tasc"`</span>, <span class="in">`"si"`</span>） <span class="pp">|</span></span>
+<span id="cb68-142"><a href="#cb68-142" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`predictors`</span> <span class="pp">|</span> SCM用の予測変数リスト（<span class="in">`pred()`</span>で指定）。<span class="in">`NULL`</span>の場合は処置前期間の全結果変数期間を使用 <span class="pp">|</span></span>
+<span id="cb68-143"><a href="#cb68-143" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`covariates`</span> <span class="pp">|</span> 時変共変量の列名（<span class="in">`"sdid"`</span>, <span class="in">`"scm"`</span>, <span class="in">`"gsc"`</span>でサポート） <span class="pp">|</span></span>
+<span id="cb68-144"><a href="#cb68-144" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`v_selection`</span> <span class="pp">|</span> SCM用のV行列選択方法。<span class="in">`"insample"`</span>（デフォルト）または @abadie_using_2021 の<span class="in">`"oos"`</span> <span class="pp">|</span></span>
+<span id="cb68-145"><a href="#cb68-145" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`donor_mspe_threshold`</span> <span class="pp">|</span> ドナープール絞り込みの閾値（SCMのみ。デフォルト<span class="in">`Inf`</span>で無効） <span class="pp">|</span></span>
+<span id="cb68-146"><a href="#cb68-146" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`lambda_pen`</span> <span class="pp">|</span> ペナルティSCMのペナルティパラメータ（SCMのみ。<span class="in">`NULL`</span>で通常SCM、<span class="in">`"auto"`</span>で自動選択） <span class="pp">|</span></span>
+<span id="cb68-147"><a href="#cb68-147" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`v_optim`</span> <span class="pp">|</span> V外部最適化の手法。<span class="in">`"coord_descent"`</span>（デフォルト）、<span class="in">`"bfgs"`</span>、<span class="in">`"auto"`</span> <span class="pp">|</span></span>
+<span id="cb68-148"><a href="#cb68-148" aria-hidden="true" tabindex="-1"></a>: {tbl-colwidths="<span class="co">[</span><span class="ot">25,75</span><span class="co">]</span>"}</span>
 <span id="cb68-149"><a href="#cb68-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-150"><a href="#cb68-150" aria-hidden="true" tabindex="-1"></a>先述の通り、<span class="in">`y`</span>はアウトカム、<span class="in">`d`</span>は処置ユニットかつ処置後で1になる変数です。<span class="in">`id`</span>と<span class="in">`time`</span>はユニットIDと時間IDを表す列名で、<span class="in">`|`</span>の右側で指定します。</span>
+<span id="cb68-150"><a href="#cb68-150" aria-hidden="true" tabindex="-1"></a>すべての手法は <span class="in">`c("coresynth_&lt;method&gt;", "coresynth")`</span> クラスのオブジェクトを返します。共通フィールドは以下の通りです。</span>
 <span id="cb68-151"><a href="#cb68-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-154"><a href="#cb68-154" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-155"><a href="#cb68-155" aria-hidden="true" tabindex="-1"></a>fit_scm <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"scm"</span>)</span>
-<span id="cb68-156"><a href="#cb68-156" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_scm)</span>
-<span id="cb68-157"><a href="#cb68-157" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-152"><a href="#cb68-152" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`method`</span>：推定量名</span>
+<span id="cb68-153"><a href="#cb68-153" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`estimate`</span>：ATT推定値</span>
+<span id="cb68-154"><a href="#cb68-154" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`times`</span>：時間インデックスベクトル</span>
+<span id="cb68-155"><a href="#cb68-155" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`T_pre`</span>：処置前期間数</span>
+<span id="cb68-156"><a href="#cb68-156" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`Y_treat`</span>：処置ユニットの結果系列</span>
+<span id="cb68-157"><a href="#cb68-157" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`gap`</span>：処置効果系列（$Y_{\text{treat}} - Y_{\text{synthetic}}$）</span>
 <span id="cb68-158"><a href="#cb68-158" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-161"><a href="#cb68-161" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-162"><a href="#cb68-162" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_scm)</span>
-<span id="cb68-163"><a href="#cb68-163" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-164"><a href="#cb68-164" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-165"><a href="#cb68-165" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 予測変数の指定（`pred()`）</span></span>
-<span id="cb68-166"><a href="#cb68-166" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-167"><a href="#cb68-167" aria-hidden="true" tabindex="-1"></a>SCMは <span class="in">`pred()`</span> 関数を使って @abadie_synthetic_2010 §2.3の予測変数行列を指定できます。</span>
-<span id="cb68-168"><a href="#cb68-168" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-169"><a href="#cb68-169" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-170"><a href="#cb68-170" aria-hidden="true" tabindex="-1"></a><span class="co"># dat に income, unemp 列がある想定の例</span></span>
-<span id="cb68-171"><a href="#cb68-171" aria-hidden="true" tabindex="-1"></a>fit_scm_cov <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
-<span id="cb68-172"><a href="#cb68-172" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
-<span id="cb68-173"><a href="#cb68-173" aria-hidden="true" tabindex="-1"></a>  <span class="at">data   =</span> dat,</span>
-<span id="cb68-174"><a href="#cb68-174" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"scm"</span>,</span>
-<span id="cb68-175"><a href="#cb68-175" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="fu">list</span>(</span>
-<span id="cb68-176"><a href="#cb68-176" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="fu">c</span>(<span class="st">"income"</span>, <span class="st">"unemp"</span>), <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>),     <span class="co"># 1〜8期平均</span></span>
-<span id="cb68-177"><a href="#cb68-177" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">5</span>),                         <span class="co"># 5期の結果変数</span></span>
-<span id="cb68-178"><a href="#cb68-178" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">op =</span> <span class="st">"mean"</span>)           <span class="co"># 1〜4期の平均</span></span>
-<span id="cb68-179"><a href="#cb68-179" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb68-180"><a href="#cb68-180" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-181"><a href="#cb68-181" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-182"><a href="#cb68-182" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-183"><a href="#cb68-183" aria-hidden="true" tabindex="-1"></a><span class="in">`pred()`</span> の <span class="in">`op`</span> 引数には <span class="in">`"mean"`</span>（デフォルト）、<span class="in">`"median"`</span>、<span class="in">`"sum"`</span> が指定できます。</span>
-<span id="cb68-184"><a href="#cb68-184" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-185"><a href="#cb68-185" aria-hidden="true" tabindex="-1"></a><span class="fu">#### smokingデータを使った例</span></span>
-<span id="cb68-186"><a href="#cb68-186" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-187"><a href="#cb68-187" aria-hidden="true" tabindex="-1"></a>僕が以前使っていた<span class="in">`tidysynth`</span>との比較を、カリフォルニアにおけるProposition 99の例で検証してみます。</span>
-<span id="cb68-188"><a href="#cb68-188" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-189"><a href="#cb68-189" aria-hidden="true" tabindex="-1"></a>データは<span class="in">`tidysynth`</span>の組み込みデータセット <span class="in">`smoking`</span> を使用します。</span>
-<span id="cb68-190"><a href="#cb68-190" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-193"><a href="#cb68-193" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-194"><a href="#cb68-194" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
-<span id="cb68-195"><a href="#cb68-195" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-ncol: 2</span></span>
-<span id="cb68-196"><a href="#cb68-196" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap:</span></span>
-<span id="cb68-197"><a href="#cb68-197" aria-hidden="true" tabindex="-1"></a><span class="co">#|   - "tidysynthの結果"</span></span>
-<span id="cb68-198"><a href="#cb68-198" aria-hidden="true" tabindex="-1"></a><span class="co">#|   - "coresynthの結果"</span></span>
-<span id="cb68-199"><a href="#cb68-199" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
-<span id="cb68-200"><a href="#cb68-200" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidysynth)</span>
-<span id="cb68-201"><a href="#cb68-201" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"smoking"</span>)</span>
-<span id="cb68-202"><a href="#cb68-202" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-203"><a href="#cb68-203" aria-hidden="true" tabindex="-1"></a>smoking_out <span class="ot">&lt;-</span> smoking <span class="sc">|&gt;</span></span>
-<span id="cb68-204"><a href="#cb68-204" aria-hidden="true" tabindex="-1"></a>  <span class="fu">synthetic_control</span>(</span>
-<span id="cb68-205"><a href="#cb68-205" aria-hidden="true" tabindex="-1"></a>    <span class="at">outcome =</span> cigsale,</span>
-<span id="cb68-206"><a href="#cb68-206" aria-hidden="true" tabindex="-1"></a>    <span class="at">unit =</span> state,</span>
-<span id="cb68-207"><a href="#cb68-207" aria-hidden="true" tabindex="-1"></a>    <span class="at">time =</span> year,</span>
-<span id="cb68-208"><a href="#cb68-208" aria-hidden="true" tabindex="-1"></a>    <span class="at">i_unit =</span> <span class="st">"California"</span>,</span>
-<span id="cb68-209"><a href="#cb68-209" aria-hidden="true" tabindex="-1"></a>    <span class="at">i_time =</span> <span class="dv">1988</span>,</span>
-<span id="cb68-210"><a href="#cb68-210" aria-hidden="true" tabindex="-1"></a>    <span class="at">generate_placebos =</span> <span class="cn">TRUE</span></span>
-<span id="cb68-211"><a href="#cb68-211" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-212"><a href="#cb68-212" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
-<span id="cb68-213"><a href="#cb68-213" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>,</span>
-<span id="cb68-214"><a href="#cb68-214" aria-hidden="true" tabindex="-1"></a>    <span class="at">ln_income =</span> <span class="fu">mean</span>(lnincome, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb68-215"><a href="#cb68-215" aria-hidden="true" tabindex="-1"></a>    <span class="at">ret_price =</span> <span class="fu">mean</span>(retprice, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb68-216"><a href="#cb68-216" aria-hidden="true" tabindex="-1"></a>    <span class="at">youth =</span> <span class="fu">mean</span>(age15to24, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb68-217"><a href="#cb68-217" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-218"><a href="#cb68-218" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
-<span id="cb68-219"><a href="#cb68-219" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>,</span>
-<span id="cb68-220"><a href="#cb68-220" aria-hidden="true" tabindex="-1"></a>    <span class="at">ln_cigsale =</span> <span class="fu">mean</span>(cigsale, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb68-221"><a href="#cb68-221" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-222"><a href="#cb68-222" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
-<span id="cb68-223"><a href="#cb68-223" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1984</span><span class="sc">:</span><span class="dv">1988</span>,</span>
-<span id="cb68-224"><a href="#cb68-224" aria-hidden="true" tabindex="-1"></a>    <span class="at">beer_sales =</span> <span class="fu">mean</span>(beer, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb68-225"><a href="#cb68-225" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-226"><a href="#cb68-226" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
-<span id="cb68-227"><a href="#cb68-227" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1975</span>,</span>
-<span id="cb68-228"><a href="#cb68-228" aria-hidden="true" tabindex="-1"></a>    <span class="at">cigsale_1975 =</span> cigsale</span>
-<span id="cb68-229"><a href="#cb68-229" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-230"><a href="#cb68-230" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
-<span id="cb68-231"><a href="#cb68-231" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1980</span>,</span>
-<span id="cb68-232"><a href="#cb68-232" aria-hidden="true" tabindex="-1"></a>    <span class="at">cigsale_1980 =</span> cigsale</span>
-<span id="cb68-233"><a href="#cb68-233" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-234"><a href="#cb68-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
-<span id="cb68-235"><a href="#cb68-235" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1988</span>,</span>
-<span id="cb68-236"><a href="#cb68-236" aria-hidden="true" tabindex="-1"></a>    <span class="at">cigsale_1988 =</span> cigsale</span>
-<span id="cb68-237"><a href="#cb68-237" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-238"><a href="#cb68-238" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_weights</span>(</span>
-<span id="cb68-239"><a href="#cb68-239" aria-hidden="true" tabindex="-1"></a>    <span class="at">optimization_window =</span> <span class="dv">1970</span><span class="sc">:</span><span class="dv">1988</span>,</span>
-<span id="cb68-240"><a href="#cb68-240" aria-hidden="true" tabindex="-1"></a>    <span class="at">margin_ipop =</span> .<span class="dv">02</span>,</span>
-<span id="cb68-241"><a href="#cb68-241" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigf_ipop =</span> <span class="dv">7</span>,</span>
-<span id="cb68-242"><a href="#cb68-242" aria-hidden="true" tabindex="-1"></a>    <span class="at">bound_ipop =</span> <span class="dv">6</span></span>
-<span id="cb68-243"><a href="#cb68-243" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb68-244"><a href="#cb68-244" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_control</span>()</span>
-<span id="cb68-245"><a href="#cb68-245" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-246"><a href="#cb68-246" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_trends</span>(smoking_out)</span>
-<span id="cb68-247"><a href="#cb68-247" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-248"><a href="#cb68-248" aria-hidden="true" tabindex="-1"></a><span class="co"># 以下、coresynthで同じ分析を実行</span></span>
-<span id="cb68-249"><a href="#cb68-249" aria-hidden="true" tabindex="-1"></a>panel <span class="ot">&lt;-</span> smoking <span class="sc">|&gt;</span></span>
-<span id="cb68-250"><a href="#cb68-250" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d =</span> <span class="fu">if_else</span>(state <span class="sc">==</span> <span class="st">"California"</span> <span class="sc">&amp;</span> year <span class="sc">&gt;=</span> <span class="dv">1988</span>, <span class="dv">1</span>L, <span class="dv">0</span>L))</span>
-<span id="cb68-251"><a href="#cb68-251" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-252"><a href="#cb68-252" aria-hidden="true" tabindex="-1"></a>fit_scm_smoking <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
-<span id="cb68-253"><a href="#cb68-253" aria-hidden="true" tabindex="-1"></a>  cigsale <span class="sc">~</span> d <span class="sc">|</span> state <span class="sc">+</span> year,</span>
-<span id="cb68-254"><a href="#cb68-254" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> panel,</span>
-<span id="cb68-255"><a href="#cb68-255" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"scm"</span>,</span>
-<span id="cb68-256"><a href="#cb68-256" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="fu">list</span>(</span>
-<span id="cb68-257"><a href="#cb68-257" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="fu">c</span>(<span class="st">"lnincome"</span>, <span class="st">"retprice"</span>, <span class="st">"age15to24"</span>), <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>),</span>
-<span id="cb68-258"><a href="#cb68-258" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>, <span class="at">op =</span> <span class="st">"mean"</span>),</span>
-<span id="cb68-259"><a href="#cb68-259" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1975</span>),</span>
-<span id="cb68-260"><a href="#cb68-260" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1980</span>),</span>
-<span id="cb68-261"><a href="#cb68-261" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1988</span>)</span>
-<span id="cb68-262"><a href="#cb68-262" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb68-263"><a href="#cb68-263" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-264"><a href="#cb68-264" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-265"><a href="#cb68-265" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm_smoking, <span class="at">type =</span> <span class="st">"trend"</span>) <span class="sc">+</span></span>
-<span id="cb68-266"><a href="#cb68-266" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"SCM: California Cigarette Sales"</span>) <span class="sc">+</span></span>
-<span id="cb68-267"><a href="#cb68-267" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
-<span id="cb68-268"><a href="#cb68-268" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-269"><a href="#cb68-269" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-270"><a href="#cb68-270" aria-hidden="true" tabindex="-1"></a>ご覧のとおり、両者からほぼ同じ結果が得られています。<span class="in">`tidysynth`</span>は内部で<span class="in">`Synth`</span>パッケージを呼び出しているのですが、<span class="in">`Synth`</span>と<span class="in">`coresynth`</span>は同じ最適化問題を異なるアルゴリズムで解いているため、わずかな差が生じます。これは推定手法そのものの違いではなく、ソルバーの収束に由来する数値的な差であり、どちらの結果も妥当です。</span>
-<span id="cb68-271"><a href="#cb68-271" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-272"><a href="#cb68-272" aria-hidden="true" tabindex="-1"></a><span class="fu">### SDID（`method = "sdid"`）</span></span>
-<span id="cb68-273"><a href="#cb68-273" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-276"><a href="#cb68-276" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-277"><a href="#cb68-277" aria-hidden="true" tabindex="-1"></a>fit_sdid <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
-<span id="cb68-278"><a href="#cb68-278" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid)</span>
+<span id="cb68-159"><a href="#cb68-159" aria-hidden="true" tabindex="-1"></a><span class="fu">### SCM（`method = "scm"`）</span></span>
+<span id="cb68-160"><a href="#cb68-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-161"><a href="#cb68-161" aria-hidden="true" tabindex="-1"></a>先述の通り、<span class="in">`y`</span>はアウトカム、<span class="in">`d`</span>は処置ユニットかつ処置後で1になる変数です。<span class="in">`id`</span>と<span class="in">`time`</span>はユニットIDと時間IDを表す列名で、<span class="in">`|`</span>の右側で指定します。</span>
+<span id="cb68-162"><a href="#cb68-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-165"><a href="#cb68-165" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-166"><a href="#cb68-166" aria-hidden="true" tabindex="-1"></a>fit_scm <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"scm"</span>)</span>
+<span id="cb68-167"><a href="#cb68-167" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_scm)</span>
+<span id="cb68-168"><a href="#cb68-168" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-169"><a href="#cb68-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-172"><a href="#cb68-172" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-173"><a href="#cb68-173" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(fit_scm)</span>
+<span id="cb68-174"><a href="#cb68-174" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-175"><a href="#cb68-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-176"><a href="#cb68-176" aria-hidden="true" tabindex="-1"></a><span class="fu">#### 予測変数の指定（`pred()`）</span></span>
+<span id="cb68-177"><a href="#cb68-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-178"><a href="#cb68-178" aria-hidden="true" tabindex="-1"></a>SCMは <span class="in">`pred()`</span> 関数を使って @abadie_synthetic_2010 §2.3の予測変数行列を指定できます。</span>
+<span id="cb68-179"><a href="#cb68-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-180"><a href="#cb68-180" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-181"><a href="#cb68-181" aria-hidden="true" tabindex="-1"></a><span class="co"># dat に income, unemp 列がある想定の例</span></span>
+<span id="cb68-182"><a href="#cb68-182" aria-hidden="true" tabindex="-1"></a>fit_scm_cov <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
+<span id="cb68-183"><a href="#cb68-183" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
+<span id="cb68-184"><a href="#cb68-184" aria-hidden="true" tabindex="-1"></a>  <span class="at">data   =</span> dat,</span>
+<span id="cb68-185"><a href="#cb68-185" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"scm"</span>,</span>
+<span id="cb68-186"><a href="#cb68-186" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="fu">list</span>(</span>
+<span id="cb68-187"><a href="#cb68-187" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="fu">c</span>(<span class="st">"income"</span>, <span class="st">"unemp"</span>), <span class="dv">1</span><span class="sc">:</span><span class="dv">8</span>),     <span class="co"># 1〜8期平均</span></span>
+<span id="cb68-188"><a href="#cb68-188" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">5</span>),                         <span class="co"># 5期の結果変数</span></span>
+<span id="cb68-189"><a href="#cb68-189" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"y"</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">4</span>, <span class="at">op =</span> <span class="st">"mean"</span>)           <span class="co"># 1〜4期の平均</span></span>
+<span id="cb68-190"><a href="#cb68-190" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb68-191"><a href="#cb68-191" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-192"><a href="#cb68-192" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-193"><a href="#cb68-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-194"><a href="#cb68-194" aria-hidden="true" tabindex="-1"></a><span class="in">`pred()`</span> の <span class="in">`op`</span> 引数には <span class="in">`"mean"`</span>（デフォルト）、<span class="in">`"median"`</span>、<span class="in">`"sum"`</span> が指定できます。</span>
+<span id="cb68-195"><a href="#cb68-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-196"><a href="#cb68-196" aria-hidden="true" tabindex="-1"></a><span class="fu">#### smokingデータを使った例</span></span>
+<span id="cb68-197"><a href="#cb68-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-198"><a href="#cb68-198" aria-hidden="true" tabindex="-1"></a>僕が以前使っていた<span class="in">`tidysynth`</span>との比較を、カリフォルニアにおけるProposition 99の例で検証してみます。</span>
+<span id="cb68-199"><a href="#cb68-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-200"><a href="#cb68-200" aria-hidden="true" tabindex="-1"></a>データは<span class="in">`tidysynth`</span>の組み込みデータセット <span class="in">`smoking`</span> を使用します。</span>
+<span id="cb68-201"><a href="#cb68-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-204"><a href="#cb68-204" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-205"><a href="#cb68-205" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb68-206"><a href="#cb68-206" aria-hidden="true" tabindex="-1"></a><span class="co">#| layout-ncol: 2</span></span>
+<span id="cb68-207"><a href="#cb68-207" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap:</span></span>
+<span id="cb68-208"><a href="#cb68-208" aria-hidden="true" tabindex="-1"></a><span class="co">#|   - "tidysynthの結果"</span></span>
+<span id="cb68-209"><a href="#cb68-209" aria-hidden="true" tabindex="-1"></a><span class="co">#|   - "coresynthの結果"</span></span>
+<span id="cb68-210"><a href="#cb68-210" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb68-211"><a href="#cb68-211" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidysynth)</span>
+<span id="cb68-212"><a href="#cb68-212" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">"smoking"</span>)</span>
+<span id="cb68-213"><a href="#cb68-213" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-214"><a href="#cb68-214" aria-hidden="true" tabindex="-1"></a>smoking_out <span class="ot">&lt;-</span> smoking <span class="sc">|&gt;</span></span>
+<span id="cb68-215"><a href="#cb68-215" aria-hidden="true" tabindex="-1"></a>  <span class="fu">synthetic_control</span>(</span>
+<span id="cb68-216"><a href="#cb68-216" aria-hidden="true" tabindex="-1"></a>    <span class="at">outcome =</span> cigsale,</span>
+<span id="cb68-217"><a href="#cb68-217" aria-hidden="true" tabindex="-1"></a>    <span class="at">unit =</span> state,</span>
+<span id="cb68-218"><a href="#cb68-218" aria-hidden="true" tabindex="-1"></a>    <span class="at">time =</span> year,</span>
+<span id="cb68-219"><a href="#cb68-219" aria-hidden="true" tabindex="-1"></a>    <span class="at">i_unit =</span> <span class="st">"California"</span>,</span>
+<span id="cb68-220"><a href="#cb68-220" aria-hidden="true" tabindex="-1"></a>    <span class="at">i_time =</span> <span class="dv">1988</span>,</span>
+<span id="cb68-221"><a href="#cb68-221" aria-hidden="true" tabindex="-1"></a>    <span class="at">generate_placebos =</span> <span class="cn">TRUE</span></span>
+<span id="cb68-222"><a href="#cb68-222" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-223"><a href="#cb68-223" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
+<span id="cb68-224"><a href="#cb68-224" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>,</span>
+<span id="cb68-225"><a href="#cb68-225" aria-hidden="true" tabindex="-1"></a>    <span class="at">ln_income =</span> <span class="fu">mean</span>(lnincome, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb68-226"><a href="#cb68-226" aria-hidden="true" tabindex="-1"></a>    <span class="at">ret_price =</span> <span class="fu">mean</span>(retprice, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb68-227"><a href="#cb68-227" aria-hidden="true" tabindex="-1"></a>    <span class="at">youth =</span> <span class="fu">mean</span>(age15to24, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb68-228"><a href="#cb68-228" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-229"><a href="#cb68-229" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
+<span id="cb68-230"><a href="#cb68-230" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>,</span>
+<span id="cb68-231"><a href="#cb68-231" aria-hidden="true" tabindex="-1"></a>    <span class="at">ln_cigsale =</span> <span class="fu">mean</span>(cigsale, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb68-232"><a href="#cb68-232" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-233"><a href="#cb68-233" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
+<span id="cb68-234"><a href="#cb68-234" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1984</span><span class="sc">:</span><span class="dv">1988</span>,</span>
+<span id="cb68-235"><a href="#cb68-235" aria-hidden="true" tabindex="-1"></a>    <span class="at">beer_sales =</span> <span class="fu">mean</span>(beer, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb68-236"><a href="#cb68-236" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-237"><a href="#cb68-237" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
+<span id="cb68-238"><a href="#cb68-238" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1975</span>,</span>
+<span id="cb68-239"><a href="#cb68-239" aria-hidden="true" tabindex="-1"></a>    <span class="at">cigsale_1975 =</span> cigsale</span>
+<span id="cb68-240"><a href="#cb68-240" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-241"><a href="#cb68-241" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
+<span id="cb68-242"><a href="#cb68-242" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1980</span>,</span>
+<span id="cb68-243"><a href="#cb68-243" aria-hidden="true" tabindex="-1"></a>    <span class="at">cigsale_1980 =</span> cigsale</span>
+<span id="cb68-244"><a href="#cb68-244" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-245"><a href="#cb68-245" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_predictor</span>(</span>
+<span id="cb68-246"><a href="#cb68-246" aria-hidden="true" tabindex="-1"></a>    <span class="at">time_window =</span> <span class="dv">1988</span>,</span>
+<span id="cb68-247"><a href="#cb68-247" aria-hidden="true" tabindex="-1"></a>    <span class="at">cigsale_1988 =</span> cigsale</span>
+<span id="cb68-248"><a href="#cb68-248" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-249"><a href="#cb68-249" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_weights</span>(</span>
+<span id="cb68-250"><a href="#cb68-250" aria-hidden="true" tabindex="-1"></a>    <span class="at">optimization_window =</span> <span class="dv">1970</span><span class="sc">:</span><span class="dv">1988</span>,</span>
+<span id="cb68-251"><a href="#cb68-251" aria-hidden="true" tabindex="-1"></a>    <span class="at">margin_ipop =</span> .<span class="dv">02</span>,</span>
+<span id="cb68-252"><a href="#cb68-252" aria-hidden="true" tabindex="-1"></a>    <span class="at">sigf_ipop =</span> <span class="dv">7</span>,</span>
+<span id="cb68-253"><a href="#cb68-253" aria-hidden="true" tabindex="-1"></a>    <span class="at">bound_ipop =</span> <span class="dv">6</span></span>
+<span id="cb68-254"><a href="#cb68-254" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb68-255"><a href="#cb68-255" aria-hidden="true" tabindex="-1"></a>  <span class="fu">generate_control</span>()</span>
+<span id="cb68-256"><a href="#cb68-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-257"><a href="#cb68-257" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_trends</span>(smoking_out)</span>
+<span id="cb68-258"><a href="#cb68-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-259"><a href="#cb68-259" aria-hidden="true" tabindex="-1"></a><span class="co"># 以下、coresynthで同じ分析を実行</span></span>
+<span id="cb68-260"><a href="#cb68-260" aria-hidden="true" tabindex="-1"></a>panel <span class="ot">&lt;-</span> smoking <span class="sc">|&gt;</span></span>
+<span id="cb68-261"><a href="#cb68-261" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">d =</span> <span class="fu">if_else</span>(state <span class="sc">==</span> <span class="st">"California"</span> <span class="sc">&amp;</span> year <span class="sc">&gt;=</span> <span class="dv">1988</span>, <span class="dv">1</span>L, <span class="dv">0</span>L))</span>
+<span id="cb68-262"><a href="#cb68-262" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-263"><a href="#cb68-263" aria-hidden="true" tabindex="-1"></a>fit_scm_smoking <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
+<span id="cb68-264"><a href="#cb68-264" aria-hidden="true" tabindex="-1"></a>  cigsale <span class="sc">~</span> d <span class="sc">|</span> state <span class="sc">+</span> year,</span>
+<span id="cb68-265"><a href="#cb68-265" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> panel,</span>
+<span id="cb68-266"><a href="#cb68-266" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"scm"</span>,</span>
+<span id="cb68-267"><a href="#cb68-267" aria-hidden="true" tabindex="-1"></a>  <span class="at">predictors =</span> <span class="fu">list</span>(</span>
+<span id="cb68-268"><a href="#cb68-268" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="fu">c</span>(<span class="st">"lnincome"</span>, <span class="st">"retprice"</span>, <span class="st">"age15to24"</span>), <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>),</span>
+<span id="cb68-269"><a href="#cb68-269" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1980</span><span class="sc">:</span><span class="dv">1988</span>, <span class="at">op =</span> <span class="st">"mean"</span>),</span>
+<span id="cb68-270"><a href="#cb68-270" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1975</span>),</span>
+<span id="cb68-271"><a href="#cb68-271" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1980</span>),</span>
+<span id="cb68-272"><a href="#cb68-272" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pred</span>(<span class="st">"cigsale"</span>, <span class="dv">1988</span>)</span>
+<span id="cb68-273"><a href="#cb68-273" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb68-274"><a href="#cb68-274" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-275"><a href="#cb68-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-276"><a href="#cb68-276" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm_smoking, <span class="at">type =</span> <span class="st">"trend"</span>) <span class="sc">+</span></span>
+<span id="cb68-277"><a href="#cb68-277" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"SCM: California Cigarette Sales"</span>) <span class="sc">+</span></span>
+<span id="cb68-278"><a href="#cb68-278" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
 <span id="cb68-279"><a href="#cb68-279" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-280"><a href="#cb68-280" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-281"><a href="#cb68-281" aria-hidden="true" tabindex="-1"></a><span class="fu">### GSC（`method = "gsc"`）</span></span>
+<span id="cb68-281"><a href="#cb68-281" aria-hidden="true" tabindex="-1"></a>ご覧のとおり、両者からほぼ同じ結果が得られています。<span class="in">`tidysynth`</span>は内部で<span class="in">`Synth`</span>パッケージを呼び出しているのですが、<span class="in">`Synth`</span>と<span class="in">`coresynth`</span>は同じ最適化問題を異なるアルゴリズムで解いているため、わずかな差が生じます。これは推定手法そのものの違いではなく、ソルバーの収束に由来する数値的な差であり、どちらの結果も妥当です。</span>
 <span id="cb68-282"><a href="#cb68-282" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-285"><a href="#cb68-285" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-286"><a href="#cb68-286" aria-hidden="true" tabindex="-1"></a>fit_gsc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"gsc"</span>)</span>
-<span id="cb68-287"><a href="#cb68-287" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_gsc)</span>
-<span id="cb68-288"><a href="#cb68-288" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-289"><a href="#cb68-289" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-290"><a href="#cb68-290" aria-hidden="true" tabindex="-1"></a>GSCは時変共変量の調整を <span class="in">`covariates`</span> 引数でサポートしています（<span class="in">`data`</span>の列名を文字ベクトルで指定）。内部では @xu_generalized_2017 の完全EMアルゴリズム（E-step：因子モデルのSVD、M-step：残差への共変量OLS）を実行します。</span>
+<span id="cb68-283"><a href="#cb68-283" aria-hidden="true" tabindex="-1"></a><span class="fu">### SDID（`method = "sdid"`）</span></span>
+<span id="cb68-284"><a href="#cb68-284" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-287"><a href="#cb68-287" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-288"><a href="#cb68-288" aria-hidden="true" tabindex="-1"></a>fit_sdid <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
+<span id="cb68-289"><a href="#cb68-289" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid)</span>
+<span id="cb68-290"><a href="#cb68-290" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-291"><a href="#cb68-291" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-292"><a href="#cb68-292" aria-hidden="true" tabindex="-1"></a><span class="fu">### MC（`method = "mc"`）</span></span>
+<span id="cb68-292"><a href="#cb68-292" aria-hidden="true" tabindex="-1"></a><span class="fu">### GSC（`method = "gsc"`）</span></span>
 <span id="cb68-293"><a href="#cb68-293" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb68-296"><a href="#cb68-296" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-297"><a href="#cb68-297" aria-hidden="true" tabindex="-1"></a>fit_mc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"mc"</span>)</span>
-<span id="cb68-298"><a href="#cb68-298" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_mc)</span>
+<span id="cb68-297"><a href="#cb68-297" aria-hidden="true" tabindex="-1"></a>fit_gsc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"gsc"</span>)</span>
+<span id="cb68-298"><a href="#cb68-298" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_gsc)</span>
 <span id="cb68-299"><a href="#cb68-299" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-300"><a href="#cb68-300" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-301"><a href="#cb68-301" aria-hidden="true" tabindex="-1"></a>核ノルム正則化による行列補完（Soft-Impute）で反事実を推定します。</span>
+<span id="cb68-301"><a href="#cb68-301" aria-hidden="true" tabindex="-1"></a>GSCは時変共変量の調整を <span class="in">`covariates`</span> 引数でサポートしています（<span class="in">`data`</span>の列名を文字ベクトルで指定）。内部では @xu_generalized_2017 の完全EMアルゴリズム（E-step：因子モデルのSVD、M-step：残差への共変量OLS）を実行します。</span>
 <span id="cb68-302"><a href="#cb68-302" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-303"><a href="#cb68-303" aria-hidden="true" tabindex="-1"></a><span class="fu">### TASC（`method = "tasc"`）</span></span>
+<span id="cb68-303"><a href="#cb68-303" aria-hidden="true" tabindex="-1"></a><span class="fu">### MC（`method = "mc"`）</span></span>
 <span id="cb68-304"><a href="#cb68-304" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb68-307"><a href="#cb68-307" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-308"><a href="#cb68-308" aria-hidden="true" tabindex="-1"></a>fit_tasc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"tasc"</span>)</span>
-<span id="cb68-309"><a href="#cb68-309" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_tasc)</span>
+<span id="cb68-308"><a href="#cb68-308" aria-hidden="true" tabindex="-1"></a>fit_mc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"mc"</span>)</span>
+<span id="cb68-309"><a href="#cb68-309" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_mc)</span>
 <span id="cb68-310"><a href="#cb68-310" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-311"><a href="#cb68-311" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-312"><a href="#cb68-312" aria-hidden="true" tabindex="-1"></a>カルマンEMによる時間考慮型合成コントロール <span class="co">[</span><span class="ot">@rho_time-aware_2026</span><span class="co">]</span> です。</span>
+<span id="cb68-312"><a href="#cb68-312" aria-hidden="true" tabindex="-1"></a>核ノルム正則化による行列補完（Soft-Impute）で反事実を推定します。</span>
 <span id="cb68-313"><a href="#cb68-313" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-314"><a href="#cb68-314" aria-hidden="true" tabindex="-1"></a><span class="fu">### SI（`method = "si"`）</span></span>
+<span id="cb68-314"><a href="#cb68-314" aria-hidden="true" tabindex="-1"></a><span class="fu">### TASC（`method = "tasc"`）</span></span>
 <span id="cb68-315"><a href="#cb68-315" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb68-318"><a href="#cb68-318" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-319"><a href="#cb68-319" aria-hidden="true" tabindex="-1"></a>fit_si <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"si"</span>)</span>
-<span id="cb68-320"><a href="#cb68-320" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_si)</span>
+<span id="cb68-319"><a href="#cb68-319" aria-hidden="true" tabindex="-1"></a>fit_tasc <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"tasc"</span>)</span>
+<span id="cb68-320"><a href="#cb68-320" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_tasc)</span>
 <span id="cb68-321"><a href="#cb68-321" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-322"><a href="#cb68-322" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-323"><a href="#cb68-323" aria-hidden="true" tabindex="-1"></a>SI-PCR（主成分回帰）に基づく合成介入法 <span class="co">[</span><span class="ot">@agarwal_synthetic_interventions_2024</span><span class="co">]</span> です。シャープ・Staggered・マルチアームすべてに対応しています。</span>
+<span id="cb68-323"><a href="#cb68-323" aria-hidden="true" tabindex="-1"></a>カルマンEMによる時間考慮型合成コントロール <span class="co">[</span><span class="ot">@rho_time-aware_2026</span><span class="co">]</span> です。</span>
 <span id="cb68-324"><a href="#cb68-324" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-325"><a href="#cb68-325" aria-hidden="true" tabindex="-1"></a><span class="fu">### 6手法の比較</span></span>
+<span id="cb68-325"><a href="#cb68-325" aria-hidden="true" tabindex="-1"></a><span class="fu">### SI（`method = "si"`）</span></span>
 <span id="cb68-326"><a href="#cb68-326" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb68-329"><a href="#cb68-329" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-330"><a href="#cb68-330" aria-hidden="true" tabindex="-1"></a>methods <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>)</span>
-<span id="cb68-331"><a href="#cb68-331" aria-hidden="true" tabindex="-1"></a>fits <span class="ot">&lt;-</span> <span class="fu">lapply</span>(methods, \(m) <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> m))</span>
-<span id="cb68-332"><a href="#cb68-332" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(fits) <span class="ot">&lt;-</span> methods</span>
+<span id="cb68-330"><a href="#cb68-330" aria-hidden="true" tabindex="-1"></a>fit_si <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> <span class="st">"si"</span>)</span>
+<span id="cb68-331"><a href="#cb68-331" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_si)</span>
+<span id="cb68-332"><a href="#cb68-332" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-333"><a href="#cb68-333" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-334"><a href="#cb68-334" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
-<span id="cb68-335"><a href="#cb68-335" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> methods,</span>
-<span id="cb68-336"><a href="#cb68-336" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimate =</span> <span class="fu">round</span>(<span class="fu">sapply</span>(fits, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="st">"estimate"</span>), <span class="dv">3</span>)</span>
-<span id="cb68-337"><a href="#cb68-337" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-338"><a href="#cb68-338" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-339"><a href="#cb68-339" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-340"><a href="#cb68-340" aria-hidden="true" tabindex="-1"></a>真のATTは2.5です。</span>
-<span id="cb68-341"><a href="#cb68-341" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-342"><a href="#cb68-342" aria-hidden="true" tabindex="-1"></a><span class="fu">## Staggered Adoption</span></span>
-<span id="cb68-343"><a href="#cb68-343" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-344"><a href="#cb68-344" aria-hidden="true" tabindex="-1"></a>6つの手法すべてがStaggered Adoptionに対応しています。各コホートを個別に推定し、$N_{\text{treated}} \times T_{\text{post}}$ に比例したウェイトでATTを集計するアプローチ <span class="co">[</span><span class="ot">@clarke_synthetic_2024</span><span class="co">]</span> を採用しています。</span>
-<span id="cb68-345"><a href="#cb68-345" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-348"><a href="#cb68-348" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-349"><a href="#cb68-349" aria-hidden="true" tabindex="-1"></a><span class="co"># pref_01: 21期から処置、pref_02: 26期から処置</span></span>
-<span id="cb68-350"><a href="#cb68-350" aria-hidden="true" tabindex="-1"></a>dat_s <span class="ot">&lt;-</span> dat</span>
-<span id="cb68-351"><a href="#cb68-351" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="dv">0</span>L</span>
-<span id="cb68-352"><a href="#cb68-352" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">20</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
-<span id="cb68-353"><a href="#cb68-353" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_02"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">25</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
-<span id="cb68-354"><a href="#cb68-354" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> <span class="fl">2.5</span></span>
-<span id="cb68-355"><a href="#cb68-355" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-356"><a href="#cb68-356" aria-hidden="true" tabindex="-1"></a>fit_sdid_s <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat_s, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
-<span id="cb68-357"><a href="#cb68-357" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid_s)</span>
-<span id="cb68-358"><a href="#cb68-358" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-359"><a href="#cb68-359" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-360"><a href="#cb68-360" aria-hidden="true" tabindex="-1"></a>コホート別の推定値は <span class="in">`$cohort_estimates`</span> フィールドで確認できます。</span>
-<span id="cb68-361"><a href="#cb68-361" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-364"><a href="#cb68-364" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-365"><a href="#cb68-365" aria-hidden="true" tabindex="-1"></a>fit_sdid_s<span class="sc">$</span>cohort_estimates</span>
-<span id="cb68-366"><a href="#cb68-366" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-367"><a href="#cb68-367" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-368"><a href="#cb68-368" aria-hidden="true" tabindex="-1"></a><span class="in">`control_group`</span> 引数でドナープールを制御できます。</span>
-<span id="cb68-369"><a href="#cb68-369" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-370"><a href="#cb68-370" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"clean"`</span>（デフォルト）：never-treated + future adoptersをドナーとして使用 <span class="co">[</span><span class="ot">@clarke_synthetic_2024</span><span class="co">]</span></span>
-<span id="cb68-371"><a href="#cb68-371" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"never_treated"`</span>：never-treatedのみを使用</span>
+<span id="cb68-334"><a href="#cb68-334" aria-hidden="true" tabindex="-1"></a>SI-PCR（主成分回帰）に基づく合成介入法 <span class="co">[</span><span class="ot">@agarwal_synthetic_interventions_2024</span><span class="co">]</span> です。シャープ・Staggered・マルチアームすべてに対応しています。</span>
+<span id="cb68-335"><a href="#cb68-335" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-336"><a href="#cb68-336" aria-hidden="true" tabindex="-1"></a><span class="fu">### 6手法の比較</span></span>
+<span id="cb68-337"><a href="#cb68-337" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-340"><a href="#cb68-340" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-341"><a href="#cb68-341" aria-hidden="true" tabindex="-1"></a>methods <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"scm"</span>, <span class="st">"sdid"</span>, <span class="st">"gsc"</span>, <span class="st">"mc"</span>, <span class="st">"tasc"</span>, <span class="st">"si"</span>)</span>
+<span id="cb68-342"><a href="#cb68-342" aria-hidden="true" tabindex="-1"></a>fits <span class="ot">&lt;-</span> <span class="fu">lapply</span>(methods, \(m) <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat, <span class="at">method =</span> m))</span>
+<span id="cb68-343"><a href="#cb68-343" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(fits) <span class="ot">&lt;-</span> methods</span>
+<span id="cb68-344"><a href="#cb68-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-345"><a href="#cb68-345" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb68-346"><a href="#cb68-346" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> methods,</span>
+<span id="cb68-347"><a href="#cb68-347" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimate =</span> <span class="fu">round</span>(<span class="fu">sapply</span>(fits, <span class="st">`</span><span class="at">[[</span><span class="st">`</span>, <span class="st">"estimate"</span>), <span class="dv">3</span>)</span>
+<span id="cb68-348"><a href="#cb68-348" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-349"><a href="#cb68-349" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-350"><a href="#cb68-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-351"><a href="#cb68-351" aria-hidden="true" tabindex="-1"></a>真のATTは2.5です。</span>
+<span id="cb68-352"><a href="#cb68-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-353"><a href="#cb68-353" aria-hidden="true" tabindex="-1"></a><span class="fu">## Staggered Adoption</span></span>
+<span id="cb68-354"><a href="#cb68-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-355"><a href="#cb68-355" aria-hidden="true" tabindex="-1"></a>6つの手法すべてがStaggered Adoptionに対応しています。各コホートを個別に推定し、$N_{\text{treated}} \times T_{\text{post}}$ に比例したウェイトでATTを集計するアプローチ <span class="co">[</span><span class="ot">@clarke_synthetic_2024</span><span class="co">]</span> を採用しています。</span>
+<span id="cb68-356"><a href="#cb68-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-359"><a href="#cb68-359" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-360"><a href="#cb68-360" aria-hidden="true" tabindex="-1"></a><span class="co"># pref_01: 21期から処置、pref_02: 26期から処置</span></span>
+<span id="cb68-361"><a href="#cb68-361" aria-hidden="true" tabindex="-1"></a>dat_s <span class="ot">&lt;-</span> dat</span>
+<span id="cb68-362"><a href="#cb68-362" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d <span class="ot">&lt;-</span> <span class="dv">0</span>L</span>
+<span id="cb68-363"><a href="#cb68-363" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_01"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">20</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
+<span id="cb68-364"><a href="#cb68-364" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>d[dat_s<span class="sc">$</span>id <span class="sc">==</span> <span class="st">"pref_02"</span> <span class="sc">&amp;</span> dat_s<span class="sc">$</span>time <span class="sc">&gt;</span> <span class="dv">25</span>] <span class="ot">&lt;-</span> <span class="dv">1</span>L</span>
+<span id="cb68-365"><a href="#cb68-365" aria-hidden="true" tabindex="-1"></a>dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="ot">&lt;-</span> dat_s<span class="sc">$</span>y[dat_s<span class="sc">$</span>d <span class="sc">==</span> <span class="dv">1</span>] <span class="sc">+</span> <span class="fl">2.5</span></span>
+<span id="cb68-366"><a href="#cb68-366" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-367"><a href="#cb68-367" aria-hidden="true" tabindex="-1"></a>fit_sdid_s <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time, <span class="at">data =</span> dat_s, <span class="at">method =</span> <span class="st">"sdid"</span>)</span>
+<span id="cb68-368"><a href="#cb68-368" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(fit_sdid_s)</span>
+<span id="cb68-369"><a href="#cb68-369" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-370"><a href="#cb68-370" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-371"><a href="#cb68-371" aria-hidden="true" tabindex="-1"></a>コホート別の推定値は <span class="in">`$cohort_estimates`</span> フィールドで確認できます。</span>
 <span id="cb68-372"><a href="#cb68-372" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-373"><a href="#cb68-373" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-374"><a href="#cb68-374" aria-hidden="true" tabindex="-1"></a>fit_sdid_never <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
-<span id="cb68-375"><a href="#cb68-375" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
-<span id="cb68-376"><a href="#cb68-376" aria-hidden="true" tabindex="-1"></a>  <span class="at">data          =</span> dat_s,</span>
-<span id="cb68-377"><a href="#cb68-377" aria-hidden="true" tabindex="-1"></a>  <span class="at">method        =</span> <span class="st">"sdid"</span>,</span>
-<span id="cb68-378"><a href="#cb68-378" aria-hidden="true" tabindex="-1"></a>  <span class="at">control_group =</span> <span class="st">"never_treated"</span></span>
-<span id="cb68-379"><a href="#cb68-379" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-380"><a href="#cb68-380" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-381"><a href="#cb68-381" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-382"><a href="#cb68-382" aria-hidden="true" tabindex="-1"></a><span class="fu">## `plot()`</span></span>
+<span id="cb68-375"><a href="#cb68-375" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-376"><a href="#cb68-376" aria-hidden="true" tabindex="-1"></a>fit_sdid_s<span class="sc">$</span>cohort_estimates</span>
+<span id="cb68-377"><a href="#cb68-377" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-378"><a href="#cb68-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-379"><a href="#cb68-379" aria-hidden="true" tabindex="-1"></a><span class="in">`control_group`</span> 引数でドナープールを制御できます。</span>
+<span id="cb68-380"><a href="#cb68-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-381"><a href="#cb68-381" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"clean"`</span>（デフォルト）：never-treated + future adoptersをドナーとして使用 <span class="co">[</span><span class="ot">@clarke_synthetic_2024</span><span class="co">]</span></span>
+<span id="cb68-382"><a href="#cb68-382" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"never_treated"`</span>：never-treatedのみを使用</span>
 <span id="cb68-383"><a href="#cb68-383" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-384"><a href="#cb68-384" aria-hidden="true" tabindex="-1"></a><span class="in">`plot()`</span> で3種類のプロットを出力できます。</span>
-<span id="cb68-385"><a href="#cb68-385" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-386"><a href="#cb68-386" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-387"><a href="#cb68-387" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"trend"</span>, <span class="st">"gap"</span>, <span class="st">"weights"</span>))</span>
-<span id="cb68-388"><a href="#cb68-388" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-389"><a href="#cb68-389" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-390"><a href="#cb68-390" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"trend"`</span>：処置ユニット vs. 合成コントロールの時系列</span>
-<span id="cb68-391"><a href="#cb68-391" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"gap"`</span>：処置効果の時系列（$Y_{\text{treated}} - Y_{\text{synthetic}}$）</span>
-<span id="cb68-392"><a href="#cb68-392" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"weights"`</span>：ドナーユニットのウェイト棒グラフ（SCM・SDID・SI）</span>
-<span id="cb68-393"><a href="#cb68-393" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-394"><a href="#cb68-394" aria-hidden="true" tabindex="-1"></a><span class="fu">### Trend プロット</span></span>
-<span id="cb68-395"><a href="#cb68-395" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-396"><a href="#cb68-396" aria-hidden="true" tabindex="-1"></a>::: {.panel-tabset}</span>
-<span id="cb68-397"><a href="#cb68-397" aria-hidden="true" tabindex="-1"></a><span class="fu">## SCM</span></span>
-<span id="cb68-398"><a href="#cb68-398" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-401"><a href="#cb68-401" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-402"><a href="#cb68-402" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
-<span id="cb68-403"><a href="#cb68-403" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-384"><a href="#cb68-384" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-385"><a href="#cb68-385" aria-hidden="true" tabindex="-1"></a>fit_sdid_never <span class="ot">&lt;-</span> <span class="fu">scm_fit</span>(</span>
+<span id="cb68-386"><a href="#cb68-386" aria-hidden="true" tabindex="-1"></a>  y <span class="sc">~</span> d <span class="sc">|</span> id <span class="sc">+</span> time,</span>
+<span id="cb68-387"><a href="#cb68-387" aria-hidden="true" tabindex="-1"></a>  <span class="at">data          =</span> dat_s,</span>
+<span id="cb68-388"><a href="#cb68-388" aria-hidden="true" tabindex="-1"></a>  <span class="at">method        =</span> <span class="st">"sdid"</span>,</span>
+<span id="cb68-389"><a href="#cb68-389" aria-hidden="true" tabindex="-1"></a>  <span class="at">control_group =</span> <span class="st">"never_treated"</span></span>
+<span id="cb68-390"><a href="#cb68-390" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-391"><a href="#cb68-391" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-392"><a href="#cb68-392" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-393"><a href="#cb68-393" aria-hidden="true" tabindex="-1"></a><span class="fu">## `plot()`</span></span>
+<span id="cb68-394"><a href="#cb68-394" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-395"><a href="#cb68-395" aria-hidden="true" tabindex="-1"></a><span class="in">`plot()`</span> で3種類のプロットを出力できます。</span>
+<span id="cb68-396"><a href="#cb68-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-397"><a href="#cb68-397" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-398"><a href="#cb68-398" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit, <span class="at">type =</span> <span class="fu">c</span>(<span class="st">"trend"</span>, <span class="st">"gap"</span>, <span class="st">"weights"</span>))</span>
+<span id="cb68-399"><a href="#cb68-399" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-400"><a href="#cb68-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-401"><a href="#cb68-401" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"trend"`</span>：処置ユニット vs. 合成コントロールの時系列</span>
+<span id="cb68-402"><a href="#cb68-402" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"gap"`</span>：処置効果の時系列（$Y_{\text{treated}} - Y_{\text{synthetic}}$）</span>
+<span id="cb68-403"><a href="#cb68-403" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span><span class="in">`"weights"`</span>：ドナーユニットのウェイト棒グラフ（SCM・SDID・SI）</span>
 <span id="cb68-404"><a href="#cb68-404" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-405"><a href="#cb68-405" aria-hidden="true" tabindex="-1"></a><span class="fu">## SDID</span></span>
+<span id="cb68-405"><a href="#cb68-405" aria-hidden="true" tabindex="-1"></a><span class="fu">### Trend プロット</span></span>
 <span id="cb68-406"><a href="#cb68-406" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-409"><a href="#cb68-409" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-410"><a href="#cb68-410" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_sdid, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
-<span id="cb68-411"><a href="#cb68-411" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-412"><a href="#cb68-412" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-413"><a href="#cb68-413" aria-hidden="true" tabindex="-1"></a><span class="fu">## GSC</span></span>
-<span id="cb68-414"><a href="#cb68-414" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-417"><a href="#cb68-417" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-418"><a href="#cb68-418" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_gsc, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
-<span id="cb68-419"><a href="#cb68-419" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-420"><a href="#cb68-420" aria-hidden="true" tabindex="-1"></a>:::</span>
-<span id="cb68-421"><a href="#cb68-421" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-422"><a href="#cb68-422" aria-hidden="true" tabindex="-1"></a><span class="fu">### Gap プロット</span></span>
+<span id="cb68-407"><a href="#cb68-407" aria-hidden="true" tabindex="-1"></a>::: {.panel-tabset}</span>
+<span id="cb68-408"><a href="#cb68-408" aria-hidden="true" tabindex="-1"></a><span class="fu">## SCM</span></span>
+<span id="cb68-409"><a href="#cb68-409" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-412"><a href="#cb68-412" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-413"><a href="#cb68-413" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
+<span id="cb68-414"><a href="#cb68-414" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-415"><a href="#cb68-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-416"><a href="#cb68-416" aria-hidden="true" tabindex="-1"></a><span class="fu">## SDID</span></span>
+<span id="cb68-417"><a href="#cb68-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-420"><a href="#cb68-420" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-421"><a href="#cb68-421" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_sdid, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
+<span id="cb68-422"><a href="#cb68-422" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-423"><a href="#cb68-423" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-426"><a href="#cb68-426" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-427"><a href="#cb68-427" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"gap"</span>)</span>
-<span id="cb68-428"><a href="#cb68-428" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-429"><a href="#cb68-429" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-430"><a href="#cb68-430" aria-hidden="true" tabindex="-1"></a>垂直の点線が処置開始時点、水平の破線が0です。</span>
-<span id="cb68-431"><a href="#cb68-431" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-432"><a href="#cb68-432" aria-hidden="true" tabindex="-1"></a><span class="fu">### Weights プロット</span></span>
-<span id="cb68-433"><a href="#cb68-433" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-436"><a href="#cb68-436" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-437"><a href="#cb68-437" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"weights"</span>)</span>
-<span id="cb68-438"><a href="#cb68-438" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-439"><a href="#cb68-439" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-440"><a href="#cb68-440" aria-hidden="true" tabindex="-1"></a>ggplot2ベースなのでggplotの関数をつなげることも可能です。</span>
-<span id="cb68-441"><a href="#cb68-441" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-444"><a href="#cb68-444" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-445"><a href="#cb68-445" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb68-446"><a href="#cb68-446" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-447"><a href="#cb68-447" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>) <span class="sc">+</span></span>
-<span id="cb68-448"><a href="#cb68-448" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"SCM: Observed vs. Synthetic Control"</span>)</span>
+<span id="cb68-424"><a href="#cb68-424" aria-hidden="true" tabindex="-1"></a><span class="fu">## GSC</span></span>
+<span id="cb68-425"><a href="#cb68-425" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-428"><a href="#cb68-428" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-429"><a href="#cb68-429" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_gsc, <span class="at">type =</span> <span class="st">"trend"</span>)</span>
+<span id="cb68-430"><a href="#cb68-430" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-431"><a href="#cb68-431" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb68-432"><a href="#cb68-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-433"><a href="#cb68-433" aria-hidden="true" tabindex="-1"></a><span class="fu">### Gap プロット</span></span>
+<span id="cb68-434"><a href="#cb68-434" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-437"><a href="#cb68-437" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-438"><a href="#cb68-438" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"gap"</span>)</span>
+<span id="cb68-439"><a href="#cb68-439" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-440"><a href="#cb68-440" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-441"><a href="#cb68-441" aria-hidden="true" tabindex="-1"></a>垂直の点線が処置開始時点、水平の破線が0です。</span>
+<span id="cb68-442"><a href="#cb68-442" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-443"><a href="#cb68-443" aria-hidden="true" tabindex="-1"></a><span class="fu">### Weights プロット</span></span>
+<span id="cb68-444"><a href="#cb68-444" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-447"><a href="#cb68-447" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-448"><a href="#cb68-448" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"weights"</span>)</span>
 <span id="cb68-449"><a href="#cb68-449" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-450"><a href="#cb68-450" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-451"><a href="#cb68-451" aria-hidden="true" tabindex="-1"></a><span class="fu">## 推論</span></span>
+<span id="cb68-451"><a href="#cb68-451" aria-hidden="true" tabindex="-1"></a>ggplot2ベースなのでggplotの関数をつなげることも可能です。</span>
 <span id="cb68-452"><a href="#cb68-452" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-453"><a href="#cb68-453" aria-hidden="true" tabindex="-1"></a>各推定量に対応した推論関数が用意されています。</span>
-<span id="cb68-454"><a href="#cb68-454" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-455"><a href="#cb68-455" aria-hidden="true" tabindex="-1"></a><span class="fu">### SCM：MSPE比率置換検定（`mspe_ratio_pval()`）</span></span>
-<span id="cb68-456"><a href="#cb68-456" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-457"><a href="#cb68-457" aria-hidden="true" tabindex="-1"></a>@abadie_synthetic_2010 / @abadie_using_2021 のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。</span>
-<span id="cb68-458"><a href="#cb68-458" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-461"><a href="#cb68-461" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-462"><a href="#cb68-462" aria-hidden="true" tabindex="-1"></a>inf_scm <span class="ot">&lt;-</span> <span class="fu">mspe_ratio_pval</span>(fit_scm)</span>
-<span id="cb68-463"><a href="#cb68-463" aria-hidden="true" tabindex="-1"></a>inf_scm<span class="sc">$</span>p_value</span>
-<span id="cb68-464"><a href="#cb68-464" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-455"><a href="#cb68-455" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-456"><a href="#cb68-456" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb68-457"><a href="#cb68-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-458"><a href="#cb68-458" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(fit_scm, <span class="at">type =</span> <span class="st">"trend"</span>) <span class="sc">+</span></span>
+<span id="cb68-459"><a href="#cb68-459" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"SCM: Observed vs. Synthetic Control"</span>)</span>
+<span id="cb68-460"><a href="#cb68-460" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-461"><a href="#cb68-461" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-462"><a href="#cb68-462" aria-hidden="true" tabindex="-1"></a><span class="fu">## 推論</span></span>
+<span id="cb68-463"><a href="#cb68-463" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-464"><a href="#cb68-464" aria-hidden="true" tabindex="-1"></a>各推定量に対応した推論関数が用意されています。</span>
 <span id="cb68-465"><a href="#cb68-465" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-466"><a href="#cb68-466" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-467"><a href="#cb68-467" aria-hidden="true" tabindex="-1"></a><span class="fu">mspe_ratio_pval</span>(</span>
-<span id="cb68-468"><a href="#cb68-468" aria-hidden="true" tabindex="-1"></a>  fit,</span>
-<span id="cb68-469"><a href="#cb68-469" aria-hidden="true" tabindex="-1"></a>  <span class="at">mspe_threshold =</span> <span class="dv">0</span>,     <span class="co"># プラセボに含める最小MSPE（デフォルト：0）</span></span>
-<span id="cb68-470"><a href="#cb68-470" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_iter       =</span> <span class="dv">100</span>L,</span>
-<span id="cb68-471"><a href="#cb68-471" aria-hidden="true" tabindex="-1"></a>  <span class="at">tol            =</span> <span class="fl">1e-4</span>,</span>
-<span id="cb68-472"><a href="#cb68-472" aria-hidden="true" tabindex="-1"></a>  <span class="at">use_covariates =</span> <span class="cn">FALSE</span>, <span class="co"># 予測変数をプラセボにも適用するか</span></span>
-<span id="cb68-473"><a href="#cb68-473" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative    =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>)</span>
-<span id="cb68-474"><a href="#cb68-474" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-466"><a href="#cb68-466" aria-hidden="true" tabindex="-1"></a><span class="fu">### SCM：MSPE比率置換検定（`mspe_ratio_pval()`）</span></span>
+<span id="cb68-467"><a href="#cb68-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-468"><a href="#cb68-468" aria-hidden="true" tabindex="-1"></a>@abadie_synthetic_2010 / @abadie_using_2021 のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。</span>
+<span id="cb68-469"><a href="#cb68-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-472"><a href="#cb68-472" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-473"><a href="#cb68-473" aria-hidden="true" tabindex="-1"></a>inf_scm <span class="ot">&lt;-</span> <span class="fu">mspe_ratio_pval</span>(fit_scm)</span>
+<span id="cb68-474"><a href="#cb68-474" aria-hidden="true" tabindex="-1"></a>inf_scm<span class="sc">$</span>p_value</span>
 <span id="cb68-475"><a href="#cb68-475" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-476"><a href="#cb68-476" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-477"><a href="#cb68-477" aria-hidden="true" tabindex="-1"></a><span class="fu">### SDID：`sdid_inference()`</span></span>
-<span id="cb68-478"><a href="#cb68-478" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-479"><a href="#cb68-479" aria-hidden="true" tabindex="-1"></a>@clarke_synthetic_2024 に基づく3種類の推論手法を提供します。</span>
-<span id="cb68-480"><a href="#cb68-480" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-483"><a href="#cb68-483" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-484"><a href="#cb68-484" aria-hidden="true" tabindex="-1"></a><span class="co"># プラセボ検定（デフォルト）</span></span>
-<span id="cb68-485"><a href="#cb68-485" aria-hidden="true" tabindex="-1"></a>inf_sdid <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(fit_sdid, <span class="at">method =</span> <span class="st">"placebo"</span>)</span>
-<span id="cb68-486"><a href="#cb68-486" aria-hidden="true" tabindex="-1"></a>inf_sdid<span class="sc">$</span>p_value</span>
-<span id="cb68-487"><a href="#cb68-487" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-488"><a href="#cb68-488" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-491"><a href="#cb68-491" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-492"><a href="#cb68-492" aria-hidden="true" tabindex="-1"></a><span class="co"># ブートストラップ（SE・CI付き）</span></span>
-<span id="cb68-493"><a href="#cb68-493" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(</span>
-<span id="cb68-494"><a href="#cb68-494" aria-hidden="true" tabindex="-1"></a>  fit_sdid,</span>
-<span id="cb68-495"><a href="#cb68-495" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"bootstrap"</span>,</span>
-<span id="cb68-496"><a href="#cb68-496" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot =</span> <span class="dv">200</span>,</span>
-<span id="cb68-497"><a href="#cb68-497" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span></span>
-<span id="cb68-498"><a href="#cb68-498" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-499"><a href="#cb68-499" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>se</span>
-<span id="cb68-500"><a href="#cb68-500" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_lower</span>
-<span id="cb68-501"><a href="#cb68-501" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_upper</span>
-<span id="cb68-502"><a href="#cb68-502" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-503"><a href="#cb68-503" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-504"><a href="#cb68-504" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-505"><a href="#cb68-505" aria-hidden="true" tabindex="-1"></a><span class="fu">sdid_inference</span>(</span>
-<span id="cb68-506"><a href="#cb68-506" aria-hidden="true" tabindex="-1"></a>  fit,</span>
-<span id="cb68-507"><a href="#cb68-507" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"placebo"</span>, <span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
-<span id="cb68-508"><a href="#cb68-508" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">200</span>L,   <span class="co"># bootstrap のみ</span></span>
-<span id="cb68-509"><a href="#cb68-509" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
-<span id="cb68-510"><a href="#cb68-510" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
-<span id="cb68-511"><a href="#cb68-511" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
-<span id="cb68-512"><a href="#cb68-512" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-477"><a href="#cb68-477" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-478"><a href="#cb68-478" aria-hidden="true" tabindex="-1"></a><span class="fu">mspe_ratio_pval</span>(</span>
+<span id="cb68-479"><a href="#cb68-479" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb68-480"><a href="#cb68-480" aria-hidden="true" tabindex="-1"></a>  <span class="at">mspe_threshold =</span> <span class="dv">0</span>,     <span class="co"># プラセボに含める最小MSPE（デフォルト：0）</span></span>
+<span id="cb68-481"><a href="#cb68-481" aria-hidden="true" tabindex="-1"></a>  <span class="at">max_iter       =</span> <span class="dv">100</span>L,</span>
+<span id="cb68-482"><a href="#cb68-482" aria-hidden="true" tabindex="-1"></a>  <span class="at">tol            =</span> <span class="fl">1e-4</span>,</span>
+<span id="cb68-483"><a href="#cb68-483" aria-hidden="true" tabindex="-1"></a>  <span class="at">use_covariates =</span> <span class="cn">FALSE</span>, <span class="co"># 予測変数をプラセボにも適用するか</span></span>
+<span id="cb68-484"><a href="#cb68-484" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative    =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>)</span>
+<span id="cb68-485"><a href="#cb68-485" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-486"><a href="#cb68-486" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-487"><a href="#cb68-487" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-488"><a href="#cb68-488" aria-hidden="true" tabindex="-1"></a><span class="fu">### SDID：`sdid_inference()`</span></span>
+<span id="cb68-489"><a href="#cb68-489" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-490"><a href="#cb68-490" aria-hidden="true" tabindex="-1"></a>@clarke_synthetic_2024 に基づく3種類の推論手法を提供します。</span>
+<span id="cb68-491"><a href="#cb68-491" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-494"><a href="#cb68-494" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-495"><a href="#cb68-495" aria-hidden="true" tabindex="-1"></a><span class="co"># プラセボ検定（デフォルト）</span></span>
+<span id="cb68-496"><a href="#cb68-496" aria-hidden="true" tabindex="-1"></a>inf_sdid <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(fit_sdid, <span class="at">method =</span> <span class="st">"placebo"</span>)</span>
+<span id="cb68-497"><a href="#cb68-497" aria-hidden="true" tabindex="-1"></a>inf_sdid<span class="sc">$</span>p_value</span>
+<span id="cb68-498"><a href="#cb68-498" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-499"><a href="#cb68-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-502"><a href="#cb68-502" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-503"><a href="#cb68-503" aria-hidden="true" tabindex="-1"></a><span class="co"># ブートストラップ（SE・CI付き）</span></span>
+<span id="cb68-504"><a href="#cb68-504" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot <span class="ot">&lt;-</span> <span class="fu">sdid_inference</span>(</span>
+<span id="cb68-505"><a href="#cb68-505" aria-hidden="true" tabindex="-1"></a>  fit_sdid,</span>
+<span id="cb68-506"><a href="#cb68-506" aria-hidden="true" tabindex="-1"></a>  <span class="at">method =</span> <span class="st">"bootstrap"</span>,</span>
+<span id="cb68-507"><a href="#cb68-507" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot =</span> <span class="dv">200</span>,</span>
+<span id="cb68-508"><a href="#cb68-508" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">42</span></span>
+<span id="cb68-509"><a href="#cb68-509" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-510"><a href="#cb68-510" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>se</span>
+<span id="cb68-511"><a href="#cb68-511" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_lower</span>
+<span id="cb68-512"><a href="#cb68-512" aria-hidden="true" tabindex="-1"></a>inf_sdid_boot<span class="sc">$</span>ci_upper</span>
 <span id="cb68-513"><a href="#cb68-513" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-514"><a href="#cb68-514" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-515"><a href="#cb68-515" aria-hidden="true" tabindex="-1"></a><span class="fu">### GSC：`gsc_boot()`</span></span>
-<span id="cb68-516"><a href="#cb68-516" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-517"><a href="#cb68-517" aria-hidden="true" tabindex="-1"></a>@xu_generalized_2017 §3のパラメトリックBootstrapです。推定された因子モデルから帰無仮説下の分布を生成します。</span>
-<span id="cb68-518"><a href="#cb68-518" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-521"><a href="#cb68-521" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-522"><a href="#cb68-522" aria-hidden="true" tabindex="-1"></a>inf_gsc <span class="ot">&lt;-</span> <span class="fu">gsc_boot</span>(fit_gsc, <span class="at">B =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
-<span id="cb68-523"><a href="#cb68-523" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>p_value</span>
-<span id="cb68-524"><a href="#cb68-524" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_lower</span>
-<span id="cb68-525"><a href="#cb68-525" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_upper</span>
-<span id="cb68-526"><a href="#cb68-526" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-515"><a href="#cb68-515" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-516"><a href="#cb68-516" aria-hidden="true" tabindex="-1"></a><span class="fu">sdid_inference</span>(</span>
+<span id="cb68-517"><a href="#cb68-517" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb68-518"><a href="#cb68-518" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"placebo"</span>, <span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
+<span id="cb68-519"><a href="#cb68-519" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">200</span>L,   <span class="co"># bootstrap のみ</span></span>
+<span id="cb68-520"><a href="#cb68-520" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb68-521"><a href="#cb68-521" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb68-522"><a href="#cb68-522" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
+<span id="cb68-523"><a href="#cb68-523" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-524"><a href="#cb68-524" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-525"><a href="#cb68-525" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-526"><a href="#cb68-526" aria-hidden="true" tabindex="-1"></a><span class="fu">### GSC：`gsc_boot()`</span></span>
 <span id="cb68-527"><a href="#cb68-527" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-528"><a href="#cb68-528" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-529"><a href="#cb68-529" aria-hidden="true" tabindex="-1"></a><span class="fu">gsc_boot</span>(</span>
-<span id="cb68-530"><a href="#cb68-530" aria-hidden="true" tabindex="-1"></a>  fit,</span>
-<span id="cb68-531"><a href="#cb68-531" aria-hidden="true" tabindex="-1"></a>  <span class="at">B     =</span> <span class="dv">499</span>L,</span>
-<span id="cb68-532"><a href="#cb68-532" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
-<span id="cb68-533"><a href="#cb68-533" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed  =</span> <span class="cn">NULL</span></span>
-<span id="cb68-534"><a href="#cb68-534" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-535"><a href="#cb68-535" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-536"><a href="#cb68-536" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-537"><a href="#cb68-537" aria-hidden="true" tabindex="-1"></a><span class="fu">### SI：`si_inference()`</span></span>
+<span id="cb68-528"><a href="#cb68-528" aria-hidden="true" tabindex="-1"></a>@xu_generalized_2017 §3のパラメトリックBootstrapです。推定された因子モデルから帰無仮説下の分布を生成します。</span>
+<span id="cb68-529"><a href="#cb68-529" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-532"><a href="#cb68-532" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-533"><a href="#cb68-533" aria-hidden="true" tabindex="-1"></a>inf_gsc <span class="ot">&lt;-</span> <span class="fu">gsc_boot</span>(fit_gsc, <span class="at">B =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb68-534"><a href="#cb68-534" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>p_value</span>
+<span id="cb68-535"><a href="#cb68-535" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_lower</span>
+<span id="cb68-536"><a href="#cb68-536" aria-hidden="true" tabindex="-1"></a>inf_gsc<span class="sc">$</span>ci_upper</span>
+<span id="cb68-537"><a href="#cb68-537" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-538"><a href="#cb68-538" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-539"><a href="#cb68-539" aria-hidden="true" tabindex="-1"></a>@agarwal_synthetic_interventions_2024 のノンパラメトリックBootstrap / Jackknife推論です。Staggeredフィットにも対応しています。</span>
-<span id="cb68-540"><a href="#cb68-540" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-543"><a href="#cb68-543" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-544"><a href="#cb68-544" aria-hidden="true" tabindex="-1"></a>inf_si <span class="ot">&lt;-</span> <span class="fu">si_inference</span>(fit_si, <span class="at">method =</span> <span class="st">"bootstrap"</span>, <span class="at">n_boot =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
-<span id="cb68-545"><a href="#cb68-545" aria-hidden="true" tabindex="-1"></a>inf_si<span class="sc">$</span>p_value</span>
+<span id="cb68-539"><a href="#cb68-539" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-540"><a href="#cb68-540" aria-hidden="true" tabindex="-1"></a><span class="fu">gsc_boot</span>(</span>
+<span id="cb68-541"><a href="#cb68-541" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb68-542"><a href="#cb68-542" aria-hidden="true" tabindex="-1"></a>  <span class="at">B     =</span> <span class="dv">499</span>L,</span>
+<span id="cb68-543"><a href="#cb68-543" aria-hidden="true" tabindex="-1"></a>  <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
+<span id="cb68-544"><a href="#cb68-544" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed  =</span> <span class="cn">NULL</span></span>
+<span id="cb68-545"><a href="#cb68-545" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb68-546"><a href="#cb68-546" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-547"><a href="#cb68-547" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-548"><a href="#cb68-548" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-549"><a href="#cb68-549" aria-hidden="true" tabindex="-1"></a><span class="fu">si_inference</span>(</span>
-<span id="cb68-550"><a href="#cb68-550" aria-hidden="true" tabindex="-1"></a>  fit,</span>
-<span id="cb68-551"><a href="#cb68-551" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
-<span id="cb68-552"><a href="#cb68-552" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">499</span>L,</span>
-<span id="cb68-553"><a href="#cb68-553" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
-<span id="cb68-554"><a href="#cb68-554" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
-<span id="cb68-555"><a href="#cb68-555" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
-<span id="cb68-556"><a href="#cb68-556" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-548"><a href="#cb68-548" aria-hidden="true" tabindex="-1"></a><span class="fu">### SI：`si_inference()`</span></span>
+<span id="cb68-549"><a href="#cb68-549" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-550"><a href="#cb68-550" aria-hidden="true" tabindex="-1"></a>@agarwal_synthetic_interventions_2024 のノンパラメトリックBootstrap / Jackknife推論です。Staggeredフィットにも対応しています。</span>
+<span id="cb68-551"><a href="#cb68-551" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-554"><a href="#cb68-554" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-555"><a href="#cb68-555" aria-hidden="true" tabindex="-1"></a>inf_si <span class="ot">&lt;-</span> <span class="fu">si_inference</span>(fit_si, <span class="at">method =</span> <span class="st">"bootstrap"</span>, <span class="at">n_boot =</span> <span class="dv">499</span>, <span class="at">seed =</span> <span class="dv">42</span>)</span>
+<span id="cb68-556"><a href="#cb68-556" aria-hidden="true" tabindex="-1"></a>inf_si<span class="sc">$</span>p_value</span>
 <span id="cb68-557"><a href="#cb68-557" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-558"><a href="#cb68-558" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-559"><a href="#cb68-559" aria-hidden="true" tabindex="-1"></a><span class="fu">### Conformal推論：`conformal_inference()`</span></span>
-<span id="cb68-560"><a href="#cb68-560" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-561"><a href="#cb68-561" aria-hidden="true" tabindex="-1"></a>@chernozhukov_exact_2021 の手法です。Moving-Block置換を用いた置換p値と信頼区間を返します。<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>の**シャープフィット**に対応しています。</span>
-<span id="cb68-562"><a href="#cb68-562" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-565"><a href="#cb68-565" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-566"><a href="#cb68-566" aria-hidden="true" tabindex="-1"></a>inf_conf <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_scm, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
-<span id="cb68-567"><a href="#cb68-567" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>p_value</span>
-<span id="cb68-568"><a href="#cb68-568" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_lower</span>
-<span id="cb68-569"><a href="#cb68-569" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_upper</span>
-<span id="cb68-570"><a href="#cb68-570" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-559"><a href="#cb68-559" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-560"><a href="#cb68-560" aria-hidden="true" tabindex="-1"></a><span class="fu">si_inference</span>(</span>
+<span id="cb68-561"><a href="#cb68-561" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb68-562"><a href="#cb68-562" aria-hidden="true" tabindex="-1"></a>  <span class="at">method      =</span> <span class="fu">c</span>(<span class="st">"bootstrap"</span>, <span class="st">"jackknife"</span>, <span class="st">"jackknife_global"</span>),</span>
+<span id="cb68-563"><a href="#cb68-563" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_boot      =</span> <span class="dv">499</span>L,</span>
+<span id="cb68-564"><a href="#cb68-564" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb68-565"><a href="#cb68-565" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb68-566"><a href="#cb68-566" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed        =</span> <span class="cn">NULL</span></span>
+<span id="cb68-567"><a href="#cb68-567" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-568"><a href="#cb68-568" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-569"><a href="#cb68-569" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-570"><a href="#cb68-570" aria-hidden="true" tabindex="-1"></a><span class="fu">### Conformal推論：`conformal_inference()`</span></span>
 <span id="cb68-571"><a href="#cb68-571" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-574"><a href="#cb68-574" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
-<span id="cb68-575"><a href="#cb68-575" aria-hidden="true" tabindex="-1"></a><span class="co"># SDIDでも同様に使える</span></span>
-<span id="cb68-576"><a href="#cb68-576" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_sdid, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
-<span id="cb68-577"><a href="#cb68-577" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid<span class="sc">$</span>p_value</span>
-<span id="cb68-578"><a href="#cb68-578" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-579"><a href="#cb68-579" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-580"><a href="#cb68-580" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-581"><a href="#cb68-581" aria-hidden="true" tabindex="-1"></a><span class="fu">conformal_inference</span>(</span>
-<span id="cb68-582"><a href="#cb68-582" aria-hidden="true" tabindex="-1"></a>  fit,</span>
-<span id="cb68-583"><a href="#cb68-583" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau0        =</span> <span class="dv">0</span>,    <span class="co"># 帰無仮説のATT（デフォルト：0）</span></span>
-<span id="cb68-584"><a href="#cb68-584" aria-hidden="true" tabindex="-1"></a>  <span class="at">q           =</span> <span class="dv">1</span>,    <span class="co"># S_q統計量の指数（デフォルト：1）</span></span>
-<span id="cb68-585"><a href="#cb68-585" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
-<span id="cb68-586"><a href="#cb68-586" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci          =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb68-587"><a href="#cb68-587" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
-<span id="cb68-588"><a href="#cb68-588" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid        =</span> <span class="cn">NULL</span>,     <span class="co"># 候補値ベクトル（NULLの場合は自動設定）</span></span>
-<span id="cb68-589"><a href="#cb68-589" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_grid      =</span> <span class="dv">200</span>L,</span>
-<span id="cb68-590"><a href="#cb68-590" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid_mult   =</span> <span class="dv">4</span></span>
-<span id="cb68-591"><a href="#cb68-591" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb68-592"><a href="#cb68-592" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-593"><a href="#cb68-593" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-594"><a href="#cb68-594" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 引数 <span class="pp">|</span> 説明 <span class="pp">|</span></span>
-<span id="cb68-595"><a href="#cb68-595" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-----|:-----|</span></span>
-<span id="cb68-596"><a href="#cb68-596" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`fit`</span> <span class="pp">|</span> <span class="in">`scm_fit()`</span>の結果（<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>、シャープフィット） <span class="pp">|</span></span>
-<span id="cb68-597"><a href="#cb68-597" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`tau0`</span> <span class="pp">|</span> 報告するp値の帰無ATT（デフォルト：0） <span class="pp">|</span></span>
-<span id="cb68-598"><a href="#cb68-598" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`q`</span> <span class="pp">|</span> $S_q = (T_{\text{post}}^{-1}\sum\lvert u_t\rvert^q)^{1/q}$ の指数。2値フィットでのみ有効 <span class="pp">|</span></span>
-<span id="cb68-599"><a href="#cb68-599" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`alternative`</span> <span class="pp">|</span> 対立仮説の方向 <span class="pp">|</span></span>
-<span id="cb68-600"><a href="#cb68-600" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`ci`</span> <span class="pp">|</span> 信頼区間を構築するか（デフォルト：<span class="in">`TRUE`</span>） <span class="pp">|</span></span>
-<span id="cb68-601"><a href="#cb68-601" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`level`</span> <span class="pp">|</span> 信頼水準（デフォルト：0.95） <span class="pp">|</span></span>
-<span id="cb68-602"><a href="#cb68-602" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`grid`</span> <span class="pp">|</span> 検定反転の候補$\tau_0$ベクトル。<span class="in">`NULL`</span>の場合は自動設定 <span class="pp">|</span></span>
-<span id="cb68-603"><a href="#cb68-603" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`n_grid`</span> <span class="pp">|</span> グリッド点数（デフォルト：200） <span class="pp">|</span></span>
-<span id="cb68-604"><a href="#cb68-604" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`grid_mult`</span> <span class="pp">|</span> グリッド半幅の乗数（デフォルト：4） <span class="pp">|</span></span>
-<span id="cb68-605"><a href="#cb68-605" aria-hidden="true" tabindex="-1"></a>: {tbl-colwidths="<span class="co">[</span><span class="ot">25,75</span><span class="co">]</span>"}</span>
-<span id="cb68-606"><a href="#cb68-606" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-607"><a href="#cb68-607" aria-hidden="true" tabindex="-1"></a><span class="fu">### `broom`・`modelsummary`との連携</span></span>
-<span id="cb68-608"><a href="#cb68-608" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-609"><a href="#cb68-609" aria-hidden="true" tabindex="-1"></a>推論結果は<span class="in">`broom`</span>と互換性があります。</span>
-<span id="cb68-610"><a href="#cb68-610" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-611"><a href="#cb68-611" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-612"><a href="#cb68-612" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(inf_conf)</span>
-<span id="cb68-613"><a href="#cb68-613" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(inf_conf)</span>
-<span id="cb68-614"><a href="#cb68-614" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb68-615"><a href="#cb68-615" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-616"><a href="#cb68-616" aria-hidden="true" tabindex="-1"></a><span class="fu">## JSON出力（`export_json()`）</span></span>
+<span id="cb68-572"><a href="#cb68-572" aria-hidden="true" tabindex="-1"></a>@chernozhukov_exact_2021 の手法です。Moving-Block置換を用いた置換p値と信頼区間を返します。<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>の**シャープフィット**に対応しています。</span>
+<span id="cb68-573"><a href="#cb68-573" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-576"><a href="#cb68-576" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-577"><a href="#cb68-577" aria-hidden="true" tabindex="-1"></a>inf_conf <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_scm, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
+<span id="cb68-578"><a href="#cb68-578" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>p_value</span>
+<span id="cb68-579"><a href="#cb68-579" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_lower</span>
+<span id="cb68-580"><a href="#cb68-580" aria-hidden="true" tabindex="-1"></a>inf_conf<span class="sc">$</span>ci_upper</span>
+<span id="cb68-581"><a href="#cb68-581" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-582"><a href="#cb68-582" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-585"><a href="#cb68-585" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb68-586"><a href="#cb68-586" aria-hidden="true" tabindex="-1"></a><span class="co"># SDIDでも同様に使える</span></span>
+<span id="cb68-587"><a href="#cb68-587" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid <span class="ot">&lt;-</span> <span class="fu">conformal_inference</span>(fit_sdid, <span class="at">level =</span> <span class="fl">0.95</span>)</span>
+<span id="cb68-588"><a href="#cb68-588" aria-hidden="true" tabindex="-1"></a>inf_conf_sdid<span class="sc">$</span>p_value</span>
+<span id="cb68-589"><a href="#cb68-589" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-590"><a href="#cb68-590" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-591"><a href="#cb68-591" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-592"><a href="#cb68-592" aria-hidden="true" tabindex="-1"></a><span class="fu">conformal_inference</span>(</span>
+<span id="cb68-593"><a href="#cb68-593" aria-hidden="true" tabindex="-1"></a>  fit,</span>
+<span id="cb68-594"><a href="#cb68-594" aria-hidden="true" tabindex="-1"></a>  <span class="at">tau0        =</span> <span class="dv">0</span>,    <span class="co"># 帰無仮説のATT（デフォルト：0）</span></span>
+<span id="cb68-595"><a href="#cb68-595" aria-hidden="true" tabindex="-1"></a>  <span class="at">q           =</span> <span class="dv">1</span>,    <span class="co"># S_q統計量の指数（デフォルト：1）</span></span>
+<span id="cb68-596"><a href="#cb68-596" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternative =</span> <span class="fu">c</span>(<span class="st">"two.sided"</span>, <span class="st">"greater"</span>, <span class="st">"less"</span>),</span>
+<span id="cb68-597"><a href="#cb68-597" aria-hidden="true" tabindex="-1"></a>  <span class="at">ci          =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb68-598"><a href="#cb68-598" aria-hidden="true" tabindex="-1"></a>  <span class="at">level       =</span> <span class="fl">0.95</span>,</span>
+<span id="cb68-599"><a href="#cb68-599" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid        =</span> <span class="cn">NULL</span>,     <span class="co"># 候補値ベクトル（NULLの場合は自動設定）</span></span>
+<span id="cb68-600"><a href="#cb68-600" aria-hidden="true" tabindex="-1"></a>  <span class="at">n_grid      =</span> <span class="dv">200</span>L,</span>
+<span id="cb68-601"><a href="#cb68-601" aria-hidden="true" tabindex="-1"></a>  <span class="at">grid_mult   =</span> <span class="dv">4</span></span>
+<span id="cb68-602"><a href="#cb68-602" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb68-603"><a href="#cb68-603" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-604"><a href="#cb68-604" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-605"><a href="#cb68-605" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 引数 <span class="pp">|</span> 説明 <span class="pp">|</span></span>
+<span id="cb68-606"><a href="#cb68-606" aria-hidden="true" tabindex="-1"></a><span class="pp">|:-----|:-----|</span></span>
+<span id="cb68-607"><a href="#cb68-607" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`fit`</span> <span class="pp">|</span> <span class="in">`scm_fit()`</span>の結果（<span class="in">`scm`</span>/<span class="in">`sdid`</span>/<span class="in">`gsc`</span>/<span class="in">`mc`</span>/<span class="in">`si`</span>、シャープフィット） <span class="pp">|</span></span>
+<span id="cb68-608"><a href="#cb68-608" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`tau0`</span> <span class="pp">|</span> 報告するp値の帰無ATT（デフォルト：0） <span class="pp">|</span></span>
+<span id="cb68-609"><a href="#cb68-609" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`q`</span> <span class="pp">|</span> $S_q = (T_{\text{post}}^{-1}\sum\lvert u_t\rvert^q)^{1/q}$ の指数。2値フィットでのみ有効 <span class="pp">|</span></span>
+<span id="cb68-610"><a href="#cb68-610" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`alternative`</span> <span class="pp">|</span> 対立仮説の方向 <span class="pp">|</span></span>
+<span id="cb68-611"><a href="#cb68-611" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`ci`</span> <span class="pp">|</span> 信頼区間を構築するか（デフォルト：<span class="in">`TRUE`</span>） <span class="pp">|</span></span>
+<span id="cb68-612"><a href="#cb68-612" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`level`</span> <span class="pp">|</span> 信頼水準（デフォルト：0.95） <span class="pp">|</span></span>
+<span id="cb68-613"><a href="#cb68-613" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`grid`</span> <span class="pp">|</span> 検定反転の候補$\tau_0$ベクトル。<span class="in">`NULL`</span>の場合は自動設定 <span class="pp">|</span></span>
+<span id="cb68-614"><a href="#cb68-614" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`n_grid`</span> <span class="pp">|</span> グリッド点数（デフォルト：200） <span class="pp">|</span></span>
+<span id="cb68-615"><a href="#cb68-615" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`grid_mult`</span> <span class="pp">|</span> グリッド半幅の乗数（デフォルト：4） <span class="pp">|</span></span>
+<span id="cb68-616"><a href="#cb68-616" aria-hidden="true" tabindex="-1"></a>: {tbl-colwidths="<span class="co">[</span><span class="ot">25,75</span><span class="co">]</span>"}</span>
 <span id="cb68-617"><a href="#cb68-617" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-618"><a href="#cb68-618" aria-hidden="true" tabindex="-1"></a>再現性ワークフロー向けに、推定結果をJSONとして出力できます。</span>
+<span id="cb68-618"><a href="#cb68-618" aria-hidden="true" tabindex="-1"></a><span class="fu">### `broom`・`modelsummary`との連携</span></span>
 <span id="cb68-619"><a href="#cb68-619" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-620"><a href="#cb68-620" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
-<span id="cb68-621"><a href="#cb68-621" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>)</span>
-<span id="cb68-622"><a href="#cb68-622" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-623"><a href="#cb68-623" aria-hidden="true" tabindex="-1"></a><span class="co"># 推論結果も含める場合</span></span>
-<span id="cb68-624"><a href="#cb68-624" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>, <span class="at">inference =</span> inf_scm)</span>
+<span id="cb68-620"><a href="#cb68-620" aria-hidden="true" tabindex="-1"></a>推論結果は<span class="in">`broom`</span>と互換性があります。</span>
+<span id="cb68-621"><a href="#cb68-621" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-622"><a href="#cb68-622" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-623"><a href="#cb68-623" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">tidy</span>(inf_conf)</span>
+<span id="cb68-624"><a href="#cb68-624" aria-hidden="true" tabindex="-1"></a>broom<span class="sc">::</span><span class="fu">glance</span>(inf_conf)</span>
 <span id="cb68-625"><a href="#cb68-625" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
 <span id="cb68-626"><a href="#cb68-626" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-627"><a href="#cb68-627" aria-hidden="true" tabindex="-1"></a><span class="in">`file = NULL`</span> を指定するとファイルには書き出さず、Rリストを invisibly に返します。</span>
+<span id="cb68-627"><a href="#cb68-627" aria-hidden="true" tabindex="-1"></a><span class="fu">## JSON出力（`export_json()`）</span></span>
 <span id="cb68-628"><a href="#cb68-628" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-629"><a href="#cb68-629" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb68-629"><a href="#cb68-629" aria-hidden="true" tabindex="-1"></a>再現性ワークフロー向けに、推定結果をJSONとして出力できます。</span>
 <span id="cb68-630"><a href="#cb68-630" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-631"><a href="#cb68-631" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>は6つの合成コントロール関連手法を統一インターフェースで提供し、C++実装による高速化を実現しています。現時点では開発版のみで、フィードバックを積極的に受け付けています。</span>
-<span id="cb68-632"><a href="#cb68-632" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb68-633"><a href="#cb68-633" aria-hidden="true" tabindex="-1"></a>もし使っていただいて「使いにくい」や「こんな機能が欲しい」等ありましたら、以下のコメントやGitHubの<span class="co">[</span><span class="ot">Issues</span><span class="co">](https://github.com/yo5uke/coresynth/issues)</span>までお願いします。</span>
+<span id="cb68-631"><a href="#cb68-631" aria-hidden="true" tabindex="-1"></a><span class="in">``` r</span></span>
+<span id="cb68-632"><a href="#cb68-632" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>)</span>
+<span id="cb68-633"><a href="#cb68-633" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-634"><a href="#cb68-634" aria-hidden="true" tabindex="-1"></a><span class="co"># 推論結果も含める場合</span></span>
+<span id="cb68-635"><a href="#cb68-635" aria-hidden="true" tabindex="-1"></a><span class="fu">export_json</span>(fit_scm, <span class="at">file =</span> <span class="st">"scm_results.json"</span>, <span class="at">inference =</span> inf_scm)</span>
+<span id="cb68-636"><a href="#cb68-636" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb68-637"><a href="#cb68-637" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-638"><a href="#cb68-638" aria-hidden="true" tabindex="-1"></a><span class="in">`file = NULL`</span> を指定するとファイルには書き出さず、Rリストを invisibly に返します。</span>
+<span id="cb68-639"><a href="#cb68-639" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-640"><a href="#cb68-640" aria-hidden="true" tabindex="-1"></a><span class="fu">## おわりに</span></span>
+<span id="cb68-641"><a href="#cb68-641" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb68-642"><a href="#cb68-642" aria-hidden="true" tabindex="-1"></a><span class="in">`coresynth`</span>は6つの合成コントロール関連手法を統一インターフェースで提供し、C++実装による高速化を実現しています。フィードバックも積極的に受け付けていますので、もし「使いにくい」や「こんな機能が欲しい」、バグの発見等ありましたら、以下のコメントやGitHubの<span class="co">[</span><span class="ot">Issues</span><span class="co">](https://github.com/yo5uke/coresynth/issues)</span>までお願いします。</span>
 </code></pre></div><button title="コピー" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
