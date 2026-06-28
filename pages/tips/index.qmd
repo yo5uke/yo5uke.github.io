@@ -1,20 +1,72 @@
 ---
 title: "Tips"
 subtitle: "というよりも備忘録。"
-listing: 
-  id: list
-  sort: "date desc"
-  sort-ui: true
-  filter-ui: true
-  type: grid
-  page-size: 9
-  categories: true
-  feed: true
-  contents: "**/index.qmd"
-  image-placeholder: thumbnail/thumbnail.jpg
+listing:
+  - id: latest-list
+    contents: "**/index.qmd"
+    sort: "date desc"
+    type: grid
+    page-size: 3
+    categories: true
+    filter-ui: false
+    sort-ui: false
+    image-placeholder: thumbnail/thumbnail.jpg
+  - id: r-list
+    contents: sections/r.yml
+    sort: "date desc"
+    type: grid
+    page-size: 9
+    categories: true
+    filter-ui: false
+    sort-ui: false
+    image-placeholder: thumbnail/thumbnail.jpg
+  - id: python-list
+    contents: sections/python.yml
+    sort: "date desc"
+    type: grid
+    page-size: 9
+    categories: true
+    filter-ui: false
+    sort-ui: false
+    image-placeholder: thumbnail/thumbnail.jpg
+  - id: docs-list
+    contents: sections/docs.yml
+    sort: "date desc"
+    type: grid
+    page-size: 9
+    categories: true
+    filter-ui: false
+    sort-ui: false
+    image-placeholder: thumbnail/thumbnail.jpg
+  - id: env-list
+    contents: sections/env.yml
+    sort: "date desc"
+    type: grid
+    page-size: 9
+    categories: true
+    filter-ui: false
+    sort-ui: false
+    image-placeholder: thumbnail/thumbnail.jpg
+  - id: gis-list
+    contents: sections/gis.yml
+    sort: "date desc"
+    type: grid
+    page-size: 9
+    categories: true
+    filter-ui: false
+    sort-ui: false
+    image-placeholder: thumbnail/thumbnail.jpg
+  - id: all-list
+    contents: "**/index.qmd"
+    sort: "date desc"
+    type: table
+    feed: true
 code-tools: false
 comments: false
 title-block-banner: true
+language: 
+  ja:
+    toc-title-website: "セクション"
 ---
 
 ```{css, echo=FALSE}
@@ -30,6 +82,54 @@ title-block-banner: true
 .spacer-lg {
   margin-top: 4em;
   margin-bottom: 4em;
+}
+
+section.section-heading {
+  margin-top: 2.5em;
+}
+
+h2.section-heading {
+  margin-bottom: 0.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+/* Hide pagination while section is collapsed */
+.section-listing-collapsed .listing-pagination {
+  display: none;
+}
+
+/* Latest Posts: pagination is not needed (preview only) */
+#listing-latest-list .listing-pagination {
+  display: none;
+}
+
+/* Collapsed section: hide items beyond the 3rd */
+.section-listing-collapsed .list.grid .g-col-1:nth-child(n+4) {
+  display: none;
+}
+
+/* Show more button */
+.show-more-btn {
+  display: block;
+  margin: 1.5em auto 0;
+  padding: 0.35rem 1.6rem;
+  background: transparent;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--bs-secondary-color);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.show-more-btn:hover {
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+}
+
+#listing-all-list,
+#listing-all-list-sort {
+  display: none;
 }
 ```
 
@@ -62,8 +162,96 @@ carousel(
 
 <div class="spacer"></div>
 
-::: {#list}
+## {{< fa clock-rotate-left >}} 最新記事 {.section-heading}
+
+::: {#latest-list}
 :::
+
+## {{< fa brands r-project >}} R {.section-heading}
+
+::: {#r-list}
+:::
+
+## {{< fa brands python >}} Python {.section-heading}
+
+::: {#python-list}
+:::
+
+## {{< fa pen-to-square >}} 執筆・ドキュメント {.section-heading}
+
+::: {#docs-list}
+:::
+
+## {{< fa laptop-code >}} 開発環境 {.section-heading}
+
+::: {#env-list}
+:::
+
+## {{< fa map >}} データ・GIS {.section-heading}
+
+::: {#gis-list}
+:::
+
+::: {#all-list}
+:::
+
+```{=html}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var sectionIds = [
+    'listing-r-list',
+    'listing-python-list',
+    'listing-docs-list',
+    'listing-env-list',
+    'listing-gis-list'
+  ];
+
+  function waitForListings(cb) {
+    var t = setInterval(function () {
+      var ls = window['quarto-listings'];
+      if (ls && sectionIds.every(function (id) { return ls[id]; })) {
+        clearInterval(t);
+        cb(ls);
+      }
+    }, 50);
+  }
+
+  waitForListings(function (ls) {
+
+    /* ── Section collapse / show-more ── */
+    sectionIds.forEach(function (id) {
+      var container = document.getElementById(id);
+      if (!container) return;
+
+      var total = ls[id].items.length;
+      if (total <= 3) return;
+
+      container.classList.add('section-listing-collapsed');
+
+      var btn = document.createElement('button');
+      btn.className = 'show-more-btn';
+
+      function update(collapsed) {
+        if (collapsed) {
+          container.classList.add('section-listing-collapsed');
+          btn.textContent = 'もっと見る（' + (total - 3) + '件）';
+        } else {
+          container.classList.remove('section-listing-collapsed');
+          btn.textContent = '折りたたむ';
+        }
+      }
+
+      update(true);
+      btn.addEventListener('click', function () {
+        update(!container.classList.contains('section-listing-collapsed'));
+      });
+      container.appendChild(btn);
+    });
+
+  });
+});
+</script>
+```
 
 <div class="spacer-lg"></div>
 
