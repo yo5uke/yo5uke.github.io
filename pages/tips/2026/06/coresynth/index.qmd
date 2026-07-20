@@ -3,24 +3,31 @@ title: 【パッケージ開発】[coresynth]{.fira-code}で合成コントロ�
 description: |
   C++実装による高速化と6つの手法を統一インターフェースで提供します。
 date: 2026-06-01
-date-modified: 2026-07-01
+date-modified: 2026-07-18
 categories:
   - R
 image: image/thumbnail.png
 ---
 
+[![CRAN
+status](https://www.r-pkg.org/badges/version/coresynth)](https://CRAN.R-project.org/package=coresynth)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/coresynth)](https://cran.r-project.org/package=coresynth)
 [![dev version](https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&color=blue)](https://github.com/yo5uke/coresynth)
 [![R-CMD-check](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 
+:::{.callout-note}
+本パッケージでは複数の手法に対応していますが、合成コントロール法に絞って使い方を説明した記事を作成しましたので、手っ取り早く確認されたい場合は[こちら](https://yo5uke.com/tips/2026/07/coresynth/)をご覧ください。
+:::
+
 ## はじめに
 
-本ページでは、合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、`coresynth`について説明します。関数リファレンスや変更履歴など詳細は[こちら](https://yo5uke.com/coresynth/)も参考にしてください。
+本ページでは、私が開発した合成コントロール法（SCM）とその関連手法を統一インターフェースで提供するパッケージ、`coresynth`について説明します。関数リファレンスや変更履歴など詳細は[pkgdownのページ](https://yo5uke.com/coresynth/)も参考にしてください。
 
 `coresynth`の最大の特徴は**パフォーマンス**です。計算上のボトルネックをすべてC++（RcppArmadillo）で実装しており、純Rの代替実装と比べて**かなり高速化**しています。
 
-このパッケージでは、推定だけでなく**可視化・推論・ロバストネス確認・JSON出力**まで一連の分析フローを同じインターフェースで実行できます。たとえばConformal推論（`conformal_inference()`）を使えば、`scm`/`sdid`/`gsc`/`mc`/`si`のシャープフィットに対して置換p値と信頼区間を計算できます。
+このパッケージでは、推定だけでなく**可視化・推論・ロバストネス確認・JSON出力**まで一連の分析フローを同じインターフェースで実行できます。たとえばConformal推論（`conformal_inference()`）を使えば、`scm`/`sdid`/`gsc`/`mc`/`si`のシャープフィットに対してp値と信頼区間を計算できます。
 
 :::{.callout-note}
 ## ご意見待ってます
@@ -30,9 +37,9 @@ image: image/thumbnail.png
 
 ## このパッケージでできること
 
-- 6つの推定量（`scm`/`sdid`/`gsc`/`mc`/`tasc`/`si`）を`scm_fit()`で統一的に推定
+- 6つの推定量（`scm`/`sdid`/`gsc`/`mc`/`tasc`/`si`）^[合成コントロール法（Synthetic Control Method）、合成差の差法（Synthetic Difference-in-Differences）、一般化合成コントロール法（Generalised Synthetic Control）、行列補完法（Matrix Completion）、時間考慮型合成コントロール（Time-Aware Synthetic Control）、合成介入法（Synthetic Interventions）]を`scm_fit()`で統一的に推定
 - SharpだけでなくStaggered Adoption（およびSIではマルチアーム）にも対応
-- `plot()`でトレンド差・ギャップ・ウェイトを共通フォーマットで可視化
+- `plot()`でトレンド差・ギャップ・ウェイト、プラセボテストを共通フォーマットで可視化
 - 手法ごとの推論関数に加え、Conformal推論で仮定依存の小さい推論を実行
 - `export_json()`で結果をJSONに保存し、再現可能な分析フローを構築
 
@@ -51,7 +58,8 @@ image: image/thumbnail.png
 
 | 推論手法 | 対応推定量 | 関数 |
 |:---------|:-----------|:-----|
-| MSPE比率置換検定 | `scm` | `mspe_ratio_pval()` |
+| プラセボテスト（Sharp） | `scm` | `mspe_ratio_pval()` |
+| 重み付き乗数（Wild）Bootstrap（Staggered） | `scm` | `scm_inference()` |
 | プラセボ / Bootstrap / Jackknife | `sdid` | `sdid_inference()` |
 | パラメトリックBootstrap | `gsc` | `gsc_boot()` |
 | ノンパラメトリックBootstrap / Jackknife | `gsc` | `gsc_inference()` |
@@ -64,7 +72,6 @@ CRANに公開されましたので、以下のコマンドでインストール�
 
 ``` r
 pak::pak("coresynth")
-# install.packages("coresynth")
 
 # 開発版をインストールする場合
 pak::pak("yo5uke/coresynth")
@@ -107,14 +114,15 @@ dat$d <- as.integer(dat$id == "pref_01" & dat$time > T_pre)
 dat$y[dat$d == 1] <- dat$y[dat$d == 1] + true_att # 真のATT = 2.5
 ```
 
-`id`がユニット識別変数（`pref_01`〜`pref_47`）、`time`が時間変数（1〜30）、`y`が結果変数、`d`が処置変数（処置ユニット`pref_01`が21期目以降に処置）です。`pref_01`以外の46ユニットがドナープールとなります。
+`id`がユニット識別変数（`pref_01`〜`pref_47`）、`time`が時間変数（1〜30）、`y`が結果変数、`d`が処置変数（処置ユニット`pref_01`が21期目以降に処置）です。ここでは先頭5行のみ表示しているので`d`はすべて0になっています。`pref_01`以外の46ユニットがドナープールとなります。
 
 ```{r}
 #| echo: false
 #| label: tbl-dat
 #| tbl-cap: "データの先頭5行"
 
-tinytable::tt(head(dat), width = 1)
+gt::gt(head(dat, 5)) |>
+  gt::tab_options(table.width = gt::pct(100))
 ```
 
 ## `scm_fit()`
@@ -132,6 +140,8 @@ scm_fit(
   donor_mspe_threshold = Inf,
   lambda_pen = NULL,
   v_optim = c("coord_descent", "auto", "bfgs"),
+  nu = NULL,
+  fixedeff = FALSE,
   ...
 )
 ```
@@ -147,6 +157,8 @@ scm_fit(
 | `donor_mspe_threshold` | ドナープール絞り込みの閾値（SCMのみ。デフォルト`Inf`で無効） |
 | `lambda_pen` | ペナルティSCMのペナルティパラメータ（SCMのみ。`NULL`で通常SCM、`"auto"`で自動選択） |
 | `v_optim` | V外部最適化の手法。`"coord_descent"`（デフォルト）、`"bfgs"`、`"auto"` |
+| `nu` | Staggered SCM用のPartial Pooling強度 [@ben-michael_synthetic_2022]（SCM・Staggeredのみ）。`NULL`（デフォルト）はコホート別にV最適化する従来挙動、`[0, 1]`の数値はコホート別不整合とプール不整合の凸結合を最小化（`0`で従来のコホート別SCM、`1`で完全プール）、`"auto"`は論文のヒューリスティックで自動選択。`donor_mspe_threshold`・`lambda_pen`・`v_selection = "oos"`とは併用不可 |
+| `fixedeff` | Staggered SCMで各ユニットをコホート内の処置前平均で中心化してから推定するか（SCM・Staggeredのみ。デフォルト`FALSE`）。`TRUE`にすると重み付きDIDに近い推定量になり、水準がユニット間で異なる場合にフィットが改善しやすい |
 : {tbl-colwidths="[25,75]"}
 
 `predictors = NULL` は「処置前を1期ずつ合わせる」設定です。処置前全期間の平均で合わせたい場合は、`pred(..., op = "mean")` を明示的に指定します。
@@ -175,7 +187,7 @@ summary(fit_scm)
 
 #### 予測変数の指定（`pred()`）
 
-SCMは `pred()` 関数を使って @abadie_synthetic_2010 §2.3の予測変数行列を指定できます。
+SCMは `pred()` 関数を使って @abadie_synthetic_2010 §2.3の予測変数行列を指定できます。よくあるのは、処置前の結果変数を期間平均で使う方法だと思いますので、基本的には`pred`を指定することになると思います。
 
 ``` r
 # dat に income, unemp 列がある想定の例
@@ -206,11 +218,9 @@ fit_scm_mean <- scm_fit(
 )
 ```
 
-実務的には、`predictors = NULL`（各時点を使う）を基準にしつつ、ノイズを平滑化したい場合に期間平均の`pred()`を使い分けるのがおすすめです。
-
 #### smokingデータを使った例
 
-僕が以前使っていた`tidysynth`との比較を、カリフォルニアにおけるProposition 99の例で検証してみます。
+私が以前使っていた`tidysynth`との比較を、カリフォルニアにおけるProposition 99の例で検証してみます。
 
 データは`tidysynth`の組み込みデータセット `smoking` を使用します。
 
@@ -279,7 +289,8 @@ fit_scm_smoking <- scm_fit(
   method = "scm",
   predictors = list(
     pred(c("lnincome", "retprice", "age15to24"), 1980:1988),
-    pred("cigsale", 1980:1988, op = "mean"),
+    pred("cigsale", 1980:1988),
+    pred("beer", 1984:1988),
     pred("cigsale", 1975),
     pred("cigsale", 1980),
     pred("cigsale", 1988)
@@ -390,17 +401,38 @@ fit_sdid_never <- scm_fit(
 )
 ```
 
+### SCMのPartial PoolingとFixed Effects（`nu`, `fixedeff`）
+
+Staggered SCM（`method = "scm"`）は、コホート別にV最適化する従来の挙動に加えて、`nu`引数でコホート間の情報をプールできます [@ben-michael_synthetic_2022]。`nu`は`[0, 1]`の数値（`0`＝従来の個別コホートSCM、`1`＝完全プール）か`"auto"`（論文のヒューリスティックで自動選択）を指定します。`fixedeff = TRUE`にすると各ユニットをコホート内の処置前平均で中心化してから推定し、水準差を吸収する重み付きDIDに近い推定量になります。
+
+```{r}
+fit_scm_pooled <- scm_fit(
+  y ~ d | id + time,
+  data     = dat_s,
+  method   = "scm",
+  nu       = "auto",
+  fixedeff = TRUE
+)
+fit_scm_pooled$estimate
+fit_scm_pooled$pooling$nu
+```
+
+バランス診断（コホート別/プールそれぞれの不整合`q_sep`・`q_pool`など）は`$pooling`フィールドに保存されます。
+
+Staggered SCM専用の推論関数として`scm_inference()`も用意されています。詳しくは[推論](#推論)の節を参照してください。
+
 ## `plot()`
 
 `plot()` で3種類のプロットを出力できます。
 
 ``` r
-plot(fit, type = c("trend", "gap", "weights"))
+plot(fit, type = c("trend", "gap", "weights", "pred-weights"))
 ```
 
 - `"trend"`：処置ユニット vs. 合成コントロールの時系列
 - `"gap"`：処置効果の時系列（$Y_{\text{treated}} - Y_{\text{synthetic}}$）
 - `"weights"`：ドナーユニットのウェイト棒グラフ（SCM・SDID・SI）
+- `"pred-weights"`：予測変数のウェイト棒グラフ（SCMのみ）
 
 ### Trend プロット
 
@@ -438,6 +470,36 @@ plot(fit_scm, type = "gap")
 plot(fit_scm, type = "weights")
 ```
 
+SDIDの場合は、ドナーウェイト（$\omega$）に加えて処置前期間の時間ウェイト（$\lambda$）も2パネルで表示されます。
+
+```{r}
+plot(fit_sdid, type = "weights")
+```
+
+### プロットのカスタマイズ
+
+`plot()`は以下の引数でスタイルを調整できます。
+
+| 引数 | 説明 |
+|:-----|:-----|
+| `colors` | 系列（`treated`/`synthetic`/`donors`など）ごとの色を上書きする名前付きベクトル |
+| `labels` | 凡例テキストを上書きする名前付きベクトル |
+| `vline` / `hline` | 基準線の`geom_vline()`/`geom_hline()`スタイルを上書き。`FALSE`または`NULL`で非表示 |
+| `vline_offset` | 処置開始線の位置（処置後1期目からの相対オフセット）。`-1`で処置前最終期に、`-0.5`のような小数も可 |
+| `align` | `type = "trend"`/`"gap"`で、合成コントロールの水準を処置前ギャップ分シフトして処置ユニットと揃える |
+| `show_donors` | `type = "trend"`で、ウェイト上位`show_donors`件のドナー系列を背景に薄く表示（`Inf`で全ドナー） |
+| `fill` / `top_n` | `type = "weights"`の棒の色、および表示するドナー数の上限 |
+
+たとえばSDIDは切片を除いてウェイトを推定するため、生のトレンドプロットでは処置前の水準が処置ユニットとずれることがあります。`align = TRUE`を指定すると、処置前ギャップ（時間ウェイト付き）の分だけ合成コントロールをシフトし、処置後の平均ギャップがSDID推定値と一致する形で表示されます。
+
+```{r}
+plot(fit_sdid, type = "trend", align = TRUE, show_donors = 10)
+```
+
+```{r}
+plot(fit_scm, colors = c(treated = "blue", synthetic = "red"), labels = c(treated = "California", synthetic = "Synthetic Control"))
+```
+
 ### ggplotとの互換性
 
 プロット系の関数はggplot2ベースなので、ggplotの関数をつなげることも可能です。
@@ -457,15 +519,18 @@ plot(fit_scm, type = "trend") +
 
 ### どの推論を使うか
 
-- SCMでドナー単位のプラセボ比較を行いたい：`mspe_ratio_pval()`
+- SCM（Sharp）でドナー単位のプラセボ比較を行いたい：`mspe_ratio_pval()`
+- SCM（Staggered）でWild Bootstrap推論を使いたい：`scm_inference()`
 - SDIDで標準的な推論（placebo / bootstrap / jackknife）を使いたい：`sdid_inference()`
 - GSCの因子モデルに合わせたパラメトリック推論を使いたい：`gsc_boot()`
 - GSC/SIでノンパラメトリック推論を使いたい：`gsc_inference()`, `si_inference()`
 - `scm`/`sdid`/`gsc`/`mc`/`si`のシャープフィットで置換ベースの区間推論を使いたい：`conformal_inference()`
 
-### SCM：MSPE比率置換検定（`mspe_ratio_pval()`）
+### SCM：プラセボテスト（`mspe_ratio_pval()`）
 
-@abadie_synthetic_2010 / @abadie_using_2021 のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。
+@abadie_synthetic_2010 / @abadie_using_2021 のMSPE比率に基づく置換検定です。各ドナーを処置ユニットとして扱ったプラセボSCMを推定します。Staggered SCMフィットには対応していません（後述の`scm_inference()`を使ってください）。
+
+合成コントロール法の実行結果に対して、`mspe_ratio_pval()`を呼び出すと、プラセボ分布に基づくp値が返ります。
 
 ```{r}
 inf_scm <- mspe_ratio_pval(fit_scm)
@@ -478,14 +543,22 @@ mspe_ratio_pval(
   mspe_threshold = 0,     # プラセボに含める最小MSPE（デフォルト：0）
   max_iter       = 100L,
   tol            = 1e-4,
-  use_covariates = FALSE, # 予測変数をプラセボにも適用するか
+  use_covariates = NULL,  # NULL（デフォルト）は処置フィットの予測変数指定をプラセボにも適用
   alternative    = c("two.sided", "greater", "less")
 )
 ```
 
+`use_covariates`は`NULL`がデフォルトです。`predictors`を指定したSCMフィットに対しては、各プラセボユニットも同じ予測変数指定で再推定されます（Abadie et al. 2010 / `Synth`の慣例：処置ユニットとプラセボの検定統計量を共通の仕様で計算）。outcomes-onlyのフィットでは高速なC++実装のプラセボループが使われ、挙動は変わりません。`TRUE`/`FALSE`で明示的にどちらかのパスを強制することもできますが、`FALSE`を共変量フィットに使うと、共変量ベースの処置統計量とoutcomes-onlyのプラセボ統計量を比較することになり、置換検定の交換可能性が崩れる点に注意してください。
+
+プロットは以下のコマンドから実行できます。
+
+```{r}
+plot(inf_scm, type = "gaps")
+```
+
 #### SCMのロバストネス確認
 
-SCMでは、MSPE比率置換検定に加えて次の診断も利用できます。
+SCMでは、プラセボテストに加えて次の診断も利用できます。
 
 - `placebo_in_time()`：介入時点を処置前にずらすin-time placebo（バックデーティング）
 - `loo_donors()`：重みのついたドナーを1つずつ除外するleave-one-out診断
@@ -500,15 +573,44 @@ loo <- loo_donors(fit_scm)
 loo$att_range
 ```
 
+### SCM（Staggered）：Wild Bootstrap推論（`scm_inference()`）
+
+Staggered SCMフィット専用の推論関数です。@ben-michael_synthetic_2022 §5.3の重み付き乗数（wild）ブートストラップに基づき、ドナーウェイトは固定したまま処置ユニットごとの効果寄与にゴールデン比の2値乗数（平均0・分散1）を掛けて再標本化します。Sharpフィットには使えません（`mspe_ratio_pval()`または`conformal_inference()`を使ってください）。
+
+```{r}
+inf_scm_s <- scm_inference(fit_scm_pooled, n_boot = 200, seed = 42)
+inf_scm_s$p_value
+inf_scm_s$ci_lower
+inf_scm_s$ci_upper
+```
+
+``` r
+scm_inference(
+  fit,
+  method      = "wild_bootstrap",
+  n_boot      = 1000L,
+  level       = 0.95,
+  alternative = c("two.sided", "greater", "less"),
+  seed        = NULL
+)
+```
+
+Partial Pooling（`nu`）・Fixed Effects（`fixedeff`）どちらのパスにも対応しており、コホート集計ウェイト（$N_{\text{treated}} \times T_{\text{post}}$）も考慮されます。処置ユニット数が少ないとブートストラップの分布が粗くなるため、5ユニット未満では警告が出ます。
+
 ### SDID：`sdid_inference()`
 
 @clarke_synthetic_2024 に基づく3種類の推論手法を提供します。
 
 ```{r}
-# プラセボ検定（デフォルト）
+# プラセボ検定（デフォルト）。SE・CIも自動で付与される
 inf_sdid <- sdid_inference(fit_sdid, method = "placebo")
 inf_sdid$p_value
+inf_sdid$se
+inf_sdid$ci_lower
+inf_sdid$ci_upper
 ```
+
+p値はプラセボ分布に基づく置換p値ですが、SEはプラセボ分布の分散 [@clarke_synthetic_2024 Algorithm 4]、CIはその正規近似です。処置ユニットのノイズがドナーと同程度であることを仮定しているため、ドナープールが小さい場合は解釈に注意してください。
 
 ```{r}
 # ブートストラップ（SE・CI付き）
