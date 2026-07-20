@@ -1,0 +1,323 @@
+---
+title: "【R】合成コントロール法を[coresynth]{.fira-code}で実装する"
+description: |
+  合成コントロール法に絞って使い方を説明します。
+date: 2026-07-18
+categories:
+  - R
+  - データ分析
+---
+
+[![CRAN
+status](https://www.r-pkg.org/badges/version/coresynth)](https://CRAN.R-project.org/package=coresynth)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/coresynth)](https://cran.r-project.org/package=coresynth)
+[![dev version](https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&color=blue)](https://github.com/yo5uke/coresynth)
+[![R-CMD-check](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+## はじめに
+
+合成コントロール法を実装するためのRパッケージである`coresynth`ですが、[パッケージの紹介ページ](/pages/tips/2026/06/coresynth/)では、複数の手法に対応していることもあり、合成コントロール法に絞った使い方の説明が少し分かりにくいかもしれません。そこで本ページでは、合成コントロール法に絞って使い方を説明します。
+
+## パッケージの簡単な説明
+
+念のため本パッケージを簡単に説明すると、`coresynth`合成コントロール法を爆速で実装するためのRパッケージです。
+
+数か月前から開発を進めており、現在はCRANにも公開されています。
+
+C++という言語が裏で動いているため、純粋なR実装よりも高速に計算できます。特に、ドナー数が多い場合や、プラセボテストまで実施する場合に力を発揮します。
+
+一般的には`Synth`パッケージが有名ですが、先日実際に使う機会があったので速度比較をしたところ、`Synth`での計算（プラセボテスト込み）で18秒程度かかったものが、`coresynth`では**0.2秒**程度で計算できました（速度差は分析内容によります）。
+
+また、個人開発ということで精度が心配かもしれませんが、開発の過程で`Synth`をはじめとした既存のパッケージとの比較を多角的に行っており、精度面でも問題ないことを確認しています^[厳密には両パッケージで全く同じ最適化問題を解いているものの、計算アルゴリズムが若干異なるため、結果は微妙に異なります。ただし、あくまで同じ問題を解いていることに変わりはないため、結果が誤りということではありません。]。
+
+## パッケージの準備
+
+```r
+# CRANからインストール
+pak::pak("coresynth")
+
+# GitHubからインストール（開発版）
+pak::pak("yo5uke/coresynth")
+```
+
+```{r}
+library(coresynth)
+```
+
+今回は比較対象として`Synth`をより使いやすくした`tidysynth`パッケージも使います。
+
+```{r}
+library(tidysynth)
+```
+
+## データの準備
+
+データは`tidysynth`パッケージに付属している`smoking`データを使います。これは合成コントロール法ではおなじみカリフォルニアのProposition 99に関するデータです^[詳しくは[こちら](https://www.mit.edu/~jhainm/Paper/ccs.pdf)]。
+
+```{r}
+data("smoking", package = "tidysynth")
+```
+
+```{r}
+#| echo: false
+#| label: tbl-smoking
+#| tbl-cap: "smokingデータの先頭6行"
+gt::gt(head(smoking))
+```
+
+## 実装してみる
+
+`coresynth`パッケージでは複数の手法に対応しているのですが、それらはすべて`scm_fit()`という関数で統一的に呼び出すことができます。`method`引数で手法を指定することで、合成コントロール法（SCM）や合成差の差法（SDID）などを実行できます。今回は合成コントロール法を実行するので、`method = "scm"`と指定します。
+
+### 処置変数を作る
+
+`scm_fit()`では、**処置ユニットかつ処置後について1の値をとる二値変数を作る必要があります**。
+
+```{r}
+library(dplyr)
+smoking <- smoking |>
+  mutate(
+    treated = if_else(state == "California" & year >= 1989, 1L, 0L)
+  )
+```
+
+### 実装する
+
+実行速度も図るために、`tictoc`で計算時間を計測してみます。
+
+:::{.panel-tabset}
+## coresynthで実装
+
+`scm_fit()`自体はプラセボテストまでは行わないので、詳しくは後ほど書きますが、プラセボテストの関数まで一気に実行します。
+
+```{r}
+tictoc::tic()
+core_fit <- scm_fit(
+  cigsale ~ treated | state + year,
+  data = smoking,
+  method = "scm",
+  predictors = list(
+    pred(c("lnincome", "retprice", "age15to24"), 1980:1988),
+    pred("cigsale", 1980:1988),
+    pred("beer", 1984:1988),
+    pred("cigsale", 1975),
+    pred("cigsale", 1980),
+    pred("cigsale", 1988)
+  )
+)
+core_placebo <- mspe_ratio_pval(core_fit) # プラセボも計算
+tictoc::toc()
+```
+
+第1引数のフォーミュラですが、`アウトカム ~ 処置変数 | ユニット変数 + 時間変数`の形で指定します。処置変数は上で作った`treated`を指します。ユニット変数は今回`state`、時間変数は今回は`year`です。Two-way fixed effectsと同じような指定のイメージですね。
+
+`predictors`引数では、予測変数を指定します。list形式で複数の予測変数を指定でき、`pred()`関数で予測変数名と期間を指定します。
+
+## tidysynthで実装
+
+`tidysynth`パッケージでの実装も同様に計測してみます。コードが長く今回の本題でもないので折りたたんでおきます。
+
+```{r}
+#| code-fold: true
+tictoc::tic()
+smoking_out <- smoking |>
+  synthetic_control(
+    outcome = cigsale,
+    unit = state,
+    time = year,
+    i_unit = "California",
+    i_time = 1988,
+    generate_placebos = TRUE # プラセボも計算
+  ) |>
+  generate_predictor(
+    time_window = 1980:1988,
+    ln_income = mean(lnincome, na.rm = TRUE),
+    ret_price = mean(retprice, na.rm = TRUE),
+    youth = mean(age15to24, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1980:1988,
+    ln_cigsale = mean(cigsale, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1984:1988,
+    beer_sales = mean(beer, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1975,
+    cigsale_1975 = cigsale
+  ) |>
+  generate_predictor(
+    time_window = 1980,
+    cigsale_1980 = cigsale
+  ) |>
+  generate_predictor(
+    time_window = 1988,
+    cigsale_1988 = cigsale
+  ) |>
+  generate_weights(
+    optimization_window = 1970:1988,
+    margin_ipop = .02,
+    sigf_ipop = 7,
+    bound_ipop = 6
+  ) |>
+  generate_control()
+tictoc::toc()
+```
+
+細かい仕様については[tidysynthのGitHubリポジトリ](https://github.com/edunford/tidysynth)を参照してください。
+:::
+
+概ね`coresynth`が2～3秒、`tidysynth`が20秒程度で計算できました（起動時間等による差が生じる場合があります）。
+
+冒頭で0.2秒程度と書いたのですが、その分析では予測変数として期間前におけるアウトカム平均のみを使っていたため、計算が速くなっていました。予測変数が増えると、その分時間がかかります。
+
+ただ、複数のモデルでプラセボテストまで行いたい場合もあると思いますので、この差は無視できないのではないかと考えています（毎回20秒で何回も回すのストレスですしね…。それが`coresynth`開発のモチベーションでもあります）。
+
+:::{.callout-tip collapse="true"}
+## 時間変数の指定の仕方
+
+`pred()`関数の第2引数には、期間をベクトルで指定します。年のような変数であれば`1980:1988`のように指定できますが、月次のデータなどの場合は、`seq()`関数を使って期間を指定する必要があります。
+
+```r
+# 月次データの場合の例
+seq(as.Date("2020-01-01"), as.Date("2020-12-01"), by = "month")
+```
+
+逐一`as.Date()`するのが冗長という場合には、あらかじめ開始時点と終了時点を格納しておいてもよいかと思います。
+
+```r
+START <- as.Date("2020-01-01")
+END <- as.Date("2020-12-01")
+seq(START, END, by = "month")
+```
+:::
+
+## プロットについて
+
+プロットは、`plot()`関数で簡単に描画できます。
+
+:::{.panel-tabset}
+## トレンド
+```{r}
+plot(core_fit, type = "trend")
+```
+
+処置ユニットと合成コントロールの推移を確認できます。`type = "trend"`はデフォルトなので、`type`引数を省略しても同じ結果が得られます。
+
+## ギャップ
+
+```{r}
+plot(core_fit, type = "gap")
+```
+
+処置ユニットと合成コントロールの差を確認できます。
+:::
+
+引数も豊富に用意してあり、加えて`ggplot2`ベースのグラフであるためカスタマイズも容易です。
+
+```{r}
+library(ggplot2)
+plot(
+  core_fit,
+  colors = c(treated = "darkgreen", synthetic = "darkred"),
+  labels = c(treated = "California", synthetic = "Synthetic California"),
+  vline = list(linetype = "dashed", color = "black"),
+  vline_offset = -1
+) +
+  labs(
+    title = "Results of Synthetic Control Method",
+    x = NULL,
+    y = "Cigarette Sales"
+  ) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+```
+
+大体引数名で察しが付くかとは思いますが、`colors`で線の色、`labels`で凡例のラベルを指定できます。`vline`で縦線の種類や色を指定でき、`vline_offset`で縦線の位置を調整できます^[デフォルトでは、縦線は処置時点に引かれています。]。
+
+## 結果の詳細について
+
+合成コントロール法では、合成コントロールがどのように構成されているかが重要です。`core_fit`オブジェクトに対して`summary()`関数を実行することで、合成コントロールの構成比率や予測変数のバランスなどを確認できます。
+
+```{r}
+summary(core_fit)
+```
+
+また、ウェイトはプロットでも確認できます。`weights`は合成コントロールの構成比率、`pred_weights`は予測変数のウェイトを確認できます。
+
+```{r}
+#| layout-ncol: 2
+plot(core_fit, type = "weights")
+plot(core_fit, type = "pred_weights")
+```
+
+プロットはデータから自分でしたいんだという皆様には、`plot_data()`関数を準備していますので、そちらを使うとデータフレーム形式で取得できます。データの中身をいじって表示を変えたい場合などに便利です。
+
+```{r}
+plot_data(core_fit, type = "weights") |>
+  arrange(desc(weight)) |>
+  head()
+```
+
+引数の`type`で、`weights`や`pred_weights`などを指定できます。これは`plot()`関数の`type`引数と同じです。
+
+## プラセボテストについて
+
+合成コントロール法では、プラセボテストを実施して推論を行うのが一般的かと思います。`coresynth`パッケージでは、`mspe_ratio_pval()`関数でプラセボテストを実施できます。
+
+```{r}
+core_placebo <- mspe_ratio_pval(core_fit)
+```
+
+合成コントロール法の実行結果である`core_fit`に対して`mspe_ratio_pval()`関数を実行することで、プラセボテストの結果が返ってきます。
+
+正確 $p$ 値の確認は、`core_placebo$p_value`で行えます。
+
+```{r}
+core_placebo$p_value
+```
+
+:::{.callout-note collapse="true"}
+## 既存パッケージとの結果の相違について
+
+合成コントロール法における $p$ 値については[Mixtape](https://mixtape.scunning.com/10-synthetic_control#californias-proposition-99)等を参照していただきたいのですが、本パッケージと既存パッケージである`Synth`や`tidysynth`では、計算アルゴリズムが若干異なるため、結果が微妙に異なる場合があります（既に今回の $p$ 値も異なっています）。
+
+合成コントロール法では「どの説明変数をどれだけ重視するか」という重み（V）を試行錯誤で決めますが、**この探索には無数の候補があり、パッケージによって辿り着く解が変わることがあります**。`coresynth`は多数の出発点から探索する仕組みを備えており、Proposition 99 の分析例では、`tidysynth`^[`tidysynth`はAbadieらが開発した`Synth`パッケージを裏で動かしているので、実質的にはAbadieらの方法に従っています。]よりも当てはまりの良い重みを、より高速に見つけます。数値の違いは誤差や不具合ではなく、より良い解を見つけた結果です。
+
+一応本パッケージでは精度で見ると`Synth`や`tidysynth`よりも優れているということになるのですが、どちらの結果でも誤りではない以上、パッケージによって結果が異なってしまうと統一的な解釈ができない^[特に今回は`tidysynth`の結果では5%水準で有意（$p$ = 0.0256）、`coresynth`では非有意（$p$ = 0.0769）になっています。]ため、プラセボテストはやや信頼性に欠ける側面があると思います。
+:::
+
+プラセボを含めた合成コントロールとのギャップのプロットは、以下の方法で実行できます。
+
+:::{.panel-tabset}
+## デフォルトのプロット
+
+```{r}
+plot(core_placebo, type = "gaps")
+```
+
+プラセボの結果を格納した`core_placebo`オブジェクトに対して、`plot(~, type = "gaps")`とすることで、プラセボを含めたギャップのプロットが描画できます。
+
+## 除外ありのプロット
+
+@abadie_synthetic_2010 では、MSPEが処置ユニットの一定倍以上のドナーは除外してプロットすることが推奨されています。`mspe_prune`引数で、MSPEが処置ユニットのMSPEの何倍以上のドナーを除外するかを指定できます。
+
+```{r}
+plot(core_placebo, type = "gaps", vline_offset = -1, mspe_prune = 2)
+```
+
+`mspe_prune`引数で、MSPEが処置ユニットのMSPEの何倍以上のドナーを除外するかを指定できます。デフォルトでは除外はしていませんので、適宜設定してください。
+:::
+
+## まとめ
+
+今回は合成コントロール法に絞って主要な使い方を説明しました。
+
+`coresynth`パッケージは精度を維持しつつなるべく高速化するように作られています。そのうえで基本的な分析やプロットを網羅できるように日々改善を続けていますので、もし分析の機会があれば使ってみていただけると嬉しいです。
+
+もし不具合や改善点などがあれば、[GitHubのリポジトリ](https://github.com/yo5uke/coresynth/issues)にIssueを立てていただけると助かります。
+
+もしくは、下のコメント欄からお願いします！
