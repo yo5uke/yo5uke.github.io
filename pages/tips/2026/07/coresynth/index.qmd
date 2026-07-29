@@ -3,6 +3,7 @@ title: "【R】合成コントロール法を[coresynth]{.fira-code}で実装す
 description: |
   合成コントロール法に絞って使い方を説明します。
 date: 2026-07-18
+date-modified: 2026-07-29
 format:
   html:
     default-image-extension: ""
@@ -171,7 +172,7 @@ tictoc::toc()
 細かい仕様については[tidysynthのGitHubリポジトリ](https://github.com/edunford/tidysynth)を参照してください。
 :::
 
-概ね`coresynth`が2～3秒、`tidysynth`が20秒程度で計算できました（起動時間等による差が生じる場合があります）。
+概ね`coresynth`が3秒程度、`tidysynth`が15～20秒程度で計算できました（環境によって時間に数秒程度の幅は生じます）。
 
 冒頭で0.2秒程度と書いたのですが、その分析では予測変数として期間前におけるアウトカム平均のみを使っていたため、計算が速くなっていました。予測変数が増えると、その分時間がかかります。
 
@@ -257,11 +258,25 @@ plot(core_fit, type = "pred_weights")
 
 プロットはデータから自分でしたいんだという皆様には、`plot_data()`関数を準備していますので、そちらを使うとデータフレーム形式で取得できます。データの中身をいじって表示を変えたい場合などに便利です。
 
+:::{.panel-tabset}
+## トレンドのデータ
+
+```{r}
+plot_data(core_fit, type = "trend") |>
+  head()
+```
+
+今はデータの先頭だけ見せているのでTreatedの系列しか見えていませんが、`series`列にはTreatedとSynthetic Controlの2系列が格納されています。
+
+## ウェイトのデータ
+
 ```{r}
 plot_data(core_fit, type = "weights") |>
   arrange(desc(weight)) |>
   head()
 ```
+
+:::
 
 引数の`type`で、`weights`や`pred_weights`などを指定できます。これは`plot()`関数の`type`引数と同じです。
 
@@ -312,6 +327,29 @@ plot(core_placebo, type = "gaps", vline_offset = -1, mspe_prune = 2)
 
 `mspe_prune`引数で、MSPEが処置ユニットのMSPEの何倍以上のドナーを除外するかを指定できます。デフォルトでは除外はしていませんので、適宜設定してください。
 :::
+
+## おまけ
+
+### 処置ユニットと合成コントロールの数値データ取得
+
+処置ユニットの系列と合成コントロールの系列をそれぞれ数値で取得できます。
+
+```{r}
+treated_outcomes(core_fit)
+synthetic_outcomes(core_fit)
+```
+
+### データフレーム形式での取得
+
+`broom`パッケージと組み合わせると、`coresynth`の結果をデータフレーム形式で取得できます。
+
+```{r}
+fit_df <- broom::augment(core_fit)
+
+head(fit_df)
+```
+
+処置前・処置後の判別もできるようになっています。系列の差を取りたいときなどはこちらから使ってみてください。
 
 ## まとめ
 
