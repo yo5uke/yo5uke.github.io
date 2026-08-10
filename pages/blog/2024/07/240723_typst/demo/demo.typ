@@ -221,7 +221,7 @@
      }
      blocks = blocks + ln + EndLine()
    }
-   block(fill: bgcolor, width: 100%, inset: 8pt, radius: 2pt, blocks)
+   block(fill: bgcolor, blocks)
 }
 #let AlertTok(s) = text(fill: rgb("#ad0000"),raw(s))
 #let AnnotationTok(s) = text(fill: rgb("#5e5e5e"),raw(s))
@@ -514,9 +514,9 @@ supplement: "Figure",
 <subsection>
 You can also write mathematical expressions like #ref(<eq-panel>, supplement: [Equation]).
 
-#math.equation(block: true, numbering: equation-numbering, [ $ Y_(i t) = delta D_(i t) + u_i + epsilon_(i t) \, quad t = 1 \, 2 \, dots.h \, T $ ])<eq-panel>
+#math.equation(block: true, numbering: equation-numbering, [ $ Y_(i t) = delta D_(i t) + u_i + epsilon_(i t)\,quad t = 1\,2\,dots.h\,T $ ])<eq-panel>
 
-#set bibliography(style: "../../../../../../styles/csl/chicago-author-date.csl")
+#set bibliography(style: "/styles/csl/chicago-author-date.csl")
 
 #bibliography(("../../../../../../references.bib"))
 
