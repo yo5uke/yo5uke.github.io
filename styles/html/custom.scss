@@ -1,5 +1,12 @@
 /*-- scss:rules --*/
 
+/* Accent Colors - Mint & Coral */
+$mint-primary: #0d9488;
+$mint-hover: #0f766e;
+$mint-light: #14b8a6;
+$mint-subtle: #2dd4bf;
+$coral-accent: #fb7185;
+
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
 
 /* Typography Helpers */
@@ -56,12 +63,12 @@ body {
   gap: 0.35rem;
 
   &:hover {
-    color: #2563eb !important;
-    -webkit-text-fill-color: #2563eb !important;
+    color: $mint-primary !important;
+    -webkit-text-fill-color: $mint-primary !important;
     background: rgba(255, 255, 255, 0.6) !important;
-    border-color: rgba(37, 99, 235, 0.3) !important;
+    border-color: rgba($mint-primary, 0.3) !important;
     box-shadow:
-      0 2px 14px rgba(37, 99, 235, 0.15),
+      0 2px 14px rgba($mint-primary, 0.15),
       inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -85,9 +92,9 @@ body {
     color: #0f172a !important;
     -webkit-text-fill-color: #0f172a !important;
     background: rgba(255, 255, 255, 0.6) !important;
-    border-color: rgba(37, 99, 235, 0.25) !important;
+    border-color: rgba($mint-primary, 0.25) !important;
     box-shadow:
-      0 2px 14px rgba(37, 99, 235, 0.12),
+      0 2px 14px rgba($mint-primary, 0.12),
       inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -96,21 +103,31 @@ body {
 }
 
 #quarto-header .navbar .navbar-nav > .nav-item > .nav-link.active {
-  color: #2563eb !important;
-  -webkit-text-fill-color: #2563eb !important;
-  background: rgba(37, 99, 235, 0.08);
-  border-color: rgba(37, 99, 235, 0.2);
+  color: $mint-primary !important;
+  -webkit-text-fill-color: $mint-primary !important;
+  background: rgba($mint-primary, 0.08);
+  border-color: rgba($mint-primary, 0.2);
   font-weight: 700;
 }
 
 /* Navbar Dropdown */
+.navbar ul.dropdown-menu,
 .navbar .dropdown-menu {
   border-radius: 12px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
-  padding: 0.4rem;
+  padding: 0.75rem 0.5rem !important;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(12px);
+
+  > li {
+    margin: 0;
+    padding: 0;
+
+    &:not(:last-child) {
+      margin-bottom: 0.25rem;
+    }
+  }
 }
 
 .navbar .dropdown-item {
@@ -118,26 +135,84 @@ body {
   font-size: 0.875rem;
   font-weight: 500;
   border-radius: 6px;
-  padding: 0.4rem 0.7rem;
+  padding: 0.45rem 0.75rem;
   color: #334155;
   transition: all 0.15s ease;
 
   &:hover, &:focus {
-    background-color: rgba(37, 99, 235, 0.08);
-    color: #2563eb;
+    background-color: rgba($mint-primary, 0.08);
+    color: $mint-primary;
   }
 }
 
 /* Navbar Tools & Search */
-.navbar .quarto-navbar-tools .quarto-navigation-tool {
-  color: #64748b !important;
-  padding: 0.25rem 0.45rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+.navbar .quarto-navbar-tools {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  gap: 0.15rem;
 
-  &:hover {
-    color: #0f172a !important;
-    background: rgba(15, 23, 42, 0.05);
+  /* GitHubなどのドロップダウン親要素の位置調整 */
+  div.dropdown {
+    display: inline-flex !important;
+    align-items: center !important;
+    vertical-align: middle !important;
+  }
+
+  .quarto-navigation-tool {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    vertical-align: middle !important;
+    line-height: 1;
+    color: #64748b !important;
+    padding: 0.25rem 0.45rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: #0f172a !important;
+      background: rgba(15, 23, 42, 0.05);
+    }
+
+    i, .bi {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      vertical-align: middle;
+
+      &::before {
+        vertical-align: middle !important;
+        line-height: 1;
+      }
+    }
+
+    /* ドロップダウンキャレット（▼）の垂直中央揃え */
+    &.dropdown-toggle::after {
+      display: inline-block;
+      vertical-align: middle !important;
+      margin-left: 0.3em;
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+  }
+}
+
+/* Color Scheme Toggle (Mode Switch) Alignment */
+.navbar .quarto-color-scheme-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  vertical-align: middle !important;
+  line-height: 1 !important;
+
+  .bi {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
   }
 }
 
@@ -146,7 +221,7 @@ body {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' fill-rule='evenodd' d='M12 16a4 4 0 1 0 0-8a4 4 0 0 0 0 8m0 2a6 6 0 1 0 0-12a6 6 0 0 0 0 12M11 0h2v4.062a8 8 0 0 0-2 0zM7.094 5.68L4.222 2.808L2.808 4.222L5.68 7.094A8 8 0 0 1 7.094 5.68M4.062 11H0v2h4.062a8 8 0 0 1 0-2m1.618 5.906l-2.872 2.872l1.414 1.414l2.872-2.872a8 8 0 0 1-1.414-1.414M11 19.938V24h2v-4.062a8 8 0 0 1-2 0m5.906-1.618l2.872 2.872l1.414-1.414l-2.872-2.872a8 8 0 0 1-1.414 1.414M19.938 13H24v-2h-4.062a8 8 0 0 1 0 2M18.32 7.094l2.872-2.872l-1.414-1.414l-2.872 2.872c.528.41 1.003.886 1.414 1.414' clip-rule='evenodd'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  display: inline-block;
+  display: block;
   width: 20px;
   height: 20px;
   transition: transform 0.3s ease, filter 0.2s ease;
@@ -154,30 +229,74 @@ body {
 
 .navbar .quarto-color-scheme-toggle:not(.alternate):hover .bi::before {
   transform: rotate(30deg) scale(1.15);
-  filter: brightness(0) saturate(100%) invert(32%) sepia(85%) saturate(2250%) hue-rotate(210deg) brightness(98%) contrast(97%);
+  filter: brightness(0) saturate(100%) invert(43%) sepia(82%) saturate(452%) hue-rotate(125deg) brightness(92%) contrast(92%);
 }
 
-.navbar #quarto-search.type-overlay .aa-Autocomplete svg.aa-SubmitIcon { color: #64748b; }
-.navbar .aa-DetachedSearchButton {
+/* Search Button */
+.navbar #quarto-search {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.5rem;
+  vertical-align: middle;
+
+  .aa-Autocomplete {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+
+    svg.aa-SubmitIcon {
+      color: #64748b !important;
+      fill: currentColor !important;
+    }
+  }
+}
+
+.navbar .aa-DetachedSearchButton {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  margin: 0 !important;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background: #f8fafc;
   transition: all 0.2s ease;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+  box-sizing: border-box !important;
 
   &:hover {
     background: #ffffff;
     border-color: #cbd5e1;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   }
-}
 
-.navbar .aa-DetachedSearchButton .aa-DetachedSearchButtonIcon svg {
-  width: 1em !important;
-  height: 1em !important;
-  color: #64748b;
+  .aa-DetachedSearchButtonIcon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #64748b !important;
+    fill: #64748b !important;
+
+    svg, svg.aa-SubmitIcon {
+      display: block !important;
+      width: 18px !important;
+      height: 18px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      color: #64748b !important;
+      fill: currentColor !important;
+    }
+  }
+
+  .aa-DetachedSearchButtonPlaceholder,
+  .aa-DetachedSearchButtonQuery {
+    display: none !important;
+  }
 }
 
 /* Keep "キャンセル" on one line instead of wrapping when the input shrinks */
@@ -203,7 +322,7 @@ body {
     right: -10%;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba($mint-primary, 0.2) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
@@ -254,7 +373,7 @@ section {
       display: block;
       width: 48px;
       height: 4px;
-      background: linear-gradient(90deg, #2563eb, #06b6d4);
+      background: linear-gradient(90deg, $mint-primary, $coral-accent);
       border-radius: 2px;
       margin-top: 12px;
       margin-bottom: 12px;
@@ -298,7 +417,7 @@ section {
 .quarto-about-jolla {
   .about-image {
     border-radius: 50% !important;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15), 0 8px 24px rgba(15, 23, 42, 0.1) !important;
+    box-shadow: 0 0 0 4px rgba($mint-primary, 0.15), 0 8px 24px rgba(15, 23, 42, 0.1) !important;
     transition: transform 0.3s ease;
 
     &:hover {
@@ -393,11 +512,11 @@ section {
 
   &:hover .quarto-grid-item.card {
     transform: translateY(-4px);
-    border-color: rgba(37, 99, 235, 0.35) !important;
+    border-color: rgba($mint-primary, 0.35) !important;
     box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.09), 0 4px 10px -2px rgba(15, 23, 42, 0.04) !important;
 
     .card-title {
-      color: #2563eb;
+      color: $mint-primary;
     }
 
     .card-img-top, .card-img {
@@ -426,9 +545,9 @@ section {
     transition: all 0.15s ease;
 
     &:hover {
-      background: rgba(37, 99, 235, 0.1);
-      color: #2563eb;
-      border-color: rgba(37, 99, 235, 0.25);
+      background: rgba($mint-primary, 0.1);
+      color: $mint-primary;
+      border-color: rgba($mint-primary, 0.25);
     }
   }
 }
@@ -446,11 +565,11 @@ section {
 
   &:hover {
     box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
-    border-color: rgba(37, 99, 235, 0.3) !important;
+    border-color: rgba($mint-primary, 0.3) !important;
   }
 
   .profile-img {
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12), 0 4px 12px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 0 0 3px rgba($mint-primary, 0.12), 0 4px 12px rgba(15, 23, 42, 0.08);
     transition: transform 0.3s ease;
 
     &:hover {
@@ -464,13 +583,13 @@ section {
     line-height: 1.6;
 
     a {
-      color: #2563eb;
+      color: $mint-primary;
       font-weight: 600;
       text-decoration: none;
       transition: color 0.15s ease;
 
       &:hover {
-        color: #1d4ed8;
+        color: $mint-hover;
         text-decoration: underline;
       }
     }
@@ -495,10 +614,10 @@ section {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
     text-decoration: none;
-    border-color: rgba(37, 99, 235, 0.4);
+    border-color: rgba($mint-primary, 0.4);
 
     .linkcard__title {
-      color: #2563eb;
+      color: $mint-primary;
     }
   }
 }
@@ -616,7 +735,7 @@ pre > code, div.sourceCode {
 
     &:hover {
       transform: translateY(-2px);
-      border-color: rgba(37, 99, 235, 0.35);
+      border-color: rgba($mint-primary, 0.35);
       box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.07);
     }
   }
@@ -634,7 +753,7 @@ pre > code, div.sourceCode {
       transition: color 0.15s ease;
 
       &:hover {
-        color: #2563eb;
+        color: $mint-primary;
       }
     }
   }
@@ -669,15 +788,15 @@ pre > code, div.sourceCode {
       gap: 0.35rem;
       font-size: 0.85rem;
       font-weight: 600;
-      color: #2563eb;
-      background: rgba(37, 99, 235, 0.06);
+      color: $mint-primary;
+      background: rgba($mint-primary, 0.06);
       padding: 0.3rem 0.75rem;
       border-radius: 8px;
       text-decoration: none;
       transition: all 0.2s ease;
 
       &:hover {
-        background: #2563eb;
+        background: $mint-primary;
         color: #ffffff;
       }
     }
@@ -708,7 +827,7 @@ pre > code, div.sourceCode {
     a {
       font-size: 0.85rem;
       font-weight: 600;
-      color: #2563eb;
+      color: $mint-primary;
       margin-right: 0.75rem;
     }
   }
@@ -795,9 +914,9 @@ table {
     }
 
     &.active {
-      color: #2563eb;
+      color: $mint-primary;
       font-weight: 600;
-      border-left-color: #2563eb;
+      border-left-color: $mint-primary;
     }
   }
 }
@@ -817,7 +936,7 @@ table {
     font-weight: 500;
 
     &:hover {
-      color: #2563eb;
+      color: $mint-primary;
     }
   }
 }
