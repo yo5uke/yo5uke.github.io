@@ -1,0 +1,455 @@
+---
+title: modelsummaryの出力を整える
+description: |
+  分析結果の出力でよく用いられるmodelsummarに関するtipsを紹介します。
+date: 2026-09-28
+categories:
+  - R
+  - データ分析
+---
+
+```{css, echo=FALSE}
+.tinytable {
+  width: 80% !important;
+  table-layout: fixed !important;
+}
+
+.tinytable th:first-child,
+.tinytable td:first-child {
+  width: 35% !important;
+}
+```
+
+## はじめに
+
+{modelsummary}はRで回帰分析などのモデルの結果を整形して出力するためのパッケージで、使用されている方も多いと思います。
+$\LaTeX$ 形式で出力することも可能で、そのまま貼り付けられる形式で出力されている方もいれば、ベーシックな出力だけしておいて後から $\LaTeX$ 側で整形する方もいらっしゃると思います。
+
+本ページではなるべく $\LaTeX$ 側で苦労しなくて済むように、{modelsummary} の出力を整える方法について紹介します。
+
+::: {.callout-important}
+$\LaTeX$ 形式で出力するためには、`tinytable::theme_latex()` を適用する必要があります。途中の例で都度記載はしていませんが、@sec-latex-output を参照してください。
+:::
+
+## 基本的な使い方
+
+{fixest}を用いてDIDの分析モデルを推定し、その結果を{modelsummary}で整形して出力する例を示します。
+ここでは本ページの表示のためにmarkdown形式で出力しますが、後ほど $\LaTeX$ 形式での出力も紹介します。
+
+```{r}
+#| label: tbl-modelsummary-base
+#| tbl-cap: DID分析の基本的なモデルの結果表示
+
+library(fixest)
+library(modelsummary)
+
+# データの準備
+data("base_did")
+
+# 交差項の作成
+df <- base_did |>
+  dplyr::mutate(
+    treat_post = treat * post,
+    # 共変量を適当に追加
+    cov1 = rnorm(dplyr::n(), 0, 1),
+    cov2 = rnorm(dplyr::n(), 0, 1)
+  )
+
+# モデルの推定
+model <- feols(y ~ treat_post | id + period, data = df)
+
+# 結果を表示
+modelsummary(model)
+```
+
+分析結果に対して`modelsummary()`を使うことで、簡単に結果を表示することができますが、このまま添付することはないと思いますので、一連の流れで整形していきます^[ちなみにここで事前に`treat_post`変数を作成したのは、次に説明する変数ラベルの書き換えがしやすくなるためです。]。
+
+## 変数のラベルを書き換える
+
+### 単一の変数のラベルの書き換え
+
+@tbl-modelsummary-base では変数名がデータフレーム内の`treat_post`のまま表示されています。まずはここを書き換えます。
+
+```{r}
+#| label: tbl-modelsummary-coef-rename
+#| tbl-cap: 交差項のラベルを変更
+
+modelsummary(model, coef_rename = "Treat × Post")
+```
+
+**ポイント：**
+- `coef_rename` 引数を使うことで、特定の変数のラベルを簡単に変更できます。
+
+### 多数の変数のラベルの書き換え {#sec-multiple-coef-rename}
+
+複数の変数を書き換える場合には、`coef_rename`を使う方法と`coef_map`を使う方法があります。
+
+```{r}
+#| label: tbl-modelsummary-coef-rename-multiple
+#| tbl-cap: 複数の変数のラベルを変更
+
+model_cov <- feols(y ~ treat_post + cov1 + cov2 | id + period, data = df)
+modelsummary(
+  model_cov,
+  coef_rename = c(
+    "treat_post" = "Treat × Post",
+    "cov1" = "Covariate 1"
+  )
+)
+```
+
+**ポイント：**
+
+- 複数の変数のラベルを変更する場合も、`coef_rename`を使うことで簡単に変更できます。
+- 特に指定しなかった変数（`cov2`）は元の変数名のまま表示されます。
+
+---
+
+```{r}
+#| label: tbl-modelsummary-coef-map
+#| tbl-cap: 複数の変数のラベルを`coef_map`で変更
+
+modelsummary(
+  model_cov,
+  coef_map = c(
+    "treat_post" = "Treat × Post",
+    "cov1" = "Covariate 1"
+  )
+)
+```
+
+**ポイント：**
+
+- `coef_map`を使うことで、複数の変数のラベルを一括で変更できます。
+- `coef_rename`と異なり、`coef_map`では**指定しなかった変数は表示されません**。
+
+---
+
+変数が多くなる場合には事前にラベルの対応表を作成しておき、それを`coef_map`に渡すと便利です。
+
+```{r}
+#| label: tbl-modelsummary-coef-map-predefined
+#| tbl-cap: 事前に作成したラベル対応表を用いて複数の変数のラベルを変更
+
+cm <- c(
+  "treat_post" = "Treat × Post",
+  "cov1" = "Covariate 1",
+  "cov2" = "Covariate 2"
+)
+modelsummary(
+  model_cov,
+  coef_map = cm
+)
+```
+
+## 統計量を整える
+
+次に、モデルの出力に含まれる統計量を整える方法について紹介します。観測数とか決定係数などの統計量を絞り込んだりラベルを変更することができます。
+
+前提として、どのような統計量があるのかを確認するためには、コンソールで`gof_map`を実行してください。ここでは長いので、先頭の部分だけを表示します。
+
+```{r}
+head(gof_map)
+```
+
+`raw`, `clean`, `fmt`, `omit`の4列があります。
+`raw`列が元の統計量名を示しており、`clean`列が表示される名前、`fmt`列が小数点以下の桁数、`omit`列が出力から除外するかどうかを示しています。
+
+### 表示する統計量を絞り込む
+
+上記の表を見ていただけばわかる通り、デフォルトでは`Num.Obs.`, `R2`, `R2 Adj.`, `R2 Within`, `R2 Within Adj.`, `AIC`, `BIC`, `RMSE`, 固定効果が表示されています。
+
+```{r}
+#| label: tbl-modelsummary-gof
+#| tbl-cap: 統計量の絞り込み
+
+modelsummary(
+  model_cov,
+  gof_omit = "R2 Adj.|R2 Within|R2 Within Adj.|AIC|BIC|RMSE"
+)
+```
+
+**ポイント：**
+
+- `gof_omit` 引数を使うことで、特定の統計量を出力から除外することができます。
+- `gof_map`で確認したうちの`clean`列の名前を`gof_omit`で指定することで、除外する統計量を選ぶことができます。
+- `|`で区切ることで、複数の統計量をまとめて除外することができます。
+
+### 統計量のラベルを書き換える
+
+例えばR2を $R^2$ とするように、統計量のラベルを変更するには`gof_map`引数を使用します。
+
+```{r}
+#| label: tbl-modelsummary-gof-rename
+#| tbl-cap: 統計量のラベルを変更
+
+gm <- tibble::tribble(
+  ~raw         , ~clean                 , ~fmt ,
+  "nobs"       , "Observations"         ,    0 ,
+  "r.squared"  , "R\u00B2"              ,    3 ,
+  "FE: id"     , "ID Fixed Effects"     ,    0 ,
+  "FE: period" , "Period Fixed Effects" ,    0
+)
+modelsummary(model_cov, gof_map = gm)
+```
+
+**ポイント：**
+
+- `gof_map`引数を使うことで、統計量のラベルを自由に変更することができます。
+- `raw`列に元の統計量名、`clean`列に表示したい名前、`fmt`列に小数点以下の桁数を指定します。
+- `\u00B2`は上付きの2を表しており、$R^2$ のように表示されます。
+- 固定効果は`FE: id`や`FE: period`の形で指定します。
+
+::: {.callout-tip collapse="true"}
+## tribbleの使い方
+
+`tribble()`は、行ごとにデータを入力できる関数です。列名を`~`で指定し、その後に各行のデータを入力していきます。`tibble()`が通常の列ごとにデータを入力するのに対して、`tribble()`は行ごとにデータを入力できる点が特徴です。以下の例では同じデータフレームができます。
+
+::: {.panel-tabset}
+## tribble
+
+```{r}
+tibble::tribble(
+  ~raw        , ~clean         , ~fmt ,
+  "nobs"      , "Observations" ,    0 ,
+  "r.squared" , "R\u00B2"      ,    3
+)
+```
+
+## tibble
+
+```{r}
+tibble::tibble(
+  raw = c("nobs", "r.squared"),
+  clean = c("Observations", "R\u00B2"),
+  fmt = c(0, 3)
+)
+```
+
+:::
+:::
+
+### 数値にカンマ区切りを入れる
+
+観測数などそれなりの大きな数値にはカンマ区切りを入れる場合は以下のようにします。
+
+```{r}
+modelsummary(
+  model_cov,
+  fmt = fmt_statistic(
+    "estimate" = 3,
+    "std.error" = 3,
+    "nobs" = \(x) prettyNum(x, big.mark = ",")
+  ),
+  gof_map = gm
+)
+```
+
+### 表に行を追加する
+
+例えば回帰において重みづけを行った場合など、既存の統計量に加えて新たな行を追加したいことがあります。その場合は`modelsummary()`内で`add_rows`を使用します。
+
+まずは追加したい行のデータフレームを作成します。データフレームは再び`tribble()`を使って行ごとに入力します。
+
+```{r}
+#| label: tbl-modelsummary-add-rows
+#| tbl-cap: 表に行を追加
+
+rows <- tibble::tribble(
+  ~term    , ~col1 ,
+  "Weight" , "X"
+)
+modelsummary(model_cov, coef_map = cm, gof_map = gm, add_rows = rows)
+```
+
+作成した`add_rows`を`modelsummary()`の`add_rows`引数に渡すことで、表に新たな行を追加しました。
+デフォルトでは作成した行は一番下に挿入されます。位置を変更したい場合には、`attr()`関数を使って`add_rows`の`position`属性を設定します。
+
+```{r}
+#| label: tbl-modelsummary-add-rows-position
+#| tbl-cap: 表に行を追加（位置指定）
+
+attr(rows, "position") <- 9
+modelsummary(model_cov, coef_map = cm, gof_map = gm, add_rows = rows)
+```
+
+`Treat × Post`から数えて9行目に追加しました。標準誤差の行も数える点に注意してください。
+
+### 固定効果の行の"X"を"Yes"に書き換える
+
+例えば固定効果が含まれるモデルでは固定効果を表す行に`X`が表示されていました。
+場合によっては、`X`を`Yes`に書き換えたいこともありますが、これは{fixest}パッケージの仕様に依存しているため、設定を書き換える必要があります。
+
+```{r}
+glance_custom.fixest <- function(x, ...) {
+  out <- data.frame(row.names = "firstrow")
+  for (n in x$fixef_vars) {
+    out[[paste("FE:", n)]] <- "Yes"
+  }
+  out
+}
+```
+
+上記をコピペしてそのまま使用していただければ、固定効果を表す行の`X`が`Yes`に置き換わります（もちろん任意の文字列に変更可能です）。
+
+```{r}
+modelsummary(model_cov, coef_map = cm, gof_map = gm)
+```
+
+```{r}
+#| echo: false
+
+rm(glance_custom.fixest)
+```
+
+## 複数のモデルを並べて表示する
+
+### 基本の複数モデル表示
+
+複数のモデルを並べて表示するには、分析結果をリスト形式で格納し、`modelsummary()`に渡します。
+
+```{r}
+#| label: tbl-multiple-models
+#| tbl-cap: 複数モデルの表示
+
+models <- list(
+  "Model 1" = feols(y ~ treat_post | id + period, data = df),
+  "Model 2" = feols(y ~ treat_post + cov1 + cov2 | id + period, data = df)
+)
+cm <- c(
+  "treat_post" = "Treat × Post",
+  "cov1" = "Covariate 1",
+  "cov2" = "Covariate 2"
+)
+gm <- tibble::tribble(
+  ~raw         , ~clean                 , ~fmt ,
+  "nobs"       , "Observations"         ,    0 ,
+  "r.squared"  , "R\u00B2"              ,    3 ,
+  "FE: id"     , "ID Fixed Effects"     ,    0 ,
+  "FE: period" , "Period Fixed Effects" ,    0
+)
+modelsummary(models, coef_map = cm, gof_map = gm)
+```
+
+**ポイント：**
+
+- リストの中で各分析に名前を付けることで、表の列見出しとして表示されます。
+- `coef_map`を使っているので、含まれる変数はすべて記載しておくようにしましょう。
+  - 例えば`cm`に"cov2"を含めていない場合、`Model 2`に"cov2"が含まれていても表には表示されません^[@sec-multiple-coef-rename 参照。]。
+  - 一部だけ指定して表示を変え、他はそのままにしたい場合には`coef_rename`を使用してください。
+
+::: {.callout-tip}
+## モデル名が長い場合の書き方
+
+@tbl-multiple-models の場合、「Model 1」や「Model 2」といったモデル名が表の列見出しとして表示され、これは短いので改行をする必要性はないと思います。
+
+一方、モデルごとにアウトカム変数が異なり、そのアウトカム変数を列見出しとして表示したい場合などにはモデルのラベルが長くなることもあると思います。
+
+$\LaTeX$ 出力の場合は、長いモデル名を改行して表示するために、`\\`を使って改行を指定することができます。ただし、Rでは`\`がエスケープ文字として扱われるため、`"\\\\"`のように二重にする必要があります。また、ラベルを`{ }`で囲んでください^[$\LaTeX$ の`tabularray`パッケージの仕様。]。
+
+```r
+models <- list(
+  "{Without\\\\Covariates}" = feols(y ~ treat_post | id + period, data = df),
+  "{With\\\\Covariates}" = feols(
+    y ~ treat_post + cov1 + cov2 | id + period,
+    data = df
+  )
+)
+```
+
+`modelsummary(models)`だけ実行するとモデル名は`{Without\\Covariates}`や`{With\\Covariates}`のように表示されますが、[次](#sec-latex-output)に説明する方法を使うことで、正しく改行されたモデル名として表示されます。
+:::
+
+### 列をグルーピングする {#sec-column-grouping}
+
+列をグルーピングすることで、関連するモデルをまとめて表示することができます。例えば、アウトカム変数ごとにモデルをグループ化する場合などに有用です。
+ここでは{tinytable}パッケージの`group_tt()`を使うことで、列をグルーピングすることができます。
+
+```{r}
+#| label: tbl-column-grouping
+#| tbl-cap: 列のグルーピングの例
+
+library(tinytable)
+models <- list(
+  "Model 1" = feols(y ~ treat_post | id + period, data = df),
+  "Model 2" = feols(y ~ treat_post + cov1 | id + period, data = df),
+  "Model 3" = feols(y ~ treat_post + cov2 | id + period, data = df),
+  "Model 4" = feols(y ~ treat_post + cov1 + cov2 | id + period, data = df)
+)
+cm <- c(
+  "treat_post" = "Treat × Post",
+  "cov1" = "Covariate 1",
+  "cov2" = "Covariate 2"
+)
+gm <- tibble::tribble(
+  ~raw         , ~clean                 , ~fmt ,
+  "nobs"       , "Observations"         ,    0 ,
+  "r.squared"  , "R\u00B2"              ,    3 ,
+  "FE: id"     , "ID Fixed Effects"     ,    0 ,
+  "FE: period" , "Period Fixed Effects" ,    0
+)
+modelsummary(models, coef_map = cm, gof_map = gm) |>
+  group_tt(j = list("Group 1" = 2:3, "Group 2" = 4:5))
+```
+
+**ポイント：**
+
+- `group_tt()`の`j`引数を使うことで、列をグルーピングすることができます。
+- `j`で指定する列番号は、2から始まることに注意してください。
+  - 1は行ラベルの列であるためです。
+- `2:3`は、2列目と3列目をグループ化することを意味します。
+
+## LaTeX形式で出力する {#sec-latex-output}
+
+`modelsummary()`で出力された表は、{tinytable}パッケージと互換性を持ちます^[パッケージの開発者が{modelsummary}と同じです。]。
+
+ここまでのコードでは、RStudio/VS Codeなどの環境では表示することができましたが、このままでは`.tex`ファイルとして保存することができません。
+
+そこで{tinytable}の`theme_latex()`と`save_tt()`を使うことで、`modelsummary()`の結果を $\LaTeX$ 形式で出力することができます。
+
+```r
+modelsummary(models, coef_map = cm, gof_map = gm) |>
+  theme_latex() |>
+  save_tt("modelsummary.tex", overwrite = TRUE)
+```
+
+`overwrite = TRUE`とすることで、既存のファイルが存在する場合でも上書き保存されます。
+
+上記のコードを実行すると、`modelsummary.tex`として出力され、$\LaTeX$ で利用可能な形式の表が得られます。
+
+```{.latex code-fold="true"}
+\begin{table}
+\centering
+\begin{tblr}[         %% tabularray outer open
+]                     %% tabularray outer close
+{                     %% tabularray inner open
+colspec={Q[]Q[]Q[]},
+hline{2}={1-3}{solid, black, 0.05em},
+hline{8}={1-3}{solid, black, 0.05em},
+hline{1}={1-3}{solid, black, 0.08em},
+hline{12}={1-3}{solid, black, 0.08em},
+column{2-3}={}{halign=c},
+column{1}={}{halign=l},
+}                     %% tabularray inner close
+& Model 1 & Model 2 \\
+Treat × Post & 4.993 & 4.982 \\
+& (0.613) & (0.613) \\
+Covariate 1 &  & 0.221 \\
+&  & (0.157) \\
+Covariate 2 &  & 0.207 \\
+&  & (0.163) \\
+Observations & 1080 & 1080 \\
+R² & 0.307 & 0.309 \\
+ID Fixed Effects & X & X \\
+Period Fixed Effects & X & X \\
+\end{tblr}
+\end{table}
+```
+
+$\TeX$ ファイルのプリアンブルに何を書いているかにもよりますが、未記載の場合には`tabularray`パッケージを読み込んでおく必要がありますのでご注意ください（`\usepackage{tabularray}`）。
+
+## まとめ
+
+今回は{modelsummary}を使って分析結果の表を作成し、体裁の整え方や $\LaTeX$ 形式での出力方法について説明しました。
+
+個人的にはRでTeXの出力までできるとかなり楽だと思うので、Rの結果から転記されていた方はぜひ使ってみてください！
