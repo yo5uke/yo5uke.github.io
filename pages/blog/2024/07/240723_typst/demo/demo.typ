@@ -400,101 +400,9 @@
   inset: 6pt,
   stroke: none
 )
-#let brand-color = (
-  amber-500: rgb("#f59e0b"),
-  background: rgb("#ffffff"),
-  black: rgb("#0b0f19"),
-  coral-400: rgb("#fb7185"),
-  coral-500: rgb("#f43f5e"),
-  cyan-500: rgb("#06b6d4"),
-  danger: rgb("#f43f5e"),
-  dark: rgb("#0f172a"),
-  emerald-500: rgb("#10b981"),
-  foreground: rgb("#1e293b"),
-  indigo-500: rgb("#6366f1"),
-  info: rgb("#0ea5e9"),
-  light: rgb("#f8fafc"),
-  mint-400: rgb("#2dd4bf"),
-  mint-500: rgb("#14b8a6"),
-  mint-600: rgb("#0d9488"),
-  mint-700: rgb("#0f766e"),
-  primary: rgb("#0d9488"),
-  rose-500: rgb("#f43f5e"),
-  secondary: rgb("#64748b"),
-  sky-500: rgb("#0ea5e9"),
-  slate-100: rgb("#f1f5f9"),
-  slate-200: rgb("#e2e8f0"),
-  slate-300: rgb("#cbd5e1"),
-  slate-400: rgb("#94a3b8"),
-  slate-50: rgb("#f8fafc"),
-  slate-500: rgb("#64748b"),
-  slate-600: rgb("#475569"),
-  slate-700: rgb("#334155"),
-  slate-800: rgb("#1e293b"),
-  slate-900: rgb("#0f172a"),
-  slate-950: rgb("#0b0f19"),
-  success: rgb("#10b981"),
-  warning: rgb("#f59e0b"),
-  white: rgb("#ffffff")
-)
-#let brand-color-background = (
-  amber-500: color.mix((brand-color.amber-500, 15%), (brand-color.background, 85%)),
-  background: color.mix((brand-color.background, 15%), (brand-color.background, 85%)),
-  black: color.mix((brand-color.black, 15%), (brand-color.background, 85%)),
-  coral-400: color.mix((brand-color.coral-400, 15%), (brand-color.background, 85%)),
-  coral-500: color.mix((brand-color.coral-500, 15%), (brand-color.background, 85%)),
-  cyan-500: color.mix((brand-color.cyan-500, 15%), (brand-color.background, 85%)),
-  danger: color.mix((brand-color.danger, 15%), (brand-color.background, 85%)),
-  dark: color.mix((brand-color.dark, 15%), (brand-color.background, 85%)),
-  emerald-500: color.mix((brand-color.emerald-500, 15%), (brand-color.background, 85%)),
-  foreground: color.mix((brand-color.foreground, 15%), (brand-color.background, 85%)),
-  indigo-500: color.mix((brand-color.indigo-500, 15%), (brand-color.background, 85%)),
-  info: color.mix((brand-color.info, 15%), (brand-color.background, 85%)),
-  light: color.mix((brand-color.light, 15%), (brand-color.background, 85%)),
-  mint-400: color.mix((brand-color.mint-400, 15%), (brand-color.background, 85%)),
-  mint-500: color.mix((brand-color.mint-500, 15%), (brand-color.background, 85%)),
-  mint-600: color.mix((brand-color.mint-600, 15%), (brand-color.background, 85%)),
-  mint-700: color.mix((brand-color.mint-700, 15%), (brand-color.background, 85%)),
-  primary: color.mix((brand-color.primary, 15%), (brand-color.background, 85%)),
-  rose-500: color.mix((brand-color.rose-500, 15%), (brand-color.background, 85%)),
-  secondary: color.mix((brand-color.secondary, 15%), (brand-color.background, 85%)),
-  sky-500: color.mix((brand-color.sky-500, 15%), (brand-color.background, 85%)),
-  slate-100: color.mix((brand-color.slate-100, 15%), (brand-color.background, 85%)),
-  slate-200: color.mix((brand-color.slate-200, 15%), (brand-color.background, 85%)),
-  slate-300: color.mix((brand-color.slate-300, 15%), (brand-color.background, 85%)),
-  slate-400: color.mix((brand-color.slate-400, 15%), (brand-color.background, 85%)),
-  slate-50: color.mix((brand-color.slate-50, 15%), (brand-color.background, 85%)),
-  slate-500: color.mix((brand-color.slate-500, 15%), (brand-color.background, 85%)),
-  slate-600: color.mix((brand-color.slate-600, 15%), (brand-color.background, 85%)),
-  slate-700: color.mix((brand-color.slate-700, 15%), (brand-color.background, 85%)),
-  slate-800: color.mix((brand-color.slate-800, 15%), (brand-color.background, 85%)),
-  slate-900: color.mix((brand-color.slate-900, 15%), (brand-color.background, 85%)),
-  slate-950: color.mix((brand-color.slate-950, 15%), (brand-color.background, 85%)),
-  success: color.mix((brand-color.success, 15%), (brand-color.background, 85%)),
-  warning: color.mix((brand-color.warning, 15%), (brand-color.background, 85%)),
-  white: color.mix((brand-color.white, 15%), (brand-color.background, 85%))
-)
-#set page(fill: brand-color.background)
-#set text(fill: brand-color.foreground)
-#set table.hline(stroke: (paint: brand-color.foreground))
-#set line(stroke: (paint: brand-color.foreground))
-#let brand-logo-images = (
-  icon: (
-    path: "assets/icons/favicon.ico"
-  ),
-  icon-r: (
-    path: "assets/icons/abe-r.png"
-  )
-)
+#let brand-color = (:)
+#let brand-color-background = (:)
 #let brand-logo = (:)
-#set text(weight: 400, )
-#set par(leading: 0.95em)
-#show heading: set text(font: ("Plus Jakarta Sans", "Noto Sans JP", "sans-serif"), weight: 700, )
-#show heading: set par(leading: 0.55em)
-#show raw.where(block: false): set text(weight: 500, fill: rgb("#0f172a"), )
-#show raw.where(block: false): content => highlight(fill: rgb("#f1f5f9"), content)
-#show raw.where(block: true): set text(weight: 400, size: 0.9*12pt, )
-#show link: set text(weight: 500, fill: rgb("#0d9488"), )
 
 #set page(
   paper: "us-letter",
@@ -516,12 +424,6 @@
 
 ],
   abstract-title: "Abstract",
-  font: ("Plus Jakarta Sans", "Noto Sans JP", "sans-serif"),
-  fontsize: 12pt,
-  heading-family: ("Plus Jakarta Sans", "Noto Sans JP", "sans-serif"),
-  heading-weight: 700,
-  heading-color: rgb("#1e293b"),
-  heading-line-height: 0.55em,
   toc_title: [Table of contents],
   toc_depth: 3,
   doc,
