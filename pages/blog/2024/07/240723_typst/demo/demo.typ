@@ -404,9 +404,8 @@
   amber-500: rgb("#f59e0b"),
   background: rgb("#ffffff"),
   black: rgb("#0b0f19"),
-  blue-500: rgb("#3b82f6"),
-  blue-600: rgb("#2563eb"),
-  blue-700: rgb("#1d4ed8"),
+  coral-400: rgb("#fb7185"),
+  coral-500: rgb("#f43f5e"),
   cyan-500: rgb("#06b6d4"),
   danger: rgb("#f43f5e"),
   dark: rgb("#0f172a"),
@@ -415,7 +414,11 @@
   indigo-500: rgb("#6366f1"),
   info: rgb("#0ea5e9"),
   light: rgb("#f8fafc"),
-  primary: rgb("#2563eb"),
+  mint-400: rgb("#2dd4bf"),
+  mint-500: rgb("#14b8a6"),
+  mint-600: rgb("#0d9488"),
+  mint-700: rgb("#0f766e"),
+  primary: rgb("#0d9488"),
   rose-500: rgb("#f43f5e"),
   secondary: rgb("#64748b"),
   sky-500: rgb("#0ea5e9"),
@@ -438,9 +441,8 @@
   amber-500: color.mix((brand-color.amber-500, 15%), (brand-color.background, 85%)),
   background: color.mix((brand-color.background, 15%), (brand-color.background, 85%)),
   black: color.mix((brand-color.black, 15%), (brand-color.background, 85%)),
-  blue-500: color.mix((brand-color.blue-500, 15%), (brand-color.background, 85%)),
-  blue-600: color.mix((brand-color.blue-600, 15%), (brand-color.background, 85%)),
-  blue-700: color.mix((brand-color.blue-700, 15%), (brand-color.background, 85%)),
+  coral-400: color.mix((brand-color.coral-400, 15%), (brand-color.background, 85%)),
+  coral-500: color.mix((brand-color.coral-500, 15%), (brand-color.background, 85%)),
   cyan-500: color.mix((brand-color.cyan-500, 15%), (brand-color.background, 85%)),
   danger: color.mix((brand-color.danger, 15%), (brand-color.background, 85%)),
   dark: color.mix((brand-color.dark, 15%), (brand-color.background, 85%)),
@@ -449,6 +451,10 @@
   indigo-500: color.mix((brand-color.indigo-500, 15%), (brand-color.background, 85%)),
   info: color.mix((brand-color.info, 15%), (brand-color.background, 85%)),
   light: color.mix((brand-color.light, 15%), (brand-color.background, 85%)),
+  mint-400: color.mix((brand-color.mint-400, 15%), (brand-color.background, 85%)),
+  mint-500: color.mix((brand-color.mint-500, 15%), (brand-color.background, 85%)),
+  mint-600: color.mix((brand-color.mint-600, 15%), (brand-color.background, 85%)),
+  mint-700: color.mix((brand-color.mint-700, 15%), (brand-color.background, 85%)),
   primary: color.mix((brand-color.primary, 15%), (brand-color.background, 85%)),
   rose-500: color.mix((brand-color.rose-500, 15%), (brand-color.background, 85%)),
   secondary: color.mix((brand-color.secondary, 15%), (brand-color.background, 85%)),
@@ -483,12 +489,12 @@
 #let brand-logo = (:)
 #set text(weight: 400, )
 #set par(leading: 0.95em)
-#show heading: set text(font: ("sans-serif",), weight: 700, )
+#show heading: set text(font: ("Plus Jakarta Sans", "Noto Sans JP", "sans-serif"), weight: 700, )
 #show heading: set par(leading: 0.55em)
 #show raw.where(block: false): set text(weight: 500, fill: rgb("#0f172a"), )
 #show raw.where(block: false): content => highlight(fill: rgb("#f1f5f9"), content)
 #show raw.where(block: true): set text(weight: 400, size: 0.9*12pt, )
-#show link: set text(weight: 500, fill: rgb("#2563eb"), )
+#show link: set text(weight: 500, fill: rgb("#0d9488"), )
 
 #set page(
   paper: "us-letter",
@@ -510,9 +516,9 @@
 
 ],
   abstract-title: "Abstract",
-  font: ("sans-serif",),
+  font: ("Plus Jakarta Sans", "Noto Sans JP", "sans-serif"),
   fontsize: 12pt,
-  heading-family: ("sans-serif",),
+  heading-family: ("Plus Jakarta Sans", "Noto Sans JP", "sans-serif"),
   heading-weight: 700,
   heading-color: rgb("#1e293b"),
   heading-line-height: 0.55em,
