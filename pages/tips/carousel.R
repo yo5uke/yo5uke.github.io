@@ -9,122 +9,6 @@ carousel <- function(id, duration, items) {
     carouselItem(item$caption, item$image, item$link, index, duration)
   })
 
-  css <- tags$style(HTML(sprintf(
-    "
-#%1$s-card {
-  max-width: 780px;
-  margin: 0 auto;
-  padding: 0 60px;
-}
-#%1$s {
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.09);
-  border-radius: 12px;
-}
-#%1$s .carousel-inner {
-  border-radius: 12px;
-  overflow: hidden;
-}
-#%1$s .carousel-item {
-  aspect-ratio: 2 / 1;
-  height: auto;
-}
-#%1$s .carousel-item a {
-  display: block;
-  height: 100%%;
-}
-#%1$s .carousel-img {
-  width: 100%%;
-  height: 100%%;
-  object-fit: cover;
-  display: block;
-}
-#%1$s-footer {
-  padding: 12px 8px 4px;
-}
-.%1$s-cap {
-  display: none;
-  text-align: center;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #374151;
-  line-height: 1.6;
-  margin: 0 0 10px;
-}
-.%1$s-cap.active {
-  display: block;
-}
-#%1$s-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  padding: 0;
-  margin: 0;
-}
-.%1$s-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%%;
-  border: none;
-  background: #d1d5db;
-  padding: 0;
-  cursor: pointer;
-  transition: background-color 0.25s ease, transform 0.2s ease;
-}
-.%1$s-dot.active {
-  background: #4b5563;
-  transform: scale(1.4);
-}
-[data-bs-theme=\"dark\"] .%1$s-cap,
-.quarto-dark .%1$s-cap {
-  color: #d1d5db;
-}
-[data-bs-theme=\"dark\"] .%1$s-dot,
-.quarto-dark .%1$s-dot {
-  background: #6b7280;
-}
-[data-bs-theme=\"dark\"] .%1$s-dot.active,
-.quarto-dark .%1$s-dot.active {
-  background: #d1d5db;
-}
-#%1$s .carousel-control-prev,
-#%1$s .carousel-control-next {
-  width: 36px;
-  height: 36px;
-  top: 50%%;
-  bottom: auto;
-  transform: translateY(-50%%);
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 50%%;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
-  opacity: 0.8;
-  transition: opacity 0.2s ease;
-}
-#%1$s .carousel-control-prev {
-  left: -52px;
-}
-#%1$s .carousel-control-next {
-  right: -52px;
-}
-#%1$s .carousel-control-prev-icon,
-#%1$s .carousel-control-next-icon {
-  width: 16px;
-  height: 16px;
-  filter: brightness(0);
-}
-#%1$s-card:hover .carousel-control-prev,
-#%1$s-card:hover .carousel-control-next {
-  opacity: 1;
-}
-@media (max-width: 767px) {
-  #%1$s .carousel-control-prev,
-  #%1$s .carousel-control-next {
-    opacity: 0.6;
-  }
-}
-",
-    id
-  )))
-
   js <- tags$script(HTML(sprintf(
     "
 (function () {
@@ -133,10 +17,10 @@ carousel <- function(id, duration, items) {
     if (!carousel) return;
     carousel.addEventListener('slide.bs.carousel', function (e) {
       var card = document.getElementById('%1$s-card');
-      card.querySelectorAll('.%1$s-cap').forEach(function (el, i) {
+      card.querySelectorAll('.site-carousel-cap').forEach(function (el, i) {
         el.classList.toggle('active', i === e.to);
       });
-      card.querySelectorAll('.%1$s-dot').forEach(function (el, i) {
+      card.querySelectorAll('.site-carousel-dot').forEach(function (el, i) {
         el.classList.toggle('active', i === e.to);
       });
     });
@@ -153,14 +37,14 @@ carousel <- function(id, duration, items) {
 
   captions <- tagList(lapply(seq_along(items), function(i) {
     tags$p(
-      class = paste0(id, "-cap", if (i == 1) " active" else ""),
+      class = paste0("site-carousel-cap", if (i == 1) " active" else ""),
       items[[i]]$caption
     )
   }))
 
   dots <- tagList(lapply(seq_along(items), function(i) {
     btn <- tags$button(
-      class = paste0(id, "-dot", if (i == 1) " active" else ""),
+      class = paste0("site-carousel-dot", if (i == 1) " active" else ""),
       type = "button",
       `data-bs-target` = paste0("#", id),
       `data-bs-slide-to` = as.character(i - 1),
@@ -172,9 +56,10 @@ carousel <- function(id, duration, items) {
     btn
   }))
 
+  # Styles live in styles/html/custom.scss (.site-carousel)
   div(
     id = paste0(id, "-card"),
-    css,
+    class = "site-carousel",
     js,
     div(
       id = id,
@@ -188,9 +73,9 @@ carousel <- function(id, duration, items) {
       navButton(id, "next", "Next")
     ),
     div(
-      id = paste0(id, "-footer"),
+      class = "site-carousel-footer",
       captions,
-      div(id = paste0(id, "-dots"), dots)
+      div(class = "site-carousel-dots", dots)
     )
   )
 }
