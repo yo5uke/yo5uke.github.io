@@ -1,19 +1,147 @@
+// Site theme shared by the light and dark bundles.
+//
+// _quarto.yml lists this file *before* `brand` in both theme lists so that
+// the defaults below can read the values _brand.yml sets ($body-bg,
+// $primary, $brand-*). Quarto layers the dark bundle on top of the light one,
+// so every rule here is emitted twice and the dark copy re-applies it with
+// dark-mode tokens.
+
+/*-- scss:functions --*/
+
+// True while compiling the dark bundle ($body-bg comes from _brand.yml).
+@function is-dark() {
+  @return luminance($body-bg) < 0.5;
+}
+
+// Pick a value per color scheme.
+@function mode($light, $dark) {
+  @if is-dark() {
+    @return $dark;
+  }
+  @return $light;
+}
+
+// Encode a color for use inside an SVG data URI.
+@function svg-fill($color) {
+  @return str-replace(inspect($color), "#", "%23");
+}
+
+// Sun (light) / moon (dark) icon for the color scheme toggle.
+@function color-scheme-icon($color) {
+  $fill: svg-fill($color);
+  @if is-dark() {
+    @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='#{$fill}' fill-rule='evenodd' d='M12.226 2.003a9.97 9.97 0 0 0-7.297 2.926c-3.905 3.905-3.905 10.237 0 14.142s10.237 3.905 14.142 0a9.97 9.97 0 0 0 2.926-7.297a10 10 0 0 0-.337-2.368a15 15 0 0 1-1.744 1.436c-1.351.949-2.733 1.563-3.986 1.842c-1.906.423-3.214.032-3.93-.684s-1.107-2.024-.684-3.93c.279-1.253.893-2.635 1.842-3.986c.414-.592.893-1.177 1.436-1.744a10 10 0 0 0-2.368-.337m5.43 15.654a7.96 7.96 0 0 0 2.251-4.438c-3.546 2.045-7.269 2.247-9.321.195s-1.85-5.775.195-9.321a8 8 0 1 0 6.876 13.564' clip-rule='evenodd'/%3E%3C/svg%3E");
+  }
+  @return url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='#{$fill}' fill-rule='evenodd' d='M12 16a4 4 0 1 0 0-8a4 4 0 0 0 0 8m0 2a6 6 0 1 0 0-12a6 6 0 0 0 0 12M11 0h2v4.062a8 8 0 0 0-2 0zM7.094 5.68L4.222 2.808L2.808 4.222L5.68 7.094A8 8 0 0 1 7.094 5.68M4.062 11H0v2h4.062a8 8 0 0 1 0-2m1.618 5.906l-2.872 2.872l1.414 1.414l2.872-2.872a8 8 0 0 1-1.414-1.414M11 19.938V24h2v-4.062a8 8 0 0 1-2 0m5.906-1.618l2.872 2.872l1.414-1.414l-2.872-2.872a8 8 0 0 1-1.414 1.414M19.938 13H24v-2h-4.062a8 8 0 0 1 0 2M18.32 7.094l2.872-2.872l-1.414-1.414l-2.872 2.872c.528.41 1.003.886 1.414 1.414' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/*-- scss:defaults --*/
+
+// ==========================================================================
+// Design tokens
+// ==========================================================================
+
+// Accent
+$site-accent:        $primary !default;
+$site-accent-hover:  mode($brand-mint-700, $brand-mint-300) !default;
+$site-accent-2:      $brand-coral-400 !default;
+$site-accent-tint:   rgba($site-accent, mode(0.08, 0.12)) !default;
+$site-accent-border: rgba($site-accent, mode(0.35, 0.6)) !default;
+
+// Text (strongest to faintest)
+$site-text-strong:    mode($brand-slate-900, $brand-slate-50) !default;
+$site-text-heading:   mode($brand-slate-800, $brand-slate-200) !default;
+$site-text-emphasis:  mode($brand-slate-700, $brand-slate-300) !default;
+$site-text-secondary: mode($brand-slate-600, $brand-slate-400) !default;
+$site-text-muted:     mode($brand-slate-500, $brand-slate-400) !default;
+$site-text-faint:     mode($brand-slate-400, $brand-slate-500) !default;
+
+// Surfaces
+$site-surface:        mode($brand-white, $brand-navy-900) !default;
+$site-surface-hover:  mode($brand-white, $brand-navy-800) !default;
+$site-surface-subtle: mode($brand-slate-50, rgba($brand-white, 0.04)) !default;
+$site-surface-sunken: mode($brand-slate-100, rgba($brand-white, 0.05)) !default;
+
+// Borders
+$site-border-faint:  mode($brand-slate-100, rgba($brand-white, 0.06)) !default;
+$site-border:        mode($brand-slate-200, rgba($brand-white, 0.08)) !default;
+
+// Elevation
+$site-shadow-sm: mode(
+  0 1px 3px rgba($brand-slate-900, 0.03),
+  0 2px 8px rgba(0, 0, 0, 0.25)
+) !default;
+$site-shadow-md: mode(
+  0 4px 20px -4px rgba($brand-slate-900, 0.05),
+  0 4px 20px rgba(0, 0, 0, 0.35)
+) !default;
+$site-shadow-lg: mode(
+  (0 12px 28px -6px rgba($brand-slate-900, 0.09), 0 4px 10px -2px rgba($brand-slate-900, 0.04)),
+  (0 12px 28px -6px rgba(0, 0, 0, 0.6), 0 0 16px rgba($site-accent, 0.15))
+) !default;
+
+// Frosted glass (navbar, floating cards)
+$site-glass-bg:           rgba($body-bg, 0.85) !default;
+$site-glass-hover-bg:     mode(rgba($brand-white, 0.6), rgba($site-accent, 0.12)) !default;
+$site-glass-hover-border: rgba($site-accent, mode(0.3, 0.35)) !default;
+$site-glass-hover-shadow: mode(
+  (0 2px 14px rgba($site-accent, 0.15), inset 0 1px 0 rgba($brand-white, 0.9)),
+  (0 2px 16px rgba($site-accent, 0.2), inset 0 1px 0 rgba($brand-white, 0.15))
+) !default;
+
+// Title banner (dark in both schemes)
+$site-banner-bg: mode(
+  linear-gradient(135deg, $brand-slate-900 0%, $brand-slate-800 60%, $brand-slate-900 100%),
+  linear-gradient(135deg, #070a10 0%, $brand-slate-900 60%, $brand-navy-900 100%)
+) !default;
+
+// Motion
+$site-ease: cubic-bezier(0.16, 1, 0.3, 1) !default;
+
+// ==========================================================================
+// Bootstrap / Quarto variables that differ per color scheme
+// ==========================================================================
+
+$link-hover-color: $site-accent-hover !default;
+// No !default: Quarto's functions layer already sets $border-color.
+$border-color: $site-border;
+
+$navbar-bg:       $body-bg !default;
+$navbar-fg:       $site-text-secondary !default;
+$navbar-hl:       $site-accent !default;
+$navbar-brand:    $site-text-strong !default;
+$navbar-brand-hl: $site-accent !default;
+
+$footer-bg: mode($brand-slate-50, $brand-navy-900) !default;
+
+$callout-color-note:      $info !default;
+$callout-color-tip:       $success !default;
+$callout-color-caution:   $warning !default;
+$callout-color-warning:   mode($brand-orange-500, $brand-orange-400) !default;
+$callout-color-important: $danger !default;
+
+/*-- scss:mixins --*/
+
+@mixin glass-pill-hover {
+  background: $site-glass-hover-bg;
+  border-color: $site-glass-hover-border;
+  box-shadow: $site-glass-hover-shadow;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@mixin card-hover-lift {
+  transform: translateY(-2px);
+  border-color: $site-accent-border;
+  box-shadow: $site-shadow-lg;
+}
+
 /*-- scss:rules --*/
 
-/* Accent Colors - Mint & Coral */
-$mint-primary: #0d9488;
-$mint-hover: #0f766e;
-$mint-light: #14b8a6;
-$mint-subtle: #2dd4bf;
-$coral-accent: #fb7185;
+// ==========================================================================
+// Base
+// ==========================================================================
 
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400..700;1,400..700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&display=swap');
-
-/* Typography Helpers */
-.font-sans { font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif; }
-.font-mono, .fira-code { font-family: "JetBrains Mono", monospace !important; }
-
-/* Base Layout & Smooth Rendering */
 html {
   scrollbar-gutter: stable;
   scroll-behavior: smooth;
@@ -23,102 +151,95 @@ html {
 }
 
 body {
-  font-family: "Plus Jakarta Sans", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #1e293b;
-  background-color: #ffffff;
   letter-spacing: -0.01em;
-  line-height: 1.7;
 }
 
-/* Navbar - Slim & Modern Frosted Glass */
-/* Note: #quarto-header already gets position:fixed/top:0/z-index:1030 from
-   Bootstrap's .fixed-top class, which Quarto's nav JS relies on to size
-   body's compensating padding-top. Overriding position here (e.g. to
-   sticky) desyncs that offset and creates dead space above the navbar. */
+// Inline monospace text, e.g. [ggplot2]{.fira-code} in titles.
+// `.fira-code` is the legacy name kept for existing articles.
+.font-mono,
+.fira-code {
+  font-family: $font-family-monospace;
+}
+
+// ==========================================================================
+// Navbar
+// ==========================================================================
+
+// #quarto-header already gets position:fixed/top:0/z-index:1030 from
+// Bootstrap's .fixed-top class, which Quarto's nav JS relies on to size
+// body's compensating padding-top. Overriding position here (e.g. to
+// sticky) desyncs that offset and creates dead space above the navbar.
 #quarto-header .navbar {
   --bs-navbar-padding-y: 0.25rem;
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
   padding-top: 0.3rem !important;
   padding-bottom: 0.3rem !important;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  background: $site-glass-bg;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid $site-border;
+  box-shadow: mode(
+    (0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px -2px rgba($brand-slate-900, 0.03)),
+    (0 1px 3px rgba(0, 0, 0, 0.2), 0 4px 12px -2px rgba(0, 0, 0, 0.4))
+  );
+  transition: all 0.3s $site-ease;
 }
 
-.navbar-brand {
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-weight: 800;
-  font-size: 1.15rem;
-  letter-spacing: -0.03em;
-  color: #0f172a !important;
-  -webkit-text-fill-color: #0f172a !important;
-  padding: 0.2rem 0.5rem;
-  border: 1px solid transparent;
-  border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+#quarto-header .navbar-brand {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-
-  &:hover {
-    color: $mint-primary !important;
-    -webkit-text-fill-color: $mint-primary !important;
-    background: rgba(255, 255, 255, 0.6) !important;
-    border-color: rgba($mint-primary, 0.3) !important;
-    box-shadow:
-      0 2px 14px rgba($mint-primary, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-}
-
-/* Liquid Glass Navbar Links */
-#quarto-header .navbar .navbar-nav > .nav-item > .nav-link {
-  font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
-  font-weight: 600;
-  font-size: 0.9rem;
-  color: #475569 !important;
-  -webkit-text-fill-color: #475569 !important;
-  padding: 0.25rem 0.65rem !important;
-  margin: 0 0.1rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: $site-text-strong;
   border: 1px solid transparent;
   border-radius: 8px;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.3s $site-ease;
 
-  &:hover {
-    color: #0f172a !important;
-    -webkit-text-fill-color: #0f172a !important;
-    background: rgba(255, 255, 255, 0.6) !important;
-    border-color: rgba($mint-primary, 0.25) !important;
-    box-shadow:
-      0 2px 14px rgba($mint-primary, 0.12),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transform: translateY(-1px);
+  &:hover,
+  &:focus-visible {
+    color: $site-accent;
+    @include glass-pill-hover;
   }
 }
 
-#quarto-header .navbar .navbar-nav > .nav-item > .nav-link.active {
-  color: $mint-primary !important;
-  -webkit-text-fill-color: $mint-primary !important;
-  background: rgba($mint-primary, 0.08);
-  border-color: rgba($mint-primary, 0.2);
-  font-weight: 700;
+#quarto-header .navbar-nav > .nav-item > .nav-link {
+  margin: 0 0.1rem;
+  padding: 0.25rem 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: $site-text-secondary;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: all 0.3s $site-ease;
+
+  &:hover,
+  &:focus-visible {
+    color: $site-text-strong;
+    transform: translateY(-1px);
+    @include glass-pill-hover;
+  }
+
+  &.active {
+    color: $site-accent;
+    font-weight: 700;
+    background: $site-accent-tint;
+    border-color: rgba($site-accent, mode(0.2, 0.25));
+  }
 }
 
-/* Navbar Dropdown */
-.navbar ul.dropdown-menu,
+// Dropdown (GitHub menu)
 .navbar .dropdown-menu {
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
   padding: 0.75rem 0.5rem !important;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba($site-surface, 0.95);
   backdrop-filter: blur(12px);
+  border: 1px solid $site-border;
+  border-radius: 12px;
+  box-shadow: mode(
+    (0 10px 25px -5px rgba($brand-slate-900, 0.08), 0 8px 10px -6px rgba($brand-slate-900, 0.03)),
+    0 10px 25px -5px rgba(0, 0, 0, 0.5)
+  );
 
   > li {
     margin: 0;
@@ -131,28 +252,27 @@ body {
 }
 
 .navbar .dropdown-item {
-  font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
+  padding: 0.45rem 0.75rem;
   font-size: 0.875rem;
   font-weight: 500;
+  color: $site-text-emphasis;
   border-radius: 6px;
-  padding: 0.45rem 0.75rem;
-  color: #334155;
   transition: all 0.15s ease;
 
-  &:hover, &:focus {
-    background-color: rgba($mint-primary, 0.08);
-    color: $mint-primary;
+  &:hover,
+  &:focus {
+    color: $site-accent;
+    background-color: $site-accent-tint;
   }
 }
 
-/* Navbar Tools & Search */
+// Tool icons (GitHub, RSS)
 .navbar .quarto-navbar-tools {
   display: inline-flex;
   align-items: center;
-  vertical-align: middle;
   gap: 0.15rem;
+  vertical-align: middle;
 
-  /* GitHubなどのドロップダウン親要素の位置調整 */
   div.dropdown {
     display: inline-flex !important;
     align-items: center !important;
@@ -163,19 +283,20 @@ body {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    vertical-align: middle !important;
-    line-height: 1;
-    color: #64748b !important;
     padding: 0.25rem 0.45rem;
+    line-height: 1;
+    vertical-align: middle !important;
+    color: $site-text-muted !important;
     border-radius: 6px;
     transition: all 0.2s ease;
 
     &:hover {
-      color: #0f172a !important;
-      background: rgba(15, 23, 42, 0.05);
+      color: $site-text-strong !important;
+      background: rgba($site-text-strong, mode(0.05, 0.06));
     }
 
-    i, .bi {
+    i,
+    .bi {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -183,29 +304,30 @@ body {
       vertical-align: middle;
 
       &::before {
-        vertical-align: middle !important;
         line-height: 1;
+        vertical-align: middle !important;
       }
     }
 
-    /* ドロップダウンキャレット（▼）の垂直中央揃え */
+    // Vertically center the dropdown caret
     &.dropdown-toggle::after {
       display: inline-block;
+      margin: 0 0 0 0.3em;
       vertical-align: middle !important;
-      margin-left: 0.3em;
-      margin-top: 0;
-      margin-bottom: 0;
     }
   }
 }
 
-/* Color Scheme Toggle (Mode Switch) Alignment */
+// Color scheme toggle: sun in light mode, moon in dark mode.
+// Quarto marks the toggle `.alternate` while dark mode is active.
+$site-toggle-state: mode(":not(.alternate)", ".alternate");
+
 .navbar .quarto-color-scheme-toggle {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  vertical-align: middle !important;
   line-height: 1 !important;
+  vertical-align: middle !important;
 
   .bi {
     display: inline-flex;
@@ -214,25 +336,25 @@ body {
     line-height: 1;
     vertical-align: middle;
   }
+
+  &#{$site-toggle-state} .bi::before {
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-image: color-scheme-icon(mode($site-text-muted, $site-accent));
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    transition: transform 0.3s ease, filter 0.2s ease;
+  }
+
+  &#{$site-toggle-state}:hover .bi::before {
+    background-image: color-scheme-icon($site-accent);
+    transform: rotate(mode(30deg, -20deg)) scale(1.15);
+    filter: mode(none, drop-shadow(0 0 8px rgba($site-accent, 0.7)));
+  }
 }
 
-/* Light Mode Color Scheme Toggle (Sun Icon) */
-.navbar .quarto-color-scheme-toggle:not(.alternate) .bi::before {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Cpath fill='%2364748b' fill-rule='evenodd' d='M12 16a4 4 0 1 0 0-8a4 4 0 0 0 0 8m0 2a6 6 0 1 0 0-12a6 6 0 0 0 0 12M11 0h2v4.062a8 8 0 0 0-2 0zM7.094 5.68L4.222 2.808L2.808 4.222L5.68 7.094A8 8 0 0 1 7.094 5.68M4.062 11H0v2h4.062a8 8 0 0 1 0-2m1.618 5.906l-2.872 2.872l1.414 1.414l2.872-2.872a8 8 0 0 1-1.414-1.414M11 19.938V24h2v-4.062a8 8 0 0 1-2 0m5.906-1.618l2.872 2.872l1.414-1.414l-2.872-2.872a8 8 0 0 1-1.414 1.414M19.938 13H24v-2h-4.062a8 8 0 0 1 0 2M18.32 7.094l2.872-2.872l-1.414-1.414l-2.872 2.872c.528.41 1.003.886 1.414 1.414' clip-rule='evenodd'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-size: 100% 100%;
-  display: block;
-  width: 20px;
-  height: 20px;
-  transition: transform 0.3s ease, filter 0.2s ease;
-}
-
-.navbar .quarto-color-scheme-toggle:not(.alternate):hover .bi::before {
-  transform: rotate(30deg) scale(1.15);
-  filter: brightness(0) saturate(100%) invert(43%) sepia(82%) saturate(452%) hue-rotate(125deg) brightness(92%) contrast(92%);
-}
-
-/* Search Button */
+// Search button
 .navbar #quarto-search {
   display: inline-flex;
   align-items: center;
@@ -244,7 +366,7 @@ body {
     width: auto;
 
     svg.aa-SubmitIcon {
-      color: #64748b !important;
+      color: $site-text-muted !important;
       fill: currentColor !important;
     }
   }
@@ -254,41 +376,42 @@ body {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  box-sizing: border-box !important;
   width: 34px !important;
   height: 34px !important;
-  padding: 0 !important;
   margin: 0 !important;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  transition: all 0.2s ease;
+  padding: 0 !important;
   line-height: 1 !important;
   vertical-align: middle !important;
-  box-sizing: border-box !important;
+  background: $site-surface-subtle;
+  border: 1px solid $site-border;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 
   &:hover {
-    background: #ffffff;
-    border-color: #cbd5e1;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    background: mode($brand-white, rgba($brand-white, 0.08));
+    border-color: mode($brand-slate-300, rgba($site-accent, 0.4));
+    box-shadow: mode(0 2px 6px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.3));
   }
 
   .aa-DetachedSearchButtonIcon {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    line-height: 1 !important;
     margin: 0 !important;
     padding: 0 !important;
-    color: #64748b !important;
-    fill: #64748b !important;
+    line-height: 1 !important;
+    color: $site-text-muted !important;
+    fill: $site-text-muted !important;
 
-    svg, svg.aa-SubmitIcon {
+    svg,
+    svg.aa-SubmitIcon {
       display: block !important;
       width: 18px !important;
       height: 18px !important;
       margin: 0 !important;
       padding: 0 !important;
-      color: #64748b !important;
+      color: $site-text-muted !important;
       fill: currentColor !important;
     }
   }
@@ -299,21 +422,24 @@ body {
   }
 }
 
-/* Keep "キャンセル" on one line instead of wrapping when the input shrinks */
+// Keep "キャンセル" on one line instead of wrapping when the input shrinks
 .aa-DetachedCancelButton {
-  white-space: nowrap;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
-/* Title Banner */
+// ==========================================================================
+// Title banner
+// ==========================================================================
+
 .quarto-title-banner {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #0f172a 100%) !important;
-  color: #f8fafc !important;
-  padding: 2.5rem 0 2rem !important;
-  margin-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: relative;
   overflow: hidden;
+  margin-bottom: 2rem;
+  padding: 2.5rem 0 2rem !important;
+  color: $brand-slate-50 !important;
+  background: $site-banner-bg !important;
+  border-bottom: 1px solid rgba($brand-white, 0.08) !important;
 
   &::before {
     content: "";
@@ -322,162 +448,375 @@ body {
     right: -10%;
     width: 400px;
     height: 400px;
-    background: radial-gradient(circle, rgba($mint-primary, 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba($brand-mint-600, 0.2) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
   }
 
-  h1.title, .quarto-title .title {
-    font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
-    font-weight: 800;
-    font-size: 2.5rem;
-    letter-spacing: -0.03em;
-    color: #ffffff !important;
+  .quarto-title .title {
     margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: $brand-white !important;
   }
 
   .subtitle {
     font-size: 1.15rem;
-    color: #94a3b8 !important;
     font-weight: 400;
+    color: $brand-slate-400 !important;
   }
 
   .description {
-    font-size: 1.05rem;
-    color: #cbd5e1 !important;
     max-width: 750px;
+    font-size: 1.05rem;
     line-height: 1.6;
+    color: $brand-slate-300 !important;
   }
 
   .quarto-categories .quarto-category {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #f1f5f9;
+    color: $brand-slate-100;
+    background: rgba($brand-white, 0.1);
+    border: 1px solid rgba($brand-white, 0.15);
     backdrop-filter: blur(4px);
   }
 }
 
-/* Section Headings */
+// ==========================================================================
+// Headings
+// ==========================================================================
+// Font family, base weight and h1/h2 color come from _brand.yml (headings).
+
 section {
   h1 {
-    font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
+    margin-top: 2rem;
+    margin-bottom: 1.25rem;
     font-size: 2.25rem;
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: #0f172a;
-    margin-top: 2rem;
-    margin-bottom: 1.25rem;
 
-    &:after {
+    &::after {
       content: "";
       display: block;
       width: 48px;
       height: 4px;
-      background: linear-gradient(90deg, $mint-primary, $coral-accent);
+      margin: 12px 0;
+      background: linear-gradient(90deg, $site-accent, $site-accent-2);
       border-radius: 2px;
-      margin-top: 12px;
-      margin-bottom: 12px;
     }
   }
 
   h2 {
-    font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
-    font-size: 1.65rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: #0f172a;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 0.65rem;
+    position: relative;
     margin-top: 2.5rem;
     margin-bottom: 1.25rem;
-    position: relative;
+    padding-bottom: 0.65rem;
+    font-size: 1.65rem;
+    letter-spacing: -0.02em;
+    border-bottom: 1px solid $site-border;
   }
 
   h3 {
-    font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
+    margin-top: 2rem;
+    margin-bottom: 0.85rem;
     font-size: 1.3rem;
     font-weight: 600;
     letter-spacing: -0.01em;
-    color: #1e293b;
-    margin-top: 2rem;
-    margin-bottom: 0.85rem;
+    color: $site-text-heading;
   }
 
   h4 {
-    font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #334155;
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $site-text-emphasis;
   }
 }
 
-/* About Jolla / Trestles */
-.quarto-about-jolla {
-  .about-image {
-    border-radius: 50% !important;
-    box-shadow: 0 0 0 4px rgba($mint-primary, 0.15), 0 8px 24px rgba(15, 23, 42, 0.1) !important;
-    transition: transform 0.3s ease;
+// ==========================================================================
+// Content elements
+// ==========================================================================
 
-    &:hover {
-      transform: scale(1.03);
+// Inline code (font, weight and colors come from _brand.yml monospace-inline)
+:not(pre) > code:not(.sourceCode) {
+  padding: 0.15em 0.45em;
+  font-size: 0.875em;
+  border: 1px solid $site-border;
+  border-radius: 6px;
+}
+
+// Code blocks (size and line height come from _brand.yml monospace-block)
+pre > code,
+div.sourceCode {
+  border-radius: 10px;
+}
+
+// Tables
+table {
+  width: 100%;
+  margin: 1.5rem 0;
+  overflow: hidden;
+  border: 1px solid $site-border;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 10px;
+
+  th {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: $site-text-strong;
+    background-color: $site-surface-subtle;
+    border-bottom: 2px solid mode($brand-slate-200, rgba($brand-white, 0.12));
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: $site-text-emphasis;
+    border-bottom: 1px solid $site-border-faint;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background-color: mode($brand-slate-50, rgba($brand-white, 0.03));
+  }
+}
+
+// Figures
+figcaption,
+.figure-caption {
+  text-align: center;
+}
+
+// Callouts (per-type colors are set via $callout-color-* above)
+.callout {
+  margin: 1.5rem 0;
+  border-left-width: 4px !important;
+  border-radius: 12px !important;
+  box-shadow: mode(0 1px 3px rgba(0, 0, 0, 0.02), 0 2px 10px rgba(0, 0, 0, 0.3));
+
+  .callout-header {
+    font-size: 0.95rem;
+  }
+
+  .callout-body {
+    font-size: 0.925rem;
+    line-height: 1.65;
+  }
+
+  &.callout-style-simple .callout-body {
+    margin: 0;
+  }
+}
+
+// ==========================================================================
+// Sidebars
+// ==========================================================================
+
+// Table of contents
+#quarto-toc-target .nav-link {
+  padding-left: 0.75rem;
+  font-size: 0.85rem;
+  color: $site-text-muted;
+  border-left: 2px solid transparent;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: $site-text-strong;
+  }
+
+  &.active {
+    font-weight: 600;
+    color: $site-accent;
+    border-left-color: $site-accent;
+  }
+}
+
+// Profile card in the right margin (components/ui/margin-header.html)
+.margin-header {
+  padding: 1.25rem;
+  background: rgba($site-surface, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid $site-border !important;
+  border-radius: 16px;
+  box-shadow: $site-shadow-md;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: rgba($site-accent, mode(0.3, 0.35)) !important;
+    box-shadow: mode(0 8px 24px -4px rgba($brand-slate-900, 0.08), 0 8px 24px rgba(0, 0, 0, 0.45));
+  }
+}
+
+.profile-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.profile-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 3px rgba($site-accent, mode(0.12, 0.25)),
+    0 4px 12px rgba(mode($brand-slate-900, $brand-black), mode(0.08, 0.5));
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+.profile-text {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: $site-text-secondary;
+
+  p {
+    margin-bottom: 0.75rem;
+
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 
-  .about-link {
-    border-radius: 9999px !important;
-    padding: 0.4rem 1rem !important;
-    font-size: 0.875rem !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease !important;
+  p a {
+    font-weight: 600;
+    color: $site-accent;
+    text-decoration: none;
+    transition: color 0.15s ease;
+
+    &:hover {
+      color: $site-accent-hover;
+      text-decoration: underline;
+    }
   }
 }
 
-.quarto-about-trestles {
-  .about-image {
-    border-radius: 16px !important;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08) !important;
+.profile-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.profile-link-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: inherit;
+  text-decoration: none !important;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+
+  &--profile {
+    color: $site-accent;
+    background: $site-accent-tint;
+
+    &:hover {
+      color: $site-accent;
+      background: rgba($site-accent, mode(0.15, 0.2));
+    }
   }
 
-  .about-link {
-    border-radius: 8px !important;
-    font-weight: 600 !important;
+  &--r {
+    background: rgba($info, 0.08);
+  }
+
+  &--disabled {
+    flex-direction: column;
+    gap: 3px;
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+    cursor: default;
+    opacity: 0.75;
   }
 }
 
-/* Listing (Default Type) - Title & Description */
-/* Used by the homepage "Latest Posts" and Blog index, which use Quarto's
-   default (non-grid) listing type. Title/description previously shared the
-   same weight (title got only the generic `section h3` 600, description
-   was unstyled body text at 400) and the same color, so the boundary
-   between them was hard to read. Lighten the description to match the
-   .card-text treatment used by the grid listing style.
-   Note: the visible text sits inside an <a class="no-external"> wrapped by
-   .listing-description, and Quarto's own listing.scss sets that anchor's
-   color directly (div.quarto-post a { color: $body-color }). A directly
-   matched rule on the <a> always beats an inherited value from its parent,
-   so the color must target the anchor too, with !important to beat that
-   rule's higher selector specificity. */
+.profile-link-badge {
+  padding: 0.05rem 0.45rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1.2;
+  color: $site-text-muted;
+  background: rgba($site-text-muted, 0.12);
+  border: 1px solid rgba($site-text-muted, 0.18);
+  border-radius: 9999px;
+}
+
+// ==========================================================================
+// Listings
+// ==========================================================================
+
+// Category badges (grid cards and title blocks)
+.quarto-grid-item .listing-categories,
+.quarto-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+
+  .listing-category,
+  .quarto-category {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.725rem;
+    font-weight: 600;
+    color: $site-text-secondary;
+    text-decoration: none;
+    background: $site-surface-sunken;
+    border: 1px solid $site-border;
+    border-radius: 9999px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      color: $site-accent;
+      background: rgba($site-accent, mode(0.1, 0.15));
+      border-color: rgba($site-accent, mode(0.25, 0.3));
+    }
+  }
+}
+
+// Default listing (homepage "Latest Posts", Blog index).
+// Quarto's listing styles color the inner <a> directly
+// (div.quarto-post a { color: $body-color }) with a more specific selector,
+// so the color must target the anchor too, with !important.
 .listing-description,
 .listing-description a {
   font-weight: 300;
-  color: #64748b !important;
+  color: $site-text-muted !important;
 }
 
-/* Listing Grid Cards - Ultra Clean Modern Style */
+// Grid listing cards
 .quarto-grid-item.card {
-  border-radius: 14px !important;
-  border: 1px solid #e2e8f0 !important;
-  background: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02) !important;
   overflow: hidden;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease !important;
+  background: $site-surface !important;
+  border: 1px solid $site-border !important;
+  border-radius: 14px !important;
+  box-shadow: $site-shadow-sm !important;
+  transition:
+    transform 0.25s $site-ease,
+    box-shadow 0.25s $site-ease,
+    border-color 0.25s ease,
+    background 0.25s ease !important;
 
-  .card-img-top, .card-img {
+  .card-img-top,
+  .card-img {
     border-top-left-radius: 13px;
     border-top-right-radius: 13px;
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: transform 0.35s $site-ease;
   }
 
   .card-body {
@@ -485,25 +824,24 @@ section {
   }
 
   .card-title {
-    font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
-    font-weight: 700;
-    font-size: 1.05rem;
-    line-height: 1.45;
-    color: #0f172a;
     margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.45;
+    color: $site-text-strong;
     transition: color 0.2s ease;
   }
 
   .card-text {
     font-size: 0.875rem;
-    color: #64748b;
     line-height: 1.6;
+    color: $site-text-muted;
   }
 
   .card-attribution {
     font-size: 0.8rem;
-    color: #94a3b8;
     font-weight: 500;
+    color: $site-text-muted;
   }
 }
 
@@ -512,112 +850,477 @@ section {
 
   &:hover .quarto-grid-item.card {
     transform: translateY(-4px);
-    border-color: rgba($mint-primary, 0.35) !important;
-    box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.09), 0 4px 10px -2px rgba(15, 23, 42, 0.04) !important;
+    background: $site-surface-hover !important;
+    border-color: $site-accent-border !important;
+    box-shadow: $site-shadow-lg !important;
 
     .card-title {
-      color: $mint-primary;
+      color: $site-accent;
     }
 
-    .card-img-top, .card-img {
+    .card-img-top,
+    .card-img {
       transform: scale(1.03);
     }
   }
 }
 
-/* Listing Category Badges */
-.quarto-grid-item .listing-categories,
-.quarto-categories {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.5rem;
+// Table listing with descriptions (pages/tips/listing-table-desc.ejs.md)
+.listing-table-description {
+  margin-top: 0.25em;
+  font-size: 0.8em;
+  line-height: 1.4;
+  color: $site-text-muted;
+}
 
-  .listing-category, .quarto-category {
-    border-radius: 9999px;
-    font-size: 0.725rem;
-    font-weight: 600;
-    padding: 0.2rem 0.6rem;
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    text-decoration: none;
-    transition: all 0.15s ease;
+// ==========================================================================
+// Pages
+// ==========================================================================
+
+// --- Home (index.qmd) ------------------------------------------------------
+
+.home-intro {
+  max-width: 600px;
+  margin: 0 auto;
+  font-size: 1.05rem;
+  text-align: center;
+}
+
+.highlights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin: 1.25rem 0 2rem;
+}
+
+.highlight-item {
+  padding: 1rem 1.25rem;
+  background: $site-surface;
+  border: 1px solid $site-border;
+  border-radius: 12px;
+  box-shadow: $site-shadow-sm;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+
+  &:hover {
+    background: $site-surface-hover;
+    @include card-hover-lift;
+  }
+
+  .highlight-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.25rem;
+    font-family: $font-family-monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $site-accent;
+  }
+
+  .highlight-body {
+    margin-bottom: 0.35rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .highlight-meta {
+    font-size: 0.85rem;
+    color: $site-text-muted;
+  }
+}
+
+// --- About (jolla / trestles templates) -------------------------------------
+
+.quarto-about-jolla {
+  .about-image {
+    border-radius: 50% !important;
+    box-shadow:
+      0 0 0 4px rgba($site-accent, 0.15),
+      0 8px 24px rgba($brand-slate-900, 0.1) !important;
+    transition: transform 0.3s ease;
 
     &:hover {
-      background: rgba($mint-primary, 0.1);
-      color: $mint-primary;
-      border-color: rgba($mint-primary, 0.25);
+      transform: scale(1.03);
+    }
+  }
+
+  .about-link {
+    padding: 0.4rem 1rem !important;
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    border-radius: 9999px !important;
+    transition: all 0.2s ease !important;
+  }
+}
+
+.quarto-about-trestles {
+  .about-image {
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba($brand-slate-900, 0.08) !important;
+  }
+
+  .about-link {
+    font-weight: 600 !important;
+    border-radius: 8px !important;
+  }
+}
+
+// --- Tips index (pages/tips/index.qmd) -------------------------------------
+
+.spacer {
+  margin: 2em 0;
+}
+
+.spacer-lg {
+  margin: 4em 0;
+}
+
+section.section-heading {
+  margin-top: 2.5em;
+}
+
+h2.section-heading {
+  margin-bottom: 0.5em;
+  padding-bottom: 0.3em;
+}
+
+// Latest posts are a preview only; the full table feeds the RSS and stays hidden
+#listing-latest-list .listing-pagination,
+.section-listing-collapsed .listing-pagination,
+#listing-all-list,
+#listing-all-list-sort {
+  display: none;
+}
+
+// Collapsed section: hide items beyond the 3rd
+.section-listing-collapsed .list.grid .g-col-1:nth-child(n + 4) {
+  display: none;
+}
+
+.show-more-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1.5em auto 0;
+  padding: 0.45rem 1.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: $site-text-muted;
+  cursor: pointer;
+  background: $site-surface;
+  border: 1px solid $site-border;
+  border-radius: 9999px;
+  box-shadow: $site-shadow-sm;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: $body-bg;
+    background-color: $site-accent;
+    border-color: $site-accent;
+    box-shadow: 0 4px 12px rgba($site-accent, 0.25);
+    transform: translateY(-1px);
+  }
+}
+
+// Carousel (pages/tips/carousel.R)
+.site-carousel {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 0 60px;
+
+  .carousel {
+    border-radius: 12px;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, mode(0.09, 0.4));
+  }
+
+  .carousel-inner {
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .carousel-item {
+    height: auto;
+    aspect-ratio: 2 / 1;
+
+    a {
+      display: block;
+      height: 100%;
+    }
+  }
+
+  .carousel-img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .carousel-control-prev,
+  .carousel-control-next {
+    top: 50%;
+    bottom: auto;
+    width: 36px;
+    height: 36px;
+    background: rgba($site-surface, 0.85);
+    border-radius: 50%;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, mode(0.15, 0.4));
+    opacity: 0.8;
+    transform: translateY(-50%);
+    transition: opacity 0.2s ease;
+  }
+
+  .carousel-control-prev {
+    left: -52px;
+  }
+
+  .carousel-control-next {
+    right: -52px;
+  }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    width: 16px;
+    height: 16px;
+    filter: mode(brightness(0), none);
+  }
+
+  &:hover .carousel-control-prev,
+  &:hover .carousel-control-next {
+    opacity: 1;
+  }
+
+  @include media-breakpoint-down(md) {
+    .carousel-control-prev,
+    .carousel-control-next {
+      opacity: 0.6;
     }
   }
 }
 
-/* Margin Header Profile - Modern Floating Glass Card */
-.margin-header {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.9) !important;
-  border-radius: 16px;
-  padding: 1.25rem;
-  box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
-  transition: all 0.3s ease;
+.site-carousel-footer {
+  padding: 12px 8px 4px;
+}
 
-  &:hover {
-    box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.08);
-    border-color: rgba($mint-primary, 0.3) !important;
+.site-carousel-cap {
+  display: none;
+  margin: 0 0 10px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: center;
+  color: $site-text-emphasis;
+
+  &.active {
+    display: block;
   }
+}
 
-  .profile-img {
-    box-shadow: 0 0 0 3px rgba($mint-primary, 0.12), 0 4px 12px rgba(15, 23, 42, 0.08);
-    transition: transform 0.3s ease;
+.site-carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.site-carousel-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  cursor: pointer;
+  background: mode($brand-slate-300, $brand-slate-500);
+  border: none;
+  border-radius: 50%;
+  transition: background-color 0.25s ease, transform 0.2s ease;
+
+  &.active {
+    background: mode($brand-slate-600, $brand-slate-300);
+    transform: scale(1.4);
+  }
+}
+
+// --- Software (pages/software/*.ejs) ---------------------------------------
+
+.softwares,
+.datasets,
+.tools {
+  .software-entry,
+  .data-entry,
+  .tool-entry {
+    margin-bottom: 1.25rem;
+    padding: 1.25rem 1.5rem;
+    background: $site-surface;
+    border: 1px solid $site-border;
+    border-radius: 12px;
+    box-shadow: $site-shadow-sm;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 
     &:hover {
-      transform: scale(1.05);
+      @include card-hover-lift;
     }
   }
 
-  .profile-text {
-    font-size: 0.875rem;
-    color: #475569;
-    line-height: 1.6;
+  .software-title,
+  .data-title,
+  .tool-title {
+    margin-bottom: 0.4rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $site-text-strong;
 
     a {
-      color: $mint-primary;
-      font-weight: 600;
+      color: inherit;
       text-decoration: none;
       transition: color 0.15s ease;
 
       &:hover {
-        color: $mint-hover;
-        text-decoration: underline;
+        color: $site-accent;
       }
+    }
+  }
+
+  // R package names are code identifiers
+  .software-title {
+    font-family: $font-family-monospace;
+
+    img {
+      vertical-align: middle;
+    }
+  }
+
+  p.software-description,
+  p.data-description,
+  p.tool-description {
+    margin-bottom: 0.75rem;
+    font-size: 0.925rem;
+    line-height: 1.6;
+    color: $site-text-secondary;
+  }
+
+  .software-links,
+  .data-links,
+  .tool-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0;
+    padding-left: 0;
+    list-style-type: none;
+
+    li {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      width: 100%;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: $site-accent;
+      text-decoration: none;
+      background: rgba($site-accent, mode(0.06, 0.1));
+      border-radius: 8px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: $body-bg;
+        background: $site-accent;
+      }
+    }
+
+    .data-date,
+    .tool-date {
+      margin-left: auto;
+      font-family: $font-family-monospace;
+      font-size: 0.8rem;
+      color: $site-text-faint;
     }
   }
 }
 
-/* Linkcard - OGP Preview Card */
+// Shiny app tiles (pages/software/app.ejs)
+.app-grid {
+  column-gap: 10px;
+
+  .card-header {
+    background-color: $site-surface-subtle;
+  }
+}
+
+// --- Research (pages/research.ejs) -----------------------------------------
+
+.papers {
+  .paper-citation {
+    display: block;
+    margin-bottom: 0.4rem;
+    padding-left: 2em;
+    line-height: 1.65;
+    text-indent: -2em;
+    color: $site-text-emphasis;
+  }
+
+  .paper-abstract-link {
+    margin-left: 2em;
+    margin-bottom: 1.25rem;
+
+    a {
+      margin-right: 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: $site-accent;
+    }
+  }
+}
+
+// ==========================================================================
+// Components
+// ==========================================================================
+
+// Link card ({{< linkcard >}} shortcode in _extensions/linkcard)
 .linkcard {
   display: grid;
   grid-template-columns: 200px 1fr;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
   overflow: hidden;
   margin: 1.5rem 0;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-  text-decoration: none;
   color: inherit;
-  background-color: #ffffff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  text-decoration: none;
+  background-color: $site-surface;
+  border: 1px solid $site-border;
+  border-radius: 12px;
+  box-shadow: $site-shadow-sm;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
     text-decoration: none;
-    border-color: rgba($mint-primary, 0.4);
+    @include card-hover-lift;
 
     .linkcard__title {
-      color: $mint-primary;
+      color: $site-accent;
+    }
+  }
+
+  &.linkcard--no-image {
+    grid-template-columns: 1fr;
+
+    .linkcard__content {
+      padding: 1.25rem 1.5rem;
+    }
+  }
+
+  @include media-breakpoint-down(md) {
+    grid-template-columns: 1fr;
+    grid-template-rows: 180px auto;
+
+    .linkcard__image {
+      width: 100%;
+      height: 180px;
     }
   }
 }
@@ -626,218 +1329,49 @@ section {
   width: 200px;
   height: 100%;
   object-fit: cover;
-  background-color: #f1f5f9;
+  background-color: mode($brand-slate-100, $body-bg);
 }
 
 .linkcard__content {
-  padding: 1.15rem 1.35rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding: 1.15rem 1.35rem;
 }
 
 .linkcard__title {
+  margin-bottom: 0.4rem;
   font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 0.4rem;
-  color: #0f172a;
   line-height: 1.4;
+  color: $site-text-strong;
   transition: color 0.2s ease;
 }
 
 .linkcard__description {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
   display: -webkit-box;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: $site-text-muted;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
 .linkcard__url {
+  font-family: $font-family-monospace;
   font-size: 0.8rem;
-  color: #94a3b8;
-  font-family: "JetBrains Mono", monospace;
+  color: $site-text-faint;
   text-decoration: none;
 }
 
-.linkcard.linkcard--no-image {
-  grid-template-columns: 1fr !important;
-  .linkcard__content { padding: 1.25rem 1.5rem; }
-}
-
-@media (max-width: 768px) {
-  .linkcard {
-    grid-template-columns: 1fr;
-    grid-template-rows: 180px auto;
-  }
-  .linkcard__image {
-    width: 100%;
-    height: 180px;
-  }
-}
-
-/* Callouts - Clean Border & Soft Backgrounds */
-.callout {
-  border-radius: 12px !important;
-  border-left-width: 4px !important;
-  margin: 1.5rem 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-
-  .callout-header {
-    font-weight: 700;
-    font-size: 0.95rem;
-  }
-
-  .callout-body {
-    font-size: 0.925rem;
-    line-height: 1.65;
-  }
-}
-
-.callout.callout-style-simple .callout-body { margin: 0; }
-
-/* Code Blocks & Inline Code */
-code:not(.sourceCode), 
-p code:not(.sourceCode), 
-li code:not(.sourceCode), 
-td code:not(.sourceCode) {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.875em;
-  font-weight: 500;
-  padding: 0.15em 0.45em;
-  border-radius: 6px;
-  background-color: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
-}
-
-pre > code, div.sourceCode {
-  border-radius: 10px;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.88rem;
-  line-height: 1.6;
-}
-
-/* Software / Datasets / Tools Card Entries */
-.softwares, .datasets, .tools {
-  .software-entry, .data-entry, .tool-entry {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 1.25rem 1.5rem;
-    margin-bottom: 1.25rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-
-    &:hover {
-      transform: translateY(-2px);
-      border-color: rgba($mint-primary, 0.35);
-      box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.07);
-    }
-  }
-
-  .software-title, .data-title, .tool-title {
-    font-family: "Plus Jakarta Sans", "Noto Sans JP", sans-serif;
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: #0f172a;
-
-    a {
-      color: #0f172a;
-      text-decoration: none;
-      transition: color 0.15s ease;
-
-      &:hover {
-        color: $mint-primary;
-      }
-    }
-  }
-
-  p.software-description, p.data-description, p.tool-description {
-    color: #475569;
-    font-size: 0.925rem;
-    margin-bottom: 0.75rem;
-    line-height: 1.6;
-  }
-
-  .software-links, .data-links, .tool-links {
-    list-style-type: none;
-    padding-left: 0;
-    margin-bottom: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-
-    li {
-      display: flex;
-      align-items: center;
-      width: 100%;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-    }
-
-    a {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: $mint-primary;
-      background: rgba($mint-primary, 0.06);
-      padding: 0.3rem 0.75rem;
-      border-radius: 8px;
-      text-decoration: none;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background: $mint-primary;
-        color: #ffffff;
-      }
-    }
-
-    .data-date, .tool-date {
-      font-size: 0.8rem;
-      color: #94a3b8;
-      font-family: "JetBrains Mono", monospace;
-      margin-left: auto;
-    }
-  }
-}
-
-/* Papers / Research */
-.papers {
-  .paper-citation {
-    display: block;
-    text-indent: -2em;
-    padding-left: 2em;
-    margin-bottom: 0.4rem;
-    line-height: 1.65;
-    color: #334155;
-  }
-  .paper-abstract-link {
-    margin-left: 2em;
-    margin-bottom: 1.25rem;
-
-    a {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: $mint-primary;
-      margin-right: 0.75rem;
-    }
-  }
-}
-
-/* Social Share Buttons */
+// Social share buttons (components/ui/button.html)
 .social-share-buttons {
   display: flex;
-  gap: 12px;
   justify-content: flex-end;
+  gap: 12px;
   margin-bottom: 1.5rem;
 }
 
@@ -845,15 +1379,15 @@ pre > code, div.sourceCode {
   display: inline-block;
   width: 28px;
   height: 28px;
+  background-color: transparent;
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
-  background-color: transparent;
   opacity: 0.8;
+  transition: transform 0.2s $site-ease, opacity 0.2s ease;
 
   &:hover {
-    transform: scale(1.15) translateY(-2px);
     opacity: 1;
+    transform: scale(1.15) translateY(-2px);
   }
 }
 
@@ -862,90 +1396,133 @@ pre > code, div.sourceCode {
 }
 
 .ri--twitter-x-fill {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%230f172a' d='m17.687 3.063l-4.996 5.711l-4.32-5.711H2.112l7.477 9.776l-7.086 8.099h3.034l5.469-6.25l4.78 6.25h6.102l-7.794-10.304l6.625-7.571zm-1.064 16.06L5.654 4.782h1.803l10.846 14.34z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='#{svg-fill($site-text-strong)}' d='m17.687 3.063l-4.996 5.711l-4.32-5.711H2.112l7.477 9.776l-7.086 8.099h3.034l5.469-6.25l4.78 6.25h6.102l-7.794-10.304l6.625-7.571zm-1.064 16.06L5.654 4.782h1.803l10.846 14.34z'/%3E%3C/svg%3E");
 }
 
-/* Figure & Caption Styles */
-figure.quarto-float-fig figcaption,
-figcaption.quarto-float-caption,
-figure.figure figcaption,
-.figure-caption,
-figcaption {
-  text-align: center;
-}
+// ==========================================================================
+// Page footer
+// ==========================================================================
 
-/* Table Styles */
-table {
-  width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  margin: 1.5rem 0;
-  border-radius: 10px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-
-  th {
-    background-color: #f8fafc;
-    font-weight: 700;
-    color: #0f172a;
-    padding: 0.75rem 1rem;
-    border-bottom: 2px solid #e2e8f0;
-    font-size: 0.9rem;
-  }
-
-  td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
-    font-size: 0.9rem;
-  }
-
-  tr:last-child td {
-    border-bottom: none;
-  }
-
-  tr:hover td {
-    background-color: #f8fafc;
-  }
-}
-
-/* TOC (Table of Contents) */
-#quarto-toc-target {
-  .nav-link {
-    font-size: 0.85rem;
-    color: #64748b;
-    border-left: 2px solid transparent;
-    padding-left: 0.75rem;
-    transition: all 0.15s ease;
-
-    &:hover {
-      color: #0f172a;
-    }
-
-    &.active {
-      color: $mint-primary;
-      font-weight: 600;
-      border-left-color: $mint-primary;
-    }
-  }
-}
-
-/* Page Footer */
 .nav-footer {
-  border-top: 1px solid #e2e8f0;
+  margin-top: 4rem;
   padding-top: 2rem;
   padding-bottom: 2rem;
-  margin-top: 4rem;
   font-size: 0.875rem;
-  color: #64748b;
+  color: $site-text-muted;
+  border-top: 1px solid $site-border;
 
   a {
-    color: #334155;
-    text-decoration: none;
     font-weight: 500;
+    color: $site-text-emphasis;
+    text-decoration: none;
 
     &:hover {
-      color: $mint-primary;
+      color: $site-accent;
+    }
+  }
+}
+
+// ==========================================================================
+// Dark mode only
+// ==========================================================================
+
+@if is-dark() {
+  // Search overlay
+  .aa-DetachedContainer {
+    background: rgba($body-bg, 0.85);
+    backdrop-filter: blur(16px);
+  }
+
+  .aa-DetachedFormContainer .aa-Form {
+    background-color: $site-surface;
+    border: 1px solid $site-border;
+
+    .aa-InputWrapperPrefix .aa-Label svg {
+      color: $site-text-muted;
+    }
+
+    .aa-InputWrapper .aa-Input {
+      color: $site-text-strong !important;
+
+      &::placeholder {
+        color: $brand-slate-500;
+      }
+    }
+  }
+
+  // Callouts: tinted header and colored title on a translucent surface
+  .callout {
+    background-color: rgba($site-surface, 0.75) !important;
+    border-top-color: $site-border !important;
+    border-right-color: $site-border !important;
+    border-bottom-color: $site-border !important;
+
+    .callout-header {
+      border-bottom: 1px solid $site-border-faint;
+    }
+  }
+
+  @each $name, $info in $callouts {
+    $color: map-get($info, "color");
+
+    div.callout-#{$name}.callout-style-default > .callout-header {
+      background-color: rgba($color, 0.12);
+    }
+
+    div.callout-#{$name} .callout-title-container {
+      color: $color;
+    }
+  }
+
+  // Panel tabsets: higher-contrast borders than the default dark theme
+  $tabset-border: rgba($brand-white, 0.38);
+
+  .panel-tabset {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+
+    > .nav-tabs {
+      gap: 0 !important;
+      margin-bottom: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      border-bottom: 1px solid $tabset-border !important;
+
+      .nav-item {
+        margin-bottom: -1px;
+      }
+
+      .nav-link {
+        color: $site-accent !important;
+        background: transparent !important;
+        border: 1px solid transparent !important;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+        transition: color 0.15s ease;
+
+        &:hover {
+          color: $site-accent-hover !important;
+        }
+
+        &.active {
+          color: $site-text-strong !important;
+          background-color: $body-bg !important;
+          border-color: $tabset-border $tabset-border $body-bg !important;
+        }
+      }
+    }
+
+    > .tab-content {
+      margin-top: 0 !important;
+      padding: 1em !important;
+      background: transparent !important;
+      border: 1px solid $tabset-border !important;
+      border-top: none !important;
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
     }
   }
 }

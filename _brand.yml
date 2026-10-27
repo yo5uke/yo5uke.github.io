@@ -10,59 +10,93 @@ logo:
     icon: assets/icons/favicon.ico
     icon-r: assets/icons/abe-r.png
 
+# ---------------------------------------------------------------------------
+# Color
+# Palette entries are exposed as Sass variables ($brand-<name>) and CSS
+# variables (--brand-<name>). `white` / `black` also feed Bootstrap's
+# $white / $black. Theme colors take {light, dark} pairs so each color
+# scheme gets its own value; styles/html/custom.scss builds on these.
+# ---------------------------------------------------------------------------
 color:
   palette:
-    white:        "#ffffff"
-    black:        "#0b0f19"
-    slate-50:     "#f8fafc"
-    slate-100:    "#f1f5f9"
-    slate-200:    "#e2e8f0"
-    slate-300:    "#cbd5e1"
-    slate-400:    "#94a3b8"
-    slate-500:    "#64748b"
-    slate-600:    "#475569"
-    slate-700:    "#334155"
-    slate-800:    "#1e293b"
-    slate-900:    "#0f172a"
-    slate-950:    "#0b0f19"
-    mint-400:     "#2dd4bf"
-    mint-500:     "#14b8a6"
-    mint-600:     "#0d9488"
-    mint-700:     "#0f766e"
-    coral-400:    "#fb7185"
-    coral-500:    "#f43f5e"
-    cyan-500:     "#06b6d4"
-    sky-500:      "#0ea5e9"
-    emerald-500:  "#10b981"
-    amber-500:    "#f59e0b"
-    rose-500:     "#f43f5e"
-    indigo-500:   "#6366f1"
+    white:       "#ffffff"
+    black:       "#0b0f19"
+    # Neutrals
+    slate-50:    "#f8fafc"
+    slate-100:   "#f1f5f9"
+    slate-200:   "#e2e8f0"
+    slate-300:   "#cbd5e1"
+    slate-400:   "#94a3b8"
+    slate-500:   "#64748b"
+    slate-600:   "#475569"
+    slate-700:   "#334155"
+    slate-800:   "#1e293b"
+    slate-900:   "#0f172a"
+    slate-950:   "#0b0f19"
+    # Dark-mode surfaces
+    navy-800:    "#17223b"
+    navy-900:    "#131b2e"
+    # Accents
+    mint-300:    "#5eead4"
+    mint-400:    "#2dd4bf"
+    mint-600:    "#0d9488"
+    mint-700:    "#0f766e"
+    coral-400:   "#fb7185"
+    coral-500:   "#f43f5e"
+    # Status
+    sky-400:     "#38bdf8"
+    sky-500:     "#0ea5e9"
+    emerald-400: "#34d399"
+    emerald-500: "#10b981"
+    amber-400:   "#fbbf24"
+    amber-500:   "#f59e0b"
+    orange-400:  "#fb923c"
+    orange-500:  "#f97316"
 
-  foreground: slate-800
-  background: white
-  primary:    mint-600
-  secondary:  slate-500
-  success:    emerald-500
-  info:       sky-500
-  warning:    amber-500
-  danger:     rose-500
-  light:      slate-50
-  dark:       slate-900
+  foreground:
+    light: slate-800
+    dark:  slate-300
+  background:
+    light: white
+    dark:  slate-950
+  primary:
+    light: mint-600
+    dark:  mint-400
+  secondary:
+    light: slate-500
+    dark:  slate-400
+  success:
+    light: emerald-500
+    dark:  emerald-400
+  info:
+    light: sky-500
+    dark:  sky-400
+  warning:
+    light: amber-500
+    dark:  amber-400
+  danger:
+    light: coral-500
+    dark:  coral-400
+  light: slate-50
+  dark:  slate-900
 
+# ---------------------------------------------------------------------------
+# Typography
+# ---------------------------------------------------------------------------
 typography:
   fonts:
     - family: Plus Jakarta Sans
       source: google
-      weight: [400, 500, 600, 700, 800]
-      style: normal
+      weight: [300, 400, 500, 600, 700, 800]
+      style: [normal, italic]
     - family: Noto Sans JP
       source: google
-      weight: [400, 500, 600, 700]
+      weight: [300, 400, 500, 600, 700]
       style: normal
     - family: JetBrains Mono
       source: google
-      weight: [400, 500, 600]
-      style: normal
+      weight: [400, 500, 600, 700]
+      style: [normal, italic]
   base:
     family: Plus Jakarta Sans, Noto Sans JP, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
     weight: 400
@@ -72,33 +106,37 @@ typography:
     family: Plus Jakarta Sans, Noto Sans JP, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif
     weight: 700
     line-height: 1.3
+    color:
+      light: slate-900
+      dark:  slate-50
+  monospace:
+    family: JetBrains Mono, monospace
   monospace-inline:
-    family: JetBrains Mono, monospace
-    color: "#0f172a"
-    background-color: "#f1f5f9"
     weight: 500
+    color:
+      light: slate-900
+      dark:  mint-300
+    background-color:
+      light: slate-100
+      dark:  navy-900
   monospace-block:
-    family: JetBrains Mono, monospace
     weight: 400
-    size: 0.9rem
+    size: 0.875rem
+    line-height: 1.6
   link:
     weight: 500
     color: primary
     decoration: none
 
+# ---------------------------------------------------------------------------
+# Bootstrap variables shared by both color schemes.
+# Scheme-dependent overrides live in styles/html/custom.scss.
+# ---------------------------------------------------------------------------
 defaults:
   bootstrap:
     defaults:
-      # matches typography.link.color's hover state (mint-700); brand.yml's
-      # typography.link has no hover field, so this is set directly as a
-      # Bootstrap Sass variable.
-      link-hover-color: "#0f766e"
-    rules: |
-      /* Figure & Caption Styles */
-      figure.quarto-float-fig figcaption,
-      figcaption.quarto-float-caption,
-      figure.figure figcaption,
-      .figure-caption,
-      figcaption {
-        text-align: center;
-      }
+      # cosmo (light) disables rounding while darkly (dark) enables it.
+      enable-rounded: true
+      # Fonts come from `typography.fonts`; skip the base themes' own
+      # Google Fonts imports (Source Sans Pro / Lato).
+      web-font-path: false
