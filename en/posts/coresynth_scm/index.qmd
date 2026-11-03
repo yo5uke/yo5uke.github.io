@@ -1,0 +1,420 @@
+---
+title: "Implementing the Synthetic Control Method in R with {coresynth}"
+description: |
+  A comprehensive guide to estimating, plotting, and conducting placebo inference for the synthetic control method in R using the high-performance {coresynth} package.
+date: 2026-11-02
+format:
+  html:
+    default-image-extension: ""
+categories:
+  - R
+image: image/thumbnail.png
+---
+
+[![CRAN status](https://www.r-pkg.org/badges/version/coresynth)](https://CRAN.R-project.org/package=coresynth)
+[![dev version](https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&color=blue)](https://github.com/yo5uke/coresynth)
+[![R-CMD-check](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+## Introduction
+
+The {coresynth} package is an R package I developed to support modern panel data estimators, including the Synthetic Control Method (SCM), Synthetic Difference-in-Differences (SDID), and Matrix Completion. In this post, we focus on the foundational Synthetic Control Method, walking step-by-step through data preparation, estimation, visualization, and placebo-based inference using coresynth.
+
+## What is {coresynth}?
+
+coresynth is an open-source R package developed to implement the Synthetic Control Method and related estimators with high computational speed. It is available on CRAN and under active development on GitHub.
+
+The core computational bottlenecks are implemented in C++ via `RcppArmadillo`. Consequently, coresynth runs significantly faster than traditional pure-R implementations. This speed advantage becomes particularly dramatic when analyzing datasets with large donor pools or running leave-one-out placebo tests across all units.
+
+For benchmark comparison, in a typical empirical setup where the classic {Synth} or {tidysynth} package takes around 15–20 seconds (including placebo runs), coresynth finishes the exact same routine in just a fraction of a second to a few seconds—often achieving substantial speedups depending on the number of predictor variables.
+
+You might naturally wonder whether this performance boost comes at the cost of optimization accuracy. Across extensive multi-faceted validations against existing reference implementations, coresynth solves the underlying constrained convex optimization problem with high fidelity, reliably identifying global optimal weights.^[Strictly speaking, while both packages solve the same mathematical optimization problem, slight algorithmic differences in the search procedure can produce minor numerical variations. However, both target the identical objective function, and the resulting estimates are equally valid.]
+
+## Setup & Installation
+
+You can install the released version of coresynth from CRAN, or grab the latest development version directly from GitHub:
+
+```r
+# Install released version from CRAN
+pak::pak("coresynth")
+
+# Or install development version from GitHub
+pak::pak("yo5uke/coresynth")
+```
+
+Next, let's load coresynth into your R session. For comparison purposes, we will also load tidysynth and utility packages from the {tidyverse}.
+
+```{r}
+library(coresynth)
+library(tidysynth)
+library(tidyverse)
+```
+
+## Data: California Proposition 99
+
+To illustrate the workflow, we use the classic `smoking` dataset included in the tidysynth package. This dataset covers per-capita cigarette sales across 39 US states from 1970 to 2000, investigating the impact of California's Proposition 99 tobacco control program passed in 1988 [@abadie_synthetic_2010].
+
+```{r}
+data("smoking", package = "tidysynth")
+```
+
+```{r}
+#| echo: false
+#| label: tbl-smoking
+#| tbl-cap: "First 6 rows of the smoking dataset"
+gt::gt(head(smoking))
+```
+
+## Estimation with `scm_fit()`
+
+In coresynth, all supported panel estimators are unified under a single primary function: `scm_fit()`. To run the Synthetic Control Method, specify `method = "scm"`.
+
+### Constructing the Treatment Indicator
+
+`scm_fit()` requires a binary treatment indicator that takes the value `1` for the treated unit in the post-treatment period, and `0` otherwise.
+
+```{r}
+smoking <- smoking |>
+  mutate(
+    treated = if_else(state == "California" & year >= 1989, 1L, 0L)
+  )
+```
+
+In this case, California passed Proposition 99 in late 1988, so `treated` equals `1` for California starting in 1989.
+
+### Model Formula & Predictor Syntax
+
+Following the two-way fixed effects syntax common in packages like {fixest}, the formula is specified as `outcome ~ treated | unit + time`.
+
+Pre-treatment predictor variables are specified using the `predictors` argument as a list of `pred()` specifications. The `pred()` function takes the predictor column name(s) and the corresponding pre-treatment time window over which to aggregate them.
+
+To benchmark the runtime, let's time the complete estimation including all-donor placebo calculations using the {tictoc} package:
+
+:::{.panel-tabset}
+## {coresynth}
+
+Here we run `scm_fit()` and immediately calculate the full placebo distribution via `mspe_ratio_pval()`:
+
+```r
+core_fit <- scm_fit(
+  cigsale ~ treated | state + year,
+  data = smoking,
+  method = "scm",
+  predictors = list(
+    pred(c("lnincome", "retprice", "age15to24"), 1980:1988),
+    pred("cigsale", 1980:1988),
+    pred("beer", 1984:1988),
+    pred("cigsale", 1975),
+    pred("cigsale", 1980),
+    pred("cigsale", 1988)
+  )
+)
+core_placebo <- mspe_ratio_pval(core_fit) # Calculate placebos as well
+```
+
+```{r}
+#| echo: false
+tictoc::tic()
+core_fit <- scm_fit(
+  cigsale ~ treated | state + year,
+  data = smoking,
+  method = "scm",
+  predictors = list(
+    pred(c("lnincome", "retprice", "age15to24"), 1980:1988),
+    pred("cigsale", 1980:1988),
+    pred("beer", 1984:1988),
+    pred("cigsale", 1975),
+    pred("cigsale", 1980),
+    pred("cigsale", 1988)
+  )
+)
+core_placebo <- mspe_ratio_pval(core_fit)
+time_coresynth_res <- tictoc::toc()
+time_coresynth <- sprintf(
+  "%.2f",
+  unname(time_coresynth_res$toc - time_coresynth_res$tic)
+)
+```
+
+## {tidysynth}
+
+For comparison, here is the equivalent specification implemented in tidysynth:
+
+```r
+smoking_out <- smoking |>
+  synthetic_control(
+    outcome = cigsale,
+    unit = state,
+    time = year,
+    i_unit = "California",
+    i_time = 1988,
+    generate_placebos = TRUE
+  ) |>
+  generate_predictor(
+    time_window = 1980:1988,
+    ln_income = mean(lnincome, na.rm = TRUE),
+    ret_price = mean(retprice, na.rm = TRUE),
+    youth = mean(age15to24, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1980:1988,
+    ln_cigsale = mean(cigsale, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1984:1988,
+    beer_sales = mean(beer, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1975,
+    cigsale_1975 = cigsale
+  ) |>
+  generate_predictor(
+    time_window = 1980,
+    cigsale_1980 = cigsale
+  ) |>
+  generate_predictor(
+    time_window = 1988,
+    cigsale_1988 = cigsale
+  ) |>
+  generate_weights(
+    optimization_window = 1970:1988,
+    margin_ipop = .02,
+    sigf_ipop = 7,
+    bound_ipop = 6
+  ) |>
+  generate_control()
+```
+
+```{r}
+#| echo: false
+tictoc::tic()
+smoking_out <- smoking |>
+  synthetic_control(
+    outcome = cigsale,
+    unit = state,
+    time = year,
+    i_unit = "California",
+    i_time = 1988,
+    generate_placebos = TRUE
+  ) |>
+  generate_predictor(
+    time_window = 1980:1988,
+    ln_income = mean(lnincome, na.rm = TRUE),
+    ret_price = mean(retprice, na.rm = TRUE),
+    youth = mean(age15to24, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1980:1988,
+    ln_cigsale = mean(cigsale, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1984:1988,
+    beer_sales = mean(beer, na.rm = TRUE)
+  ) |>
+  generate_predictor(
+    time_window = 1975,
+    cigsale_1975 = cigsale
+  ) |>
+  generate_predictor(
+    time_window = 1980,
+    cigsale_1980 = cigsale
+  ) |>
+  generate_predictor(
+    time_window = 1988,
+    cigsale_1988 = cigsale
+  ) |>
+  generate_weights(
+    optimization_window = 1970:1988,
+    margin_ipop = .02,
+    sigf_ipop = 7,
+    bound_ipop = 6
+  ) |>
+  generate_control()
+time_tidysynth_res <- tictoc::toc()
+time_tidysynth <- sprintf(
+  "%.2f",
+  unname(time_tidysynth_res$toc - time_tidysynth_res$tic)
+)
+speedup <- sprintf(
+  "%.1f",
+  as.numeric(time_tidysynth) / as.numeric(time_coresynth)
+)
+```
+:::
+
+In this comparison, coresynth finishes in **`r time_coresynth` seconds**, whereas tidysynth takes **`r time_tidysynth` seconds**—a **`r speedup`× speedup**.
+
+When running extensive sensitivity analyses, tuning hyperparameters, or testing multiple candidate donor pools, waiting 20 seconds per run quickly adds up. This efficiency gain was a core motivation behind developing coresynth.
+
+:::{.callout-tip collapse="true"}
+## Specifying Non-Annual Time Horizons in `pred()`
+
+The second argument of `pred()` takes a vector of time points. For annual data, integer sequences like `1980:1988` work naturally. For monthly or daily data, you can pass a sequence of Date objects using `seq()`:
+
+```r
+# Example for monthly panel data
+seq(as.Date("2020-01-01"), as.Date("2020-12-01"), by = "month")
+```
+:::
+
+## Visualizing Trends and Gaps
+
+coresynth objects come with a unified `plot()` method returning clean, publication-ready ggplot2 figures.
+
+:::{.panel-tabset}
+## Trajectory Plot
+
+```{r}
+plot(core_fit, type = "trend")
+```
+
+The trajectory plot displays the actual outcome series for the treated unit alongside the estimated synthetic control counterpart. Because `type = "trend"` is the default, calling `plot(core_fit)` yields the same figure.
+
+## Gap Plot
+
+```{r}
+plot(core_fit, type = "gap")
+```
+
+The gap plot shows the difference between the treated unit and its synthetic control over time ($Y_{1t} - \widehat{Y}_{1t}^{\text{synth}}$), making post-treatment treatment effects visually striking.
+:::
+
+### Customizing Plots with ggplot2
+
+Because coresynth plots are standard `ggplot` objects, you can customize labels, colors, and themes effortlessly with standard ggplot2 syntax:
+
+```{r}
+plot(
+  core_fit,
+  colors = c(treated = "darkgreen", synthetic = "darkred"),
+  labels = c(treated = "California", synthetic = "Synthetic California"),
+  vline = list(linetype = "dashed", color = "black"),
+  vline_offset = -1
+) +
+  labs(
+    title = "Effect of Proposition 99 on Cigarette Consumption",
+    x = NULL,
+    y = "Packs per Capita"
+  ) +
+  theme_classic() +
+  theme(legend.position = "bottom")
+```
+
+Arguments like `colors` and `labels` modify aesthetic mappings directly, while `vline` and `vline_offset` provide flexible control over the intervention vertical marker.
+
+## Inspecting Weights and Predictor Balance
+
+Understanding how the synthetic counterfactual was constructed is central to any SCM analysis. Calling `summary()` on a fitted object displays the donor unit weights ($W$) and the predictor balance table:
+
+```{r}
+summary(core_fit)
+```
+
+You can also visualize the donor unit weights and predictor importance weights ($V$) graphically:
+
+```{r}
+#| layout-ncol: 2
+plot(core_fit, type = "weights")
+plot(core_fit, type = "pred_weights")
+```
+
+### Extracting Tidy Data via `plot_data()`
+
+If you prefer building fully customized visualizations from raw numbers, coresynth provides the helper function `plot_data()` to extract data frames directly:
+
+:::{.panel-tabset}
+## Trajectory Data
+
+```{r}
+plot_data(core_fit, type = "trend") |>
+  head()
+```
+
+The resulting data frame includes columns for unit, time, series (`treated` vs `synthetic`), and outcome values.
+
+## Weights Data
+
+```{r}
+plot_data(core_fit, type = "weights") |>
+  arrange(desc(weight)) |>
+  head()
+```
+
+This makes it easy to rank-order and inspect positive donor contributions.
+:::
+
+## Inference via Placebo Tests
+
+Statistical inference in SCM typically relies on in-space placebo tests [@abadie_synthetic_2010]. In this framework, treatment is iteratively reassigned to each donor in the pool to compute an exact $p$-value based on the distribution of post/pre-treatment Mean Squared Prediction Error (MSPE) ratios. coresynth provides the `mspe_ratio_pval()` function to conduct this procedure automatically.
+
+```{r}
+core_placebo <- mspe_ratio_pval(core_fit)
+core_placebo$p_value
+```
+
+The resulting exact $p$-value can be accessed directly from `core_placebo$p_value`.
+
+:::{.callout-note collapse="true"}
+## Why Results May Slightly Differ from Other Packages
+
+When comparing results across SCM software, you may notice subtle numerical differences in the optimal weights or the resulting $p$-values.
+
+In the standard Synthetic Control Method, the outer optimization selects predictor weights ($V$) to minimize the pre-treatment prediction error. Because this problem possesses an intricate, non-convex outer landscape with many local minima, different solvers often converge to slightly different weight vectors. coresynth uses an advanced multi-start optimization routine with C++ acceleration, often discovering solutions with strictly lower pre-treatment MSE than traditional single-start approaches. The numerical discrepancy reflects finding a better local or global optimum rather than a numerical error.
+:::
+
+### Plotting Placebo Gaps
+
+You can plot the gap trajectories of California alongside all placebo donors:
+
+:::{.panel-tabset}
+## All Placebos
+
+```{r}
+plot(core_placebo, type = "gaps")
+```
+
+The gap trajectories for all donor units are shown in light gray, contrasting with the dark line representing the treated unit.
+
+## Pruning Poor Pre-Treatment Fits
+
+@abadie_synthetic_2010 recommend pruning placebo donors whose pre-treatment MSPE is substantially higher than that of the treated unit. Use the `mspe_prune` argument to set a threshold cutoff:
+
+```{r}
+plot(core_placebo, type = "gaps", vline_offset = -1, mspe_prune = 2)
+```
+
+Setting `mspe_prune = 2` removes all control states with pre-treatment MSPE more than twice California's, highlighting meaningful counterfactual paths.
+:::
+
+## Useful Extras
+
+coresynth provides several convenient helpers for extracting vectors or tidying outputs:
+
+### Extracting Outcome Vectors
+
+```{r}
+treated_outcomes(core_fit) |> head()
+synthetic_outcomes(core_fit) |> head()
+```
+
+These functions allow you to directly inspect the observed and synthetic time series as standard numeric vectors.
+
+### Tidying with `broom::augment()`
+
+By integrating with the {broom} ecosystem, you can convert the entire fitted trajectory into a tidy data frame:
+
+```{r}
+fit_df <- broom::augment(core_fit)
+head(fit_df)
+```
+
+The returned tibble includes indicator columns for the pre- and post-treatment regimes, making downstream analysis or custom plotting straightforward.
+
+## Summary & Feedback
+
+coresynth is built from the ground up to bring unprecedented speed and a clean, unified syntax to Synthetic Control methods in R without sacrificing optimization precision.
+
+Whether you are conducting classroom demonstrations, empirical policy evaluations, or large-scale simulation benchmarks, we hope coresynth accelerates your research workflow.
+
+If you encounter any issues, have questions, or wish to request new features, please feel free to open an issue on the [GitHub Repository](https://github.com/yo5uke/coresynth/issues) or leave a comment below!
