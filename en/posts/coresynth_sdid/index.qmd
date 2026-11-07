@@ -1,0 +1,479 @@
+---
+title: "Implementing Synthetic Difference-in-Differences in R with {coresynth}"
+description: |
+  A guide to implementing Synthetic Difference-in-Differences in R using the high-performance {coresynth} package.
+date: 2026-11-07
+format:
+  html:
+    default-image-extension: ""
+categories:
+  - R
+image: image/thumbnail.png
+---
+
+[![CRAN status](https://www.r-pkg.org/badges/version/coresynth)](https://CRAN.R-project.org/package=coresynth)
+[![dev version](https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&color=blue)](https://github.com/yo5uke/coresynth)
+[![R-CMD-check](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+
+## Introduction
+
+The {coresynth} package is an R package I developed to implement methods related to the synthetic control method easily and quickly, including the Synthetic Control Method (SCM), Synthetic Difference-in-Differences (SDID), Generalized Synthetic Control (GSC), and Matrix Completion (MC). While [the previous post](../coresynth_scm/index.qmd) covered the basic synthetic control method, this post focuses on **Synthetic Difference-in-Differences (SDID)**, walking step-by-step from an overview of the method to model estimation, visualization, and inference procedures using coresynth.
+
+## What is Synthetic Difference-in-Differences?
+
+Proposed by @arkhangelsky_synthetic_2021 in the *American Economic Review*, Synthetic Difference-in-Differences is an important method in causal inference. SDID combines two of the most widely used empirical methodologies in econometrics: **Difference-in-Differences (DID)** and the **Synthetic Control Method (SCM)** [@abadie_synthetic_2010].
+
+Traditional DID relies on the **parallel trends assumption**, positing that in the absence of treatment, the average outcomes of the treated and control units would have moved in parallel over time. In practice, this assumption often fails when treated and untreated units differ substantially in their observable and unobservable characteristics. Standard DID also assigns uniform weights to all control units and all pre-treatment periods, regardless of how relevant they are for predicting the treated trajectory.
+
+On the other hand, SCM constructs a data-driven weighted average of control units (unit weights $\omega_i$) to reproduce the treated unit's pre-treatment outcome levels. However, standard SCM does not incorporate an intercept shift (fixed effects) and restricts weights to the simplex ($\sum \omega_i = 1, \omega_i \ge 0$). As a result, when the treated unit lies outside the convex hull of the donor pool (for example, when the treated unit has a consistently higher baseline level than any donor), SCM cannot extrapolate, which can cause poor pre-treatment fit and bias.
+
+SDID synthesizes the core strengths of both worlds by introducing three complementary mechanisms:
+
+1. **Unit weights ($\hat\omega_i$)**: Control units are reweighted so that their weighted average exhibits parallel trends with the treated unit prior to intervention, relaxing the traditional DID requirement that all controls be parallel on average.
+2. **Time weights ($\hat\lambda_t$)**: Pre-treatment periods are reweighted so that recent pre-treatment periods matching the post-treatment counterfactual slope receive greater emphasis, making the estimator robust to time-varying confounders.
+3. **Double differencing (Intercept shift)**: Like DID, SDID incorporates unit and time fixed effects, absorbing permanent level differences between the treated unit and the donor pool.
+
+Mathematically, the SDID treatment effect for a single treated unit is expressed as:
+
+$$\hat{\tau}^{\text{sdid}} = \left( \bar{Y}_{\text{post}}^{\text{tr}} - \sum_{t=1}^{T_{\text{pre}}} \hat{\lambda}_t Y_{1t} \right) - \sum_{i \in \text{control}} \hat{\omega}_i \left( \bar{Y}_{\text{post}, i} - \sum_{t=1}^{T_{\text{pre}}} \hat{\lambda}_t Y_{it} \right)$$
+
+where $\bar{Y}_{\text{post}}^{\text{tr}}$ is the post-treatment average of the treated unit, and $\bar{Y}_{\text{post}, i}$ is the post-treatment average of control unit $i$.
+
+## Why Use {coresynth} for SDID?
+
+While {synthdid} is widely considered the standard R package for SDID, empirical causal inference frequently requires repeated computations: calculating standard errors via bootstrap, running leave-one-out placebo tests across dozens of donors, conducting sensitivity analyses, or testing multiple treatment specifications.
+
+The {coresynth} package is designed and implemented in C++ via `RcppArmadillo` to enable fast analysis without sacrificing mathematical precision:
+
+- **⚡ Fast Coordinate Descent & Factor-Form Solvers**: In coresynth 1.0.0 and above, SDID unit weights are computed directly in factor form rather than forming and decomposing the dense $N \times N$ donor Gram matrix. This makes estimation and inference routines **5–10× faster** on panels with many donors.
+- **🧩 Unified Interface**: Run SDID alongside SCM, Generalized Synthetic Control (GSC), Matrix Completion (MC), Time-Aware Synthetic Control (TASC), and Synthetic Interventions (SI) through the exact same `scm_fit()` formula syntax.
+- **📊 Inference**: Native support for placebo permutation tests, unit bootstrap, jackknife, global jackknife (for staggered designs), conformal inference, and period-by-period event studies.
+- **📈 Diagnostics**: Unified `plot()` methods with level-alignment (`align = TRUE`), donor path overlays (`show_donors`), and dual-panel weight visualizations.
+
+## Setup & Installation
+
+You can install the released version of coresynth from CRAN, or grab the latest development version directly from GitHub:
+
+```r
+# Install released version from CRAN
+pak::pak("coresynth")
+
+# Or install development version from GitHub
+pak::pak("yo5uke/coresynth")
+```
+
+Next, let's load coresynth into your R session alongside {tidyverse}. For benchmark comparison, we also load {synthdid}.
+
+```{r}
+library(coresynth)
+library(synthdid)
+library(tidyverse)
+```
+
+## Data: California Proposition 99
+
+To compare our results with [@arkhangelsky_synthetic_2021], we use the `smoking` dataset from the {tidysynth} package. This panel tracks per-capita cigarette sales across 39 US states from 1970 to 2000. California passed Proposition 99 in November 1988, taking effect in 1989.
+
+```{r}
+data("smoking", package = "tidysynth")
+```
+
+```{r}
+#| echo: false
+#| label: tbl-smoking
+#| tbl-cap: "Overview of the smoking panel dataset"
+gt::gt(head(smoking, 5))
+```
+
+### Preparing the Binary Treatment Indicator
+
+As in all coresynth estimators, `scm_fit()` requires a binary treatment column that equals `1` for the treated unit in the post-treatment period, and `0` otherwise:
+
+```{r}
+smoking <- smoking |>
+  mutate(
+    treated = if_else(state == "California" & year >= 1989, 1L, 0L)
+  )
+```
+
+Because California enacted the policy starting in 1989, `treated` is `1` exclusively for California for years 1989 through 2000.
+
+## Estimation with `scm_fit()`
+
+In coresynth, you invoke SDID simply by setting `method = "sdid"`:
+
+```r
+core_sdid <- scm_fit(
+  cigsale ~ treated | state + year,
+  data = smoking,
+  method = "sdid"
+)
+```
+
+The model formula is specified in the form `outcome ~ treated | unit + time`.
+
+### Speed Benchmark: {coresynth} vs. {synthdid}
+
+We benchmark coresynth's execution speed against {synthdid} for the full estimation and leave-one-out placebo inference routine across all donors:
+
+:::{.panel-tabset}
+## {coresynth}
+
+Here we run `scm_fit()` and immediately calculate the full placebo distribution via `sdid_inference()`:
+
+```r
+core_sdid <- scm_fit(
+  cigsale ~ treated | state + year,
+  data = smoking,
+  method = "sdid"
+)
+core_placebo <- sdid_inference(core_sdid, method = "placebo")
+```
+
+```{r}
+#| echo: false
+tictoc::tic()
+core_sdid <- scm_fit(
+  cigsale ~ treated | state + year,
+  data = smoking,
+  method = "sdid"
+)
+core_placebo <- sdid_inference(core_sdid, method = "placebo")
+time_coresynth_res <- tictoc::toc()
+time_coresynth <- sprintf(
+  "%.2f",
+  unname(time_coresynth_res$toc - time_coresynth_res$tic)
+)
+```
+
+## {synthdid}
+
+For comparison, here is the equivalent specification implemented in {synthdid}:
+
+```r
+setup <- synthdid::panel.matrices(
+  smoking |>
+    transmute(
+      unit = state,
+      time = year,
+      y = cigsale,
+      treated = treated
+    )
+)
+sdid_est <- synthdid::synthdid_estimate(setup$Y, setup$N0, setup$T0)
+sdid_se_plac <- synthdid::synthdid_se(sdid_est, method = "placebo")
+```
+
+```{r}
+#| echo: false
+tictoc::tic()
+setup <- synthdid::panel.matrices(
+  smoking |>
+    transmute(
+      unit = state,
+      time = year,
+      y = cigsale,
+      treated = treated
+    )
+)
+sdid_est <- synthdid::synthdid_estimate(setup$Y, setup$N0, setup$T0)
+sdid_se_plac <- synthdid::synthdid_se(sdid_est, method = "placebo")
+time_synthdid_res <- tictoc::toc()
+time_synthdid <- sprintf(
+  "%.2f",
+  unname(time_synthdid_res$toc - time_synthdid_res$tic)
+)
+speedup <- sprintf(
+  "%.1f",
+  as.numeric(time_synthdid) / as.numeric(time_coresynth)
+)
+```
+:::
+
+In this comparison, coresynth finishes in **`r time_coresynth` seconds**, whereas synthdid takes **`r time_synthdid` seconds**—a **`r speedup`× speedup**.
+
+When running extensive sensitivity analyses, computing bootstrap standard errors, or testing multiple candidate donor pools, waiting for slow estimations quickly adds up. This efficiency gain was a core motivation behind developing coresynth.
+
+### Inspecting the Model Summary
+
+Calling `summary()` on a fitted SDID model prints the essential estimation metrics, including the pre/post period lengths, the estimated Average Treatment Effect on the Treated (ATT), and the active donor unit weights:
+
+```{r}
+summary(core_sdid)
+```
+
+The estimated ATT indicates that Proposition 99 reduced California's cigarette consumption by approximately **15.6 packs per capita per year**, corroborating the primary findings of @arkhangelsky_synthetic_2021. Notice how this compares with standard SCM ($\approx -19.0$ packs) and standard DID ($\approx -27.3$ packs): SDID accommodates level shifts while matching pre-treatment slopes.
+
+## Visualizing Trends, Level Alignment, and Weights
+
+Visualizing results is important for credible causal inference. In SDID, counterfactual visualization requires extra care because the estimator incorporates an intercept shift and time weights.
+
+### Raw Trajectory vs. Level-Aligned Plot (`align = TRUE`)
+
+In standard SCM, the synthetic control directly matches the treated unit's pre-treatment level. In SDID, however, units match trends up to a free intercept shift. Consequently, a raw trajectory plot (`align = FALSE`, default) displays the synthetic series at its unadjusted level.
+
+By specifying `align = TRUE`, coresynth offsets the synthetic series by the $\hat\lambda$-weighted pre-period gap. Under this alignment, the post-treatment visual gap between the two lines corresponds **exactly** to the SDID treatment effect ($\hat\tau^{\text{sdid}}$):
+
+:::{.panel-tabset}
+## Level-Aligned Trend (`align = TRUE`)
+
+```{r}
+plot(core_sdid, type = "trend", align = TRUE)
+```
+
+The synthetic California series is vertically shifted so that the pre-treatment time-weighted baseline matches California, making the post-1988 divergence immediately interpretable as the causal effect.
+
+## Raw Trend (`align = FALSE`)
+
+```{r}
+plot(core_sdid, type = "trend", align = FALSE)
+```
+
+The raw plot illustrates the actual unadjusted levels of the synthetic composite compared to California, highlighting the presence of a baseline level difference that SDID effectively absorbs.
+:::
+
+### Gap Plot
+
+The gap plot (`type = "gap"`) plots the estimated treatment effect over time:
+
+```{r}
+plot(core_sdid, type = "gap", align = TRUE)
+```
+
+With `align = TRUE`, the pre-treatment gap fluctuates closely around zero, and the post-treatment line confirms the steady decrease in cigarette sales following the policy adoption.
+
+### Inspecting Unit and Time Weights
+
+A key feature of SDID is that it solves for both unit weights ($\hat\omega_i$) and pre-treatment time weights ($\hat\lambda_t$). Calling `plot(..., type = "weights")` on an SDID object generates a two-panel chart displaying both weight vectors:
+
+```{r}
+plot(core_sdid, type = "weights")
+```
+
+The top panel illustrates which donor states carry positive weight in constructing the synthetic counterfactual (e.g., Utah, Montana, Nevada). The bottom panel displays the time weights $\hat\lambda_t$, showing how recent pre-treatment years (such as 1987–1988) are prioritized to best match the trajectory leading up to the intervention.
+
+### Overlaying Donor Trajectories (`show_donors`)
+
+To assess whether the synthetic control is interpolating plausibly among donor units, you can pass `show_donors = N` to draw the raw trajectories of the top $N$ donor states as thin background lines:
+
+```{r}
+plot(core_sdid, type = "trend", align = TRUE, show_donors = 5)
+```
+
+### Customizing Plots with ggplot2
+
+Because all coresynth plots are standard `ggplot2` objects, you can easily customize styling, labels, colors, and line types using native ggplot2 grammar. For details on all arguments supported in `plot()`, see `?plot.coresynth`.
+
+```{r}
+plot(
+  core_sdid,
+  type = "trend",
+  align = TRUE,
+  colors = c(treated = "darkblue", synthetic = "firebrick"),
+  labels = c(treated = "California (Observed)", synthetic = "SDID Counterfactual"),
+  linetypes = c(treated = "solid", synthetic = "dashed"),
+  vline = list(color = "black", linetype = "dotted"),
+  vline_offset = -1
+) +
+  labs(
+    title = "Cigarette Sales in California vs. Synthetic DID Counterfactual",
+    subtitle = "Proposition 99 Tobacco Control Program (1988)",
+    x = NULL,
+    y = "Packs per Capita"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+```
+
+## Statistical Inference with `sdid_inference()`
+
+Quantifying statistical uncertainty is essential for credible causal evaluation. While SCM relied almost exclusively on permutation placebo tests [@abadie_synthetic_2010], SDID provides a framework with multiple inference methods [@arkhangelsky_synthetic_2021; @clarke_synthetic_2024].
+
+In coresynth, statistical inference is unified under `sdid_inference()`. The function provides four primary inferential methods:
+
+```r
+sdid_inference(
+  fit,
+  method      = c("placebo", "bootstrap", "jackknife", "jackknife_global"),
+  n_boot      = 200L,
+  level       = 0.95,
+  alternative = c("two.sided", "greater", "less"),
+  seed        = NULL
+)
+```
+
+### Choosing the Right Inference Method
+
+The appropriate choice of inference method depends primarily on the structure of your treated group:
+
+- **Single Treated Unit ($N_{\text{tr}} = 1$)**: When only one unit is treated (as in our California study), unit resampling cannot vary the treated unit's idiosyncratic noise. In this setting, the jackknife is undefined and the unit bootstrap will underestimate variance. **Use `method = "placebo"`**.
+- **Multiple Treated Units ($N_{\text{tr}} \ge 2$)**: When multiple units adopt treatment simultaneously, the unit bootstrap (`method = "bootstrap"`) or jackknife (`method = "jackknife"`) accounts for sampling variation across both treated and control units.
+- **Staggered Adoption ($N_{\text{tr}} \ge 2$ across cohorts)**: For roll-out designs where units adopt treatment at different times, use `method = "jackknife_global"` to account for cross-cohort covariance.
+- **Distribution-Free Assumption**: For finite-sample validity without parametric noise assumptions, use **Conformal Inference** via `conformal_inference()`.
+
+### 1. Placebo Permutation Inference (`method = "placebo"`)
+
+For California Proposition 99, where $N_{\text{tr}} = 1$, we employ the in-space placebo permutation procedure (Algorithm 4 of @clarke_synthetic_2024 and @arkhangelsky_synthetic_2021). Treatment is iteratively reassigned to each donor state to construct the empirical null distribution:
+
+```{r}
+inf_placebo <- sdid_inference(core_sdid, method = "placebo")
+inf_placebo
+```
+
+`inf_placebo$p_value` reports the two-sided permutation $p$-value. Additionally, `sdid_inference()` calculates the standard error as the standard deviation of the placebo distribution, alongside a normal-approximation 95% confidence interval (`ci_lower` and `ci_upper`).
+
+Notice that because the placebo standard error assumes the treated unit's noise variance is comparable to that of the donor units, it should be interpreted thoughtfully when donor pools are modest in size.
+
+### 2. Unit Bootstrap (`method = "bootstrap"`)
+
+When your panel includes multiple treated units, `method = "bootstrap"` implements Algorithm 2 of @arkhangelsky_synthetic_2021. It draws $N$ units with replacement from the entire panel (both treated and control) and re-estimates the entire model—including unit weights $\hat\omega$, time weights $\hat\lambda$, and regularization penalties—on every replicate.
+
+To illustrate how multi-unit inference operates in coresynth, let's generate a synthetic panel with 4 treated units and 20 control units:
+
+```{r}
+set.seed(42)
+multi_panel <- expand.grid(unit = 1:24, year = 1990:2010)
+multi_panel$treated <- as.integer(multi_panel$unit <= 4 & multi_panel$year >= 2002)
+multi_panel$y <- multi_panel$unit * 1.5 + 0.8 * (multi_panel$year - 1990) +
+  rnorm(nrow(multi_panel), sd = 0.5) - 2.5 * multi_panel$treated
+
+fit_multi <- scm_fit(y ~ treated | unit + year, data = multi_panel, method = "sdid")
+```
+
+Now we execute the bootstrap with `n_boot = 200`:
+
+```{r}
+inf_boot <- sdid_inference(fit_multi, method = "bootstrap", n_boot = 200, seed = 123)
+inf_boot$se
+inf_boot$p_value
+c(inf_boot$ci_lower, inf_boot$ci_upper)
+```
+
+### 3. Jackknife Variance Estimation (`method = "jackknife"`)
+
+The jackknife (Algorithm 3 of @arkhangelsky_synthetic_2021) drops one unit at a time from the panel and recomputes the weighted difference-in-differences estimator while holding the fitted weights $\hat\omega$ and $\hat\lambda$ fixed. Because it avoids re-solving the quadratic programming problem on each iteration, it runs almost instantaneously:
+
+```{r}
+inf_jack <- sdid_inference(fit_multi, method = "jackknife")
+inf_jack$se
+inf_jack$p_value
+```
+
+For staggered adoption panels, `method = "jackknife_global"` drops each unit from the entire multi-cohort panel simultaneously, correctly preserving the covariance between cohorts.
+
+### 4. Conformal Inference (`conformal_inference()`)
+
+If you prefer hypothesis tests with exact finite-sample guarantees that avoid asymptotic approximations, coresynth provides Conformal Inference based on @chernozhukov_exact_2021. It constructs a moving-block permutation test under the null hypothesis of no treatment effect:
+
+```{r}
+conf_res <- conformal_inference(core_sdid, level = 0.95)
+conf_res$p_value
+c(conf_res$ci_lower, conf_res$ci_upper)
+```
+
+## Dynamic Effects & Event Studies: `sdid_event_study()`
+
+Researchers often want to inspect dynamic treatment trajectories—confirming that pre-treatment coefficients are indistinguishable from zero (pre-trend check) while tracing out how effects unfold post-intervention.
+
+coresynth provides the dedicated `sdid_event_study()` function for this purpose. It computes period-by-period treatment effects aligned on the $\hat\lambda$-weighted pre-treatment baseline. Crucially, the post-treatment average of the period-specific coefficients equals the aggregate SDID ATT (`fit$estimate`) **exactly**:
+
+```{r}
+es_res <- sdid_event_study(
+  fit_multi,
+  n_boot = 100,
+  seed = 42
+)
+es_res
+```
+
+### Visualizing the Event Study
+
+You can plot the event-study trajectory directly using the S3 `plot()` method:
+
+```r
+plot(es_res)
+```
+
+The resulting figure displays period-specific point estimates accompanied by confidence interval bands. The pre-treatment periods center closely around zero, validating the pre-trend fit, while the post-treatment drop vividly illustrates the causal effect over time.
+
+### Cluster Bootstrap Support
+
+If units belong to geographical clusters (such as districts within states or prefectures), you can pass `cluster = "cluster_var"` and `data = panel_df` to `sdid_event_study()`. The function will perform block-cluster resampling of entire clusters with replacement, ensuring valid inference even in the presence of arbitrary intra-cluster correlation.
+
+## Advanced Topics
+
+### Time-Varying Covariates
+
+SDID supports adjusting for time-varying confounders via the `covariates` argument. Following @clarke_synthetic_2024 and @arkhangelsky_synthetic_2021, covariates are residualized out of the outcome using two-way fixed effects before computing the unit and time weights:
+
+```r
+# Example with time-varying covariates
+fit_cov <- scm_fit(
+  cigsale ~ treated | state + year,
+  data = smoking,
+  method = "sdid",
+  covariates = c("lnincome", "retprice")
+)
+summary(fit_cov)
+```
+
+### Staggered Adoption
+
+When different units receive treatment at different points in time, coresynth automatically detects the staggered timing and applies the cohort aggregation framework of @clarke_synthetic_2024:
+
+```r
+# Staggered adoption SDID fit
+fit_stagg <- scm_fit(
+  y ~ treated | unit + year,
+  data = staggered_panel,
+  method = "sdid",
+  control_group = "never_treated" # Default in v1.0.0+
+)
+fit_stagg$cohort_estimates
+```
+
+In coresynth 1.0.0 and later, `control_group = "never_treated"` is the default, ensuring that only pure, never-treated units serve as donors for each adoption cohort to prevent contamination from future adopters.
+
+## Tidy Ecosystem Integration & JSON Export
+
+To ensure smooth integration into reproducible research pipelines, coresynth fully supports {broom} tidying methods and structured JSON serialization:
+
+### Broom Integration: `tidy()` and `glance()`
+
+```{r}
+broom::tidy(inf_placebo)
+```
+
+```{r}
+broom::glance(inf_placebo)
+```
+
+### Extracting Tidy Data via `plot_data()`
+
+If you wish to create fully custom visualizations in ggplot2 or export tabular summaries, `plot_data()` provides raw data frames:
+
+```{r}
+# Extract aligned trend data
+plot_data(core_sdid, type = "trend", align = TRUE) |> head()
+
+# Extract unit and time weights
+plot_data(core_sdid, type = "weights") |> head()
+```
+
+### Exporting Results to JSON
+
+For cross-language pipelines (e.g., Python, dashboards) and archiving, use `export_json()`:
+
+```r
+export_json(core_sdid, file = "sdid_results.json", inference = inf_placebo)
+```
+
+## Summary & Feedback
+
+Synthetic Difference-in-Differences is an estimator that addresses the weaknesses of both standard DID and classical SCM. With `{coresynth}`, running SDID is as simple as writing a standard regression formula, backed by fast C++ optimization, along with versatile tools for inference and visualization.
+
+I hope coresynth helps accelerate your causal inference workflow.
+
+If you have any questions, encounter bugs, or would like to request new features, please feel free to open an issue on the [GitHub Repository](https://github.com/yo5uke/coresynth/issues) or reach out on [X (\@5uke_y)](https://x.com/5uke_y)!
