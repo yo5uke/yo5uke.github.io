@@ -9,8 +9,1705 @@
 <link>https://yo5uke.com/en/</link>
 <atom:link href="https://yo5uke.com/en/index.xml" rel="self" type="application/rss+xml"/>
 <description></description>
-<generator>quarto-1.10.19</generator>
-<lastBuildDate>Sun, 01 Nov 2026 15:00:00 GMT</lastBuildDate>
+<generator>quarto-1.11.9</generator>
+<lastBuildDate>Sun, 08 Nov 2026 15:00:00 GMT</lastBuildDate>
+<item>
+  <title>Implementing Synthetic Difference-in-Differences in R with {coresynth}</title>
+  <link>https://yo5uke.com/en/posts/coresynth_sdid/</link>
+  <description><![CDATA[ 
+
+
+
+
+
+
+<p><a href="https://CRAN.R-project.org/package=coresynth"><img src="https://www.r-pkg.org/badges/version/coresynth" class="img-fluid" alt="CRAN status"></a> <a href="https://github.com/yo5uke/coresynth"><img src="https://img.shields.io/github/r-package/v/yo5uke/coresynth?label=dev%20version&amp;color=blue" class="img-fluid" alt="dev version"></a> <a href="https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/yo5uke/coresynth/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" class="img-fluid" alt="License: MIT"></a> <a href="https://lifecycle.r-lib.org/articles/stages.html#experimental"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" class="img-fluid" alt="Lifecycle: experimental"></a></p>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>The {coresynth} package is an R package I developed to implement methods related to the synthetic control method easily and quickly, including the Synthetic Control Method (SCM), Synthetic Difference-in-Differences (SDID), Generalized Synthetic Control (GSC), and Matrix Completion (MC). While <a href="../../../en/posts/coresynth_scm/index.html">the previous post</a> covered the basic synthetic control method, this post focuses on <strong>Synthetic Difference-in-Differences (SDID)</strong>, walking step-by-step from an overview of the method to model estimation, visualization, and inference procedures using coresynth.</p>
+</section>
+<section id="what-is-synthetic-difference-in-differences" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-synthetic-difference-in-differences">What is Synthetic Difference-in-Differences?</h2>
+<p>Proposed by <span class="citation" data-cites="arkhangelsky_synthetic_2021">Arkhangelsky et al. (2021)</span> in the <em>American Economic Review</em>, Synthetic Difference-in-Differences is an important method in causal inference. SDID combines two of the most widely used empirical methodologies in econometrics: <strong>Difference-in-Differences (DID)</strong> and the <strong>Synthetic Control Method (SCM)</strong> <span class="citation" data-cites="abadie_synthetic_2010">(Abadie et al. 2010)</span>.</p>
+<p>Traditional DID relies on the <strong>parallel trends assumption</strong>, positing that in the absence of treatment, the average outcomes of the treated and control units would have moved in parallel over time. In practice, this assumption often fails when treated and untreated units differ substantially in their observable and unobservable characteristics. Standard DID also assigns uniform weights to all control units and all pre-treatment periods, regardless of how relevant they are for predicting the treated trajectory.</p>
+<p>On the other hand, SCM constructs a data-driven weighted average of control units (unit weights <img src="https://latex.codecogs.com/png.latex?%5Comega_i">) to reproduce the treated unit’s pre-treatment outcome levels. However, standard SCM does not incorporate an intercept shift (fixed effects) and restricts weights to the simplex (<img src="https://latex.codecogs.com/png.latex?%5Csum%20%5Comega_i%20=%201,%20%5Comega_i%20%5Cge%200">). As a result, when the treated unit lies outside the convex hull of the donor pool (for example, when the treated unit has a consistently higher baseline level than any donor), SCM cannot extrapolate, which can cause poor pre-treatment fit and bias.</p>
+<p>SDID synthesizes the core strengths of both worlds by introducing three complementary mechanisms:</p>
+<ol type="1">
+<li><strong>Unit weights (<img src="https://latex.codecogs.com/png.latex?%5Chat%5Comega_i">)</strong>: Control units are reweighted so that their weighted average exhibits parallel trends with the treated unit prior to intervention, relaxing the traditional DID requirement that all controls be parallel on average.</li>
+<li><strong>Time weights (<img src="https://latex.codecogs.com/png.latex?%5Chat%5Clambda_t">)</strong>: Pre-treatment periods are reweighted so that recent pre-treatment periods matching the post-treatment counterfactual slope receive greater emphasis, making the estimator robust to time-varying confounders.</li>
+<li><strong>Double differencing (Intercept shift)</strong>: Like DID, SDID incorporates unit and time fixed effects, absorbing permanent level differences between the treated unit and the donor pool.</li>
+</ol>
+<p>Mathematically, the SDID treatment effect for a single treated unit is expressed as:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%5Chat%7B%5Ctau%7D%5E%7B%5Ctext%7Bsdid%7D%7D%20=%20%5Cleft(%20%5Cbar%7BY%7D_%7B%5Ctext%7Bpost%7D%7D%5E%7B%5Ctext%7Btr%7D%7D%20-%20%5Csum_%7Bt=1%7D%5E%7BT_%7B%5Ctext%7Bpre%7D%7D%7D%20%5Chat%7B%5Clambda%7D_t%20Y_%7B1t%7D%20%5Cright)%20-%20%5Csum_%7Bi%20%5Cin%20%5Ctext%7Bcontrol%7D%7D%20%5Chat%7B%5Comega%7D_i%20%5Cleft(%20%5Cbar%7BY%7D_%7B%5Ctext%7Bpost%7D,%20i%7D%20-%20%5Csum_%7Bt=1%7D%5E%7BT_%7B%5Ctext%7Bpre%7D%7D%7D%20%5Chat%7B%5Clambda%7D_t%20Y_%7Bit%7D%20%5Cright)"></p>
+<p>where <img src="https://latex.codecogs.com/png.latex?%5Cbar%7BY%7D_%7B%5Ctext%7Bpost%7D%7D%5E%7B%5Ctext%7Btr%7D%7D"> is the post-treatment average of the treated unit, <img src="https://latex.codecogs.com/png.latex?Y_%7B1t%7D"> is the treated unit’s outcome at pre-treatment time <img src="https://latex.codecogs.com/png.latex?t">, and <img src="https://latex.codecogs.com/png.latex?%5Cbar%7BY%7D_%7B%5Ctext%7Bpost%7D,%20i%7D"> is the post-treatment average of control unit <img src="https://latex.codecogs.com/png.latex?i">.</p>
+</section>
+<section id="why-use-coresynth-for-sdid" class="level2">
+<h2 class="anchored" data-anchor-id="why-use-coresynth-for-sdid">Why Use {coresynth} for SDID?</h2>
+<p>While {synthdid} is widely considered the standard R package for SDID, empirical causal inference frequently requires repeated computations: calculating standard errors via bootstrap, running leave-one-out placebo tests across dozens of donors, conducting sensitivity analyses, or testing multiple treatment specifications.</p>
+<p>The {coresynth} package is designed and implemented in C++ via <code>RcppArmadillo</code> to enable fast analysis without sacrificing mathematical precision:</p>
+<ul>
+<li><strong>⚡ Fast Coordinate Descent &amp; Factor-Form Solvers</strong>: In coresynth 1.0.0 and above, SDID unit weights are computed directly in factor form rather than forming and decomposing the dense <img src="https://latex.codecogs.com/png.latex?N%20%5Ctimes%20N"> donor Gram matrix. This makes estimation and inference routines <strong>5–10× faster</strong> on panels with many donors.</li>
+<li><strong>🧩 Unified Interface</strong>: Run SDID alongside SCM, Generalized Synthetic Control (GSC), Matrix Completion (MC), Time-Aware Synthetic Control (TASC), and Synthetic Interventions (SI) through the exact same <code>scm_fit()</code> formula syntax.</li>
+<li><strong>📊 Inference</strong>: Native support for placebo permutation tests, unit bootstrap, jackknife, global jackknife (for staggered designs), conformal inference, and dynamic event studies (available in development version).</li>
+<li><strong>📈 Diagnostics</strong>: Unified <code>plot()</code> methods with level-alignment (<code>align = TRUE</code>), donor path overlays (<code>show_donors</code>), and dual-panel weight visualizations.</li>
+</ul>
+</section>
+<section id="setup-installation" class="level2">
+<h2 class="anchored" data-anchor-id="setup-installation">Setup &amp; Installation</h2>
+<p>You can install the released version of coresynth from CRAN, or grab the latest development version directly from GitHub:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Install released version from CRAN</span></span>
+<span id="cb1-2">pak<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pak</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"coresynth"</span>)</span>
+<span id="cb1-3"></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Or install development version from GitHub</span></span>
+<span id="cb1-5">pak<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">pak</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"yo5uke/coresynth"</span>)</span></code></pre></div></div>
+<p>Next, let’s load coresynth into your R session alongside {tidyverse}. For benchmark comparison, we also load {synthdid}.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(coresynth)</span>
+<span id="cb2-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(synthdid)</span>
+<span id="cb2-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">library</span>(tidyverse)</span></code></pre></div></div>
+</div>
+</section>
+<section id="data-california-proposition-99" class="level2">
+<h2 class="anchored" data-anchor-id="data-california-proposition-99">Data: California Proposition 99</h2>
+<p>To compare our results with <span class="citation" data-cites="arkhangelsky_synthetic_2021">(Arkhangelsky et al. 2021)</span>, we use the <code>smoking</code> dataset from the {tidysynth} package. This panel tracks per-capita cigarette sales across 39 US states from 1970 to 2000. California passed Proposition 99 in November 1988, taking effect in 1989.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"smoking"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">package =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"tidysynth"</span>)</span></code></pre></div></div>
+</div>
+<div class="cell">
+<div id="tbl-smoking" class="cell quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-smoking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Overview of the smoking panel dataset
+</figcaption>
+<div aria-describedby="tbl-smoking-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output-display">
+<div id="nhkcmoggpy" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#nhkcmoggpy table {
+  font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#nhkcmoggpy thead, #nhkcmoggpy tbody, #nhkcmoggpy tfoot, #nhkcmoggpy tr, #nhkcmoggpy td, #nhkcmoggpy th {
+  border-style: none;
+}
+
+#nhkcmoggpy p {
+  margin: 0;
+  padding: 0;
+}
+
+#nhkcmoggpy .gt_table {
+  display: table;
+  border-collapse: collapse;
+  line-height: normal;
+  margin-left: auto;
+  margin-right: auto;
+  color: #333333;
+  font-size: 16px;
+  font-weight: normal;
+  font-style: normal;
+  background-color: #FFFFFF;
+  width: auto;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #A8A8A8;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #A8A8A8;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_caption {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+#nhkcmoggpy .gt_title {
+  color: #333333;
+  font-size: 125%;
+  font-weight: initial;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-color: #FFFFFF;
+  border-bottom-width: 0;
+}
+
+#nhkcmoggpy .gt_subtitle {
+  color: #333333;
+  font-size: 85%;
+  font-weight: initial;
+  padding-top: 3px;
+  padding-bottom: 5px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-color: #FFFFFF;
+  border-top-width: 0;
+}
+
+#nhkcmoggpy .gt_heading {
+  background-color: #FFFFFF;
+  text-align: center;
+  border-bottom-color: #FFFFFF;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_bottom_border {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_col_headings {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_col_heading {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  padding-left: 5px;
+  padding-right: 5px;
+  overflow-x: hidden;
+}
+
+#nhkcmoggpy .gt_column_spanner_outer {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: normal;
+  text-transform: inherit;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+#nhkcmoggpy .gt_column_spanner_outer:first-child {
+  padding-left: 0;
+}
+
+#nhkcmoggpy .gt_column_spanner_outer:last-child {
+  padding-right: 0;
+}
+
+#nhkcmoggpy .gt_column_spanner {
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: bottom;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  overflow-x: hidden;
+  display: inline-block;
+  width: 100%;
+}
+
+#nhkcmoggpy .gt_spanner_row {
+  border-bottom-style: hidden;
+}
+
+#nhkcmoggpy .gt_group_heading {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+#nhkcmoggpy .gt_empty_group_heading {
+  padding: 0.5px;
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  vertical-align: middle;
+}
+
+#nhkcmoggpy .gt_from_md > :first-child {
+  margin-top: 0;
+}
+
+#nhkcmoggpy .gt_from_md > :last-child {
+  margin-bottom: 0;
+}
+
+#nhkcmoggpy .gt_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 10px;
+  border-top-style: solid;
+  border-top-width: 1px;
+  border-top-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 1px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 1px;
+  border-right-color: #D3D3D3;
+  vertical-align: middle;
+  overflow-x: hidden;
+}
+
+#nhkcmoggpy .gt_stub {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nhkcmoggpy .gt_stub_row_group {
+  color: #333333;
+  background-color: #FFFFFF;
+  font-size: 100%;
+  font-weight: initial;
+  text-transform: inherit;
+  border-right-style: solid;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+  padding-left: 5px;
+  padding-right: 5px;
+  vertical-align: top;
+}
+
+#nhkcmoggpy .gt_row_group_first td {
+  border-top-width: 2px;
+}
+
+#nhkcmoggpy .gt_row_group_first th {
+  border-top-width: 2px;
+}
+
+#nhkcmoggpy .gt_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nhkcmoggpy .gt_first_summary_row {
+  border-top-style: solid;
+  border-top-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_first_summary_row.thick {
+  border-top-width: 2px;
+}
+
+#nhkcmoggpy .gt_last_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_grand_summary_row {
+  color: #333333;
+  background-color: #FFFFFF;
+  text-transform: inherit;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nhkcmoggpy .gt_first_grand_summary_row {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-top-style: double;
+  border-top-width: 6px;
+  border-top-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_last_grand_summary_row_top {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-bottom-style: double;
+  border-bottom-width: 6px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_striped {
+  background-color: rgba(128, 128, 128, 0.05);
+}
+
+#nhkcmoggpy .gt_table_body {
+  border-top-style: solid;
+  border-top-width: 2px;
+  border-top-color: #D3D3D3;
+  border-bottom-style: solid;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_footnotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_footnote {
+  margin: 0px;
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nhkcmoggpy .gt_sourcenotes {
+  color: #333333;
+  background-color: #FFFFFF;
+  border-bottom-style: none;
+  border-bottom-width: 2px;
+  border-bottom-color: #D3D3D3;
+  border-left-style: none;
+  border-left-width: 2px;
+  border-left-color: #D3D3D3;
+  border-right-style: none;
+  border-right-width: 2px;
+  border-right-color: #D3D3D3;
+}
+
+#nhkcmoggpy .gt_sourcenote {
+  font-size: 90%;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+#nhkcmoggpy .gt_left {
+  text-align: left;
+}
+
+#nhkcmoggpy .gt_center {
+  text-align: center;
+}
+
+#nhkcmoggpy .gt_right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#nhkcmoggpy .gt_font_normal {
+  font-weight: normal;
+}
+
+#nhkcmoggpy .gt_font_bold {
+  font-weight: bold;
+}
+
+#nhkcmoggpy .gt_font_italic {
+  font-style: italic;
+}
+
+#nhkcmoggpy .gt_super {
+  font-size: 65%;
+}
+
+#nhkcmoggpy .gt_footnote_marks {
+  font-size: 75%;
+  vertical-align: 0.4em;
+  position: initial;
+}
+
+#nhkcmoggpy .gt_asterisk {
+  font-size: 100%;
+  vertical-align: 0;
+}
+
+#nhkcmoggpy .gt_indent_1 {
+  text-indent: 5px;
+}
+
+#nhkcmoggpy .gt_indent_2 {
+  text-indent: 10px;
+}
+
+#nhkcmoggpy .gt_indent_3 {
+  text-indent: 15px;
+}
+
+#nhkcmoggpy .gt_indent_4 {
+  text-indent: 20px;
+}
+
+#nhkcmoggpy .gt_indent_5 {
+  text-indent: 25px;
+}
+
+#nhkcmoggpy .katex-display {
+  display: inline-flex !important;
+  margin-bottom: 0.75em !important;
+}
+
+#nhkcmoggpy div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+  height: 0px !important;
+}
+</style>
+
+<table class="gt_table cell caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="state" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">state</th>
+<th id="year" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">year</th>
+<th id="cigsale" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">cigsale</th>
+<th id="lnincome" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">lnincome</th>
+<th id="beer" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">beer</th>
+<th id="age15to24" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">age15to24</th>
+<th id="retprice" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">retprice</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="state">Rhode Island</td>
+<td class="gt_row gt_right" headers="year">1970</td>
+<td class="gt_row gt_right" headers="cigsale">123.9</td>
+<td class="gt_row gt_right" headers="lnincome">NA</td>
+<td class="gt_row gt_right" headers="beer">NA</td>
+<td class="gt_row gt_right" headers="age15to24">0.1831579</td>
+<td class="gt_row gt_right" headers="retprice">39.3</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="state">Tennessee</td>
+<td class="gt_row gt_right" headers="year">1970</td>
+<td class="gt_row gt_right" headers="cigsale">99.8</td>
+<td class="gt_row gt_right" headers="lnincome">NA</td>
+<td class="gt_row gt_right" headers="beer">NA</td>
+<td class="gt_row gt_right" headers="age15to24">0.1780438</td>
+<td class="gt_row gt_right" headers="retprice">39.9</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="state">Indiana</td>
+<td class="gt_row gt_right" headers="year">1970</td>
+<td class="gt_row gt_right" headers="cigsale">134.6</td>
+<td class="gt_row gt_right" headers="lnincome">NA</td>
+<td class="gt_row gt_right" headers="beer">NA</td>
+<td class="gt_row gt_right" headers="age15to24">0.1765159</td>
+<td class="gt_row gt_right" headers="retprice">30.6</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="state">Nevada</td>
+<td class="gt_row gt_right" headers="year">1970</td>
+<td class="gt_row gt_right" headers="cigsale">189.5</td>
+<td class="gt_row gt_right" headers="lnincome">NA</td>
+<td class="gt_row gt_right" headers="beer">NA</td>
+<td class="gt_row gt_right" headers="age15to24">0.1615542</td>
+<td class="gt_row gt_right" headers="retprice">38.9</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="state">Louisiana</td>
+<td class="gt_row gt_right" headers="year">1970</td>
+<td class="gt_row gt_right" headers="cigsale">115.9</td>
+<td class="gt_row gt_right" headers="lnincome">NA</td>
+<td class="gt_row gt_right" headers="beer">NA</td>
+<td class="gt_row gt_right" headers="age15to24">0.1851852</td>
+<td class="gt_row gt_right" headers="retprice">34.3</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</figure>
+</div>
+</div>
+<section id="preparing-the-binary-treatment-indicator" class="level3">
+<h3 class="anchored" data-anchor-id="preparing-the-binary-treatment-indicator">Preparing the Binary Treatment Indicator</h3>
+<p>As in all coresynth estimators, <code>scm_fit()</code> requires a binary treatment column that equals <code>1</code> for the treated unit in the post-treatment period, and <code>0</code> otherwise:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1">smoking <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> smoking <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb4-2">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mutate</span>(</span>
+<span id="cb4-3">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">treated =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">if_else</span>(state <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">==</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"California"</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> year <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1989</span>, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span>L, <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0</span>L)</span>
+<span id="cb4-4">  )</span></code></pre></div></div>
+</div>
+<p>Because California enacted the policy starting in 1989, <code>treated</code> is <code>1</code> exclusively for California for years 1989 through 2000.</p>
+</section>
+</section>
+<section id="estimation-with-scm_fit" class="level2">
+<h2 class="anchored" data-anchor-id="estimation-with-scm_fit">Estimation with <code>scm_fit()</code></h2>
+<p>In coresynth, you invoke SDID simply by setting <code>method = "sdid"</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1">core_sdid <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb5-2">  cigsale <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> treated <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> state <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> year,</span>
+<span id="cb5-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> smoking,</span>
+<span id="cb5-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span></span>
+<span id="cb5-5">)</span></code></pre></div></div>
+<p>The model formula is specified in the form <code>outcome ~ treated | unit + time</code>.</p>
+<section id="speed-benchmark-coresynth-vs.-synthdid" class="level3">
+<h3 class="anchored" data-anchor-id="speed-benchmark-coresynth-vs.-synthdid">Speed Benchmark: {coresynth} vs.&nbsp;{synthdid}</h3>
+<p>We benchmark coresynth’s execution speed against {synthdid} for the full estimation and leave-one-out placebo inference routine across all donors:</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" aria-controls="tabset-1-1" aria-selected="true" href="">{coresynth}</a></li><li class="nav-item"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" aria-controls="tabset-1-2" aria-selected="false" href="">{synthdid}</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" aria-labelledby="tabset-1-1-tab">
+<p>Here we run <code>scm_fit()</code> and immediately calculate the full placebo distribution via <code>sdid_inference()</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1">core_sdid <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb6-2">  cigsale <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> treated <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> state <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> year,</span>
+<span id="cb6-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> smoking,</span>
+<span id="cb6-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span></span>
+<span id="cb6-5">)</span>
+<span id="cb6-6">core_placebo <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"placebo"</span>)</span></code></pre></div></div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>0.039 sec elapsed</code></pre>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" aria-labelledby="tabset-1-2-tab">
+<p>For comparison, here is the equivalent specification implemented in {synthdid} (note that <code>synthdid::panel.matrices()</code> requires a base <code>data.frame</code> rather than a <code>tibble</code> so that column subsetting returns a vector):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1">setup <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> synthdid<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">panel.matrices</span>(</span>
+<span id="cb8-2">  smoking <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-3">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">transmute</span>(</span>
+<span id="cb8-4">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">unit =</span> state,</span>
+<span id="cb8-5">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">time =</span> year,</span>
+<span id="cb8-6">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> cigsale,</span>
+<span id="cb8-7">      <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">treated =</span> treated</span>
+<span id="cb8-8">    ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span></span>
+<span id="cb8-9">    <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.data.frame</span>()</span>
+<span id="cb8-10">)</span>
+<span id="cb8-11">sdid_est <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> synthdid<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">synthdid_estimate</span>(setup<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>Y, setup<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>N0, setup<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>T0)</span>
+<span id="cb8-12">sdid_se_plac <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> synthdid<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">synthdid_se</span>(sdid_est, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"placebo"</span>)</span></code></pre></div></div>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>32.12 sec elapsed</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>In this comparison, coresynth finishes in <strong>0.04 seconds</strong>, whereas synthdid takes <strong>32.12 seconds</strong>—a <strong>803.0× speedup</strong>.</p>
+<p>When running extensive sensitivity analyses, computing bootstrap standard errors, or testing multiple candidate donor pools, waiting for slow estimations quickly adds up. This efficiency gain was a core motivation behind developing coresynth.</p>
+</section>
+<section id="inspecting-the-model-summary" class="level3">
+<h3 class="anchored" data-anchor-id="inspecting-the-model-summary">Inspecting the Model Summary</h3>
+<p>Calling <code>summary()</code> on a fitted SDID model prints the essential estimation metrics, including the pre/post period lengths, the estimated Average Treatment Effect on the Treated (ATT), and the active donor unit weights:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(core_sdid)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== coresynth summary ===
+Method : SDID 
+Periods : T_pre = 19 | T_post = 12 
+ATT estimate: -15.60459 
+Unit weights (non-zero donors):
+      Colorado    Connecticut       Delaware        Georgia          Idaho 
+        0.0574         0.0784         0.0704         0.0020         0.0315 
+      Illinois        Indiana           Iowa         Kansas          Maine 
+        0.0535         0.0103         0.0262         0.0218         0.0283 
+     Minnesota       Missouri        Montana       Nebraska         Nevada 
+        0.0397         0.0081         0.0452         0.0481         0.1242 
+ New Hampshire     New Mexico North Carolina           Ohio   Pennsylvania 
+        0.1046         0.0407         0.0326         0.0317         0.0157 
+  Rhode Island   South Dakota          Texas           Utah  West Virginia 
+        0.0013         0.0043         0.0101         0.0417         0.0338 
+     Wisconsin        Wyoming 
+        0.0369         0.0015 </code></pre>
+</div>
+</div>
+<p>The estimated ATT indicates that Proposition 99 reduced California’s cigarette consumption by approximately <strong>15.6 packs per capita per year</strong>, corroborating the primary findings of <span class="citation" data-cites="arkhangelsky_synthetic_2021">Arkhangelsky et al. (2021)</span>. Notice how this compares with standard SCM (<img src="https://latex.codecogs.com/png.latex?%5Capprox%20-19.0"> packs) and standard DID (<img src="https://latex.codecogs.com/png.latex?%5Capprox%20-27.3"> packs): SDID accommodates level shifts while matching pre-treatment slopes.</p>
+</section>
+</section>
+<section id="visualizing-trends-level-alignment-and-weights" class="level2">
+<h2 class="anchored" data-anchor-id="visualizing-trends-level-alignment-and-weights">Visualizing Trends, Level Alignment, and Weights</h2>
+<p>Visualizing results is important for credible causal inference. In SDID, counterfactual visualization requires extra care because the estimator incorporates an intercept shift and time weights.</p>
+<section id="raw-trajectory-vs.-level-aligned-plot-align-true" class="level3">
+<h3 class="anchored" data-anchor-id="raw-trajectory-vs.-level-aligned-plot-align-true">Raw Trajectory vs.&nbsp;Level-Aligned Plot (<code>align = TRUE</code>)</h3>
+<p>In standard SCM, the synthetic control directly matches the treated unit’s pre-treatment level. In SDID, however, units match trends up to a free intercept shift. Consequently, a raw trajectory plot (<code>align = FALSE</code>, default) displays the synthetic series at its unadjusted level.</p>
+<p>By specifying <code>align = TRUE</code>, coresynth offsets the synthetic series by the <img src="https://latex.codecogs.com/png.latex?%5Chat%5Clambda">-weighted pre-period gap. Under this alignment, the post-treatment visual gap between the two lines corresponds <strong>exactly</strong> to the SDID treatment effect (<img src="https://latex.codecogs.com/png.latex?%5Chat%5Ctau%5E%7B%5Ctext%7Bsdid%7D%7D">):</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" aria-controls="tabset-2-1" aria-selected="true" href="">Level-Aligned Trend (<code>align = TRUE</code>)</a></li><li class="nav-item"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" aria-controls="tabset-2-2" aria-selected="false" href="">Raw Trend (<code>align = FALSE</code>)</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" aria-labelledby="tabset-2-1-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">align =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/en/posts/coresynth_sdid/index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The synthetic California series is vertically shifted so that the pre-treatment time-weighted baseline matches California, making the post-1988 divergence immediately interpretable as the causal effect.</p>
+</div>
+<div id="tabset-2-2" class="tab-pane" aria-labelledby="tabset-2-2-tab">
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">align =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">FALSE</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/en/posts/coresynth_sdid/index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The raw plot illustrates the actual unadjusted levels of the synthetic composite compared to California, highlighting the presence of a baseline level difference that SDID effectively absorbs.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="gap-plot" class="level3">
+<h3 class="anchored" data-anchor-id="gap-plot">Gap Plot</h3>
+<p>The gap plot (<code>type = "gap"</code>) plots the estimated treatment effect over time:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"gap"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">align =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/en/posts/coresynth_sdid/index_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>With <code>align = TRUE</code>, the pre-treatment gap fluctuates closely around zero, and the post-treatment line confirms the steady decrease in cigarette sales following the policy adoption.</p>
+</section>
+<section id="inspecting-unit-and-time-weights" class="level3">
+<h3 class="anchored" data-anchor-id="inspecting-unit-and-time-weights">Inspecting Unit and Time Weights</h3>
+<p>A key feature of SDID is that it solves for both unit weights (<img src="https://latex.codecogs.com/png.latex?%5Chat%5Comega_i">) and pre-treatment time weights (<img src="https://latex.codecogs.com/png.latex?%5Chat%5Clambda_t">). Calling <code>plot(..., type = "weights")</code> on an SDID object generates a two-panel chart displaying both weight vectors:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"weights"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/en/posts/coresynth_sdid/index_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The top panel illustrates which donor states carry positive weight in constructing the synthetic counterfactual (e.g., Utah, Montana, Nevada). The bottom panel displays the time weights <img src="https://latex.codecogs.com/png.latex?%5Chat%5Clambda_t">, showing how recent pre-treatment years (such as 1987–1988) are prioritized to best match the trajectory leading up to the intervention.</p>
+</section>
+<section id="overlaying-donor-trajectories-show_donors" class="level3">
+<h3 class="anchored" data-anchor-id="overlaying-donor-trajectories-show_donors">Overlaying Donor Trajectories (<code>show_donors</code>)</h3>
+<p>To assess whether the synthetic control is interpolating plausibly among donor units, you can pass <code>show_donors = N</code> to draw the raw trajectories of the top <img src="https://latex.codecogs.com/png.latex?N"> donor states as thin background lines:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">align =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">show_donors =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/en/posts/coresynth_sdid/index_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="customizing-plots-with-ggplot2" class="level3">
+<h3 class="anchored" data-anchor-id="customizing-plots-with-ggplot2">Customizing Plots with ggplot2</h3>
+<p>Because all coresynth plots are standard <code>ggplot2</code> objects, you can easily customize styling, labels, colors, and line types using native ggplot2 grammar. For details on all arguments supported in <code>plot()</code>, see <code>?plot.coresynth</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(</span>
+<span id="cb17-2">  core_sdid,</span>
+<span id="cb17-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>,</span>
+<span id="cb17-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">align =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>,</span>
+<span id="cb17-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">colors =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">treated =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"darkblue"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">synthetic =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"firebrick"</span>),</span>
+<span id="cb17-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">labels =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">treated =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"California (Observed)"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">synthetic =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"SDID Counterfactual"</span>),</span>
+<span id="cb17-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">linetypes =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">treated =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"solid"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">synthetic =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dashed"</span>),</span>
+<span id="cb17-8">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">list</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">color =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"black"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">linetype =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"dotted"</span>),</span>
+<span id="cb17-9">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">vline_offset =</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb17-10">) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb17-11">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">labs</span>(</span>
+<span id="cb17-12">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">title =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Cigarette Sales in California vs. Synthetic DID Counterfactual"</span>,</span>
+<span id="cb17-13">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">subtitle =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Proposition 99 Tobacco Control Program (1988)"</span>,</span>
+<span id="cb17-14">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">x =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span>,</span>
+<span id="cb17-15">    <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">y =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Packs per Capita"</span></span>
+<span id="cb17-16">  ) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb17-17">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme_minimal</span>() <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb17-18">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">theme</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">legend.position =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bottom"</span>)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/en/posts/coresynth_sdid/index_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="statistical-inference-with-sdid_inference" class="level2">
+<h2 class="anchored" data-anchor-id="statistical-inference-with-sdid_inference">Statistical Inference with <code>sdid_inference()</code></h2>
+<p>Quantifying statistical uncertainty is essential for credible causal evaluation. While SCM relied almost exclusively on permutation placebo tests <span class="citation" data-cites="abadie_synthetic_2010">(Abadie et al. 2010)</span>, SDID provides a framework with multiple inference methods <span class="citation" data-cites="arkhangelsky_synthetic_2021 clarke_synthetic_2024">(Arkhangelsky et al. 2021; Clarke et al. 2024)</span>.</p>
+<p>In coresynth, statistical inference is unified under <code>sdid_inference()</code>. The function provides four primary inferential methods:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(</span>
+<span id="cb18-2">  fit,</span>
+<span id="cb18-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method      =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"placebo"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bootstrap"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"jackknife"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"jackknife_global"</span>),</span>
+<span id="cb18-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_boot      =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>L,</span>
+<span id="cb18-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">level       =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>,</span>
+<span id="cb18-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">alternative =</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(<span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"two.sided"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"greater"</span>, <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"less"</span>),</span>
+<span id="cb18-7">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed        =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">NULL</span></span>
+<span id="cb18-8">)</span></code></pre></div></div>
+<section id="choosing-the-right-inference-method" class="level3">
+<h3 class="anchored" data-anchor-id="choosing-the-right-inference-method">Choosing the Right Inference Method</h3>
+<p>The appropriate choice of inference method depends primarily on the design of your study and the questions being asked:</p>
+<ul>
+<li><strong>Single Treated Unit (<img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Btr%7D%7D%20=%201">)</strong>: When only one unit is treated (as in our California study), donor resampling alone cannot vary the treated unit’s idiosyncratic time-series shocks. In this setting, <strong>use <code>method = "placebo"</code></strong> or <strong>Conformal Inference</strong> (<code>conformal_inference()</code>) to construct empirical benchmarks for hypothesis testing.</li>
+<li><strong>Assessing Donor Selection Uncertainty</strong>: The control bootstrap (<code>method = "bootstrap"</code>) or jackknife (<code>method = "jackknife"</code>) assesses sampling variability across the donor pool by resampling or dropping control units while holding the treated unit trajectories fixed.</li>
+<li><strong>Staggered Adoption (<img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Btr%7D%7D%20%5Cge%202"> across cohorts)</strong>: For roll-out designs where units adopt treatment at different times, use <code>method = "jackknife_global"</code> to account for cross-cohort covariance across the entire panel.</li>
+<li><strong>Distribution-Free Assumption</strong>: For finite-sample validity without parametric noise assumptions, use <strong>Conformal Inference</strong> via <code>conformal_inference()</code>.</li>
+</ul>
+</section>
+<section id="placebo-permutation-inference-method-placebo" class="level3">
+<h3 class="anchored" data-anchor-id="placebo-permutation-inference-method-placebo">1. Placebo Permutation Inference (<code>method = "placebo"</code>)</h3>
+<p>For California Proposition 99, where <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Btr%7D%7D%20=%201">, we employ the in-space placebo permutation procedure (Algorithm 4 of <span class="citation" data-cites="clarke_synthetic_2024">Clarke et al. (2024)</span> and <span class="citation" data-cites="arkhangelsky_synthetic_2021">Arkhangelsky et al. (2021)</span>). Treatment is iteratively reassigned to each donor state to construct the empirical null distribution:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1">inf_placebo <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"placebo"</span>)</span>
+<span id="cb19-2">inf_placebo</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>SDID Inference (placebo, alternative = two.sided)
+  Estimate  : -15.6046 
+  SE        : 9.3619 
+  p-value   : 0.1026 
+  CI        : [-33.9536, 2.7444]
+  Controls  : 38 </code></pre>
+</div>
+</div>
+<p><code>inf_placebo$p_value</code> reports the two-sided permutation <img src="https://latex.codecogs.com/png.latex?p">-value. Additionally, <code>sdid_inference()</code> calculates the standard error as the standard deviation of the placebo distribution, alongside a normal-approximation 95% confidence interval (<code>ci_lower</code> and <code>ci_upper</code>).</p>
+<p>Notice that because the placebo standard error assumes the treated unit’s noise variance is comparable to that of the donor units, it should be interpreted thoughtfully when donor pools are modest in size.</p>
+</section>
+<section id="unit-bootstrap-method-bootstrap" class="level3">
+<h3 class="anchored" data-anchor-id="unit-bootstrap-method-bootstrap">2. Unit Bootstrap (<code>method = "bootstrap"</code>)</h3>
+<p>In coresynth, <code>method = "bootstrap"</code> implements a donor bootstrap that draws <img src="https://latex.codecogs.com/png.latex?N_%7B%5Ctext%7Bco%7D%7D"> control units with replacement from the donor pool while holding the treated series fixed, re-estimating unit weights <img src="https://latex.codecogs.com/png.latex?%5Chat%5Comega"> and time weights <img src="https://latex.codecogs.com/png.latex?%5Chat%5Clambda"> on each replicate. This evaluates standard errors and confidence intervals driven by donor-pool composition and weight uncertainty.</p>
+<p>To illustrate how multi-unit inference operates in coresynth, let’s generate a synthetic panel with 4 treated units and 20 control units:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">set.seed</span>(<span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span>)</span>
+<span id="cb21-2">multi_panel <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">expand.grid</span>(<span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">unit =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">24</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">year =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1990</span><span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">:</span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2010</span>)</span>
+<span id="cb21-3">multi_panel<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>treated <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">as.integer</span>(multi_panel<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>unit <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&lt;=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">4</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&amp;</span> multi_panel<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>year <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;=</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2002</span>)</span>
+<span id="cb21-4">multi_panel<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>y <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> multi_panel<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>unit <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1.5</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.8</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> (multi_panel<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>year <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1990</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span></span>
+<span id="cb21-5">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rnorm</span>(<span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">nrow</span>(multi_panel), <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">sd =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.5</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">-</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2.5</span> <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">*</span> multi_panel<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>treated</span>
+<span id="cb21-6"></span>
+<span id="cb21-7">fit_multi <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> treated <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> unit <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> year, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> multi_panel, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>)</span></code></pre></div></div>
+</div>
+<p>Now we execute the bootstrap with <code>n_boot = 200</code>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1">inf_boot <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(fit_multi, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"bootstrap"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_boot =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">200</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">123</span>)</span>
+<span id="cb22-2">inf_boot<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>se</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1223251</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1">inf_boot<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 1.537641e-105</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(inf_boot<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_lower, inf_boot<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_upper)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -2.966984 -2.467841</code></pre>
+</div>
+</div>
+</section>
+<section id="jackknife-variance-estimation-method-jackknife" class="level3">
+<h3 class="anchored" data-anchor-id="jackknife-variance-estimation-method-jackknife">3. Jackknife Variance Estimation (<code>method = "jackknife"</code>)</h3>
+<p>The jackknife drops one control unit at a time from the donor pool and recomputes the SDID estimator while holding the treated series fixed. Because it evaluates sensitivity to individual donor exclusions and avoids large quadratic programs, it runs almost instantaneously:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1">inf_jack <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_inference</span>(fit_multi, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"jackknife"</span>)</span>
+<span id="cb28-2">inf_jack<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>se</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.09577276</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1">inf_jack<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 6.531321e-171</code></pre>
+</div>
+</div>
+<p>For staggered adoption panels, <code>method = "jackknife_global"</code> drops each unit from the entire multi-cohort panel simultaneously, correctly preserving the covariance between cohorts.</p>
+</section>
+<section id="conformal-inference-conformal_inference" class="level3">
+<h3 class="anchored" data-anchor-id="conformal-inference-conformal_inference">4. Conformal Inference (<code>conformal_inference()</code>)</h3>
+<p>If you prefer hypothesis tests with exact finite-sample guarantees that avoid asymptotic approximations, coresynth provides Conformal Inference based on <span class="citation" data-cites="chernozhukov_exact_2021">Chernozhukov et al. (2021)</span>. It constructs a moving-block permutation test under the null hypothesis of no treatment effect:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1">conf_res <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">conformal_inference</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">level =</span> <span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">0.95</span>)</span>
+<span id="cb32-2">conf_res<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>p_value</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.2903226</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">c</span>(conf_res<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_lower, conf_res<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>ci_upper)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] -27.129516  -4.079668</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="dynamic-effects-event-studies-sdid_event_study" class="level2">
+<h2 class="anchored" data-anchor-id="dynamic-effects-event-studies-sdid_event_study">Dynamic Effects &amp; Event Studies: <code>sdid_event_study()</code></h2>
+<blockquote class="blockquote">
+<p>[!NOTE] <code>sdid_event_study()</code> is currently available only in the development version of coresynth (<code>pak::pak("yo5uke/coresynth")</code>).</p>
+</blockquote>
+<p>Researchers often want to inspect dynamic treatment trajectories—confirming that pre-treatment coefficients are indistinguishable from zero (pre-trend check) while tracing out how effects unfold post-intervention.</p>
+<p>coresynth provides the dedicated <code>sdid_event_study()</code> function for this purpose. It computes period-by-period treatment effects aligned on the <img src="https://latex.codecogs.com/png.latex?%5Chat%5Clambda">-weighted pre-treatment baseline. Crucially, the post-treatment average of the period-specific coefficients equals the aggregate SDID ATT (<code>fit$estimate</code>) <strong>exactly</strong>:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb36" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1">es_res <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sdid_event_study</span>(</span>
+<span id="cb36-2">  fit_multi,</span>
+<span id="cb36-3">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">n_boot =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">100</span>,</span>
+<span id="cb36-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">seed =</span> <span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">42</span></span>
+<span id="cb36-5">)</span>
+<span id="cb36-6">es_res</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== SDID Event Study (unit bootstrap, 24 units) ===
+  ATT Estimate : -2.669 
+  ATT SE       : 0.1135 
+  p-value      : &lt; 1e-04 
+  95% CI (norm): [-2.8914, -2.4466]
+  95% CI (pct) : [-2.9837, -2.5178]
+  Bootstrap    : 98 valid / 100 requested (2 discarded)
+
+Period-by-period effects (lambda-aligned; post-period mean = ATT):
+ time period estimate     se ci_norm_lower ci_norm_upper ci_pct_lower
+ 1990    pre   0.1855 0.2316       -0.2684        0.6395      -0.3647
+ 1991    pre   0.0835 0.3335       -0.5703        0.7372      -0.3977
+ 1992    pre  -0.0831 0.1697       -0.4157        0.2496      -0.3478
+ 1993    pre  -0.0381 0.2502       -0.5286        0.4523      -0.6192
+ 1994    pre  -0.1628 0.2465       -0.6460        0.3203      -0.6895
+ 1995    pre  -0.3078 0.1822       -0.6649        0.0493      -0.7070
+ 1996    pre   0.0934 0.1906       -0.2801        0.4670      -0.2366
+ 1997    pre   0.2562 0.1660       -0.0691        0.5815      -0.0919
+ 1998    pre  -0.0985 0.2764       -0.6403        0.4433      -0.7148
+ 1999    pre   0.0612 0.2430       -0.4150        0.5374      -0.2661
+ 2000    pre   0.3969 0.2307       -0.0552        0.8490      -0.0666
+ 2001    pre   0.1075 0.1336       -0.1543        0.3694      -0.1182
+ 2002   post  -2.7456 0.2947       -3.3232       -2.1680      -3.4195
+ 2003   post  -2.6668 0.1871       -3.0334       -2.3001      -3.0655
+ 2004   post  -2.9553 0.1733       -3.2949       -2.6156      -3.3258
+ 2005   post  -2.9730 0.1599       -3.2864       -2.6595      -3.2839
+ 2006   post  -2.5753 0.1357       -2.8413       -2.3094      -2.8663
+ 2007   post  -2.5470 0.4140       -3.3584       -1.7355      -3.4072
+ 2008   post  -2.5930 0.2884       -3.1583       -2.0276      -3.1925
+ 2009   post  -1.8374 0.3323       -2.4887       -1.1861      -2.4329
+ 2010   post  -3.1276 0.2292       -3.5768       -2.6784      -3.5492
+ ci_pct_upper
+       0.5440
+       0.8012
+       0.2906
+       0.3748
+       0.2228
+      -0.0154
+       0.5352
+       0.5942
+       0.3260
+       0.6190
+       0.7993
+       0.4177
+      -2.2548
+      -2.3392
+      -2.6547
+      -2.7004
+      -2.3832
+      -1.7256
+      -2.2045
+      -1.1699
+      -2.6808</code></pre>
+</div>
+</div>
+<section id="visualizing-the-event-study" class="level3">
+<h3 class="anchored" data-anchor-id="visualizing-the-event-study">Visualizing the Event Study</h3>
+<p>You can plot the event-study trajectory directly using the S3 <code>plot()</code> method:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot</span>(es_res)</span></code></pre></div></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="https://yo5uke.com/en/posts/coresynth_sdid/index_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The resulting figure displays period-specific point estimates accompanied by confidence interval bands. The pre-treatment periods center closely around zero, validating the pre-trend fit, while the post-treatment drop vividly illustrates the causal effect over time.</p>
+</section>
+<section id="cluster-bootstrap-support" class="level3">
+<h3 class="anchored" data-anchor-id="cluster-bootstrap-support">Cluster Bootstrap Support</h3>
+<p>If units belong to geographical clusters (such as districts within states or prefectures), you can pass <code>cluster = "cluster_var"</code> and <code>data = panel_df</code> to <code>sdid_event_study()</code>. The function will perform block-cluster resampling of entire clusters with replacement, ensuring valid inference even in the presence of arbitrary intra-cluster correlation.</p>
+</section>
+</section>
+<section id="advanced-topics" class="level2">
+<h2 class="anchored" data-anchor-id="advanced-topics">Advanced Topics</h2>
+<section id="time-varying-covariates" class="level3">
+<h3 class="anchored" data-anchor-id="time-varying-covariates">Time-Varying Covariates</h3>
+<p>SDID supports adjusting for time-varying confounders via the <code>covariates</code> argument. Following <span class="citation" data-cites="clarke_synthetic_2024">Clarke et al. (2024)</span> and <span class="citation" data-cites="arkhangelsky_synthetic_2021">Arkhangelsky et al. (2021)</span>, covariates are residualized out of the outcome using two-way fixed effects before computing the unit and time weights:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Example with time-varying covariates (e.g., retail price)</span></span>
+<span id="cb39-2">fit_cov <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb39-3">  cigsale <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> treated <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> state <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> year,</span>
+<span id="cb39-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> smoking,</span>
+<span id="cb39-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>,</span>
+<span id="cb39-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">covariates =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"retprice"</span></span>
+<span id="cb39-7">)</span>
+<span id="cb39-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">summary</span>(fit_cov)</span></code></pre></div></div>
+</section>
+<section id="staggered-adoption" class="level3">
+<h3 class="anchored" data-anchor-id="staggered-adoption">Staggered Adoption</h3>
+<p>When different units receive treatment at different points in time, coresynth automatically detects the staggered timing and applies the cohort aggregation framework of <span class="citation" data-cites="clarke_synthetic_2024">Clarke et al. (2024)</span>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Staggered adoption SDID fit</span></span>
+<span id="cb40-2">fit_stagg <span class="ot" style="color: #003B4F;
+background-color: null;
+font-style: inherit;">&lt;-</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scm_fit</span>(</span>
+<span id="cb40-3">  y <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">~</span> treated <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|</span> unit <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">+</span> year,</span>
+<span id="cb40-4">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">data =</span> staggered_panel,</span>
+<span id="cb40-5">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">method =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid"</span>,</span>
+<span id="cb40-6">  <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">control_group =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"never_treated"</span> <span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Default in v1.0.0+</span></span>
+<span id="cb40-7">)</span>
+<span id="cb40-8">fit_stagg<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">$</span>cohort_estimates</span></code></pre></div></div>
+<p>In coresynth 1.0.0 and later, <code>control_group = "never_treated"</code> is the default, ensuring that only pure, never-treated units serve as donors for each adoption cohort to prevent contamination from future adopters.</p>
+</section>
+</section>
+<section id="tidy-ecosystem-integration-json-export" class="level2">
+<h2 class="anchored" data-anchor-id="tidy-ecosystem-integration-json-export">Tidy Ecosystem Integration &amp; JSON Export</h2>
+<p>To ensure smooth integration into reproducible research pipelines, coresynth fully supports {broom} tidying methods and structured JSON serialization:</p>
+<section id="broom-integration-tidy-and-glance" class="level3">
+<h3 class="anchored" data-anchor-id="broom-integration-tidy-and-glance">Broom Integration: <code>tidy()</code> and <code>glance()</code></h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1">broom<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">tidy</span>(inf_placebo)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  term  estimate std.error statistic   p.value  conf.low conf.high  method
+1  ATT -15.60459  9.361917 -1.666816 0.1025641 -33.95361  2.744429 placebo
+  alternative n_controls staggered
+1   two.sided         38     FALSE</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1">broom<span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">::</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">glance</span>(inf_placebo)</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   method n_controls staggered  estimate std.error   p.value  conf.low
+1 placebo         38     FALSE -15.60459  9.361917 0.1025641 -33.95361
+  conf.high alternative n_boot_valid
+1  2.744429   two.sided           NA</code></pre>
+</div>
+</div>
+</section>
+<section id="extracting-tidy-data-via-plot_data" class="level3">
+<h3 class="anchored" data-anchor-id="extracting-tidy-data-via-plot_data">Extracting Tidy Data via <code>plot_data()</code></h3>
+<p>If you wish to create fully custom visualizations in ggplot2 or export tabular summaries, <code>plot_data()</code> provides raw data frames:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Extract aligned trend data</span></span>
+<span id="cb45-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_data</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"trend"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">align =</span> <span class="cn" style="color: #8f5902;
+background-color: null;
+font-style: inherit;">TRUE</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">head</span>()</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  time value  series
+1 1970 123.0 Treated
+2 1971 121.0 Treated
+3 1972 123.5 Treated
+4 1973 124.4 Treated
+5 1974 126.7 Treated
+6 1975 127.1 Treated</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;"># Extract unit and time weights</span></span>
+<span id="cb47-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">plot_data</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">type =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"weights"</span>) <span class="sc" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">|&gt;</span> <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">head</span>()</span></code></pre></div></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         unit      weight panel
+1     Alabama 0.000000000 omega
+2    Arkansas 0.000000000 omega
+3    Colorado 0.057429525 omega
+4 Connecticut 0.078401014 omega
+5    Delaware 0.070446947 omega
+6     Georgia 0.001986351 omega</code></pre>
+</div>
+</div>
+</section>
+<section id="exporting-results-to-json" class="level3">
+<h3 class="anchored" data-anchor-id="exporting-results-to-json">Exporting Results to JSON</h3>
+<p>For cross-language pipelines (e.g., Python, dashboards) and archiving, use <code>export_json()</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49" style="background: #f1f3f5;"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">export_json</span>(core_sdid, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">file =</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"sdid_results.json"</span>, <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">inference =</span> inf_placebo)</span></code></pre></div></div>
+</section>
+</section>
+<section id="summary-feedback" class="level2">
+<h2 class="anchored" data-anchor-id="summary-feedback">Summary &amp; Feedback</h2>
+<p>Synthetic Difference-in-Differences is an estimator that addresses the weaknesses of both standard DID and classical SCM. With <code>{coresynth}</code>, running SDID is as simple as writing a standard regression formula, backed by fast C++ optimization, along with versatile tools for inference and visualization.</p>
+<p>I hope coresynth helps accelerate your causal inference workflow.</p>
+<p>If you have any questions, encounter bugs, or would like to request new features, please feel free to open an issue on the <a href="https://github.com/yo5uke/coresynth/issues">GitHub Repository</a> or reach out on <a href="https://x.com/5uke_y">X (@5uke_y)</a>!</p>
+
+
+<!-- -->
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="ref-abadie_synthetic_2010" class="csl-entry">
+Abadie, Alberto, Alexis Diamond, and Jens Hainmueller. 2010. "Synthetic Control Methods for Comparative Case Studies: Estimating the Effect of <span>California</span>’s Tobacco Control Program". <em>Journal of the American Statistical Association</em> 105 (490): 493–505. <a href="https://doi.org/10.1198/jasa.2009.ap08746">https://doi.org/10.1198/jasa.2009.ap08746</a>.
+</div>
+<div id="ref-arkhangelsky_synthetic_2021" class="csl-entry">
+Arkhangelsky, Dmitry, Susan Athey, David A. Hirshberg, Guido W. Imbens, and Stefan Wager. 2021. "Synthetic Difference-in-Differences". <em>American Economic Review</em> 111 (12): 4088–118. <a href="https://doi.org/10.1257/aer.20190159">https://doi.org/10.1257/aer.20190159</a>.
+</div>
+<div id="ref-chernozhukov_exact_2021" class="csl-entry">
+Chernozhukov, Victor, Kaspar Wüthrich, and Yinchu Zhu. 2021. "An Exact and Robust Conformal Inference Method for Counterfactual and Synthetic Controls". <em>Journal of the American Statistical Association</em> 116 (536): 1849–64. <a href="https://doi.org/10.1080/01621459.2021.1920957">https://doi.org/10.1080/01621459.2021.1920957</a>.
+</div>
+<div id="ref-clarke_synthetic_2024" class="csl-entry">
+Clarke, Damian, Daniel Pailañir, Susan Athey, and Guido Imbens. 2024. "On Synthetic Difference-in-Differences and Related Estimation Methods in <span>Stata</span>". <em>The Stata Journal</em> 24 (4): 557–98. <a href="https://doi.org/10.1177/1536867X241297914">https://doi.org/10.1177/1536867X241297914</a>.
+</div>
+</div></section></div> ]]></description>
+  <category>R</category>
+  <guid>https://yo5uke.com/en/posts/coresynth_sdid/</guid>
+  <pubDate>Sun, 08 Nov 2026 15:00:00 GMT</pubDate>
+  <media:content url="https://yo5uke.com/en/posts/coresynth_sdid/image/thumbnail.png" medium="image" type="image/png" height="72" width="144"/>
+</item>
 <item>
   <title>Implementing the Synthetic Control Method in R with {coresynth}</title>
   <link>https://yo5uke.com/en/posts/coresynth_scm/</link>
