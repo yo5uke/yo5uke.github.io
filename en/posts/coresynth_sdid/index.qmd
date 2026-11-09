@@ -2,7 +2,7 @@
 title: "Implementing Synthetic Difference-in-Differences in R with {coresynth}"
 description: |
   A guide to implementing Synthetic Difference-in-Differences in R using the high-performance {coresynth} package.
-date: 2026-11-07
+date: 2026-11-09
 format:
   html:
     default-image-extension: ""
@@ -39,7 +39,7 @@ Mathematically, the SDID treatment effect for a single treated unit is expressed
 
 $$\hat{\tau}^{\text{sdid}} = \left( \bar{Y}_{\text{post}}^{\text{tr}} - \sum_{t=1}^{T_{\text{pre}}} \hat{\lambda}_t Y_{1t} \right) - \sum_{i \in \text{control}} \hat{\omega}_i \left( \bar{Y}_{\text{post}, i} - \sum_{t=1}^{T_{\text{pre}}} \hat{\lambda}_t Y_{it} \right)$$
 
-where $\bar{Y}_{\text{post}}^{\text{tr}}$ is the post-treatment average of the treated unit, and $\bar{Y}_{\text{post}, i}$ is the post-treatment average of control unit $i$.
+where $\bar{Y}_{\text{post}}^{\text{tr}}$ is the post-treatment average of the treated unit, $Y_{1t}$ is the treated unit's outcome at pre-treatment time $t$, and $\bar{Y}_{\text{post}, i}$ is the post-treatment average of control unit $i$.
 
 ## Why Use {coresynth} for SDID?
 
@@ -49,7 +49,7 @@ The {coresynth} package is designed and implemented in C++ via `RcppArmadillo` t
 
 - **⚡ Fast Coordinate Descent & Factor-Form Solvers**: In coresynth 1.0.0 and above, SDID unit weights are computed directly in factor form rather than forming and decomposing the dense $N \times N$ donor Gram matrix. This makes estimation and inference routines **5–10× faster** on panels with many donors.
 - **🧩 Unified Interface**: Run SDID alongside SCM, Generalized Synthetic Control (GSC), Matrix Completion (MC), Time-Aware Synthetic Control (TASC), and Synthetic Interventions (SI) through the exact same `scm_fit()` formula syntax.
-- **📊 Inference**: Native support for placebo permutation tests, unit bootstrap, jackknife, global jackknife (for staggered designs), conformal inference, and period-by-period event studies.
+- **📊 Inference**: Native support for placebo permutation tests, unit bootstrap, jackknife, global jackknife (for staggered designs), conformal inference, and dynamic event studies (available in development version).
 - **📈 Diagnostics**: Unified `plot()` methods with level-alignment (`align = TRUE`), donor path overlays (`show_donors`), and dual-panel weight visualizations.
 
 ## Setup & Installation
@@ -150,7 +150,7 @@ time_coresynth <- sprintf(
 
 ## {synthdid}
 
-For comparison, here is the equivalent specification implemented in {synthdid}:
+For comparison, here is the equivalent specification implemented in {synthdid} (note that `synthdid::panel.matrices()` requires a base `data.frame` rather than a `tibble` so that column subsetting returns a vector):
 
 ```r
 setup <- synthdid::panel.matrices(
@@ -160,7 +160,8 @@ setup <- synthdid::panel.matrices(
       time = year,
       y = cigsale,
       treated = treated
-    )
+    ) |>
+    as.data.frame()
 )
 sdid_est <- synthdid::synthdid_estimate(setup$Y, setup$N0, setup$T0)
 sdid_se_plac <- synthdid::synthdid_se(sdid_est, method = "placebo")
@@ -176,7 +177,8 @@ setup <- synthdid::panel.matrices(
       time = year,
       y = cigsale,
       treated = treated
-    )
+    ) |>
+    as.data.frame()
 )
 sdid_est <- synthdid::synthdid_estimate(setup$Y, setup$N0, setup$T0)
 sdid_se_plac <- synthdid::synthdid_se(sdid_est, method = "placebo")
@@ -306,11 +308,11 @@ sdid_inference(
 
 ### Choosing the Right Inference Method
 
-The appropriate choice of inference method depends primarily on the structure of your treated group:
+The appropriate choice of inference method depends primarily on the design of your study and the questions being asked:
 
-- **Single Treated Unit ($N_{\text{tr}} = 1$)**: When only one unit is treated (as in our California study), unit resampling cannot vary the treated unit's idiosyncratic noise. In this setting, the jackknife is undefined and the unit bootstrap will underestimate variance. **Use `method = "placebo"`**.
-- **Multiple Treated Units ($N_{\text{tr}} \ge 2$)**: When multiple units adopt treatment simultaneously, the unit bootstrap (`method = "bootstrap"`) or jackknife (`method = "jackknife"`) accounts for sampling variation across both treated and control units.
-- **Staggered Adoption ($N_{\text{tr}} \ge 2$ across cohorts)**: For roll-out designs where units adopt treatment at different times, use `method = "jackknife_global"` to account for cross-cohort covariance.
+- **Single Treated Unit ($N_{\text{tr}} = 1$)**: When only one unit is treated (as in our California study), donor resampling alone cannot vary the treated unit's idiosyncratic time-series shocks. In this setting, **use `method = "placebo"`** or **Conformal Inference** (`conformal_inference()`) to construct empirical benchmarks for hypothesis testing.
+- **Assessing Donor Selection Uncertainty**: The control bootstrap (`method = "bootstrap"`) or jackknife (`method = "jackknife"`) assesses sampling variability across the donor pool by resampling or dropping control units while holding the treated unit trajectories fixed.
+- **Staggered Adoption ($N_{\text{tr}} \ge 2$ across cohorts)**: For roll-out designs where units adopt treatment at different times, use `method = "jackknife_global"` to account for cross-cohort covariance across the entire panel.
 - **Distribution-Free Assumption**: For finite-sample validity without parametric noise assumptions, use **Conformal Inference** via `conformal_inference()`.
 
 ### 1. Placebo Permutation Inference (`method = "placebo"`)
@@ -328,7 +330,7 @@ Notice that because the placebo standard error assumes the treated unit's noise 
 
 ### 2. Unit Bootstrap (`method = "bootstrap"`)
 
-When your panel includes multiple treated units, `method = "bootstrap"` implements Algorithm 2 of @arkhangelsky_synthetic_2021. It draws $N$ units with replacement from the entire panel (both treated and control) and re-estimates the entire model—including unit weights $\hat\omega$, time weights $\hat\lambda$, and regularization penalties—on every replicate.
+In coresynth, `method = "bootstrap"` implements a donor bootstrap that draws $N_{\text{co}}$ control units with replacement from the donor pool while holding the treated series fixed, re-estimating unit weights $\hat\omega$ and time weights $\hat\lambda$ on each replicate. This evaluates standard errors and confidence intervals driven by donor-pool composition and weight uncertainty.
 
 To illustrate how multi-unit inference operates in coresynth, let's generate a synthetic panel with 4 treated units and 20 control units:
 
@@ -353,7 +355,7 @@ c(inf_boot$ci_lower, inf_boot$ci_upper)
 
 ### 3. Jackknife Variance Estimation (`method = "jackknife"`)
 
-The jackknife (Algorithm 3 of @arkhangelsky_synthetic_2021) drops one unit at a time from the panel and recomputes the weighted difference-in-differences estimator while holding the fitted weights $\hat\omega$ and $\hat\lambda$ fixed. Because it avoids re-solving the quadratic programming problem on each iteration, it runs almost instantaneously:
+The jackknife drops one control unit at a time from the donor pool and recomputes the SDID estimator while holding the treated series fixed. Because it evaluates sensitivity to individual donor exclusions and avoids large quadratic programs, it runs almost instantaneously:
 
 ```{r}
 inf_jack <- sdid_inference(fit_multi, method = "jackknife")
@@ -375,6 +377,9 @@ c(conf_res$ci_lower, conf_res$ci_upper)
 
 ## Dynamic Effects & Event Studies: `sdid_event_study()`
 
+> [!NOTE]
+> `sdid_event_study()` is currently available only in the development version of coresynth (`pak::pak("yo5uke/coresynth")`).
+
 Researchers often want to inspect dynamic treatment trajectories—confirming that pre-treatment coefficients are indistinguishable from zero (pre-trend check) while tracing out how effects unfold post-intervention.
 
 coresynth provides the dedicated `sdid_event_study()` function for this purpose. It computes period-by-period treatment effects aligned on the $\hat\lambda$-weighted pre-treatment baseline. Crucially, the post-treatment average of the period-specific coefficients equals the aggregate SDID ATT (`fit$estimate`) **exactly**:
@@ -392,7 +397,7 @@ es_res
 
 You can plot the event-study trajectory directly using the S3 `plot()` method:
 
-```r
+```{r}
 plot(es_res)
 ```
 
@@ -409,12 +414,12 @@ If units belong to geographical clusters (such as districts within states or pre
 SDID supports adjusting for time-varying confounders via the `covariates` argument. Following @clarke_synthetic_2024 and @arkhangelsky_synthetic_2021, covariates are residualized out of the outcome using two-way fixed effects before computing the unit and time weights:
 
 ```r
-# Example with time-varying covariates
+# Example with time-varying covariates (e.g., retail price)
 fit_cov <- scm_fit(
   cigsale ~ treated | state + year,
   data = smoking,
   method = "sdid",
-  covariates = c("lnincome", "retprice")
+  covariates = "retprice"
 )
 summary(fit_cov)
 ```
