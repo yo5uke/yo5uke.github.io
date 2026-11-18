@@ -3,7 +3,7 @@ title: 【パッケージ開発】[coresynth]{.fira-code}で合成コントロ�
 description: |
   C++実装による高速化と6つの手法を統一インターフェースで提供します。
 date: 2026-06-01
-date-modified: 2026-07-18
+date-modified: 2026-11-18
 format:
   html:
     default-image-extension: ""
@@ -60,11 +60,12 @@ image: image/thumbnail.png
 | 推論手法 | 対応推定量 | 関数 |
 |:---------|:-----------|:-----|
 | プラセボテスト（Sharp） | `scm` | `mspe_ratio_pval()` |
-| 重み付き乗数（Wild）Bootstrap（Staggered） | `scm` | `scm_inference()` |
+| ランクに基づく置換検定（処置ユニットが複数） | `scm` | `scm_rank_pval()` |
+| Jackknife / 重み付き乗数（Wild）Bootstrap（Staggered） | `scm` | `scm_inference()` |
 | プラセボ / Bootstrap / Jackknife | `sdid` | `sdid_inference()` |
-| パラメトリックBootstrap | `gsc` | `gsc_boot()` |
-| ノンパラメトリックBootstrap / Jackknife | `gsc` | `gsc_inference()` |
-| Bootstrap / Jackknife | `si` | `si_inference()` |
+| 残差Bootstrap（処置ユニットが少ない場合） | `gsc` | `gsc_boot()` |
+| ユニットのBootstrap / Jackknife | `gsc` | `gsc_inference()` |
+| ユニットのBootstrap / Jackknife | `si` | `si_inference()` |
 | Conformal推論（CWZ 2021） | `scm`, `sdid`, `gsc`, `mc`, `si` | `conformal_inference()` |
 
 ## インストール
@@ -135,15 +136,19 @@ scm_fit(
   formula,
   data,
   method = c("scm", "sdid", "gsc", "mc", "tasc", "si"),
+  ...,
   predictors = NULL,
   covariates = NULL,
   v_selection = c("insample", "oos"),
   donor_mspe_threshold = Inf,
   lambda_pen = NULL,
-  v_optim = c("coord_descent", "auto", "bfgs"),
+  v_optim = c("auto", "coord_descent", "bfgs", "multistart"),
+  qp_solver = c("auto", "active_set", "wolfe"),
+  v_window = NULL,
   nu = NULL,
-  fixedeff = FALSE,
-  ...
+  fixedeff = NULL,
+  pool_cohorts = TRUE,
+  weights = NULL
 )
 ```
 
@@ -153,13 +158,17 @@ scm_fit(
 | `data` | ロング形式のデータフレーム（1行 = 1ユニット×1時点） |
 | `method` | 推定手法の選択（`"scm"`, `"sdid"`, `"gsc"`, `"mc"`, `"tasc"`, `"si"`） |
 | `predictors` | SCM用の予測変数リスト（`pred()`で指定）。`NULL`の場合は処置前アウトカムの**各時点**をそのまま予測変数として使用（期間平均ではない） |
-| `covariates` | 時変共変量の列名（`"sdid"`, `"scm"`, `"gsc"`でサポート） |
+| `covariates` | 時変共変量の列名（`"sdid"`, `"gsc"`、およびStaggeredな`"scm"`でサポート）。SharpなSCMでは受け付けず、`predictors`で指定します |
 | `v_selection` | SCM用のV行列選択方法。`"insample"`（デフォルト）または @abadie_using_2021 の`"oos"` |
 | `donor_mspe_threshold` | ドナープール絞り込みの閾値（SCMのみ。デフォルト`Inf`で無効） |
 | `lambda_pen` | ペナルティSCMのペナルティパラメータ（SCMのみ。`NULL`で通常SCM、`"auto"`で自動選択） |
-| `v_optim` | V外部最適化の手法。`"coord_descent"`（デフォルト）、`"bfgs"`、`"auto"` |
-| `nu` | Staggered SCM用のPartial Pooling強度 [@ben-michael_synthetic_2022]（SCM・Staggeredのみ）。`NULL`（デフォルト）はコホート別にV最適化する従来挙動、`[0, 1]`の数値はコホート別不整合とプール不整合の凸結合を最小化（`0`で従来のコホート別SCM、`1`で完全プール）、`"auto"`は論文のヒューリスティックで自動選択。`donor_mspe_threshold`・`lambda_pen`・`v_selection = "oos"`とは併用不可 |
-| `fixedeff` | Staggered SCMで各ユニットをコホート内の処置前平均で中心化してから推定するか（SCM・Staggeredのみ。デフォルト`FALSE`）。`TRUE`にすると重み付きDIDに近い推定量になり、水準がユニット間で異なる場合にフィットが改善しやすい |
+| `v_optim` | V外部最適化の手法（SCMのみ）。`"auto"`（デフォルト）は、予測変数を指定したフィットでは多出発点探索の`"multistart"`、処置前アウトカムのみを使うフィットでは`"coord_descent"`を選びます。`"bfgs"`は非推奨です |
+| `qp_solver` | 内側の二次計画問題のソルバー（SCMのみ）。`"auto"`（デフォルト）、`"wolfe"`、`"active_set"` |
+| `v_window` | V最適化で当てはまりを評価する処置前の時点（SharpなSCMのみ）。`NULL`（デフォルト）は処置前全期間 |
+| `nu` | Staggered SCM用のPartial Pooling強度 [@ben-michael_synthetic_2022]（SCM・Staggeredのみ）。デフォルトは`"auto"`（論文のヒューリスティックで自動選択）。`[0, 1]`の数値はコホート別不整合とプール不整合の凸結合を最小化（`0`でコホート別、`1`で完全プール）、`"separate"`はコホート別にV最適化する従来のパスです。`donor_mspe_threshold`・`lambda_pen`・`v_selection = "oos"`を指定すると`"separate"`になります |
+| `fixedeff` | 加法的な水準項。Staggered SCMでは各ユニットをコホート内の処置前平均で中心化してから推定します（デフォルト`TRUE`）。重み付きDIDに近い推定量になり、水準がユニット間で異なる場合にフィットが改善します。`"mc"`ではユニット・時点の固定効果をペナルティの外で推定します（デフォルト`TRUE`） |
+| `pool_cohorts` | Staggered SCMで、同じ時点に処置を受けたユニットを1つのブロックに平均してからウェイトを推定するか（デフォルト`TRUE`）。`FALSE`にするとユニットごとにウェイトを推定し、`scm_rank_pval()`で必要になります |
+| `weights` | SCMで、処置ユニットが集計ATTに占める重みを表す名前付きベクトル。`NULL`（デフォルト）は等ウェイトです |
 : {tbl-colwidths="[25,75]"}
 
 `predictors = NULL` は「処置前を1期ずつ合わせる」設定です。処置前全期間の平均で合わせたい場合は、`pred(..., op = "mean")` を明示的に指定します。
@@ -282,7 +291,7 @@ plot_trends(smoking_out)
 
 # 以下、coresynthで同じ分析を実行
 panel <- smoking |>
-  mutate(d = if_else(state == "California" & year >= 1988, 1L, 0L))
+  mutate(d = if_else(state == "California" & year >= 1989, 1L, 0L))
 
 fit_scm_smoking <- scm_fit(
   cigsale ~ d | state + year,
@@ -319,7 +328,9 @@ fit_gsc <- scm_fit(y ~ d | id + time, data = dat, method = "gsc")
 print(fit_gsc)
 ```
 
-GSCは時変共変量の調整を `covariates` 引数でサポートしています（`data`の列名を文字ベクトルで指定）。内部では @xu_generalized_2017 の完全EMアルゴリズム（E-step：因子モデルのSVD、M-step：残差への共変量OLS）を実行します。
+因子数`r`は、指定しなければ @xu_generalized_2017 のAlgorithm 1に従い、処置前期間の1期除外クロスバリデーションで選ばれます。加法的な固定効果は`force`（`"none"`、`"unit"`、`"time"`、`"two-way"`）で加えられます。
+
+GSCは時変共変量の調整を `covariates` 引数でサポートしています（`data`の列名を文字ベクトルで指定）。内部では、対照ユニットから Bai (2009) の反復（特異値分解による因子の抽出と、共変量の係数の推定を交互に実行）で因子と係数を推定します。
 
 ### MC（`method = "mc"`）
 
@@ -328,7 +339,7 @@ fit_mc <- scm_fit(y ~ d | id + time, data = dat, method = "mc")
 print(fit_mc)
 ```
 
-核ノルム正則化による行列補完（Soft-Impute）で反事実を推定します。
+核ノルム正則化による行列補完（Soft-Impute）で反事実を推定します。ユニットと時点の固定効果はペナルティの外で推定され（`fixedeff = TRUE`、デフォルト）、ペナルティの大きさ`lambda`は指定しなければK分割クロスバリデーションで選ばれます。
 
 ### TASC（`method = "tasc"`）
 
@@ -337,7 +348,7 @@ fit_tasc <- scm_fit(y ~ d | id + time, data = dat, method = "tasc")
 print(fit_tasc)
 ```
 
-カルマンEMによる時間考慮型合成コントロール [@rho_time-aware_2026] です。
+カルマンフィルタと厳密なEMアルゴリズムによる時間考慮型合成コントロール [@rho_time-aware_2026] です。観測方程式には各ユニットの切片が含まれます（`intercept = TRUE`、デフォルト）。
 
 ### SI（`method = "si"`）
 
@@ -390,8 +401,8 @@ fit_sdid_s$cohort_estimates
 
 `control_group` 引数でドナープールを制御できます（`scm`/`sdid`/`gsc`/`si`のみ）。
 
-- `"clean"`（デフォルト）：never-treated + future adoptersをドナーとして使用 [@clarke_synthetic_2024]
-- `"never_treated"`：never-treatedのみを使用
+- `"never_treated"`（デフォルト）：never-treatedのみをドナーとして使用 [@clarke_synthetic_2024]
+- `"clean"`（非推奨）：never-treated + future adoptersをドナーとして使用。future adoptersの処置後の値が反事実の推定に混入するため、非推奨です
 
 ``` r
 fit_sdid_never <- scm_fit(
@@ -404,14 +415,14 @@ fit_sdid_never <- scm_fit(
 
 ### SCMのPartial PoolingとFixed Effects（`nu`, `fixedeff`）
 
-Staggered SCM（`method = "scm"`）は、コホート別にV最適化する従来の挙動に加えて、`nu`引数でコホート間の情報をプールできます [@ben-michael_synthetic_2022]。`nu`は`[0, 1]`の数値（`0`＝従来の個別コホートSCM、`1`＝完全プール）か`"auto"`（論文のヒューリスティックで自動選択）を指定します。`fixedeff = TRUE`にすると各ユニットをコホート内の処置前平均で中心化してから推定し、水準差を吸収する重み付きDIDに近い推定量になります。
+Staggered SCM（`method = "scm"`）は、`nu`引数でコホート間の情報をプールします [@ben-michael_synthetic_2022]。`nu`は`[0, 1]`の数値（`0`＝コホートごとに別々、`1`＝完全プール）か、デフォルトの`"auto"`（論文のヒューリスティックで自動選択）を指定します。`"separate"`を指定すると、コホート別にV最適化する従来のパスで推定します。`fixedeff`（Staggered SCMではデフォルトで`TRUE`）は、各ユニットをコホート内の処置前平均で中心化してから推定するもので、水準差を吸収する重み付きDIDに近い推定量になります。
 
 ```{r}
 fit_scm_pooled <- scm_fit(
   y ~ d | id + time,
-  data     = dat_s,
-  method   = "scm",
-  nu       = "auto",
+  data = dat_s,
+  method = "scm",
+  nu = "auto",
   fixedeff = TRUE
 )
 fit_scm_pooled$estimate
@@ -424,16 +435,16 @@ Staggered SCM専用の推論関数として`scm_inference()`も用意されて�
 
 ## `plot()`
 
-`plot()` で3種類のプロットを出力できます。
+`plot()` で4種類のプロットを出力できます。
 
 ``` r
-plot(fit, type = c("trend", "gap", "weights", "pred-weights"))
+plot(fit, type = c("trend", "gap", "weights", "pred_weights"))
 ```
 
 - `"trend"`：処置ユニット vs. 合成コントロールの時系列
 - `"gap"`：処置効果の時系列（$Y_{\text{treated}} - Y_{\text{synthetic}}$）
 - `"weights"`：ドナーユニットのウェイト棒グラフ（SCM・SDID・SI）
-- `"pred-weights"`：予測変数のウェイト棒グラフ（SCMのみ）
+- `"pred_weights"`：予測変数のウェイト棒グラフ（SCMのみ）
 
 ### Trend プロット
 
@@ -498,7 +509,11 @@ plot(fit_sdid, type = "trend", align = TRUE, show_donors = 10)
 ```
 
 ```{r}
-plot(fit_scm, colors = c(treated = "blue", synthetic = "red"), labels = c(treated = "California", synthetic = "Synthetic Control"))
+plot(
+  fit_scm,
+  colors = c(treated = "blue", synthetic = "red"),
+  labels = c(treated = "California", synthetic = "Synthetic Control")
+)
 ```
 
 ### ggplotとの互換性
@@ -521,10 +536,11 @@ plot(fit_scm, type = "trend") +
 ### どの推論を使うか
 
 - SCM（Sharp）でドナー単位のプラセボ比較を行いたい：`mspe_ratio_pval()`
-- SCM（Staggered）でWild Bootstrap推論を使いたい：`scm_inference()`
+- SCMで処置ユニットが複数ある場合にランクに基づく置換検定を使いたい：`scm_rank_pval()`
+- SCM（Staggered）でJackknifeまたはWild Bootstrap推論を使いたい：`scm_inference()`
 - SDIDで標準的な推論（placebo / bootstrap / jackknife）を使いたい：`sdid_inference()`
-- GSCの因子モデルに合わせたパラメトリック推論を使いたい：`gsc_boot()`
-- GSC/SIでノンパラメトリック推論を使いたい：`gsc_inference()`, `si_inference()`
+- GSCで処置ユニットが少ない場合に、因子モデルの残差をリサンプリングする推論を使いたい：`gsc_boot()`
+- GSC/SIで処置ユニットをリサンプリングする推論（処置ユニットが2つ以上必要）を使いたい：`gsc_inference()`, `si_inference()`
 - `scm`/`sdid`/`gsc`/`mc`/`si`のシャープフィットで置換ベースの区間推論を使いたい：`conformal_inference()`
 
 ### SCM：プラセボテスト（`mspe_ratio_pval()`）
@@ -545,9 +561,13 @@ mspe_ratio_pval(
   max_iter       = 100L,
   tol            = 1e-4,
   use_covariates = NULL,  # NULL（デフォルト）は処置フィットの予測変数指定をプラセボにも適用
-  alternative    = c("two.sided", "greater", "less")
+  alternative    = c("two.sided", "greater", "less"),
+  mspe_prune     = Inf,   # 処置前MSPEが処置ユニットの何倍を超えるプラセボを除外するか
+  statistic      = c("ratio", "post_mspe")
 )
 ```
+
+`mspe_prune`は、処置前のMSPEが処置ユニットの指定倍数を超えるプラセボを分布から除きます。@abadie_synthetic_2010 は20倍・5倍・2倍を用いています。`statistic`は順位をつける統計量で、`"ratio"`（デフォルト）は処置後/処置前のMSPE比、`"post_mspe"`は処置後MSPEそのもの（有限の`mspe_prune`と併用）です。
 
 `use_covariates`は`NULL`がデフォルトです。`predictors`を指定したSCMフィットに対しては、各プラセボユニットも同じ予測変数指定で再推定されます（Abadie et al. 2010 / `Synth`の慣例：処置ユニットとプラセボの検定統計量を共通の仕様で計算）。outcomes-onlyのフィットでは高速なC++実装のプラセボループが使われ、挙動は変わりません。`TRUE`/`FALSE`で明示的にどちらかのパスを強制することもできますが、`FALSE`を共変量フィットに使うと、共変量ベースの処置統計量とoutcomes-onlyのプラセボ統計量を比較することになり、置換検定の交換可能性が崩れる点に注意してください。
 
@@ -574,12 +594,17 @@ loo <- loo_donors(fit_scm)
 loo$att_range
 ```
 
-### SCM（Staggered）：Wild Bootstrap推論（`scm_inference()`）
+### SCM（Staggered）：Jackknife・Wild Bootstrap推論（`scm_inference()`）
 
-Staggered SCMフィット専用の推論関数です。@ben-michael_synthetic_2022 §5.3の重み付き乗数（wild）ブートストラップに基づき、ドナーウェイトは固定したまま処置ユニットごとの効果寄与にゴールデン比の2値乗数（平均0・分散1）を掛けて再標本化します。Sharpフィットには使えません（`mspe_ratio_pval()`または`conformal_inference()`を使ってください）。
+Staggered SCMフィット専用の推論関数で、@ben-michael_synthetic_2022 の2つの手法を提供します。`method = "jackknife"`（デフォルト）は付録A.1のleave-one-unit-outで、処置ユニットもドナーも1つずつ除外してウェイトを推定し直し、集計ATTを再計算します。`method = "wild_bootstrap"`は§5.3の重み付き乗数（wild）ブートストラップで、ウェイトは固定したまま各ユニットの寄与にゴールデン比の2値乗数（平均0・分散1）を掛けて再標本化します。再推定が不要なので、ユニット数が多いパネルではこちらが現実的です。Sharpフィットには使えません（`mspe_ratio_pval()`または`conformal_inference()`を使ってください）。
 
 ```{r}
-inf_scm_s <- scm_inference(fit_scm_pooled, n_boot = 200, seed = 42)
+inf_scm_s <- scm_inference(
+  fit_scm_pooled,
+  method = "wild_bootstrap",
+  n_boot = 200,
+  seed = 42
+)
 inf_scm_s$p_value
 inf_scm_s$ci_lower
 inf_scm_s$ci_upper
@@ -588,7 +613,7 @@ inf_scm_s$ci_upper
 ``` r
 scm_inference(
   fit,
-  method      = "wild_bootstrap",
+  method      = c("jackknife", "wild_bootstrap"),
   n_boot      = 1000L,
   level       = 0.95,
   alternative = c("two.sided", "greater", "less"),
@@ -596,7 +621,7 @@ scm_inference(
 )
 ```
 
-Partial Pooling（`nu`）・Fixed Effects（`fixedeff`）どちらのパスにも対応しており、コホート集計ウェイト（$N_{\text{treated}} \times T_{\text{post}}$）も考慮されます。処置ユニット数が少ないとブートストラップの分布が粗くなるため、5ユニット未満では警告が出ます。
+Partial Pooling（`nu`）・Fixed Effects（`fixedeff`）どちらのパスにも対応しており、コホート集計ウェイト（$N_{\text{treated}} \times T_{\text{post}}$）も考慮されます。処置ユニット数が少ないと推論の信頼性が下がるため、処置ユニットが3つ未満の場合は警告が出ます。
 
 ### SDID：`sdid_inference()`
 
@@ -611,12 +636,14 @@ inf_sdid$ci_lower
 inf_sdid$ci_upper
 ```
 
-p値はプラセボ分布に基づく置換p値ですが、SEはプラセボ分布の分散 [@clarke_synthetic_2024 Algorithm 4]、CIはその正規近似です。処置ユニットのノイズがドナーと同程度であることを仮定しているため、ドナープールが小さい場合は解釈に注意してください。
+プラセボ検定では、処置ユニットを除いたうえで各ドナーを順に処置ユニットとみなし、ウェイトを含む推定量全体を再推定してプラセボ分布を作ります（処置ユニットが複数の場合は`n_boot`回のランダムな割り当て）。p値はプラセボ分布に基づく置換p値ですが、SEはプラセボ分布の分散 [@clarke_synthetic_2024 Algorithm 4]、CIはその正規近似です。処置ユニットのノイズがドナーと同程度であることを仮定しているため、ドナープールが小さい場合は解釈に注意してください。また、処置ユニット数よりドナー数が多い必要があります。
+
+ブートストラップとジャックナイフは、処置ユニットも含めてユニットをリサンプリング（ジャックナイフは1ユニットずつ除外）するため、**処置ユニットが2つ以上**必要です（1つの場合はエラーになり、`method = "placebo"`を案内されます）。ここでは処置ユニットが2つあるStaggeredのフィット（`fit_sdid_s`）を使います。ブートストラップは処置・対照を区別せずパネル全体から復元抽出し、そのたびにウェイトも含めて推定し直します [@clarke_synthetic_2024 Algorithm 2]。
 
 ```{r}
 # ブートストラップ（SE・CI付き）
 inf_sdid_boot <- sdid_inference(
-  fit_sdid,
+  fit_sdid_s,
   method = "bootstrap",
   n_boot = 200,
   seed = 42
@@ -639,7 +666,7 @@ sdid_inference(
 
 ### GSC：`gsc_boot()`
 
-@xu_generalized_2017 §3のパラメトリックBootstrapです。推定された因子モデルから帰無仮説下の分布を生成します。
+@xu_generalized_2017 のAlgorithm 2に基づく、推定された因子モデルの残差をリサンプリングするBootstrapです（処置効果のないパネルを推定値から作り直して再推定します）。残差は系列ごとリサンプリングして系列相関を保ち、対照ユニットには標本内残差、処置ユニットには対照ユニットを1つ処置ユニットとみなして除外した予測誤差を使います。リサンプリングできる処置ユニットが少ない場合に論文が推奨する方法で、処置ユニットが1つでも使えます。信頼区間は、推定値からBootstrap分布の分位点を引いて求めます。
 
 ```{r}
 inf_gsc <- gsc_boot(fit_gsc, B = 499, seed = 42)
@@ -657,12 +684,28 @@ gsc_boot(
 )
 ```
 
+### GSC：`gsc_inference()`
+
+処置ユニットと対照ユニットを別々にリサンプリングして推定し直すBootstrap、または1ユニットずつ除外するJackknifeです。SharpフィットにもStaggeredフィットにも使えます。処置ユニットをリサンプリングするため、処置ユニットが2つ以上必要です（1つの場合は`gsc_boot()`か`conformal_inference()`を使ってください）。Staggeredフィットで`method = "jackknife"`を使うには、各コホートに処置ユニットが2つ以上必要です。`method = "jackknife_global"`は、パネル全体から1ユニットずつ除外してコホート間の共分散を保ちます。
+
+``` r
+gsc_inference(
+  fit,
+  method      = c("bootstrap", "jackknife", "jackknife_global"),
+  n_boot      = 499L,
+  level       = 0.95,
+  alternative = c("two.sided", "greater", "less"),
+  seed        = NULL
+)
+```
+
 ### SI：`si_inference()`
 
-@agarwal_synthetic_interventions_2024 のノンパラメトリックBootstrap / Jackknife推論です。Staggeredフィットにも対応しています。
+@agarwal_synthetic_interventions_2024 に対して、`gsc_inference()`と同じ方式のユニットのBootstrap / Jackknife推論を提供します。Staggeredフィットにも対応しています。処置ユニットも含めてリサンプリングするため、処置ユニットが2つ以上必要です（1つの場合はエラーになります）。ここでは処置ユニットが2つある`dat_s`で推定し直します。
 
 ```{r}
-inf_si <- si_inference(fit_si, method = "bootstrap", n_boot = 499, seed = 42)
+fit_si_s <- scm_fit(y ~ d | id + time, data = dat_s, method = "si")
+inf_si <- si_inference(fit_si_s, method = "bootstrap", n_boot = 499, seed = 42)
 inf_si$p_value
 ```
 
@@ -712,13 +755,13 @@ conformal_inference(
 |:-----|:-----|
 | `fit` | `scm_fit()`の結果（`scm`/`sdid`/`gsc`/`mc`/`si`、シャープフィット） |
 | `tau0` | 報告するp値の帰無ATT（デフォルト：0） |
-| `q` | $S_q = (T_{\text{post}}^{-1}\sum\lvert u_t\rvert^q)^{1/q}$ の指数。2値フィットでのみ有効 |
+| `q` | $S_q = (T_{\text{post}}^{-1}\sum\lvert u_t\rvert^q)^{1/q}$ の指数。`alternative = "two.sided"`のときのみ使われ、片側検定では処置後残差の符号付き平均を使う |
 | `alternative` | 対立仮説の方向 |
 | `ci` | 信頼区間を構築するか（デフォルト：`TRUE`） |
 | `level` | 信頼水準（デフォルト：0.95） |
-| `grid` | 検定反転の候補$\tau_0$ベクトル。`NULL`の場合は自動設定 |
-| `n_grid` | グリッド点数（デフォルト：200） |
-| `grid_mult` | グリッド半幅の乗数（デフォルト：4） |
+| `grid` | 検定反転の候補$\tau_0$ベクトル。そのまま使われる。`NULL`の場合は推定値を中心に自動設定し、区間がグリッドの端に達する間は外側に広げる |
+| `n_grid` | 初期グリッドの点数（デフォルト：200） |
+| `grid_mult` | 初期グリッド半幅の乗数（処置前残差の標準偏差の何倍か。デフォルト：4） |
 : {tbl-colwidths="[25,75]"}
 
 ### `broom`・`modelsummary`との連携
