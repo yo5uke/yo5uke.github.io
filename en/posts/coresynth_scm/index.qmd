@@ -3,6 +3,7 @@ title: "Implementing the Synthetic Control Method in R with {coresynth}"
 description: |
   A comprehensive guide to estimating, plotting, and conducting placebo inference for the synthetic control method in R using the high-performance {coresynth} package.
 date: 2026-11-02
+date-modified: 2026-11-18
 format:
   html:
     default-image-extension: ""
@@ -27,7 +28,7 @@ coresynth is an open-source R package developed to implement the Synthetic Contr
 
 The core computational bottlenecks are implemented in C++ via `RcppArmadillo`. Consequently, coresynth runs significantly faster than traditional pure-R implementations. This speed advantage becomes particularly dramatic when analyzing datasets with large donor pools or running leave-one-out placebo tests across all units.
 
-For benchmark comparison, in a typical empirical setup where the classic {Synth} or {tidysynth} package takes around 15–20 seconds (including placebo runs), coresynth finishes the exact same routine in just a fraction of a second to a few seconds—often achieving substantial speedups depending on the number of predictor variables.
+For benchmark comparison, in a typical empirical setup where the classic {Synth} or {tidysynth} package takes around 15–20 seconds (including placebo runs), coresynth finishes the same routine in about a second, even though by default it runs a multi-start search over the predictor weights for every placebo run (see below). The size of the speedup depends on the number of predictor variables and donor units, and on your hardware.
 
 You might naturally wonder whether this performance boost comes at the cost of optimization accuracy. Across extensive multi-faceted validations against existing reference implementations, coresynth solves the underlying constrained convex optimization problem with high fidelity, reliably identifying global optimal weights.^[Strictly speaking, while both packages solve the same mathematical optimization problem, slight algorithmic differences in the search procedure can produce minor numerical variations. However, both target the identical objective function, and the resulting estimates are equally valid.]
 
